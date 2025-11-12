@@ -1,0 +1,89 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+@(Html.X()
+    .Window()
+    .Modal(true)
+    .Width(280)
+    .Title("ریست پسورد")
+    .ID("ResetPassWin")
+    .Closable(true)
+    .Resizable(false)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Layout(LayoutType.Fit)
+    .ButtonAlign(Ext.Net.Alignment.Center)
+    .Buttons(
+        X.Button()
+            .Text("ریست پسورد")
+            .Icon(Ext.Net.Icon.Disk)
+            .Listeners(l => l.Click.Handler = "ResetPassPersonal();"),
+        X.Button()
+            .Text("خروج")
+            .Icon(Ext.Net.Icon.DoorOut)
+            .OnClientClick("App.ResetPassWin.destroy()"))
+    .Items(
+        X.AntiForgeryField()
+                .ItemID("antiForgeryToken")
+                .Hidden(true),
+        X.Panel()
+            .Border(false)
+            .Layout(LayoutType.VBox)
+            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+            .Items(
+                X.FieldSet()
+                    .PaddingSpec("10px 0 0 0")
+                    .Border(false)
+                    .Layout(LayoutType.Table)
+                    .LayoutConfig(new TableLayoutConfig { Columns = 2 })
+                    .Items(
+                        X.Label("کد انحصاری:"),
+                        X.TextField()
+                            .ItemID("txtCodeEn")
+                            .AutoFocus(true)
+                            .AllowBlank(false)
+                            .MaskRe("/[0-9]/")
+                            .BlankText("لطفا کد انحصاری را وارد کنید.")
+                            .MaxLength(8)
+                            .MinLength(8)
+                            .EnforceMaxLength(true)
+                    )
+                )
+        )
+)
+
+<script type="text/javascript">
+    function ResetPassPersonal() {
+        if (App.ResetPassWin.queryById("txtCodeEn").validate() == false) {
+            return;
+        }
+        App.ResetPassWin.body.mask("در حال انجام عملیات...");
+        Ext.net.DirectMethod.request({
+            url: '/User/UpdatePassPersonal',
+            params: {
+                CodeEn: App.ResetPassWin.queryById("txtCodeEn").getValue(),
+                __RequestVerificationToken: App.ResetPassWin.queryById('antiForgeryToken').getValue()
+            },
+            success: function (data) {
+                var ic = Ext.MessageBox.INFO;
+                if (data.Er == 1) {
+                    ic = Ext.MessageBox.ERROR;
+                }
+                Ext.MessageBox.show({
+                    title: data.MsgTitle,
+                    msg: data.Msg,
+                    icon: ic,
+                    buttons: Ext.MessageBox.OK,
+                    fn: function (btn) {
+                        if (data.Er != 1 && btn == "ok") {
+                            App.ResetPassWin.destroy();
+                        }
+                    }
+                });
+                App.ResetPassWin.body.mask().hide();
+            }
+        });
+    }
+</script>

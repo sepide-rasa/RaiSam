@@ -1,0 +1,156 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+
+
+@(Html.X().Window().Modal(true).Listeners(li => { li.Render.Fn = "addKeyMapTransactionGroup"; li.AfterRender.Handler = "LoadTransactionGroup();"; })
+.Width(450)//.Height(300)
+    .Title("تعریف گروه تراکنش")
+                     .ID("NewTransactionGroup")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+        .ButtonAlign(Ext.Net.Alignment.Center)
+        .Buttons(X.Button().Text("ذخیره").Icon(Ext.Net.Icon.Disk)
+                    .Listeners(l =>
+                    {
+                        l.Click.Handler = "SaveTransactionGroup();";
+
+                    })
+                        .ItemID("btnSaveTransactionGroup")
+                    ,
+                    X.Button().Text("خروج").Icon(Ext.Net.Icon.DoorOut).ToolTip("کلید میانبر Esc")
+                        .OnClientClick("App.NewTransactionGroup.hide();"))
+    .Items(
+         X.AntiForgeryField()
+                .ItemID("antiForgeryToken").Hidden(true),
+            X.Panel().Border(false)
+            .Items(
+                X.FieldSet().Border(true).Title("گروه تراکنش")
+                .Center()
+                .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 2 })
+                .Defaults(new { Margin = 2 })
+                .Items(
+                X.Hidden().ItemID("fldId"),
+                     X.Label("عنوان گروه تراکنش:"),
+                     X.TextField()
+                     .Width(300)
+                     .ItemID("txtTitle")
+                    .MaxLength(100)
+                    .EnforceMaxLength(true)
+                    .AllowBlank(false)//.MaskRe("[1-9 ,),(,ا-ی-آ-ئ-ء]")
+                    .BlankText("لطفا عنوان را وارد کنید.")
+                    .AutoFocus(true)
+                        )
+
+                )
+                    .Layout(Ext.Net.LayoutType.VBox)
+                    .LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Center })
+        )
+)
+<script type="text/javascript">
+    function LoadTransactionGroup() {
+        ReplaceArabic();
+        if ('@ViewBag.Id' != '0') {
+            App.NewTransactionGroup.body.mask("در حال بارگذاری...");
+            Ext.net.DirectMethod.request({
+                url: '/TransactionGroup/Details',
+                params: {
+                    Id: '@ViewBag.Id',
+                    __RequestVerificationToken: App.NewTransactionGroup.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+                    var txtTitle = App.NewTransactionGroup.queryById('txtTitle');
+                    txtTitle.setValue(data.fldTitle);
+                    var Id = App.NewTransactionGroup.queryById('fldId');
+                    Id.setValue(data.fldId);
+                    App.NewTransactionGroup.body.mask().hide();
+                }
+            });
+        }
+        else {
+
+            App.NewTransactionGroup.queryById('txtTitle').validate();
+        }
+
+    }
+
+    function SaveTransactionGroup() {
+        var txtTitle = App.NewTransactionGroup.queryById('txtTitle');
+        var Id = App.NewTransactionGroup.queryById('fldId');
+            var er = false;
+            if (txtTitle.getValue().length < 2) {
+                Ext.MessageBox.show({
+                    Name: "خطا",
+                    msg: "تعداد کاراکتر عنوان وارد شده کمتر از حد مجاز میباشد.",
+                    icon: Ext.MessageBox.ERROR,
+                    buttons: Ext.MessageBox.OK
+                });
+                er = true;
+            }
+            if (txtTitle.validate() == false) {
+                er = true;
+            }
+            if (er == true)
+                return;
+            App.NewTransactionGroup.body.mask("در حال ذخیره سازی");
+            Ext.net.DirectMethod.request({
+                url: '/TransactionGroup/Save',
+                params: {
+                    fldId: Id.getValue(),
+                    fldName: txtTitle.getValue(),
+                    __RequestVerificationToken: App.NewTransactionGroup.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+
+                    var ic = Ext.MessageBox.INFO;
+                    if (data.Er == 1) {
+                        ic = Ext.MessageBox.ERROR;
+                    }
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: ic,
+                        buttons: Ext.MessageBox.OK
+                    });
+
+                    App.TransactionGroup.queryById('GridTransactionGroup').store.load();
+                    if (data.Er != 1)
+                        ClearTransactionGroup();
+                    App.NewTransactionGroup.body.mask().hide();
+                }
+
+            });
+        }
+    function ClearTransactionGroup() {
+        App.NewTransactionGroup.queryById('txtTitle').setValue("");
+        App.NewTransactionGroup.queryById('fldId').setValue(0);
+    }
+    var addKeyMapTransactionGroup = function (cmp) {
+        this.keyMap = new Ext.util.KeyMap({
+            target: cmp.getEl(),
+            binding: [{
+                key: [13, 9], /*Ext.EventObject.ENTER,*/
+                fn: function (key, e) {
+                    if (e.getKey() == 9) {
+                        e.stopEvent();
+                    }
+                    var keyfield = App.NewTransactionGroup.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+                    var nextfld;
+                    if (keyfield.itemId == "txtTitle") {
+                        nextfld = App.NewTransactionGroup.queryById('btnSaveTransactionGroup');
+                        SaveTransactionGroup();
+                        return;
+                    }
+                    else {
+                        nextfld = keyfield.nextSibling().nextSibling();
+                    }
+                    nextfld.focus();
+                    nextfld.selectText();
+                }
+            }]
+        });
+    }
+</script>

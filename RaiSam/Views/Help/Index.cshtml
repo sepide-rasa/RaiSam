@@ -1,0 +1,145 @@
+﻿@model RaiSam.Models.prs_tblHelpSelect
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+
+@{
+    var X = Html.X();
+}
+@(X.Panel()
+    .Title("راهنمای فرم ها")
+    .Border(false)
+        .ID("HelpFrom")
+    .Closable(true)
+    .AutoScroll(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+            .Listeners(li => li.AfterRender.Handler = "setHeightHelpFrom();")
+    .Items(
+            X.AntiForgeryField()
+                    .ItemID("antiForgeryToken")
+                    .Hidden(true),
+        X.Panel()
+            .Border(false)
+            .AutoScroll(true)
+            .Layout(Ext.Net.LayoutType.VBox)
+            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Stretch })
+            .Items(
+                X.GridPanel()
+                    .AutoScroll(true)
+                            .ItemID("GridHelpFrom")
+                    .BottomBar(X.PagingToolbar())
+                    .TopBar(
+                        Html.X().Toolbar()
+                            .Items(
+                                X.Button()
+                                    .Text("ویرایش")
+                                    .Icon(Ext.Net.Icon.Pencil)
+                                            .Listeners(li => li.Click.Handler = "EditHelpFrom();")
+                                                    , X.SplitButton()
+                                        .Text("راهنما")
+                                        .Icon(Ext.Net.Icon.Help)
+                                        .Menu(X.Menu()
+                                        .Items(
+                                        X.MenuItem()
+                                                    .Text("راهنما متنی")
+                                                    .Icon(Ext.Net.Icon.TextPaddingTop)
+                                                            .Listeners(l => l.Click.Handler = "HelpHelp()")
+                                                        .ItemID("btnshowHelpHelp"),
+                                            X.MenuItem()
+                                                    .Text("راهنما تصویری")
+                                                    .Icon(Ext.Net.Icon.PlayBlue)
+                                                            .Listeners(l => l.Click.Handler = "showHelp_VideoHelp()")
+
+                                    )
+                                    )
+                        )
+                    )
+                    .Store(
+                        X.StoreForModel()
+                                    .Listeners(l => l.BeforeLoad.Handler = "App.HelpFrom.queryById('GridHelpFrom').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.HelpFrom.queryById('antiForgeryToken').getValue());")
+                               .Listeners(l => l.DataChanged.Handler = "App.HelpFrom.queryById('GridHelpFrom').selModel.refresh();")
+                            .Proxy(Html.X().AjaxProxy()
+                                .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                .Url(Url.Action("Read"))
+                                .Reader(Html.X().JsonReader().Root("data"))
+                        )
+                            .PageSize(25)
+                            .RemoteFilter(true)
+                            .RemotePaging(true)
+                    )
+                    .ViewConfig(
+                        X.GridView()
+                            .LoadingText("در حال بارگذاری...").RTL(true)
+                    )
+                    .Plugins(X.FilterHeader().Remote(true))
+                    .ColumnModel(
+                        Html.X().RowNumbererColumn(),
+                        Html.X().Column().DataIndex(Model, m => m.fldId).Text("کد").Flex(1).Hidden(true),
+                            Html.X().Column().DataIndex(Model, m => m.fldFormName).Text("نام فرم").Flex(12),
+                                        Html.X().Column().DataIndex(Model, m => m.fldFileSize_PDF).Text("حجم فایل pdf").Flex(5),
+                                    Html.X().Column().DataIndex(Model, m => m.fldFileSize_Video).Text("حجم فایل تصویری").Flex(5)
+                    )
+                    .SelectionModel(
+                        Html.X().RowSelectionModel()
+                            .Mode(Ext.Net.SelectionMode.Single)
+                    )
+                )
+            )
+)
+
+<script type="text/javascript">
+    function HelpHelp() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Help/Help',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+    function showHelp_VideoHelp() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Help/VideoWinHelp',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+
+    }
+
+
+    function setHeightHelpFrom() {
+        App.HelpFrom.queryById('GridHelpFrom').setHeight(App.BasicInfWin.getHeight() - 83);
+        Ext.net.Mask.hide();
+    }
+
+    function EditHelpFrom() {
+        var SelectedRow = App.HelpFrom.queryById('GridHelpFrom').selModel.getLastSelected();
+        if (SelectedRow != null) {
+                Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+                Ext.net.DirectMethod.request({
+                    url: '/Help/New',
+                    params: {
+                        Id: SelectedRow.data.fldId,
+                        NameForm: SelectedRow.data.fldFormName,
+                    },
+                    success: function () {
+                        Ext.net.Mask.hide();
+                    }
+                });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+
+
+</script>
+

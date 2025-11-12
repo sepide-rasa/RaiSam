@@ -1,0 +1,257 @@
+﻿@model IEnumerable<RaiSam.Models.prs_tblTitleRatingDynamicSelect>
+@using Ext.Net.MVC;
+@{
+
+    var X = Html.X();
+}
+
+
+
+@(X.Panel().Border(false).Listeners(li => { li.AfterRender.Handler = "TitleRatingDynamicSetSize();"; })
+        .Title("تعریف عناوین مدارک داینامیک")
+                    .ID("TitleRatingDynamic")
+            .Closable(true)
+            .AutoScroll(true)
+            .CloseAction(Ext.Net.CloseAction.Destroy)
+                .Items(
+                     X.AntiForgeryField()
+                    .ItemID("antiForgeryToken")
+                    .Hidden(true),
+                X.Panel().Border(false)
+                .Border(false)
+                .AutoScroll(true)
+               
+                .Items(
+                        X.TabPanel().ID("TitleRatingDynamicTab")
+                        .AutoScroll(true)//.Height(540)
+                        .Items(
+                        X.Panel().ItemID("GridPanel")
+                                        .Title("عناوین مدارک داینامیک")
+                        .Items(
+                    X.GridPanel().AutoScroll(true)
+                        .TopBar(
+                        Html.X().Toolbar()
+                        .Items(
+                            X.Button().Text("جدید").Icon(Ext.Net.Icon.Add)
+                                                .Listeners(li => li.Click.Handler = "NewTitleRatingDynamic();"),
+                            X.Button().Text("ویرایش").Icon(Ext.Net.Icon.Pencil)
+                                                .Listeners(Li => Li.Click.Handler = "EditTitleRatingDynamic();"),
+                            X.Button().Text("حذف").Icon(Ext.Net.Icon.Delete)
+                                .Listeners(de =>
+                                {
+                                    de.Click.Handler = "if (App.TitleRatingDynamic.queryById('GridTitleRatingDynamic').selModel.getLastSelected() == null) {Ext.MessageBox.show({ title: 'خطا', msg: 'لطفا یک سطر را انتخاب کنید',icon: Ext.MessageBox.ERROR,buttons: Ext.MessageBox.OK});return false;}else DeleteTitleRatingDynamic();";
+                                })
+        //    , X.Button().Text("راهنما").Icon(Ext.Net.Icon.Help)
+        //.Listeners(de =>
+        //    {
+        //        de.Click.Handler = "HelpTitleRatingDynamic();";
+        //    })
+                                           ,
+                                            X.SplitButton()
+                                            .Text("راهنما")
+                                            .Icon(Ext.Net.Icon.Help)
+                                            .Menu(X.Menu()
+                                            .Items(
+                                            X.MenuItem()
+                                                .Text("راهنما متنی")
+                                                .Icon(Ext.Net.Icon.TextPaddingTop)
+                                                        .Listeners(l => l.Click.Handler = "HelpTitleRatingDynamic()"),
+                                                X.MenuItem()
+                                                        .Text("راهنما تصویری")
+                                                        .Icon(Ext.Net.Icon.PlayBlue)
+                                                                    .Listeners(l => l.Click.Handler = "showHelp_VideoTitleRatingDynamic()")
+                                        )
+                                    )
+                        )
+                    )
+                                    .ItemID("GridTitleRatingDynamic").Flex(2)
+                    .BottomBar(X.PagingToolbar())
+                    .Height(540)
+        //  .ColumnWidth(0.6)
+        //  .Layout(Ext.Net.LayoutType.Column)
+                                            .Listeners(l => l.AfterRender.Handler = "var grid=App.TitleRatingDynamic.queryById('GridTitleRatingDynamic');grid.setHeight(App.BasicInfWin.height-112);")
+                    .Store(
+                        X.StoreForModel()
+                                             .Listeners(l => l.BeforeLoad.Handler = "App.TitleRatingDynamic.queryById('GridTitleRatingDynamic').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.TitleRatingDynamic.queryById('antiForgeryToken').getValue());")
+                        
+                            .Proxy(Html.X().AjaxProxy()
+                                .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                            .Url(Url.Action("Read"))
+                            .Reader(Html.X().JsonReader().Root("data"))
+
+                        )
+                        .PageSize(20)
+                        .RemoteFilter(true)
+                        .RemotePaging(true)
+                     .Listeners(l => l.DataChanged.Handler = "App.TitleRatingDynamic.queryById('GridTitleRatingDynamic').selModel.refresh();")
+                    )
+                    .View(
+                        Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                    )
+                    .Plugins(X.FilterHeader().Remote(true))
+                           .Listeners(l =>
+                             {
+                                 l.AfterRender.Handler = "var grid = App.TitleRatingDynamic.queryById('GridTitleRatingDynamic');grid.setHeight(App.BasicInfWin.getHeight() - 83); ";
+
+                             })
+                    .ColumnModel(
+                                  Html.X().Column().DataIndex(Model, m => m.fldId).Text("کد").Flex(1),
+                                   Html.X().Column().DataIndex(Model, m => m.fldTitleFA).Text("عنوان فارسی").Flex(10),
+                               Html.X().Column().DataIndex(Model, m => m.fldTitleEN).Text("عنوان انگلیسی").Flex(2),
+                                    Html.X().Column().DataIndex(Model, m => m.fldTitleGeneral).Text("عنوان کلی").Flex(2),
+                                        Html.X().Column().DataIndex(Model, m => m.fldFormatName).Text("نوع فایل").Flex(2)/*,
+                               Html.X().Column().DataIndex(Model, m => m.fldDesc).Text("توضیحات").Flex(5)*/
+                    )
+                    .SelectionModel(
+                        Html.X().RowSelectionModel()
+                            .Mode(Ext.Net.SelectionMode.Single)
+                    )
+
+                ))
+            )
+        )
+)
+
+<script type="text/javascript">
+
+
+    function TitleRatingDynamicSetSize() {
+        App.TitleRatingDynamic.setWidth(App.BasicInfWin.getWidth());
+        var grid = App.TitleRatingDynamic.queryById('GridTitleRatingDynamic');
+        grid.setHeight(App.BasicInfWin.getHeight() - 83);
+        InsertToLog("عناوین مدارک داینامیک", 2, true);
+    }
+    function NewTitleRatingDynamic() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/TitleRatingDynamic/new',
+            params: {
+                id: 0
+            },
+            success: function () {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+    function EditTitleRatingDynamic() {
+        var SelectedRow = App.TitleRatingDynamic.queryById('GridTitleRatingDynamic').selModel.getLastSelected();
+
+        if (SelectedRow != null) {
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/TitleRatingDynamic/new',
+                params: {
+                    id: SelectedRow.data.fldId
+                },
+                success: function () {
+                    Ext.net.Mask.hide();
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+
+    function DeleteTitleRatingDynamic() {
+        var SelectedHeaderRow = App.TitleRatingDynamic.queryById('GridTitleRatingDynamic').selModel.getLastSelected();
+        if (SelectedHeaderRow != null) {
+            Ext.MessageBox.show({
+                title: "هشدار",
+                msg: "آیا برای حذف مطمئن هستید؟",
+                icon: Ext.MessageBox.WARNING,
+                buttons: Ext.MessageBox.YESNO,
+                fn: function (btn) {
+                    if (btn == 'yes') {
+                        Ext.net.DirectMethod.request({
+                            url: '/TitleRatingDynamic/Delete',
+                            params: {
+                                id: SelectedHeaderRow.data.fldId,
+                                TimeStamp: SelectedHeaderRow.data.fldTimeStamp,
+                                __RequestVerificationToken: App.TitleRatingDynamic.queryById('antiForgeryToken').getValue()
+                            },
+                            success: function (data) {
+                                chat.server.reloadLog();
+                                if (data.Er == 1 && data.Change == 1) {/*vaghti TimeStamp==0*/
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.WARNING,
+                                        buttons: Ext.MessageBox.OK,
+                                        fn: function (btn) {
+                                            if (btn == 'ok') {
+                                                App.TitleRatingDynamic.queryById('GridTitleRatingDynamic').store.load();
+                                            }
+                                        }
+                                    });
+                                }
+                                else if (data.Er == 1 && data.Change == 2) {/*vaghti TimeStamp==2*/
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.ERROR,
+                                        buttons: Ext.MessageBox.OK,
+                                        fn: function (btn) {
+                                            if (btn == 'ok') {
+                                                App.TitleRatingDynamic.queryById('GridTitleRatingDynamic').store.load();
+                                            }
+                                        }
+                                    });
+                                }
+                                else if (data.Er == 1) {
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.ERROR,
+                                        buttons: Ext.MessageBox.OK
+                                    });
+                                }
+                                else {
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.INFO,
+                                        buttons: Ext.MessageBox.OK
+                                    });
+                                    App.TitleRatingDynamic.queryById('GridTitleRatingDynamic').store.load();
+                                }
+                                Ext.net.Mask.hide();
+                            }
+                        });
+                    }
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+    function HelpTitleRatingDynamic() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/TitleRatingDynamic/Help',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+    function showHelp_VideoTitleRatingDynamic() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/TitleRatingDynamic/VideoWinTitleRatingDynamic',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+</script>

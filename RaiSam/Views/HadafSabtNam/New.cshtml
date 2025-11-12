@@ -1,0 +1,198 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+
+<style>
+    #fieldsetfileAc legend {
+        text-align: right;
+        font-family: Tahoma !important;
+    }
+
+    #DeleteActionFileimg:hover {
+        cursor: pointer;
+    }
+</style>
+@(Html.X().Window().Modal(true).Listeners(li => { li.Render.Fn = "addKeyMapHadafSabtNam"; li.AfterRender.Handler = "LoadHadafSabtNam()"; })
+.Width(350)//.Height(300)
+    .Title("هدف از ثبت نام")
+        .ID("NewHadafSabtNam")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+        .ButtonAlign(Ext.Net.Alignment.Center)
+        .Buttons(X.Button().Text("ذخیره").Icon(Ext.Net.Icon.Disk)
+            .Listeners(l =>
+            {
+                l.Click.Handler = "SaveHadafSabtNam();";
+
+            })
+            .ItemID("btnSaveHadafSabtNam"),
+            X.Button().Text("خروج").Icon(Ext.Net.Icon.DoorOut).ToolTip("کلید میانبر Esc")
+                  .OnClientClick("App.NewHadafSabtNam.destroy();"))
+    .Items(
+        X.AntiForgeryField()
+                .ItemID("antiForgeryToken").Hidden(true),
+                X.FormPanel().Border(false)
+                    .Layout(Ext.Net.LayoutType.VBox)
+                        .LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Center })
+
+            .Items(
+                X.FieldSet().Border(false)
+                .Center()
+                .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 4 })
+                .Defaults(new { Margin = 2 })
+                .Items(
+                    X.Hidden().ItemID("fldId"),
+                      X.Label("عنوان:"),
+                         X.TextField()
+                     .ItemID("txtTitle")
+                    .MaxLength(250).MaskRe("[ ,),(,ا-ی-آ-ئ-ء]")
+                    .EnforceMaxLength(true)
+                    .Width(200)
+                    .AllowBlank(false)
+                    .BlankText("لطفا عنوان را وارد کنید.")
+                    .AutoFocus(true)
+                            )
+                )
+        )
+)
+
+<script type="text/javascript">
+
+
+    var fldTimeStamp = 0;
+    function LoadHadafSabtNam() {
+        ReplaceArabic();
+        if ('@ViewBag.Id' != '0') {
+            App.NewHadafSabtNam.body.mask("در حال بارگذاری...");
+            Ext.net.DirectMethod.request({
+                url: '/HadafSabtNam/Details',
+                params: {
+                    Id: '@ViewBag.Id',
+                    __RequestVerificationToken: App.NewHadafSabtNam.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+                    var txtTitle = App.NewHadafSabtNam.queryById('txtTitle');
+                    txtTitle.setValue(data.fldTitle);
+                    var fldId = App.NewHadafSabtNam.queryById('fldId');
+                    fldId.setValue(data.fldId);
+                    fldTimeStamp = data.fldTimeStamp;
+                    App.NewHadafSabtNam.body.mask().hide();
+                }
+            });
+        }
+        else {
+            App.NewHadafSabtNam.queryById('txtTitle').validate();
+        }
+
+    }
+
+    function SaveHadafSabtNam() {
+        var txtTitle = App.NewHadafSabtNam.queryById('txtTitle');
+        var Id = App.NewHadafSabtNam.queryById('fldId');
+            var er = false;
+            if (txtTitle.validate() == false) {
+                er = true;
+            }
+
+
+            if (er == true)
+                return;
+            App.NewHadafSabtNam.body.mask("در حال ذخیره سازی");
+            Ext.net.DirectMethod.request({
+                url: '/HadafSabtNam/Save',
+                params: {
+                    fldId: Id.getValue(),
+                    fldTitle: txtTitle.getValue(),
+                    fldTimeStamp: fldTimeStamp,
+                    __RequestVerificationToken: App.NewHadafSabtNam.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+                    chat.server.reloadLog();
+                    if (data.Er == 1 && data.Change == 1) {/*vaghti TimeStamp==0*/
+                        Ext.MessageBox.show({
+                            title: data.MsgTitle,
+                            msg: data.Msg,
+                            icon: Ext.MessageBox.WARNING,
+                            buttons: Ext.MessageBox.OK,
+                            fn: function (btn) {
+                                if (btn == 'ok') {
+                                    LoadHadafSabtNam();
+                                }
+                            }
+                        });
+                    }
+                    else if (data.Er == 1 && data.Change == 2) {/*vaghti TimeStamp==2*/
+                        Ext.MessageBox.show({
+                            title: data.MsgTitle,
+                            msg: data.Msg,
+                            icon: Ext.MessageBox.ERROR,
+                            buttons: Ext.MessageBox.OK,
+                            fn: function (btn) {
+                                if (btn == 'ok') {
+                                    App.NewHadafSabtNam.destroy();
+                                }
+                            }
+                        });
+
+                    }
+                    else if (data.Er == 1) {
+                        Ext.MessageBox.show({
+                            title: data.MsgTitle,
+                            msg: data.Msg,
+                            icon: Ext.MessageBox.ERROR,
+                            buttons: Ext.MessageBox.OK,
+                        });
+                    }
+                    else {
+                        Ext.MessageBox.show({
+                            title: data.MsgTitle,
+                            msg: data.Msg,
+                            icon: Ext.MessageBox.INFO,
+                            buttons: Ext.MessageBox.OK,
+                        });
+                    }
+
+                    App.HadafSabtNam.queryById('GridHadafSabtNam').store.load();
+
+                    if (data.Er != 1)
+                        ClearHadafSabtNam();
+                    App.NewHadafSabtNam.body.mask().hide();
+                }
+
+            });
+        }
+    function ClearHadafSabtNam() {
+        App.NewHadafSabtNam.queryById('txtTitle').setValue("");
+        App.NewHadafSabtNam.queryById('fldId').setValue(0);
+
+    }
+    var addKeyMapHadafSabtNam = function (cmp) {
+        this.keyMap = new Ext.util.KeyMap({
+            target: cmp.getEl(),
+            binding: [{
+                key: [13, 9], /*Ext.EventObject.ENTER,*/
+                fn: function (key, e) {
+                    if (e.getKey() == 9) {
+                        e.stopEvent();
+                    }
+                    var keyfield = App.NewHadafSabtNam.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+                    var nextfld;
+                    if (keyfield.itemId == "txtTitle") {
+                        nextfld = App.NewHadafSabtNam.queryById('btnSaveHadafSabtNam');
+                        SaveHadafSabtNam();
+                        return;
+                    }
+                    else {
+                        nextfld = keyfield.nextSibling().nextSibling();
+                        nextfld.selectText();
+                    }
+                    nextfld.focus();
+                    nextfld.selectText();
+                }
+            }]
+        });
+    }
+</script>

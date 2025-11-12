@@ -1,0 +1,174 @@
+﻿@model RaiSam.Models.RptBarname
+@using Ext.Net.MVC;
+@{
+
+    var X = Html.X();
+}
+
+@(X.Panel()
+    .Border(false)
+    .Listeners(li => li.AfterRender.Handler = "ShowPageMosaferiSetSize();")
+    .Title("نتایج گزارش کلی ")
+    .ID("ShowPageMosaferi")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Layout(Ext.Net.LayoutType.Fit)
+    .Items(
+            X.AntiForgeryField()
+                .ItemID("antiForgeryToken")
+                .Hidden(true),
+        X.GridPanel()
+        .Height(200)
+            .TopBar(
+                    Html.X().Toolbar()
+                    .Items(
+                            Html.X().Button()
+                                .Text("چاپ")
+                                .ItemID("btnPrint")
+                                .Icon(Ext.Net.Icon.Printer)
+                                    .Listeners(l => l.Click.Handler = "PrintShowBarnameKoli()"),
+                                         Html.X().Button()
+                                    .Text("اکسل")
+                                    .ItemID("btnxls")
+                                    .Icon(Ext.Net.Icon.PageExcel)
+                                                .Listeners(l => l.Click.Handler = "XlsShowBarnameKoli()")
+                    )
+                )
+
+                                    .Cls("grid-title")
+                        .AutoScroll(true)
+                        .Border(true)
+        // .Title("پروژه ها")
+                                .ItemID("GridShowPageMosaferi")
+                        .Store(
+                                        X.StoreFor(Model.RptKoliMosaferi)
+                                .AutoLoad(false)
+        //.Listeners(l => l.Load.Handler = "GetCheckedData()")
+                                .Proxy(Html.X().AjaxProxy()
+                                                    .Url(Url.Action("ReadRptKoliMosaferi"))
+                                        .Reader(Html.X().JsonReader().Root("data"))
+                                                .ExtraParams(x => x.Add(new { Malek = @ViewBag.Malek }))
+                            )
+                            .PageSize(20000)
+                            .RemoteFilter(false)
+                            .RemotePaging(false)
+                        )
+                        .View(
+                            Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                        )
+                        .Plugins(X.FilterHeader().Remote(false))
+                             .Plugins(
+                                                                X.RowExpander()
+                                                                                    .Listeners(l => l.BeforeExpand.Fn = "loadGridRptKoliDetailMosaferi")
+                                                                    .Component(
+                                                                        X.GridPanel()
+                                                                            .AutoScroll(true)
+                                                                            .ForceFit(true)
+                                                                            .Border(true)
+                                                                            .Height(150)
+                                                                                                    .ItemID("GridRptKoliDetail")
+        //.Listeners(l => l.ItemMouseEnter.Fn = "createTooltipMasirInDetailsKilometrazh2")
+                                                                            .Store(
+                                                                                            X.StoreFor(Model.RptKoliDetailMosaferi)
+                                                                                    .AutoLoad(false)
+                                                                                    .Proxy(Html.X().AjaxProxy()
+                                                                                                            .Url(Url.Action("ReadRptKoliDetailMosaferi"))
+                                                                                        .Reader(Html.X().JsonReader().Root("data"))
+                                                                                )
+                                                                                .PageSize(10)
+                                                                                .RemoteFilter(true)
+                                                                                .RemotePaging(true)
+                                                                            )
+                                                                                .ViewConfig(
+                                                                                    X.GridView()
+                                                                                            .LoadingText("در حال بارگذاری...").RTL(true)
+
+                                                                                )
+                                                                            .ColumnModel(
+                                                                                 Html.X().RowNumbererColumn(),
+                                                                                                    Html.X().Column().DataIndex(Model.RptKoliDetailMosaferi, m => m.fldTrainNumber).Text("شماره قطار").Wrap(true).Flex(1),
+                                                                                                    Html.X().Column().DataIndex(Model.RptKoliDetailMosaferi, m => m.fldWagonNumber).Text("شماره سالن").Wrap(true).Flex(2),
+                                                                                                            Html.X().Column().DataIndex(Model.RptKoliDetailMosaferi, m => m.fldCompartmentNumber).Text("شماره کوپه").Wrap(true).Flex(2),
+                                                                                                            Html.X().Column().DataIndex(Model.RptKoliDetailMosaferi, m => m.fldSeatNumber).Text("شماره صندلی").Wrap(true).Flex(2),
+                                                                                                            Html.X().Column().DataIndex(Model.RptKoliDetailMosaferi, m => m.fldTicketNumber).Text("سریال بیط").Wrap(true).Flex(3),
+                                                                                                            Html.X().Column().DataIndex(Model.RptKoliDetailMosaferi, m => m.fldTarikhHarekat).Text("تاریخ حرکت").Wrap(true).Flex(3),
+                                                                                                            Html.X().Column().DataIndex(Model.RptKoliDetailMosaferi, m => m.fldSeirStartStation).Text("ایستگاه مبدا").Wrap(true).Flex(3),
+                                                                                                        Html.X().Column().DataIndex(Model.RptKoliDetailMosaferi, m => m.fldSeirEndStation).Text("ایستگاه مقصد").Wrap(true).Flex(3),
+                                                                                                        Html.X().Column().DataIndex(Model.RptKoliDetailMosaferi, m => m.fldTotalDistance).Text("مسافت").Wrap(true).Flex(2),
+                                                                                                        Html.X().Column().DataIndex(Model.RptKoliDetailMosaferi, m => m.fldMosafer).Text("مسافر").Wrap(true).Flex(2),
+                                                                                                        Html.X().Column().DataIndex(Model.RptKoliDetailMosaferi, m => m.fldTotalDistance).Text("مسافر کیلومتر").Wrap(true).Flex(3)
+                                                                            )
+                                                                            .SelectionModel(
+                                                                                Html.X().RowSelectionModel()
+                                                                                    .Mode(Ext.Net.SelectionMode.Single)
+                                                                            )
+                                                                    )
+                                                            )
+                        .ColumnModel(
+                                                  Html.X().RowNumbererColumn(),
+                                                           Html.X().Column().DataIndex(Model.RptKoliMosaferi, m => m.fldVagonId).Text("fldHeaderId").Hidden(true).Flex(1),
+                                                    Html.X().Column().DataIndex(Model.RptKoliMosaferi, m => m.fldShomareVagon).Text("شماره واگن").Wrap(true).Flex(7),
+                                                        Html.X().Column().DataIndex(Model.RptKoliMosaferi, m => m.fldTedadBelit).Text("تعداد بلیط های صادره").Wrap(true).Flex(3),
+                                                        Html.X().Column().DataIndex(Model.RptKoliMosaferi, m => m.fldMasafatTeyShode).Text("مسافت طی شده").Wrap(true).Flex(3),
+                                                        Html.X().Column().DataIndex(Model.RptKoliMosaferi, m => m.fldTedadBelit).Text("مجموع مسافرین").Wrap(true).Flex(3),
+                                                            Html.X().Column().DataIndex(Model.RptKoliMosaferi, m => m.fldMasafat_Nafar).Text("نفر کیلومتر").Wrap(true).Flex(3)
+                        )
+        //  .Listeners(a => a.CellDblClick.Handler = "NextSearchContract();")
+
+        )
+)
+<script type="text/javascript">
+
+    function ShowPageMosaferiSetSize() {
+        App.ShowPageMosaferi.setWidth(App.ReportRaiSamWin.getWidth());
+        App.ShowPageMosaferi.queryById('GridShowPageMosaferi').setHeight(App.ReportRaiSamWin.getHeight() - 83);
+        
+        App.ShowPageMosaferi.queryById('GridShowPageMosaferi').getStore().getProxy().setExtraParam("StartDate", '@ViewBag.StartDate');
+        App.ShowPageMosaferi.queryById('GridShowPageMosaferi').getStore().getProxy().setExtraParam("EndDate", '@ViewBag.EndDate');
+        App.ShowPageMosaferi.queryById('GridShowPageMosaferi').getStore().getProxy().setExtraParam("MalekId", '@ViewBag.MalekId');
+        App.ShowPageMosaferi.queryById('GridShowPageMosaferi').getStore().getProxy().setExtraParam("ContractId", '@ViewBag.ContractId');
+        App.ShowPageMosaferi.queryById('GridShowPageMosaferi').getStore().getProxy().setExtraParam("ShVagon", '@ViewBag.ShVagon');
+        App.ShowPageMosaferi.queryById('GridShowPageMosaferi').getStore().getProxy().setExtraParam("AzVagon", '@ViewBag.AzVagon');
+        App.ShowPageMosaferi.queryById('GridShowPageMosaferi').getStore().getProxy().setExtraParam("TaVagon", '@ViewBag.TaVagon');
+        App.ShowPageMosaferi.queryById('GridShowPageMosaferi').getStore().getProxy().setExtraParam("CheckZero", '@ViewBag.CheckZero');
+        App.ShowPageMosaferi.queryById('GridShowPageMosaferi').store.load();
+    }
+
+    var loadGridRptKoliDetailMosaferi = function (rowExpanderr, record) {
+
+        rowExpanderr.component.getStore().getProxy().setExtraParam("fldVagonId", record.data.fldVagonId);
+        rowExpanderr.component.getStore().getProxy().setExtraParam("StartDate", '@ViewBag.StartDate');
+        rowExpanderr.component.getStore().getProxy().setExtraParam("EndDate", '@ViewBag.EndDate');
+
+        rowExpanderr.component.getStore().load();
+    };
+
+    function PrintShowBarnameKoli() {
+        App.ShowPageMosaferi.body.mask("در حال بارگذاری");
+        Ext.net.DirectMethod.request({
+            url: '/RptBarname/PrintPageKoli',
+            params: {
+                containerId: "ReportGeneralTab",
+                StartDate: '@ViewBag.StartDate',
+                EndDate: '@ViewBag.EndDate',
+                MalekId: '@ViewBag.MalekId',
+                ContractId: '@ViewBag.ContractId',
+                ShVagon: '@ViewBag.ShVagon',
+                AzVagon: '@ViewBag.AzVagon',
+                TaVagon: '@ViewBag.TaVagon',
+                TypeVagon: 1
+
+            },
+            success: function () {
+                App.ShowPageMosaferi.body.mask().hide();
+            }
+        });
+    }
+    function XlsShowBarnameKoli() {
+        var Checked = "";
+
+        Checked = "fldShomareVagon" + ";" + "fldTrainNumber" + ";" + "fldWagonNumber" + ";" + "fldCompartmentNumber" + ";" + "fldSeatNumber" + ";" + "fldTicketNumber" + ";" + "fldTarikhHarekat" + ";" + "fldSeirStartStation" + ";" + "fldSeirEndStation" + ";" + "fldTotalDistance" + ";" + "fldMosafer" + ";" + "fldTotalDistance2" + ";";
+        window.location.href = '@Url.Content("~/RptBarname/CreateExcelKoliMosaferi/")' + '?Checked=' + Checked + "&StartDate=" + '@ViewBag.StartDate' + "&EndDate=" + '@ViewBag.EndDate' + "&MalekId=" + '@ViewBag.MalekId' + "&ContractId=" + '@ViewBag.ContractId' + "&ShVagon=" + '@ViewBag.ShVagon' + "&AzVagon=" + '@ViewBag.AzVagon' + "&TaVagon=" + '@ViewBag.TaVagon';
+    }
+
+</script>

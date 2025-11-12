@@ -1,0 +1,279 @@
+﻿
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+<style>
+    .custom-icon {
+        margin-right: 380px !important;
+    }
+
+    .grid-title {
+        text-align: right;
+    }
+</style>
+
+
+@(Html.X().Panel()
+    .Closable(true)
+    .AutoScroll(true)
+        .Border(false)
+    .CloseAction(CloseAction.Destroy)
+                    .Listeners(li =>
+                    {
+                       // li.AfterRender.Handler = "setSizeRptPanel()";
+                        li.Render.Fn = "addKeyMapRptRizAmalkard";
+                    })
+        //  .Listeners(l => l.AfterRender.Handler = "setTitlePnlRpt()")
+           .Layout(LayoutType.Fit).Title("گزارش ریز عملکرد ماهیانه عاملین صرفه‌جویی")
+                .ID("RptRizAmalkard")
+    .Items(
+        X.Panel()
+            .AutoScroll(true)
+            .Border(false)
+            .Layout(LayoutType.VBox)
+            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+            .Items(
+                X.FieldSet().Border(false)//.Width(760)
+            .Items(
+                        X.Panel()
+                    .AutoScroll(true)
+                    .Border(false)
+                    .ButtonAlign(Alignment.Center)
+                    .Buttons(
+             Html.X().Button()
+        .Text("اکسل")
+        .ItemID("btnxls")
+        .Icon(Ext.Net.Icon.PageExcel)
+                .Listeners(l => l.Click.Handler = "XlsAmalkard()"),
+
+
+                             X.SplitButton()
+                                                .Text("راهنما")
+                                                .Icon(Ext.Net.Icon.Help)
+                                                .Menu(X.Menu()
+                                                .Items(
+                                                X.MenuItem()
+                                                            .Text("راهنما متنی")
+                                                            .Icon(Ext.Net.Icon.TextPaddingTop)
+                                                                        .Listeners(l => l.Click.Handler = "HelpAmalkard()"),
+                                                    X.MenuItem()
+                                                            .Text("راهنما تصویری")
+                                                            .Icon(Ext.Net.Icon.PlayBlue)
+                                                                        .Listeners(l => l.Click.Handler = "showHelp_VideoAmalkard()")
+
+                                            )
+                                            ),
+                        Html.X().Button()
+                            .Text("خروج")
+                            .ItemID("btnOut")
+                            .Icon(Ext.Net.Icon.DoorOut)
+                                        .Listeners(l => l.Click.Handler = " App.RptRizAmalkard.destroy()")
+                            )
+                    .Items(
+                                X.FieldSet().MarginSpec("5px 0 0 0").Width(300).Height(60)
+                                .ItemID("Filters")
+                                .Border(true).Title("فیلترها")
+                                .Defaults(new { Margin = 2 })
+                               .Layout(Ext.Net.LayoutType.VBox)
+                    .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+                            .Items(
+
+                                 X.FieldSet().MarginSpec("5px 0 0 0")//.Width(680)
+                                .Border(false)
+                                .Defaults(new { Margin = 2 })
+                            .Layout(LayoutType.Table)
+                            .LayoutConfig(new TableLayoutConfig { Columns = 4 })
+                            .Items(
+                        
+                                        X.Label("از سال:"),
+                                            X.ComboBox()
+                                        .LabelAlign(Ext.Net.LabelAlign.Top)
+                                            .ItemID("CboAzYear")
+                                                .Width(70)
+                                        .DisplayField("fldYear")
+                                        .ValueField("fldYear")
+                                        .TypeAhead(true)
+                                        .Editable(false)
+                                        .AllowBlank(false)
+                                        .BlankText("لطفا سال را انتخاب کنید.")
+                                        .QueryMode(DataLoadMode.Local)
+                                            .ForceSelection(true)
+                                                   //         .Listeners(l => l.Select.Handler = "SelectAzSalTaSal()")
+                                        .TriggerAction(TriggerAction.All)
+                                                .Store(X.Store()
+                                                .Listeners(l => l.Load.Handler = "SetDefultYear();")
+                                        .Model(X.Model()
+                                        .IDProperty("fldYear")
+                                            .Fields(
+                                                new ModelField("fldYear", ModelFieldType.String) { Mapping = "fldYear" }
+                                            )
+                                        )
+                                            .Proxy(X.AjaxProxy()
+                                            .Url(Url.Action("GetSal"))
+                                            .Reader(X.JsonReader().Root("data"))
+                                                    )
+                                        )
+                                              ,
+                                                  X.Label("تا سال:"),
+                                                X.ComboBox()
+                                            .LabelAlign(Ext.Net.LabelAlign.Top)
+                                                .ItemID("CboTaYear")
+                                                    .Width(70)
+                                            .DisplayField("fldYear")
+                                            .ValueField("fldYear")
+                                            .TypeAhead(true)
+                                            .Editable(false)
+                                            .AllowBlank(false)
+                                            .BlankText("لطفا سال را انتخاب کنید.")
+                                            .QueryMode(DataLoadMode.Local)
+                                                .ForceSelection(true)
+                                                          //      .Listeners(l => l.Select.Handler = "SelectAzSalTaSal()")
+                                            .TriggerAction(TriggerAction.All)
+                                                    .Store(X.Store()
+                                                    .Listeners(l => l.Load.Handler = "SetDefultTaYear();")
+                                            .Model(X.Model()
+                                            .IDProperty("fldYear")
+                                                .Fields(
+                                                    new ModelField("fldYear", ModelFieldType.String) { Mapping = "fldYear" }
+                                                )
+                                            )
+                                                .Proxy(X.AjaxProxy()
+                                                .Url(Url.Action("GetSal"))
+                                                .Reader(X.JsonReader().Root("data"))
+                                                        )
+                                            )
+
+
+                                        )
+                               
+                                     
+                        )
+                        )
+                        )
+        /*,
+    Html.X().Panel()
+    .Border(true)
+            .Listeners(L => L.AfterRender.Handler = "setSizeRptPanel()")
+    .AutoScroll(true)
+        .ItemID("RptPanel2_KarkardD")*/
+            )
+
+    )
+
+)
+<script type="text/javascript">
+
+   
+
+    function showHelp_VideoAmalkard() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/RptAmalkard/VideoWinAmalkard',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+
+    }
+    function HelpAmalkard() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/RptAmalkard/HelpAmalkard',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+    function SetDefultYear() {
+        var CboAzYear = App.RptRizAmalkard.queryById('CboAzYear');
+        CboAzYear.setValue('@ViewBag.AzSal');
+    }
+    function SetDefultTaYear() {
+        var CboTaYear = App.RptRizAmalkard.queryById('CboTaYear');
+        CboTaYear.setValue('@ViewBag.AzSal');
+    }
+
+
+
+   
+
+    function setSizeRptPanel() {
+
+
+
+        App.RptRizAmalkard.queryById('Filters').setSize(App.ReportRaiSamWin.getWidth() - 200, App.ReportRaiSamWin.getHeight() - 180);
+
+
+    }
+
+
+   
+
+    function XlsAmalkard() {
+
+
+        var CboAzYear = App.RptRizAmalkard.queryById('CboAzYear');
+        var CboTaYear = App.RptRizAmalkard.queryById('CboTaYear');
+
+        var Name = "AmalkardMahane";
+      
+               Ext.net.Mask.show({ msg: ' در حال بارگذاری....' });
+                  $.ajax({
+                    type: "POST",
+                    dataType: 'native',
+                    url: "/RptRizAmalkard/GenerateXls",
+                    xhrFields: {
+                        responseType: 'blob'
+                    },
+                    data: {
+                        AzSal: CboAzYear.getValue(),
+                        TaSal: CboTaYear.getValue(),
+                            state:1
+                    },
+                    success: function (blob) {
+                        x = blob;
+                        var link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = Name + CboAzYear.getValue() + "_" + CboTaYear.getValue() + ".xls";
+                        link.click();
+                        Ext.net.Mask.hide();
+                    },
+                    timeout: 7200000
+                });
+
+            
+
+
+        
+       
+    }
+
+   
+    function ClearAll() {
+    }
+    var addKeyMapRptRizAmalkard = function (cmp) {
+
+        this.keyMap = new Ext.util.KeyMap({
+            target: cmp.getEl(),
+            binding: [{
+                key: [13, 9], /*Ext.EventObject.ENTER,*/
+                fn: function (key, e) {
+                    if (e.getKey() == 9) {
+                        e.stopEvent();
+                    }
+                    var keyfield = App.RptRizAmalkard.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+                    var nextfld;
+
+                        nextfld = keyfield.nextSibling().nextSibling();
+                    
+                    nextfld.focus();
+                    nextfld.selectText();
+                }
+            }]
+        });
+    }
+</script>
+

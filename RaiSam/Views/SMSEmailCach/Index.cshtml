@@ -1,0 +1,136 @@
+﻿@model IEnumerable<RaiSam.Models.prs_tblSMSEmailCachSelect>
+@using Ext.Net.MVC;
+@{
+
+    var X = Html.X();
+    bool P_ShowResend = false;
+    if (RaiSam.Models.Permission.haveAccess(214, "", "0"))
+    {
+        P_ShowResend = true;
+    }
+}
+<script>
+    var templateStatus = '<a href="#" onclick={0}>{1}</a>';
+
+    var DetailStatus = function (value, record) {
+        var ID = String(record.record.data.fldId);
+        var fldDeliver = String(record.record.data.fldDeliver);
+        var s = "ReSend(" + ID + "," + fldDeliver+ ");";
+
+        return Ext.String.format(templateStatus, s, value);
+    };
+</script>
+@(X.Window().Maximized(true)
+            .ID("SMSEmailCach")
+                .Title("پیامک و ایمیل های ارسال شده")
+            .Closable(true)
+            .AutoScroll(true)
+            .CloseAction(Ext.Net.CloseAction.Destroy)
+            .Items(
+                X.Panel().Border(false)
+                .Border(false)
+                .AutoScroll(true)
+
+                        .Items(
+                    X.GridPanel().AutoScroll(true)
+                                    .ItemID("GridSMSEmailCach").Flex(2)
+                    .BottomBar(X.PagingToolbar())
+                    .Height(600)
+        // .ColumnWidth(0.6)
+        // .Layout(Ext.Net.LayoutType.Column)
+                    .Store(
+                        X.StoreForModel()
+                        .Proxy(Html.X().AjaxProxy()
+                            .Url(Url.Action("Read"))
+                            .Reader(Html.X().JsonReader().Root("data"))
+
+                        )
+                        .PageSize(20)
+                        .RemoteFilter(true)
+                        .RemotePaging(true)
+                     .Listeners(l => l.DataChanged.Handler = "App.SMSEmailCach.queryById('GridSMSEmailCach').selModel.refresh();")
+                    )
+                    .View(
+                        Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                    )
+                    .Plugins(X.FilterHeader().Remote(true))
+                    .ColumnModel(
+                    Html.X().RowNumbererColumn(),
+                        Html.X().Column().DataIndex(Model, m => m.fldID).Text("کد").Flex(1).Hidden(true),
+                        Html.X().Column().DataIndex(Model, m => m.fldDeliver).Text("وضعیت").Flex(1).Hidden(true),
+                        Html.X().Column().DataIndex(Model, m => m.fldFullName).Text("نام شرکت").Wrap(true).Flex(4),
+                        Html.X().Column().DataIndex(Model, m => m.fldNoeePayamName).Text("نوع پیام").Flex(1),
+                        Html.X().Column().DataIndex(Model, m => m.fldNoeeShakhsName).Text("نوع شخص").Flex(2),
+                        Html.X().Column().DataIndex(Model, m => m.fldNameShakhs).Text("نام شخص").Flex(3),
+                        Html.X().Column().DataIndex(Model, m => m.fldEmail).Text("ایمیل").Flex(1).Hidden(true),
+                        Html.X().Column().DataIndex(Model, m => m.fldShMobile).Text("موبایل").Flex(1).Hidden(true),
+                        Html.X().Column().DataIndex(Model, m => m.fldEmail_Mobile).Text("ایمیل/موبایل").Flex(2),
+                        Html.X().Column().DataIndex(Model, m => m.fldVazeyat).Text("وضعیت").Flex(2),
+                        Html.X().Column().DataIndex(Model, m => m.fldDeliverName).Text("وضعیت پیام").Flex(2),//.Renderer("DetailStatus"),
+                        Html.X().Column().DataIndex(Model, m => m.fldUserName).Text("ارسال کننده").Flex(3),
+                        Html.X().Column().DataIndex(Model, m => m.fldSendDate).Text("زمان ارسال").Flex(3),
+                        Html.X().Column().DataIndex(Model, m => m.fldMatn).Text("متن پیام").Flex(7)//.Wrap(true)
+                        , Html.X().ComponentColumn().Flex(1).ItemID("ButtonsMatn")
+                            .Component(
+                                Html.X().Button().ItemID("btnMatn").Text("متن").Listeners(l => l.Click.Handler = "ShowPayam();")
+                                ).Filterable(false)
+                                , Html.X().ComponentColumn().Flex(1).ItemID("ButtonsResend").Hidden(!P_ShowResend)
+                    .Component(
+                                        Html.X().Button().ItemID("btnResend").Icon(Ext.Net.Icon.Reload).ToolTip("ارسال مجدد").Listeners(l => l.Click.Handler = "ReSend();")
+                        ).Filterable(false)
+                    )
+                    .SelectionModel(
+                        Html.X().RowSelectionModel()
+                            .Mode(Ext.Net.SelectionMode.Single)
+                    )
+
+                )
+        )
+)
+
+
+<script type="text/javascript">
+    function ShowPayam() {
+        var SelectedRow = App.SMSEmailCach.queryById("ButtonsMatn").activeRecord.record;
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/SMSEmailCach/ShowMatnPayam',
+             params: {
+                 DashboardDesc: SelectedRow.data.fldMatn
+             },
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+    function ReSend() {
+        var SelectedRow = App.SMSEmailCach.queryById("ButtonsResend").activeRecord.record;
+        if (SelectedRow.data.fldDeliver == false) {
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/SMSEmailCach/ReSend',
+                params: {
+                    ID: SelectedRow.data.fldID
+                },
+                success: function (data) {
+                    App.SMSEmailCach.queryById('GridSMSEmailCach').store.load();
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK
+                    });
+                    Ext.net.Mask.hide();
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "پیام مورد نظر قبلا ارسال شده است.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+</script>

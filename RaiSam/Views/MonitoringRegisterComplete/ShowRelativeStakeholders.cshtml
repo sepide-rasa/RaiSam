@@ -1,0 +1,256 @@
+﻿@model RaiSam.Models.Monitorring
+@using Ext.Net.MVC;
+@{
+
+    var X = Html.X();
+}
+
+@(X.Window()
+    .Height(550)
+    .Width(865)
+    .Modal(true)
+    .ID("RelativeStakeholders")
+            .Listeners(l => l.Destroy.Handler = "App.ShowInfo_CompanyProfile2.body.mask().hide();")
+    .Title("هدف های مجاز")
+    .Closable(true)
+    .Border(false)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Layout(Ext.Net.LayoutType.Fit)
+    .ButtonAlign(Ext.Net.Alignment.Center)
+    .Buttons(
+        Html.X().Button()
+            .Text("ثبت")
+            .Icon(Ext.Net.Icon.Disk)
+            .Listeners(l => l.Click.Handler = "SaveRelativeStakeholders();")
+    )
+    .Items(
+        X.Panel()
+            .ItemID("PnlRelativeStakeholders")
+            .Border(false)
+            //.Layout(Ext.Net.LayoutType.Fit)
+                    .Layout(Ext.Net.LayoutType.VBox)
+                                .LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Center })
+            .Items(
+                    X.GridPanel()
+                    .Height(220)
+        .Width(850)
+                    .AutoScroll(true)
+        /*.Listeners(l=>l.Deselect.Fn="CheckAllowDelete")*/
+                    .ItemID("GridRelativeStakeholders")
+                    .Store(
+                            X.StoreFor(Model.Hadaf)
+                            .Listeners(l => l.Load.Handler = "GetCheckedGrouping()")
+                            .IsPagingStore(false)
+                            .Parameters(new { /*GroupNameId = @ViewBag.GroupNameId,*/ PersonType = @ViewBag.PersonType, FirstRegisterId = @ViewBag.FirstRegisterIdd })
+                            .Proxy(Html.X().AjaxProxy()
+                            .Url(Url.Action("ReadRelativeStakeholders"))
+                            .Reader(Html.X().JsonReader().Root("data"))
+        )
+                    .RemoteFilter(true)
+                    .RemotePaging(true)
+    )
+                    .SelectionModel(
+                        Html.X().CheckboxSelectionModel().PruneRemoved(false).ShowHeaderCheckbox(true)
+                            .Mode(Ext.Net.SelectionMode.Multi).CheckOnly(true)
+                            .Listeners(l => l.BeforeDeselect.Fn = "CheckAllowDelete"))
+                    .ColumnModel(
+                                    Html.X().Column().DataIndex(Model.Hadaf, m => m.fldId).Text("کد").Flex(1).Hidden(true),
+                                X.CheckColumn().DataIndex(Model.Hadaf, m => m.firstId).Text("درخواست").Filterable(false).Editable(false).Flex(1),
+        // Html.X().Column().DataIndex(Model, m => m.fldGroupNameId).Text("کد نام گروه").Hidden(true).Hideable(false).Flex(1),
+                                Html.X().Column().DataIndex(Model.Hadaf, m => m.fldTitle).Text("عنوان").Flex(10).Wrap(true)
+    )
+    ,
+            X.GridPanel()
+                        .Height(270)
+            .Width(850)
+        .Title("شرکت های معادل در نت")
+                        .AutoScroll(true)
+        /*.Listeners(l=>l.Deselect.Fn="CheckAllowDelete")*/
+                        .ItemID("GridMapMalek")
+                        .Store(
+                                 X.StoreFor(Model.Malek)
+                                .Listeners(l => l.Load.Handler = "GetCheckedMalek()")
+                                .IsPagingStore(false)
+                                            .Parameters(new { CompanyProfileId = @ViewBag.CompanyProfileIdd })
+                                .Proxy(Html.X().AjaxProxy()
+                                .Url(Url.Action("ReadMaleks"))
+                                .Reader(Html.X().JsonReader().Root("data"))
+                )
+                            .PageSize(20000)
+                            .RemoteFilter(false)
+                            .RemotePaging(false)
+        )
+                        .SelectionModel(
+                            Html.X().CheckboxSelectionModel().PruneRemoved(false).ShowHeaderCheckbox(true)
+                                .Mode(Ext.Net.SelectionMode.Multi).CheckOnly(true)
+                                //.Listeners(l => l.BeforeDeselect.Fn = "CheckAllowDelete")
+                                )
+                                    .Plugins(X.FilterHeader().Remote(false))
+                        .ColumnModel(
+                                    Html.X().Column().DataIndex(Model.Malek, m => m.fldId).Text("کد").Flex(1).Hidden(true),
+                                   // X.CheckColumn().DataIndex(Model.Malek, m => m.firstId).Text("درخواست").Filterable(false).Editable(false).Flex(1),
+        // Html.X().Column().DataIndex(Model, m => m.fldGroupNameId).Text("کد نام گروه").Hidden(true).Hideable(false).Flex(1),
+                                            Html.X().Column().DataIndex(Model.Malek, m => m.fldNameCompany).Text("عنوان").Flex(10).Wrap(true),
+                                            Html.X().Column().DataIndex(Model.Malek, m => m.fldCodeEghtasadi).Text("کداقتصادی").Wrap(true).Flex(4),
+                                        Html.X().Column().DataIndex(Model.Malek, m => m.fldShenaseMeli).Text("شناسه ملی").Wrap(true).Flex(4)
+        )    
+)
+)
+)
+
+<script>
+    var RG = "0";
+    var n;
+    function SaveRelativeStakeholders() {
+        var SelRows = App.RelativeStakeholders.queryById('GridRelativeStakeholders').getSelectionModel().getSelection();
+        var SelRowsMalek = App.RelativeStakeholders.queryById('GridMapMalek').getSelectionModel().getSelection();
+        var StakeholdersGroupingIds = "";
+        var SelectedMalek = "";
+        if (SelRows.length != 0 /*&& SelRowsMalek.length != 0*/) {
+            for (var i = 0; i < SelRows.length; i++) {
+                StakeholdersGroupingIds = StakeholdersGroupingIds + SelRows[i].data.fldId + ";";
+            }
+            for (var i = 0; i < SelRowsMalek.length; i++) {
+                SelectedMalek = SelectedMalek + SelRowsMalek[i].data.fldId + ";";
+            }
+
+            Ext.net.Mask.show({ msg: 'در حال انجام عملیات...', bringToFront: true });
+            Ext.net.DirectMethod.request({
+                url: '/MonitoringRegisterComplete/SaveRelativeStakeholders',
+                params: {
+                    RG: RG,
+                    StakeholdersGroupingIds: StakeholdersGroupingIds,
+                    fldFirstRegisterId: '@ViewBag.FirstRegisterIdd',
+                    CompanyProfileId: '@ViewBag.CompanyProfileIdd',
+                    SelectedMalek: SelectedMalek
+                },
+                success: function (data) {
+                    if (data.Er == 1) {
+                        Ext.MessageBox.show({
+                            title: data.MsgTitle,
+                            msg: data.Msg,
+                            icon: Ext.MessageBox.ERROR,
+                            buttons: Ext.MessageBox.OK
+                        });
+                        Ext.net.Mask.hide();
+                    }
+                    else {
+                        if (RG == "0" || RG == "1") {
+                            App.RelativeStakeholders.destroy();
+                            App.ShowInfo_CompanyProfile2.destroy();
+                            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+                            Ext.net.DirectMethod.request({
+                                url: '/MonitoringRegisterComplete/UpdateStatus',
+                                params: {
+                                    CompanyProfileId: '@ViewBag.CompanyProfileIdd',
+                                    PersonType: '@ViewBag.PersonType'
+                                },
+                                success: function (data) {
+                                    if (data.Er == 1) {
+                                        Ext.MessageBox.show({
+                                            title: data.MsgTitle,
+                                            msg: data.Msg,
+                                            icon: Ext.MessageBox.ERROR,
+                                            buttons: Ext.MessageBox.OK
+                                        });
+                                    }
+                                    else {
+                                        Ext.MessageBox.show({
+                                            title: data.MsgTitle,
+                                            msg: data.Msg,
+                                            icon: Ext.MessageBox.INFO,
+                                            buttons: Ext.MessageBox.OK
+                                        });
+
+                                        App.MonitoringRegisterComplete.queryById("GridMonitoringRegisterComplete").store.load();
+                                    }
+                                    Ext.net.Mask.hide();
+                                }
+                            });
+                        }
+                        else {
+                            App.RelativeStakeholders.destroy();
+                            App.ShowInfo_CompanyProfile2.destroy();
+                            Ext.net.Mask.hide();
+                        }
+                    }
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفاً هدف های مورد نظر را انتخاب نمایید .",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+
+    function GetCheckedGrouping() {
+        Ext.net.DirectMethod.request({
+            url: '/MonitoringRegisterComplete/GetChecked',
+            params: {
+                FirstRegisterId: '@ViewBag.FirstRegisterIdd'
+            },
+            success: function (data) {
+                if (data.CheckedItem.length != 0) {
+                    RG = "1";
+                    for (var j = 0; j < data.CheckedItem.length; j++) {
+                        var index = App.RelativeStakeholders.queryById('GridRelativeStakeholders').getStore().findExact("fldId", data.CheckedItem[j]);
+                        App.RelativeStakeholders.queryById('GridRelativeStakeholders').getSelectionModel().select(index, true);
+                    }
+                }
+            }
+        });
+    } 
+    function GetCheckedMalek() {
+        Ext.net.DirectMethod.request({
+            url: '/MonitoringRegisterComplete/GetCheckedMalek',
+            params: {
+                CompanyProfileId: '@ViewBag.CompanyProfileIdd'
+            },
+            success: function (data) {
+                if (data.CheckedItem.length != 0) {
+                    RG = "1";
+                    for (var j = 0; j < data.CheckedItem.length; j++) {
+                        var index = App.RelativeStakeholders.queryById('GridMapMalek').getStore().findExact("fldId", data.CheckedItem[j]);
+                        App.RelativeStakeholders.queryById('GridMapMalek').getSelectionModel().select(index, true);
+                    }
+                }
+            }
+        });
+    }
+
+    var CheckAllowDelete = function (grid, record, index, eOpts) {
+        n = record;
+        Ext.net.DirectMethod.request({
+            url: '/MonitoringRegisterComplete/CheckHaveRequest',
+            params: {
+                FirstRegisterId: '@ViewBag.FirstRegisterIdd',
+                HadafId: record.data.fldId
+            },
+            success: function (data) {
+                if (data.Er == 0) {
+                    if (data.HaveRequest == true) {
+                        App.RelativeStakeholders.queryById('GridRelativeStakeholders').getSelectionModel().select(record.index, true);
+                        Ext.MessageBox.show({
+                            title: "خطا",
+                            msg: "برای ذینفع انتخاب شده درخواست ثبت گردیده و قادر به حذف آن نمی باشید.",
+                            icon: Ext.MessageBox.ERROR,
+                            buttons: Ext.MessageBox.OK
+                        });
+                    }
+                }
+                else {
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK
+                    });
+                }
+            }
+        });
+    }
+</script>

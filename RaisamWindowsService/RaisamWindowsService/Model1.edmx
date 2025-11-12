@@ -1,0 +1,207 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+    <Schema Namespace="RaiSamModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <Function Name="prs_GetDate" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo" />
+        <Function Name="prs_InsertFromWebServiceSajam" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+          <Parameter Name="TrainNum" Type="int" Mode="In" />
+          <Parameter Name="MoveDateTrain" Type="varchar" Mode="In" />
+          <Parameter Name="MoveTimeTrain" Type="varchar" Mode="In" />
+          <Parameter Name="PelakNo" Type="int" Mode="In" />
+          <Parameter Name="SalonNo" Type="int" Mode="In" />
+          <Parameter Name="StartSation" Type="nvarchar" Mode="In" />
+          <Parameter Name="EndStation" Type="nvarchar" Mode="In" />
+        </Function>
+        <Function Name="prs_tblErrorInsert" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+          <Parameter Name="fldID" Type="int" Mode="InOut" />
+          <Parameter Name="fldMatn" Type="nvarchar(max)" Mode="In" />
+          <Parameter Name="fldTarikh" Type="date" Mode="In" />
+          <Parameter Name="fldInputID" Type="int" Mode="In" />
+          <Parameter Name="fldDesc" Type="nvarchar(max)" Mode="In" />
+        </Function>
+        <Function Name="prs_tblSafSMSInsert" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+          <Parameter Name="fldMatn" Type="nvarchar(max)" Mode="In" />
+          <Parameter Name="fldStatus" Type="tinyint" Mode="In" />
+          <Parameter Name="fldAshkhasId" Type="int" Mode="In" />
+          <Parameter Name="fldCherkheFirstEghdamId" Type="int" Mode="In" />
+          <Parameter Name="fldInputId" Type="int" Mode="In" />
+        </Function>
+        <Function Name="prs_tblSafSMSSelect" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+          <Parameter Name="fieldname" Type="nvarchar" Mode="In" />
+          <Parameter Name="value" Type="nvarchar" Mode="In" />
+          <Parameter Name="h" Type="int" Mode="In" />
+        </Function>
+        <Function Name="prs_tblSafSMSUpdate" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+          <Parameter Name="fldStatus" Type="tinyint" Mode="In" />
+          <Parameter Name="fldAshkhasId" Type="int" Mode="In" />
+          <Parameter Name="fldCherkheFirstEghdamId" Type="int" Mode="In" />
+          <Parameter Name="fldInputId" Type="int" Mode="In" />
+        </Function>
+        <Function Name="prs_tblSMSSettingSelect" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+          <Parameter Name="fieldname" Type="nvarchar" Mode="In" />
+          <Parameter Name="Value" Type="nvarchar" Mode="In" />
+          <Parameter Name="h" Type="int" Mode="In" />
+        </Function>
+        <EntityContainer Name="RaiSamModelStoreContainer" />
+      </Schema></edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="RaiSamModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityContainer Name="RaiSamEntities" annotation:LazyLoadingEnabled="true" >
+          <FunctionImport Name="prs_MosaferiInfoInsert">
+            <Parameter Name="uicWagonNo" Mode="In" Type="String" />
+            <Parameter Name="trainNumber" Mode="In" Type="Int32" />
+            <Parameter Name="trainDate" Mode="In" Type="String" />
+            <Parameter Name="moveTime" Mode="In" Type="String" />
+            <Parameter Name="persianTrainDate" Mode="In" Type="String" />
+            <Parameter Name="wagonNumber" Mode="In" Type="Int32" />
+            <Parameter Name="compartmentNumber" Mode="In" Type="Int32" />
+            <Parameter Name="seatNumber" Mode="In" Type="Int32" />
+            <Parameter Name="ticketNumber" Mode="In" Type="Int32" />
+            <Parameter Name="seirStartStationCode" Mode="In" Type="Decimal" />
+            <Parameter Name="seirStartStation" Mode="In" Type="String" />
+            <Parameter Name="seirEndStationCode" Mode="In" Type="Decimal" />
+            <Parameter Name="seirEndStation" Mode="In" Type="String" />
+            <Parameter Name="nameCompany" Mode="In" Type="String" />
+            <Parameter Name="totalDistance" Mode="In" Type="Decimal" />
+          </FunctionImport>
+          <FunctionImport Name="prs_tblErrorInsert">
+            <Parameter Name="fldID" Mode="InOut" Type="Int32" />
+            <Parameter Name="fldMatn" Mode="In" Type="String" />
+            <Parameter Name="fldTarikh" Mode="In" Type="DateTime" />
+            <Parameter Name="fldInputID" Mode="In" Type="Int32" />
+            <Parameter Name="fldDesc" Mode="In" Type="String" />
+          </FunctionImport>
+          <FunctionImport Name="prs_GetDate" ReturnType="Collection(RaiSamModel.prs_GetDate)" />
+          <FunctionImport Name="prs_tblSMSSettingSelect" ReturnType="Collection(RaiSamModel.prs_tblSMSSettingSelect)">
+            <Parameter Name="fieldname" Mode="In" Type="String" />
+            <Parameter Name="Value" Mode="In" Type="String" />
+            <Parameter Name="h" Mode="In" Type="Int32" />
+          </FunctionImport>
+          <FunctionImport Name="prs_tblSafSMSInsert">
+            <Parameter Name="fldMatn" Mode="In" Type="String" />
+            <Parameter Name="fldStatus" Mode="In" Type="Byte" />
+            <Parameter Name="fldAshkhasId" Mode="In" Type="Int32" />
+            <Parameter Name="fldCherkheFirstEghdamId" Mode="In" Type="Int32" />
+            <Parameter Name="fldInputId" Mode="In" Type="Int32" />
+          </FunctionImport>
+          <FunctionImport Name="prs_tblSafSMSSelect" ReturnType="Collection(RaiSamModel.prs_tblSafSMSSelect)">
+            <Parameter Name="fieldname" Mode="In" Type="String" />
+            <Parameter Name="value" Mode="In" Type="String" />
+            <Parameter Name="h" Mode="In" Type="Int32" />
+          </FunctionImport>
+          <FunctionImport Name="prs_tblSafSMSUpdate">
+            <Parameter Name="fldStatus" Mode="In" Type="Byte" />
+            <Parameter Name="fldAshkhasId" Mode="In" Type="Int32" />
+            <Parameter Name="fldCherkheFirstEghdamId" Mode="In" Type="Int32" />
+            <Parameter Name="fldInputId" Mode="In" Type="Int32" />
+          </FunctionImport>
+          <FunctionImport Name="prs_InsertFromWebServiceSajam">
+            <Parameter Name="TrainNum" Mode="In" Type="Int32" />
+            <Parameter Name="MoveDateTrain" Mode="In" Type="String" />
+            <Parameter Name="MoveTimeTrain" Mode="In" Type="String" />
+            <Parameter Name="PelakNo" Mode="In" Type="Int32" />
+            <Parameter Name="SalonNo" Mode="In" Type="Int32" />
+            <Parameter Name="StartSation" Mode="In" Type="String" />
+            <Parameter Name="EndStation" Mode="In" Type="String" />
+          </FunctionImport>
+        </EntityContainer>
+        <ComplexType Name="prs_GetDate">
+          <Property Type="DateTime" Name="fldDateTime" Nullable="false" Precision="23" />
+          <Property Type="String" Name="fldTarikh" Nullable="true" MaxLength="10" />
+          <Property Type="String" Name="fldTime" Nullable="true" MaxLength="8" />
+          <Property Type="DateTime" Name="fldDate" Nullable="true" />
+        </ComplexType>
+        <ComplexType Name="prs_tblSMSSettingSelect">
+          <Property Type="Int32" Name="fldId" Nullable="false" />
+          <Property Type="String" Name="fldUserName" Nullable="false" MaxLength="100" />
+          <Property Type="String" Name="fldPassword" Nullable="false" MaxLength="100" />
+          <Property Type="String" Name="fldShomareKhat" Nullable="false" MaxLength="11" />
+          <Property Type="Int32" Name="fldTimestamp" Nullable="true" />
+        </ComplexType>
+        <ComplexType Name="prs_tblSafSMSSelect">
+          <Property Type="Int32" Name="fldId" Nullable="false" />
+          <Property Type="String" Name="fldMatn" Nullable="false" />
+          <Property Type="Byte" Name="fldStatus" Nullable="false" />
+          <Property Type="Int32" Name="fldAshkhasId" Nullable="false" />
+          <Property Type="Int32" Name="fldCherkheFirstEghdamId" Nullable="false" />
+          <Property Type="DateTime" Name="fldDateInsert" Nullable="false" Precision="23" />
+          <Property Type="DateTime" Name="fldDateErsal" Nullable="true" Precision="23" />
+          <Property Type="Int32" Name="fldInputId" Nullable="false" />
+          <Property Type="DateTime" Name="fldDate" Nullable="false" Precision="23" />
+          <Property Type="String" Name="fldMobile" Nullable="true" MaxLength="19" />
+        </ComplexType>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="RaiSamModelStoreContainer" CdmEntityContainer="RaiSamEntities" >
+          <FunctionImportMapping FunctionImportName="prs_tblErrorInsert" FunctionName="RaiSamModel.Store.prs_tblErrorInsert" />
+          <FunctionImportMapping FunctionImportName="prs_GetDate" FunctionName="RaiSamModel.Store.prs_GetDate">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="RaiSamModel.prs_GetDate">
+                <ScalarProperty Name="fldDateTime" ColumnName="fldDateTime" />
+                <ScalarProperty Name="fldTarikh" ColumnName="fldTarikh" />
+                <ScalarProperty Name="fldTime" ColumnName="fldTime" />
+                <ScalarProperty Name="fldDate" ColumnName="fldDate" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+          <FunctionImportMapping FunctionImportName="prs_tblSMSSettingSelect" FunctionName="RaiSamModel.Store.prs_tblSMSSettingSelect">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="RaiSamModel.prs_tblSMSSettingSelect">
+                <ScalarProperty Name="fldId" ColumnName="fldId" />
+                <ScalarProperty Name="fldUserName" ColumnName="fldUserName" />
+                <ScalarProperty Name="fldPassword" ColumnName="fldPassword" />
+                <ScalarProperty Name="fldShomareKhat" ColumnName="fldShomareKhat" />
+                <ScalarProperty Name="fldTimestamp" ColumnName="fldTimestamp" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+          <FunctionImportMapping FunctionImportName="prs_tblSafSMSInsert" FunctionName="RaiSamModel.Store.prs_tblSafSMSInsert" />
+          <FunctionImportMapping FunctionImportName="prs_tblSafSMSSelect" FunctionName="RaiSamModel.Store.prs_tblSafSMSSelect">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="RaiSamModel.prs_tblSafSMSSelect">
+                <ScalarProperty Name="fldId" ColumnName="fldId" />
+                <ScalarProperty Name="fldMatn" ColumnName="fldMatn" />
+                <ScalarProperty Name="fldStatus" ColumnName="fldStatus" />
+                <ScalarProperty Name="fldAshkhasId" ColumnName="fldAshkhasId" />
+                <ScalarProperty Name="fldCherkheFirstEghdamId" ColumnName="fldCherkheFirstEghdamId" />
+                <ScalarProperty Name="fldDateInsert" ColumnName="fldDateInsert" />
+                <ScalarProperty Name="fldDateErsal" ColumnName="fldDateErsal" />
+                <ScalarProperty Name="fldInputId" ColumnName="fldInputId" />
+                <ScalarProperty Name="fldDate" ColumnName="fldDate" />
+                <ScalarProperty Name="fldMobile" ColumnName="fldMobile" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+          <FunctionImportMapping FunctionImportName="prs_tblSafSMSUpdate" FunctionName="RaiSamModel.Store.prs_tblSafSMSUpdate" />
+          <FunctionImportMapping FunctionImportName="prs_InsertFromWebServiceSajam" FunctionName="RaiSamModel.Store.prs_InsertFromWebServiceSajam" />
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="true" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="false" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>

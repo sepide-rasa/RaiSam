@@ -1,0 +1,352 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@using Ext.Net.Utilities;
+@{
+    var X = Html.X();
+}
+
+
+@(Html.X().Window()
+    .Modal(true).Listeners(li => li.AfterRender.Handler = "LoadSearchAll();")
+    .Width(310)//.Height(180)
+    .Title("جستجو در بین افراد موجود در سیستم")
+    .ID("NewSearchAll")
+    .Closable(true)
+    .Resizable(false)
+    .ButtonAlign(Ext.Net.Alignment.Center)
+    .Layout(LayoutType.Fit)
+    .Buttons(
+        X.Button()
+            .Text("جستجو")
+            .Icon(Ext.Net.Icon.Zoom)
+            .Listeners(l =>
+            {
+                l.Click.Handler = "Search();";
+            })
+            .ItemID("btnSave"),
+        X.Button()
+            .Text("خروج")
+            .Icon(Ext.Net.Icon.BulletCross)
+            .OnClientClick("App.NewSearchAll.destroy()"))
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+        .Items(
+                     X.AntiForgeryField().ItemID("AntiForgeryField"),
+        X.FormPanel()
+            .Border(false)
+            .MarginSpec("20px 0 7px 0")
+            .Layout(Ext.Net.LayoutType.VBox)
+            .LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Center })
+            .Items(
+                X.FieldSet()
+                    .Border(false)
+                    .Center()
+                    .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 2 })
+        //.Defaults(new { Margin = 2 })
+                    .Items(
+                        X.Label()
+                            .Text("کدملی:"),
+                        X.TextField()
+                            .ItemID("txtCodeMeli")
+                            .MsgTarget(Ext.Net.MessageTarget.Side)
+                            .FieldStyle("direction:ltr;")
+                            .Plugins(
+                                X.InputMask()
+                                    .Mask("AAAAAAAAAA")
+                                    .UnmaskOnBlur(true)
+                                    .ClearWhenInvalid(true)
+                                    .MaskSymbols(ls =>
+                                    {
+                                        ls.Add(new MaskSymbol { Name = "A", Regex = "[0-9]", Placeholder = "_".ToCharArray()[0] });
+                                    })
+                                    )
+                            .AllowBlank(false)
+                            .Width(160)
+
+                            .BlankText("لطفا کد ملی را وارد نمایید."),
+                        X.Label()
+                            .Text("شماره شناسنامه:"),
+                            X.TextField().AutoFocus(true)
+                            .ItemID("txtShenasnameNo")
+                            .FieldStyle("direction:ltr;")
+                            .MsgTarget(Ext.Net.MessageTarget.Side)
+                            .AllowBlank(false)
+                            .BlankText("لطفا شماره شناسنامه را وارد نمایید.")
+                            .Width(160)
+                            .LabelAlign(Ext.Net.LabelAlign.Top)
+                            .MaskRe("[/0-9-/]"),
+                        X.Label()
+                            .Text("تاریخ تولد:"),
+                        X.PDateField()
+                            .ItemID("txtBDate")
+                            .MsgTarget(Ext.Net.MessageTarget.Side)
+                            .AllowBlank(false)
+                            .MaskRe("/[0-9,/]/")
+                            .Width(160)
+                            .Editable(true)
+                            .BlankText("لطفا تاریخ تولد را انتخاب نمایید.")
+                            .LabelAlign(Ext.Net.LabelAlign.Top)
+                )
+
+                )
+
+        )
+)
+
+<script type="text/javascript">
+    var State = '@ViewBag.State';
+
+    function LoadSearchAll() {
+        var fldDateB = new Date('@ViewBag.fldDateB');
+        var txtBDate = App.NewSearchAll.queryById('txtBDate');
+        txtBDate.maxValue = fldDateB;
+        txtBDate.maxText = "تاریخ باید 15 سال قبل باشد.";
+        App.NewSearchAll.queryById('txtCodeMeli').validate();
+        App.NewSearchAll.queryById('txtShenasnameNo').blur();
+        App.NewSearchAll.queryById('txtCodeMeli').focus();
+        App.NewSearchAll.queryById('txtCodeMeli').blur();
+        App.NewSearchAll.queryById('txtShenasnameNo').validate();
+        App.NewSearchAll.queryById('txtBDate').validate();
+    }
+    function Search() {
+        var txtCodeMeli = App.NewSearchAll.queryById('txtCodeMeli');
+        var txtShenasnameNo = App.NewSearchAll.queryById('txtShenasnameNo');
+        var txtBDate = App.NewSearchAll.queryById('txtBDate');
+        var er = false;
+
+        if (txtCodeMeli.validate() == false) {
+            er = true;
+            alert("لطفا کد ملی را وارد نمایید.")
+        }
+        if (txtShenasnameNo.validate() == false) {
+            er = true;
+        }
+        if (txtBDate.validate() == false) {
+            er = true;
+        }
+
+        if (er == true)
+            return;
+
+        Ext.net.DirectMethod.request({
+            url: '/Faces/SearchAshkhas/Search',
+            params: {
+                CodeMeli: txtCodeMeli.getValue(),
+                ShenasnameNo: txtShenasnameNo.getValue(),
+                BDate: txtBDate.rawValue,
+                __RequestVerificationToken: App.NewSearchAll.queryById('AntiForgeryField').getValue()
+            },
+            success: function (data) {
+                if (data.fldId == 0) {
+                    var ss = "";
+                    if (data.haveMeliCode == 1)
+                        ss = "(کدملی وارد شده قبلا در سیستم ثبت شده است.)";
+                    Ext.MessageBox.show({
+                        Name: "خطا",
+                        msg: "فردی با مشخصات موردنظر یافت نشد" + ss + "، آیا مایل به ثبت شخص جدید هستید؟",
+                        icon: ic = Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.YESNO,
+                        fn: function (btn) {
+                            if (btn == 'yes') {
+                                var codd = "";
+                                var bdate = "";
+                                if (data.haveMeliCode == 0) {
+                                    codd = txtCodeMeli.getValue();
+                                    bdate = txtBDate.rawValue;
+                                }
+                                Ext.net.DirectMethod.request({
+                                    url: '/Faces/SearchAshkhas/SabtAshkhasNew',
+                                    params: {
+                                        CodeMeli: codd,
+                                        BDate: bdate,
+                                        State: State,
+                                        __RequestVerificationToken: App.NewSearchAll.queryById('AntiForgeryField').getValue()
+                                    },
+                                    success: function (data3) {
+                                        App.NewSearchAll.destroy();
+                                    }
+                                });
+                            }
+                        }
+                    });
+                }
+                else {
+
+                    if (State == 1) {
+                        Ext.net.DirectMethod.request({
+                            url: '/Faces/Shareholders/CheckPersonalHaghighi',
+                            params: {
+                                PersonalId: data.fldId,
+                                ReqId: '@ViewBag.ReqId',
+                                FirstId: '@ViewBag.FirstId'
+                            },
+                            success: function (data3) {
+                                if (data3.Err == 0) {
+                                    Ext.net.DirectMethod.request({
+                                        url: '/Faces/Shareholders/DetailsCompanyPerson',
+                                        params: {
+                                            Id: data.fldId,
+                                            Type: '1',
+                                            _Id: 0,
+                                            ReqId: '@ViewBag.ReqId',
+                                            __RequestVerificationToken: App.NewSearchAll.queryById('AntiForgeryField').getValue()
+                                        },
+                                        success: function (data1) {
+                                            ShareholderId = data1.fldId;
+                                            App.NewShareholders.queryById('txtTedadSaham').setValue(data1.fldTedadSaham);
+                                            App.NewShareholders.queryById('txtDateSaham').setValue(data1.fldTarikhSaham);
+                                        }
+                                    });
+                                    CompanyPersonalId = data.fldId;
+                                    App.NewShareholders.queryById('txtName2').setValue(data.fldName);
+                                    App.NewShareholders.queryById('txtFamily2').setValue(data.fldFamily);
+                                    App.NewShareholders.queryById('txtCodeMeli').setValue(data.fldCodeMeli);
+                                    App.NewSearchAll.destroy();
+                                }
+                                else
+                                    Ext.MessageBox.show({
+                                        Name: data3.MsgName,
+                                        msg: data3.Msg,
+                                        icon: Ext.MessageBox.ERROR,
+                                        buttons: Ext.MessageBox.OK
+                                    });
+                            }
+                        });
+                    }
+                    if (State == 2) {
+                        var cboOrgan = App.NewGieyrKhososi.queryById('cboOrgan');
+                        if (cboOrgan.getValue() != null) {
+                            Ext.net.DirectMethod.request({
+                                url: '/Faces/Shareholders/CheckPersonalGheirKhososi',
+                                params: {
+                                    PersonalId: data.fldId,
+                                    OrganId: cboOrgan.getValue(),
+                                    ReqId: '@ViewBag.ReqId',
+                                    FirstId: '@ViewBag.FirstId'
+                                },
+                                success: function (data4) {
+                                    if (data4.Err == 0) {
+                                        Ext.net.DirectMethod.request({
+                                            url: '/Faces/Shareholders/DetailsCompanyPerson',
+                                            params: {
+                                                Id: data.fldId,
+                                                Type: 3,
+                                                _Id: cboOrgan.getValue(),
+                                                ReqId: '@ViewBag.ReqId',
+                                                __RequestVerificationToken: App.NewSearchAll.queryById('AntiForgeryField').getValue()
+                                            },
+                                            success: function (data1) {
+                                                ShareholderId = data1.fldId;
+                                                App.NewGieyrKhososi.queryById('txtTedadSaham').setValue(data1.fldTedadSaham);
+                                                App.NewGieyrKhososi.queryById('txtDateSaham').setValue(data1.fldTarikhSaham);
+                                            }
+                                        });
+                                        CompanyPersonalId = data.fldId;
+                                        App.NewGieyrKhososi.queryById('txtName_Family').setValue(data.fldName + ' ' + data.fldFamily);
+                                        App.NewGieyrKhososi.queryById('txtCodeMeli').setValue(data.fldCodeMeli);
+                                        App.NewSearchAll.destroy();
+                                    }
+                                    else
+                                        Ext.MessageBox.show({
+                                            Name: data4.MsgName,
+                                            msg: data4.Msg,
+                                            icon: Ext.MessageBox.ERROR,
+                                            buttons: Ext.MessageBox.OK
+                                        });
+                                }
+                            });
+                        }
+                        else {
+                            Ext.MessageBox.show({
+                                Name: "خطا",
+                                msg: "لطفا ابتدا نام سازمان را وارد نمایید.",
+                                icon: Ext.MessageBox.ERROR,
+                                buttons: Ext.MessageBox.OK
+                            });
+                        }
+                    }
+                    if (State == 3) {
+                        /* if (CompanyId != 0) {*/
+                        Ext.net.DirectMethod.request({
+                            url: '/Faces/Shareholders/CheckHoghoghiKhososi',
+                            params: {
+                                PersonalId: data.fldId,
+                                CompanyId: CompanyId,
+                                ReqId: '@ViewBag.ReqId',
+                                FirstId: '@ViewBag.FirstId'
+                            },
+                            success: function (data5) {
+                                if (data5.Err == 0) {
+
+                                    CompanyPersonalId = data.fldId;
+                                    App.NewHoghoghiKhososi.queryById('txtName_Family').setValue(data.fldName + ' ' + data.fldFamily);
+                                    App.NewHoghoghiKhososi.queryById('txtCodeMeli').setValue(data.fldCodeMeli);
+
+                                    if ('@ViewBag.CompanyId' != "0" && CompanyPersonalId != "") {
+                                        Ext.net.DirectMethod.request({
+                                            url: '/Faces/Shareholders/DetailsCompanyPerson',
+                                            params: {
+                                                Id: data.fldId,
+                                                Type: 2,
+                                                _Id: '@ViewBag.CompanyId',
+                                                ReqId: '@ViewBag.ReqId',
+                                                __RequestVerificationToken: App.NewSearchAll.queryById('AntiForgeryField').getValue()
+                                            },
+                                            success: function (data1) {
+                                                App.NewHoghoghiKhososi.queryById('txtTedadSaham').setValue(data1.fldTedadSaham);
+                                                App.NewHoghoghiKhososi.queryById('txtDateSaham').setValue(data1.fldTarikhSaham);
+                                            }
+                                        });
+                                    }
+
+                                    App.NewSearchAll.destroy();
+                                }
+                                else
+                                    Ext.MessageBox.show({
+                                        Name: data5.MsgName,
+                                        msg: data5.Msg,
+                                        icon: Ext.MessageBox.ERROR,
+                                        buttons: Ext.MessageBox.OK
+                                    });
+                            }
+                        });
+                        /*}
+                        else {
+                            Ext.MessageBox.show({
+                                Name: "خطا",
+                                msg: "لطفا ابتدا مشخصات سهامدار حقوقی را وارد نمایید.",
+                                icon: Ext.MessageBox.ERROR,
+                                buttons: Ext.MessageBox.OK
+                            });
+                        }*/
+                    }
+                    if (State == 4) {
+                        /* var recordd = App.NewProject.queryById("GridNamayande").store.getAt('ViewBag.rowIdx');
+                         App.ColNamayande.getComponent(parseInt('ViewBag.rowIdx')).setValue(data.fldName + " " + data.fldFamily);
+                         recordd.data.fldAshkhasId = data.fldId;
+                         recordd.data.fldCodeMeli = data.fldCodeMeli;
+                         recordd.data.fldMobile = data.fldMobile;*/
+
+                        var grid = App.NewProject.queryById("GridNamayande");
+                        grid.store.insert(grid.store.count(), {
+                            fldId: 0, fldAshkhasId: data.fldId, fldName_Family: data.fldName + " " + data.fldFamily, fldCodeMeli: data.fldCodeMeli, fldMobile: data.fldMobile
+                        });
+
+
+                        App.NewSearchAll.destroy();
+
+                    }
+
+                }
+            }
+
+        });
+    }
+
+    function EnterNext() {
+        var keyfield = App.NewSearchAll.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+        var nextfld = keyfield.nextSibling();
+        nextfld.focus();
+        nextfld.selectText();
+    }
+</script>

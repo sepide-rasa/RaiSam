@@ -1,0 +1,275 @@
+﻿@{
+    Layout = "~/Areas/Faces/Views/Shared/_shared.cshtml";
+}
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@using RaiSam.Models;
+
+@{var X = Html.X();}
+
+<style>
+    td {
+        text-align: right;
+    }
+</style>
+@(
+
+ X.Panel()
+    .Title("")
+        //     .Listeners(l => l.AfterRender.Handler = "LoadCaptha();")
+    .Border(false)
+        .ID("ForgetPass")
+    .AutoScroll(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Layout(LayoutType.Fit)
+
+    .Items(
+                X.Panel()
+                    .Border(false)
+                    .ID("pnl")
+                        .Layout(Ext.Net.LayoutType.VBox)
+                            .LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Center, Pack = BoxPack.End })
+                    .AutoScroll(true)
+                    .Border(false)
+
+                        .Items(
+                 X.AntiForgeryField().ItemID("AntiForgeryField"),
+
+                   X.Panel()
+                        .Border(false).Width(600).Width(620).Height(650)
+        //.Icon(Icon.Lock)
+                            .ID("pnlForgetPass")
+        //.ButtonAlign(Alignment.Left)
+                        .AutoScroll(true)
+        // .Title("بازنشانی رمز عبور")
+                        .Frame(false)
+        //.Margin(5)
+        //    .Buttons(
+        //            X.Button()
+        //                .Text("ارسال")
+        //                .Icon(Ext.Net.Icon.ArrowTurnRight)
+        //                .Flat(true)
+        //                        .Listeners(l => l.Click.Handler = "VerificationCode();")
+
+                        //             , X.Button()
+        //                .Text("انصراف")
+        //                    .Icon(Ext.Net.Icon.BulletCross)
+        //                .Flat(true)
+        //                    .Listeners(l => l.Click.Handler = "ExitLogon()")
+
+                        //            )
+                    .Items(
+                         X.Panel()
+                        .Border(false).Width(600).Width(600).Height(300)
+                                .Icon(Icon.Lock)
+                            .ID("pnlForgetPass2")
+                        .ButtonAlign(Alignment.Left)
+                        .AutoScroll(true)
+                        .Title("بازنشانی رمز عبور")
+                        .Frame(true)
+                        .Margin(5)
+                            .Buttons(
+                                    X.Button()
+                                        .Text("ارسال")
+                                        .Icon(Ext.Net.Icon.ArrowTurnRight)
+                                        .Flat(true)
+                                                .Listeners(l => l.Click.Handler = "VerificationCode();")
+                                    , X.Button()
+                                        .Text("راهنما")
+                                            .Icon(Ext.Net.Icon.Help)
+                                        .Flat(true)
+                                                .Listeners(l => l.Click.Handler = "HelpForgetPass()")
+                                     , X.Button()
+                                        .Text("انصراف")
+                                            .Icon(Ext.Net.Icon.BulletCross)
+                                        .Flat(true)
+                                            .Listeners(l => l.Click.Handler = "ExitLogon()")
+
+                                    )
+                                    .Items(
+
+                    X.FieldSet().Border(false)
+                .Center()
+                .Defaults(new { Margin = 10 })
+
+                .Items(
+                           X.Hidden().ItemID("fldId")
+                                    , X.FieldSet().Title("")
+                                .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 1 })
+                                .Defaults(new { Margin = 10 })
+                                .Items(
+                                     X.Label().ItemID("lblMohtavaHtml")
+                                         .Text("لطفا پست الکترونیک خود را جهت ارسال رمز جدید وارد نمایید.")
+                                        , X.TextField()
+                                        .ItemID("txtEmail")
+                                         .Width(500)//.Listeners(li => li.Focus.Handler = "checkEmail()")
+                                        .FieldLabel("پست الکترونیک")
+                                        .MsgTarget(Ext.Net.MessageTarget.Side)
+                                        .EmptyText("Example@chmail.ir")
+                                        .AllowBlank(false)
+                                        .BlankText("لطفا پست الکترونیک را وارد کنید.")
+                                        .LabelAlign(Ext.Net.LabelAlign.Top)
+                                           )
+        // )
+                               )
+                         )
+        //.Layout(Ext.Net.LayoutType.VBox)
+        //.LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Center })
+                    )
+              )
+         )
+)
+<script type="text/javascript">
+
+
+    /*function checkEmail() {
+        var txtEmail = App.ForgetPass.queryById('txtEmail');
+        if (txtEmail.getValue() == "") {
+            Ext.MessageBox.show({
+                title: 'خطا',
+                msg: 'لطفا آدرس ایمیل را وارد نمایید.',
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+        else {
+            Ext.net.DirectMethod.request({
+                url: '/FristRegister/checkEmail',
+                params: {
+                    Email: txtEmail.getValue()
+                },
+                success: function (data) {
+                    if (data.flag == false) {
+                        Ext.MessageBox.show({
+                            title: 'خطا',
+                            msg: 'شما با پست الکترونیک وارد شده ثبت نام نکرده اید.',
+                            icon: Ext.MessageBox.ERROR,
+                            buttons: Ext.MessageBox.OK
+                        });
+                    }
+                    if (data.valid == false) {
+                        Ext.MessageBox.show({
+                            title: 'خطا',
+                            msg: 'آدرس ایمیل نامعتبر است.',
+                            icon: Ext.MessageBox.ERROR,
+                            buttons: Ext.MessageBox.OK
+                        });
+                    }
+                }
+            });
+        }
+
+    }*/
+
+    function VerificationCode() {
+        var txtEmail = App.ForgetPass.queryById('txtEmail');
+
+        var er = false;
+        if (txtEmail.getValue() == "") {
+            Ext.MessageBox.show({
+                title: 'خطا',
+                msg: 'لطفا آدرس پست الکترونیک را وارد نمایید.',
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+        else {
+            Ext.net.DirectMethod.request({
+                url: '/Faces/FristRegister/checkEmail',
+                params: {
+                    Email: txtEmail.getValue()
+                },
+                success: function (data) {
+                    if (data.flag == false) {
+                        Ext.MessageBox.show({
+                            title: 'خطا',
+                            msg: 'شما با پست الکترونیک وارد شده ثبت نام نکرده اید.',
+                            icon: Ext.MessageBox.ERROR,
+                            buttons: Ext.MessageBox.OK
+                        });
+                    }
+                   else if (data.valid == false) {
+                        Ext.MessageBox.show({
+                            title: 'خطا',
+                            msg: 'پست الکترونیک وارد شده نامعتبر است.',
+                            icon: Ext.MessageBox.ERROR,
+                            buttons: Ext.MessageBox.OK
+                        });
+                    }
+                    else if (data.ir == false) {
+                        Ext.MessageBox.show({
+                            title: 'خطا',
+                            msg: 'آدرس پست الکترونیک  می بایست در دامنه ir باشد.',
+                            icon: Ext.MessageBox.ERROR,
+                            buttons: Ext.MessageBox.OK
+                        });
+                    }
+
+                    else {
+                        Ext.net.Mask.show({ msg: 'در حال بررسی...' });
+                        Ext.net.DirectMethod.request({
+                            url: '/Faces/FristRegister/PassSend',
+                            params: {
+                                fldEmail: txtEmail.getValue(),
+                                __RequestVerificationToken: App.ForgetPass.queryById('AntiForgeryField').getValue()
+                            },
+                            success: function (data) {
+                                Ext.net.Mask.hide();
+
+                                var ic = Ext.MessageBox.INFO;
+                                if (data.Err == 1) {
+                                    ic = Ext.MessageBox.ERROR;
+                                }
+                                Ext.MessageBox.show({
+                                    title: data.MsgTitle,
+                                    msg: data.Msg,
+                                    icon: ic,
+                                    buttons: Ext.MessageBox.OK
+                                });
+                            }
+                        });
+
+                    }
+                }
+            });
+        }
+
+
+
+
+    }
+
+    function HelpForgetPass() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Faces/FristRegister/HelpForgetPass',
+            params: {
+
+            },
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+    function ExitLogon() {
+        window.location.href = '@Url.Content("~/Account/Logon")'
+    }
+
+
+    function EnterNext() {
+        var keyfield = App.ForgetPass.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+        var nextfld = keyfield.nextSibling();
+        nextfld.focus();
+        nextfld.selectText();
+
+    }
+</script>
+<style>
+    .x-fieldset-header-text {
+        font: 11px/14px;
+        color: #15428b;
+        padding: 1px 0;
+    }
+</style>

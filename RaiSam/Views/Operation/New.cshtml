@@ -1,0 +1,874 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+<style>
+    #DeleteActionFileimg8:hover {
+        cursor: pointer;
+    }
+
+    .x-mcombo-item-unchecked {
+        background-position: right;
+        padding-right: 20px;
+    }
+
+    .x-mcombo-item-checked {
+        background-position: right;
+        padding-right: 20px;
+    }
+</style>
+<script>
+    var h;
+    var onInitializeToEn = function (htmlEditor) {
+        h = htmlEditor;
+        htmlEditor.getDoc()[Ext.isGecko ? 'onkeypress' : 'onkeyup'] = function (e) {
+            htmlEditor.setValue(FaLangAlert(htmlEditor.getValue()));
+        };
+    };
+</script>
+
+@(Html.X()
+    .Window()
+    .Modal(true)
+    .Listeners(li =>
+    {
+        li.Render.Fn = "addKeyMapNewOperation";
+        //li.AfterRender.Handler = "LoadOperation()";
+    })
+    .Width(530)
+    .Title("ثبت اکشن جدید")
+    .ID("NewOperation")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Layout(LayoutType.Fit)
+    .ButtonAlign(Ext.Net.Alignment.Center)
+    .Buttons(
+        X.Button()
+            .Text("ذخیره")
+            .Icon(Ext.Net.Icon.Disk)
+            .Listeners(l => l.Click.Handler = "SaveOperation();"),
+        X.Button()
+            .Text("خروج")
+            .Icon(Ext.Net.Icon.DoorOut)
+                .OnClientClick("App.NewOperation.hide()"))
+    .Items(
+        X.AntiForgeryField()
+            .ItemID("antiForgeryToken")
+            .Hidden(true),
+        X.Panel()
+        //.Padding(5)
+            .Border(false)
+            .Layout(LayoutType.VBox)
+            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+            .Items(
+                X.FieldSet()
+                    .Border(true)
+                    .Title("مشخصات اکشن")
+                    .Defaults(new { Margin = 2 })
+                    .Layout(LayoutType.VBox)
+                    .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+                    .Items(
+                        X.Hidden().ItemID("fldId").Value(0),
+                        X.Hidden().ItemID("fldFileId"),
+                        X.Panel().Border(false).Layout(LayoutType.Table).Defaults(new { Margin = 2 })
+                        .LayoutConfig(new TableLayoutConfig { Columns = 4 })
+                        .Items(
+                        X.Label("عنوان اکشن:"),
+                        X.TextField()
+                            .ItemID("txtName")
+                            .AutoFocus(true)
+                            .AutoFocusDelay(500)
+                            .AllowBlank(false)
+        //.MaskRe("[أ-ئ,ا-ی,آ ,/]")
+                            .BlankText("لطفا نام اکشن را وارد کنید.")
+                            .MaxLength(250)
+                            .EnforceMaxLength(true),
+                        X.Label("عامل قابل چرخش:"),
+                        X.MultiCombo()
+                            .ItemID("CboRotatingAgent")
+                            .EmptyText("عامل قابل چرخش...")
+                            .AllowBlank(false)
+                            .BlankText("لطفا عامل قابل چرخش را انتخاب نمایید.")
+                            .TypeAhead(true)
+                            .Editable(false)
+                            .QueryMode(DataLoadMode.Local)
+                            .ForceSelection(true)
+                            .TriggerAction(TriggerAction.All)
+                            .DisplayField("fldName")
+                            .ValueField("ID")
+                            .Store(
+                                X.Store()
+                                        .Listeners(l => l.BeforeLoad.Handler = "App.NewOperation.queryById('CboRotatingAgent').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.NewOperation.queryById('antiForgeryToken').getValue());")
+                                    .Model(X.Model()
+                                    .IDProperty("ID")
+                                    .Fields(
+                                        new ModelField("ID", ModelFieldType.String) { Mapping = "ID" },
+                                        new ModelField("fldName", ModelFieldType.String) { Mapping = "fldName" })
+                                    )
+                                    .Proxy(X.AjaxProxy()
+                                         .ActionMethods(l => l.Read = HttpMethod.POST)
+                                        .Url(Url.Action("GetRotatingAgent"))
+                                        .Reader(X.JsonReader().Root("data"))
+                                    )
+                            ),
+                            X.Label("وضعیت:"),
+                            X.ComboBox()
+                                .ItemID("CboStatus")
+                                .Editable(false)
+                                .TypeAhead(true)
+                                .BlankText("لطفا وضعیت را انتخاب کنید.")
+                                .QueryMode(DataLoadMode.Local)
+                                .TriggerAction(TriggerAction.All)
+                                .AllowBlank(false)
+                                .EmptyText("وضعیت...")
+                                .Items(
+                                    new ListItem("فعال", "1"),
+                                    new ListItem("غیرفعال", "0")
+                                    )
+                                .SelectedItems(new { Value = "1" }),
+                            X.Label("نوع استفاده:"),
+                            X.ComboBox()
+                                .ItemID("CboTypeMoayene")
+                                .Editable(false)
+                                .TypeAhead(true)
+                                .BlankText("لطفا نوع استفاده اکشن را انتخاب کنید.")
+                                .Listeners(l =>
+                                {
+                                    l.Change.Handler = "showhideDynamic()";
+                                    l.AfterRender.Handler = "App.NewOperation.queryById('CboTypeMoayene').setValue('0');";
+                                })
+                                .QueryMode(DataLoadMode.Local)
+                                .TriggerAction(TriggerAction.All)
+                                .AllowBlank(false)
+                                .ReadOnly(true)
+                                .EmptyText("نوع استفاده...")
+                                .Items(
+                                    new ListItem("اکشن عادی", "0")/*,
+                                    new ListItem("اکشن معاینه", "1")*/
+                                    ),
+                            X.Label("پیاده سازی:").ItemID("lblTypeDynamic"),
+                            X.ComboBox()
+                                .ItemID("CboTypeDynamic")
+                                .Editable(false)
+                                .TypeAhead(true)
+                                .BlankText("لطفا نوع پیاده سازی را انتخاب کنید.")
+                               // .Listeners(l => l.Select.Handler = "enabledisableCboDynamicTable()")
+                                .QueryMode(DataLoadMode.Local)
+                                .TriggerAction(TriggerAction.All)
+                                .AllowBlank(false)
+                                .EmptyText("نوع پیاده سازی...")
+                                .Items(
+                                    new ListItem("اکشن", "0"),
+                                    new ListItem("داینامیک", "1")
+                                )
+                                .SelectedItems(new { Value = "0" }),
+                            //X.Label("عنوان معاینه:").ItemID("lblDynamicTable"),
+                            //X.ComboBox()
+                            //    .ItemID("CboDynamicTable")
+                            //    .EmptyText("عنوان معاینه...")
+                            //    .Disabled(true)
+                            //    .AllowBlank(false)
+                            //    .BlankText("لطفا عنوان معاینه را انتخاب نمایید.")
+                            //    .TypeAhead(true)
+                            //    .Editable(false)
+                            //    .QueryMode(DataLoadMode.Local)
+                            //    .ForceSelection(true)
+                            //    .TriggerAction(TriggerAction.All)
+                            //    .DisplayField("fldName")
+                            //    .ValueField("ID")
+                            //    .Store(
+                            //        X.Store()
+                            //                .Listeners(l => l.BeforeLoad.Handler = "App.NewOperation.queryById('CboDynamicTable').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.NewOperation.queryById('antiForgeryToken').getValue());")
+                            //            .Model(X.Model()
+                            //            .IDProperty("ID")
+                            //            .Fields(
+                            //                new ModelField("ID", ModelFieldType.String) { Mapping = "ID" },
+                            //                new ModelField("fldName", ModelFieldType.String) { Mapping = "fldName" })
+                            //            )
+                            //            .Proxy(X.AjaxProxy()
+                            //                 .ActionMethods(l => l.Read = HttpMethod.POST)
+                            //                .Url(Url.Action("GetDynamicTable"))
+                            //                .Reader(X.JsonReader().Root("data"))
+                            //            )
+                            //    ),
+                            X.Label("نوع اکشن:"),
+                            X.ComboBox()
+                                .ItemID("CboType")
+                                .Editable(false)
+                                .TypeAhead(true)
+                                .BlankText("لطفا نوع اکشن را انتخاب کنید.")
+                                .QueryMode(DataLoadMode.Local)
+                                .TriggerAction(TriggerAction.All)
+                                .AllowBlank(false)
+                                .EmptyText("وضعیت...")
+                                .Items(
+                                    new ListItem("مؤثر", "1"),
+                                    new ListItem("غیرمؤثر", "0")
+                                    )
+                                .SelectedItems(new { Value = "1" }),
+                                    X.Label("تابع مورد نظر:"),
+                                X.ComboBox()
+                                        .ItemID("CboMethodName")
+                                    .TypeAhead(true)
+                                    .Editable(false)
+                                    .ForceSelection(true)
+                                    .QueryMode(DataLoadMode.Local)
+                                    .TriggerAction(TriggerAction.All)
+                                    .AllowBlank(false)
+                                    .BlankText("لطفا نام تابع را انتخاب کنید.")
+                                    .DisplayField("fldName")
+                                    .ValueField("fldId")
+                                    .EmptyText("نام تابع...")
+                                    .Store(X.Store()
+        //.Listeners(l => l.Load.Handler = "LoadOperation();setDefaultCboDataType()")
+                .Listeners(l => l.BeforeLoad.Handler = "App.NewOperation.queryById('CboMethodName').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.NewOperation.queryById('antiForgeryToken').getValue());")
+                                        .Model(X.Model()
+                                            .IDProperty("fldId")
+                                            .Fields(
+                                                new ModelField("fldId", ModelFieldType.String) { Mapping = "fldId" },
+                                                new ModelField("fldName", ModelFieldType.String) { Mapping = "fldName" },
+                                                    new ModelField("fldTableName", ModelFieldType.String) { Mapping = "fldTableName" }
+
+                                                )
+                                        )
+                                        .Proxy(X.AjaxProxy()
+                                             .ActionMethods(l => l.Read = HttpMethod.POST)
+                                            .Timeout(200000000)
+                                                        .Url(Url.Action("GetMethodName"))
+                                            .Reader(X.JsonReader().Root("data"))
+                                        )
+                                ),
+                                 X.Label("نوع خروجی:"),
+                            X.ComboBox()
+                                    .ItemID("CboDataType")
+                                .TypeAhead(true)
+                                .Editable(true)
+                                .ForceSelection(true)
+                                .Disabled(true)
+                                .QueryMode(DataLoadMode.Local)
+                                .TriggerAction(TriggerAction.All)
+                                .AllowBlank(false)
+                                .BlankText("لطفا نوع خروجی اکشن را انتخاب کنید.")
+                                .DisplayField("fldName")
+                                .ValueField("fldId")
+                                .Listeners(l => l.BeforeQuery.Fn = "SearchMatchCombo")
+                                .EmptyText("نوع داده...")
+                                .Store(X.Store()
+                                                .Listeners(l => l.Load.Handler = "LoadOperation();setDefaultCboDataType()")
+                                                        .Listeners(l => l.BeforeLoad.Handler = "App.NewOperation.queryById('CboDataType').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.NewOperation.queryById('antiForgeryToken').getValue());")
+                                    .Model(X.Model()
+                                        .IDProperty("fldId")
+                                        .Fields(
+                                            new ModelField("fldId", ModelFieldType.Int) { Mapping = "fldId" },
+                                            new ModelField("fldName", ModelFieldType.String) { Mapping = "fldName" }
+                                            )
+                                    )
+                                    .Proxy(X.AjaxProxy()
+                                         .ActionMethods(l => l.Read = HttpMethod.POST)
+                                        .Timeout(200000000)
+                                                .Url(Url.Action("GetDataType"))
+                                        .Reader(X.JsonReader().Root("data"))
+                                    )
+                            ),
+
+
+                            X.FieldSet()
+                    .Border(false)
+                    .Layout(LayoutType.HBox)
+                    .ColSpan(2)
+                            .ItemID("FieldsetGroup")
+                    .Padding(0)
+                    .Items(
+                        X.Checkbox()
+                            .ItemID("chkGroup")
+                            .PaddingSpec("0 79px 0 7px"),
+                        X.Label("گروهی")),
+                        X.FieldSet()
+                    .Border(false)
+                    .Layout(LayoutType.HBox)
+                    .ColSpan(2)
+                         .Padding(0)
+                        .ItemID("FieldsetShow")
+
+                    .Items(
+                        X.Checkbox()
+                            .ItemID("chkShow")
+                            .PaddingSpec("0 51px 0 7px"),
+                        X.Label("نمایش در کارتابل عمومی")),
+                        X.FieldSet()
+                    .Border(false)
+                    .Layout(LayoutType.HBox)
+                    .ColSpan(2)
+                    .Padding(0)
+                    .Items(
+                        X.Checkbox()
+                            .ItemID("chkShowSK")
+                            .PaddingSpec("0 80px 0 7px"),
+                        X.Label("نمایش در کارتابل تخصصی"))
+                        ),
+        //X.Label("شرح خروجی:"),
+                        X.HtmlEditor()
+                                .ItemID("txtDesc")
+                                .EnableSourceEdit(false)
+                            .AutoFocus(false)
+                                .ToolTips(t => t.Add(new ToolTip { Title = "شرح خروجی اکشن", Width = 100 }))
+                            .RTL(true)
+            .Width(460)
+                                        .Height(150)
+                                        .RTL(true)
+                            .ColSpan(4),
+                        X.FieldSet()
+                            .Border(true)
+                            .AutoScroll(true)
+                            .ColSpan(4)
+                            .Title("انتخاب فایل(حداکثر حجم مجاز: 300KB)")
+                            .Layout(LayoutType.HBox)
+                            .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Middle })
+                            .Items(
+                                X.FormPanel()
+                                    .Border(false)
+                                    .Layout(LayoutType.HBox)
+                                    .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Middle })
+                                    .Width(380)
+                                    .Items(
+                                        X.FileUploadField()
+                                            .MarginSpec("0 10px 10px 0")
+                                            .Icon(Ext.Net.Icon.DiskUpload)
+                                            .ButtonOnly(true)
+                                            .ButtonText("انتخاب فایل")
+                                            .DirectEvents(l =>
+                                            {
+                                                l.Change.Action = "Upload";
+                                                l.Change.Delay = 1000;
+                                                l.Change.Before = "if(GotoServerOperation==false){return false;}";
+                                                l.Change.Success = "hideprogressOperation";
+                                            })
+            .Listeners(l => l.Change.Fn = "showFileOperation"),
+                                        X.Container()
+                                            .Content(@<div id="fi-button-msgOP" class="Wrap-label" style="width:310px;height:auto;text-align:right;"><b>فایل انتخاب شده:</b></div>)
+                                        ),
+                                X.Panel()
+                                    .Border(false)
+                                    .Layout(LayoutType.VBox)
+                                    .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+                                    .Items(
+                                        X.Label("پیش نمایش"),
+                                        X.Panel()
+                                            .Frame(true)
+                                            .MarginSpec("3px 0 0 0")
+                                            .Layout(LayoutType.Fit)
+                                            .Items(
+                                                X.Image()
+                                                    .ItemID("Image")
+                                                    .MarginSpec("3px 0 0 0")
+                                                    .Flex(1)
+                                                    .ImageUrl("/Content/icon/Blank.jpg")
+                                                    .Width(40)
+                                                    .Height(40)
+                                                    .Border(true)
+                                                    .Frame(true)
+                                            )
+                                        )
+                            )
+                    )
+                        )
+
+                )
+)
+<script type="text/javascript">
+    function showhideDynamic() {
+        if (App.NewOperation.queryById("CboTypeMoayene").getValue() == "1") {
+            App.NewOperation.queryById("CboTypeDynamic").show();
+            App.NewOperation.queryById("lblTypeDynamic").show();
+           /* App.NewOperation.queryById("CboDynamicTable").show();
+            App.NewOperation.queryById("lblDynamicTable").show();*/
+        }
+        else {
+            App.NewOperation.queryById("CboTypeDynamic").hide();
+            App.NewOperation.queryById("lblTypeDynamic").hide();
+            /*App.NewOperation.queryById("CboDynamicTable").hide();
+            App.NewOperation.queryById("lblDynamicTable").hide();*/
+        }
+    }
+
+   
+
+    var GotoServerOperation = false;
+    var EndUploadOperation = false;
+
+    var CheckOperation = setInterval(CheckEndOperation, 500);
+
+    function CheckEndOperation() {
+        if (EndUploadOperation == true) {
+            Ext.net.DirectMethod.request({
+                url: '/Operation/ShowPic',
+                success: function (data) {
+                    value = "data:image/gif;base64," + data.image;
+                    App.NewOperation.queryById('Image').setImageUrl(value);
+                }
+            });
+            GotoServerOperation = false;
+            Ext.MessageBox.hide();
+            Ext.Msg.alert('عملیات موفق', 'فایل با موفقیت آپلود شد.');
+            clearInterval(CheckEndOperation);
+            EndUploadOperation = false;
+        }
+    }
+    var showFileOperation = function (fb, v) {
+        var id = fb.fileInputEl.dom.id;
+        var el = Ext.get('fi-button-msgOP');
+        if (v) {
+            showProgressBarOperation();
+            if (v.split('.').pop().toLowerCase() == "jpg" || v.split('.').pop().toLowerCase() == "png" || v.split('.').pop().toLowerCase() == "jpeg"
+                || v.split('.').pop().toLowerCase() == "tif" || v.split('.').pop().toLowerCase() == "tiff" || v.split('.').pop().toLowerCase() == "gif"
+                || v.split('.').pop().toLowerCase() == "bmp") {
+                if (document.getElementById(id).files[0].size <= 307200) {
+                    GotoServerOperation = true;
+                    el.update('<b>فایل انتخاب شده: ' + v + '</b>' + "&nbsp;&nbsp;" + '<img id="DeleteActionFileimg8" title="حذف فایل" src="/Content/cancel.png" style="width:15px;height:15px;margin-bottom: -4px;" onclick="javascript:DeleteFileOperation()" />');
+                }
+                else {
+                    clearInterval(CheckEndOperation);
+                    el.update('<b>فایل انتخاب شده:</b> ');
+                    App.NewOperation.queryById('Image').setImageUrl("/Content/icon/Blank.jpg");
+                    Ext.MessageBox.show({
+                        title: "خطا",
+                        msg: "حجم فایل انتخاب شده غیرمجاز است.",
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK
+                    });
+                }
+
+                if (!el.isVisible()) {
+                    el.slideIn('t', {
+                        duration: .2,
+                        easing: 'easeIn',
+                        callback: function () {
+                            el.highlight();
+                        }
+                    });
+                } else {
+                    el.highlight();
+                }
+            }
+            else {
+                clearInterval(CheckEndOperation);
+                el.update('<b>فایل انتخاب شده:</b> ');
+                App.NewOperation.queryById('Image').setImageUrl("/Content/icon/Blank.jpg");
+                Ext.MessageBox.show({
+                    title: "خطا",
+                    msg: "فایل انتخاب شده غیرمجاز است.",
+                    icon: Ext.MessageBox.ERROR,
+                    buttons: Ext.MessageBox.OK
+                });
+            }
+        }
+    };
+
+    var DeleteFileOP = false;
+    function DeleteFileOperation() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Operation/DeleteSessionFile',
+            success: function (data) {
+                DeleteFileOP = true;
+                App.NewOperation.queryById('Image').setImageUrl("/Content/icon/Blank.jpg");
+                Ext.get('fi-button-msgOP').update('<b>فایل انتخاب شده:</b>');
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+    function setDefaultCboDataType() {
+        if ('@ViewBag.Id' == "0") {
+            App.NewOperation.queryById("CboDataType").setValue(App.NewOperation.queryById("CboDataType").store.getAt(0));
+        }
+    }
+    var SearchMatchCombo = function (record) {
+        return record.query = new RegExp(record.query.replace("(", "[(]").replace(")", "[)]"), 'i');
+    };
+
+    var hideprogressOperation = function (Responsdtxt, ResponseObj) {
+        if (ResponseObj.IsValid == true) {
+            EndUploadOperation = true;
+        }
+        else {
+            var el = Ext.get('fi-button-msgOP');
+            GotoServerOperation = false;
+            clearInterval(CheckEndOperation);
+            EndUploadOperation = false;
+            el.update('<b>فایل انتخاب شده:</b> ');
+            App.NewOperation.queryById('Image').setImageUrl("/Content/icon/Blank.jpg");
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: ResponseObj.Message,
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    };
+    function showProgressBarOperation() {
+        Ext.MessageBox.show({
+            msg: 'لطفاً منتظر باشید',
+            progressText: 'در حال آپلود فایل...',
+            width: 300,
+            wait: true,
+            waitConfig:
+            {
+                interval: 200,
+                text: 'در حال آپلود فایل...',
+                scope: this
+            }
+        });
+    }
+    var fldTimeStamp = 0;
+    function LoadOperation() {
+        /*App.NewOperation.setWidth(App.BasicInfWin.getWidth() - 881);*/
+        /*App.NewOperation.queryById("txtDesc").setWidth(App.BasicInfWin.getWidth() - 996);
+        Ext.get('fi-button-msg').setWidth(App.BasicInfWin.getWidth() - 1050);*/
+        if ('@ViewBag.Id' != '0') {
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/Operation/Details',
+                params: {
+                    Id: '@ViewBag.Id',
+                    __RequestVerificationToken: App.NewOperation.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+
+                    var txtName = App.NewOperation.queryById('txtName');
+                    txtName.setValue(data.fldName);
+
+                    var CboRotatingAgent = App.NewOperation.queryById('CboRotatingAgent');
+                    if (data.fldNoeCharkheshId != null) {
+                        CboRotatingAgent.setValue(data.fldNoeCharkheshId.split(','));
+                    }
+
+                    var CboTypeMoayene = App.NewOperation.queryById('CboTypeMoayene');
+                    if (data.fldtype == true) {
+                        CboTypeMoayene.setValue("1");
+                        if (data.fldIsDynamic == true) {
+                            App.NewOperation.queryById('CboTypeDynamic').setValue("1");
+                        }
+                        else {
+                            App.NewOperation.queryById('CboTypeDynamic').setValue("0");
+                        }
+                    }
+                    else {
+                        CboTypeMoayene.setValue("0");
+                    }
+
+                    var CboType = App.NewOperation.queryById('CboType');
+                    if (data.fldeffective == true) {
+                        CboType.setValue("1");
+                    }
+                    else if (data.fldeffective == false) {
+                        CboType.setValue("0");
+                    }
+
+                    var CboDataType = App.NewOperation.queryById('CboDataType');
+                    CboDataType.setValue(data.fldDataTypeId);
+
+                    var CboStatus = App.NewOperation.queryById('CboStatus');
+                    CboStatus.setValue(data.fldActive_Deactive);
+
+                    var chkGroup = App.NewOperation.queryById('chkGroup');
+                    chkGroup.setValue(data.fldGroup);
+
+                    var chkShowSK = App.NewOperation.queryById('chkShowSK');
+                    chkShowSK.setValue(data.fldSpecificShow);
+
+                    var chkShow = App.NewOperation.queryById('chkShow');
+                    chkShow.setValue(data.fldUsable);
+
+                    var txtDesc = App.NewOperation.queryById('txtDesc');
+                    txtDesc.setValue(data.fldDescAction);
+
+                    var Id = App.NewOperation.queryById('fldId');
+                    Id.setValue(data.fldId);
+
+                    fldTimeStamp = data.fldTimeStamp;
+                    var fldFileId = App.NewOperation.queryById('fldFileId');
+                    fldFileId.setValue(data.fldFileId);
+
+                    if (data.NameFile != "") {
+                        var value = "data:image/gif;base64," + data.pic;
+                        App.NewOperation.queryById('Image').setImageUrl(value);
+                        Ext.get('fi-button-msgOP').update('<b>فایل انتخاب شده: ' + data.NameFile + '</b>' + "&nbsp;&nbsp;" + '<img id="DeleteActionFileimg8" title="حذف فایل" src="/Content/cancel.png" style="width:15px;height:15px;margin-bottom: -4px;" onclick="javascript:DeleteFileOperation()" />');
+                    }
+                    else {
+                        App.NewOperation.queryById('Image').setImageUrl("/Content/icon/Blank.jpg");
+                        Ext.get('fi-button-msgOP').update('<b>فایل انتخاب شده:</b>');
+                    }
+                    var CboMethodName = App.NewOperation.queryById('CboMethodName');
+                    CboMethodName.setValue(data.fldMethodName);
+                    Ext.net.Mask.hide();
+                }
+            });
+        }
+        else {
+            App.NewOperation.queryById('txtName').validate();
+            App.NewOperation.queryById('txtDesc').validate();
+            App.NewOperation.queryById('CboDataType').validate();
+            App.NewOperation.queryById('CboType').validate();
+            App.NewOperation.queryById('CboRotatingAgent').validate();
+            App.NewOperation.queryById('CboMethodName').validate();
+            Ext.net.Mask.hide();
+        }
+    }
+
+    function SaveOperation() {
+        var txtName = App.NewOperation.queryById('txtName');
+        var CboDataType = App.NewOperation.queryById('CboDataType');
+        var CboType = App.NewOperation.queryById('CboType');
+        var chkGroup = App.NewOperation.queryById('chkGroup');
+        var chkShowSK = App.NewOperation.queryById('chkShowSK');
+        var CboMethodName = App.NewOperation.queryById('CboMethodName');
+        var chkShow = App.NewOperation.queryById('chkShow');
+        var txtDesc = App.NewOperation.queryById('txtDesc');
+        var Id = App.NewOperation.queryById('fldId');
+        var fldFileId = App.NewOperation.queryById('fldFileId');
+        var CboStatus = App.NewOperation.queryById('CboStatus');
+        var CboRotatingAgent = App.NewOperation.queryById('CboRotatingAgent');
+        var CboTypeMoayene = App.NewOperation.queryById('CboTypeMoayene');
+        var CboTypeDynamic = App.NewOperation.queryById('CboTypeDynamic');
+
+        var er = false;
+
+        if (txtName.validate() == false) {
+            er = true;
+        }
+        if (CboDataType.validate() == false) {
+            er = true;
+        }
+        if (CboType.validate() == false) {
+            er = true;
+        }
+        if (CboMethodName.validate() == false) {
+            er = true;
+        }
+        if (CboTypeMoayene.validate() == false) {
+            er = true;
+        }
+        if (CboRotatingAgent.validate() == false) {
+            er = true;
+        }
+        if (CboTypeMoayene.getValue() == "1") {
+            if (CboTypeDynamic.validate() == false) {
+                er = true;
+            }
+        }
+      
+        if (er == true)
+            return;
+
+        var Active_Deactive=true;
+        if (CboStatus.getValue() == "0") {
+            Active_Deactive = false;
+        }
+        var effectivee = false;
+        if (CboType.getValue() == "1") {
+            effectivee = true;
+        }
+        var TypeMoayene = false;
+        if (CboTypeMoayene.getValue() == "1") {
+            TypeMoayene = true;
+        }
+        var TableName = "";
+        var MethodName = "";
+        if (CboMethodName.getValue() != "" && CboMethodName.getValue() != null) {
+            TableName = CboMethodName.findRecordByValue(CboMethodName.getValue()).data.fldTableName;
+            MethodName = CboMethodName.getValue();
+        }
+
+        var NoeGhabeleCharkheIds = "";
+        for (var i = 0; i < CboRotatingAgent.getValue().length; i++) {
+            NoeGhabeleCharkheIds = NoeGhabeleCharkheIds + CboRotatingAgent.getValue()[i] + ",";
+        }
+        var isDynamic = null; var isDynamicName = "";
+        if (CboTypeMoayene.getValue() == "1") {
+            if (CboTypeDynamic.getValue() == "1") {
+                isDynamic = true;
+            }
+            else {
+                isDynamic = false;
+            }
+            isDynamicName = CboTypeDynamic.getDisplayValue();
+        }
+  
+        var SpecificShowName = "خیر";
+        if (chkShowSK.getValue() == true)
+            SpecificShowName = "بله";
+        var UsableName = "خیر";
+        if (chkShow.getValue() == true)
+            UsableName = "بله";
+        var GroupName = "انفرادی";
+        if (chkGroup.getValue() == true)
+            GroupName = "گروهی";
+        App.NewOperation.body.mask("در حال ذخیره سازی");
+        var data1 = {
+            fldId: Id.getValue(),
+            fldName: txtName.getValue(),
+            fldDataTypeId: CboDataType.getValue(),
+            fldNameDataType:CboDataType.getDisplayValue(),
+            fldFileId: fldFileId.getValue(),
+            fldDescAction: encodeURI(txtDesc.getValue()),
+            fldGroup: chkGroup.getValue(),
+            fldGroupName:GroupName,
+            fldSpecificShow: chkShowSK.getValue(),
+            fldSpecificShowName:SpecificShowName,
+            fldMethodName: MethodName,
+            fldNameTable: TableName,
+            fldUsable: chkShow.getValue(),
+            fldUsableName: UsableName,
+            fldFA_Name: CboMethodName.getDisplayValue(),
+            fldeffective: effectivee,
+            fldEffectiveName: CboType.getDisplayValue(),
+            fldActive_Deactive: Active_Deactive,
+            fldActive_DeactiveName: CboStatus.getDisplayValue(),
+            fldtype: TypeMoayene,
+            fldTypeName: CboTypeMoayene.getDisplayValue(),
+            fldTimeStamp: fldTimeStamp,
+
+
+            fldIsDynamic: isDynamic,
+            fldIsDynamicName: isDynamicName
+        };
+        var data2 = {
+            DeleteFileOPP: DeleteFileOP
+        };
+        $.ajax({
+            type: "POST",
+            url: '/Operation/Save',
+            /*contentType: "application/json; charset=utf-8",*/
+            data: {
+                Operation1: JSON.stringify(data1),
+                DeletedFile: JSON.stringify(data2),
+                NoeGhabeleCharkheIds: NoeGhabeleCharkheIds,
+                NoeGhabeleCharkheName: CboRotatingAgent.getDisplayValue(),
+                __RequestVerificationToken: App.NewOperation.queryById('antiForgeryToken').getValue()
+            },
+            datatype: "json",
+            success: function (data) {
+                chat.server.reloadLog();
+                if (data.Er == 1) {
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK,
+                        fn: function (btn) {
+                            if (btn == "ok") {
+                                App.NewOperation.queryById('txtName').focus();
+                            }
+                        }
+                    });
+                }
+                else if (data.TimeStamp == 0) {/*تغییر*/
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: Ext.MessageBox.WARNING,
+                        buttons: Ext.MessageBox.OK,
+                        fn: function (btn) {
+                            if (btn == 'ok') {
+                                LoadOperation();
+                            }
+                        }
+                    });
+                }
+                else if (data.TimeStamp == 2) {/*حذف*/
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK,
+                        fn: function (btn) {
+                            if (btn == 'ok') {
+                                App.NewOperation.destroy();
+                            }
+                        }
+                    });
+                }
+                else {
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: Ext.MessageBox.INFO,
+                        buttons: Ext.MessageBox.OK
+                    });
+                }
+                if (data.Er != 1) {
+                    ClearOperation();
+                    App.Operation.queryById('GridOperation').getStore().load();
+                }
+                App.NewOperation.body.mask().hide();
+            },
+            failure: function (data) {
+                alert("خطا");
+                App.NewOperation.body.mask().hide();
+            }
+        });
+    }
+
+    function ClearOperation() {
+        App.NewOperation.queryById('txtName').setValue("");
+        App.NewOperation.queryById('CboMethodName').setValue("");
+        App.NewOperation.queryById('CboRotatingAgent').setValue("");
+        App.NewOperation.queryById('chkGroup').setValue(false);
+        App.NewOperation.queryById('chkShowSK').setValue(false);
+        App.NewOperation.queryById('chkShow').setValue(false);
+        App.NewOperation.queryById('txtDesc').setValue("");
+        App.NewOperation.queryById('fldId').setValue(0);
+        App.NewOperation.queryById('fldFileId').setValue(0);
+        Ext.get('fi-button-msgOP').update('<b>فایل انتخاب شده:</b> ');
+        App.NewOperation.queryById('Image').setImageUrl("/Content/icon/Blank.jpg");
+    }
+
+    var addKeyMapNewOperation = function (cmp) {
+        this.keyMap = new Ext.util.KeyMap({
+            target: cmp.getEl(),
+            binding: [{
+                key: [13, 9], /*Ext.EventObject.ENTER,*/
+                fn: function (key, e) {
+                    if (e.getKey() == 9) {
+                        e.stopEvent();
+                    }
+                    if (Ext.Element.getActiveElement().name == "") {
+                        if (App.NewOperation.queryById("FieldsetShow").items.items[0].inputEl.id == Ext.Element.getActiveElement().id) {
+                            App.NewOperation.queryById("chkShowSK").focus();
+                        }
+                        else if (App.NewOperation.queryById("FieldsetGroup").items.items[0].inputEl.id == Ext.Element.getActiveElement().id) {
+                            App.NewOperation.queryById("chkShow").focus();
+                        }
+                        else {
+                            App.NewOperation.queryById("txtDesc").getEditorBody().focus();
+                        }
+                    }
+                    else {
+                        var keyfield = App.NewOperation.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+                        var nextfld;
+                        if (keyfield.itemId == "CboMethodName") {
+                            App.NewOperation.queryById("chkGroup").focus();
+                            return;
+                        }
+                        else if (keyfield.itemId == "CboTypeMoayene") {
+                            if (App.NewOperation.queryById("CboTypeMoayene").getValue() == "1") {
+                                nextfld = App.NewOperation.queryById("CboTypeDynamic");
+                            }
+                            else {
+                                nextfld = App.NewOperation.queryById("CboType");
+                            }
+                        }
+                        else {
+                            nextfld = keyfield.nextSibling().nextSibling();
+                        }
+                        nextfld.focus();
+                        nextfld.selectText();
+                    }
+                }
+            }]
+        });
+    }
+</script>

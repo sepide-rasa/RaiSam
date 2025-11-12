@@ -1,0 +1,230 @@
+﻿@model RaiSam.Models.prs_tblCarBargSelect
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+
+@{
+    var X = Html.X();
+}
+<style>
+    .borderr {
+        border-radius: 20px;
+        border-width: 3px;
+    }
+</style>
+@(X.Panel()
+    .Title("اطلاعات موردنیاز برای کاربرگ")
+    .Border(false)
+    .ID("CarBarg")
+    .Closable(true)
+    .AutoScroll(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Listeners(li => li.AfterRender.Handler = "setHeightCarBarg();")
+    .Items(
+                 X.AntiForgeryField()
+            .ItemID("antiForgeryToken")
+            .Hidden(true),
+        X.Panel()
+            .Border(false)
+            .AutoScroll(true)
+            .Layout(Ext.Net.LayoutType.VBox)
+            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Stretch })
+            .Items(
+                X.GridPanel()
+                    .AutoScroll(true)
+                    .ItemID("GridCarBarg")
+                    .BottomBar(X.PagingToolbar())
+                    .TopBar(
+                        Html.X().Toolbar()
+                            .Items(
+                                X.Button()
+                                    .Text("جدید")
+                                    .Icon(Ext.Net.Icon.Add)
+                                    .Listeners(li => li.Click.Handler = "NewCarBarg();"),
+                                X.Button()
+                                    .Text("ویرایش")
+                                    .Icon(Ext.Net.Icon.Pencil)
+                                    .Listeners(li => li.Click.Handler = "EditCarBarg();"),
+                                X.Button()
+                                    .Text("حذف")
+                                    .Icon(Ext.Net.Icon.Delete)
+                                    .Listeners(li => li.Click.Handler = "DeleteCarBarg();")
+                                    //,
+                            //    X.SplitButton()
+                            //        .Text("راهنما")
+                            //        .Icon(Ext.Net.Icon.Help)
+                            //        .Menu(X.Menu()
+                            //        .Items(
+                            //        X.MenuItem()
+                            //                    .Text("راهنما متنی")
+                            //                    .Icon(Ext.Net.Icon.TextPaddingTop)
+                            //                            .Listeners(l => l.Click.Handler = "HelpCarBarg()")
+                            //                    .ItemID("btnshowHelpDirectorate"),
+                            //            X.MenuItem()
+                            //                    .Text("راهنما تصویری")
+                            //                    .Icon(Ext.Net.Icon.PlayBlue)
+                            //                        .Listeners(l => l.Click.Handler = "showHelp_VideoCarBarg()")
+
+                            //    )
+                            //)
+                        )
+                    )
+                    .Store(
+                        X.StoreForModel()
+                             .Listeners(l => l.BeforeLoad.Handler = "App.CarBarg.queryById('GridCarBarg').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.CarBarg.queryById('antiForgeryToken').getValue());")
+                            .Listeners(l => l.DataChanged.Handler = "App.CarBarg.queryById('GridCarBarg').selModel.refresh();")
+                            .Proxy(Html.X().AjaxProxy()
+                                .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                .Url(Url.Action("Read"))
+                                .Reader(Html.X().JsonReader().Root("data"))
+                        )
+                            .PageSize(20)
+                            .RemoteFilter(true)
+                            .RemotePaging(true)
+                    )
+                    .ViewConfig(
+                        X.GridView()
+                            .LoadingText("در حال بارگذاری...").RTL(true)
+                    )
+                    .Plugins(X.FilterHeader().Remote(true))
+                    .ColumnModel(
+                        Html.X().RowNumbererColumn(),
+                        Html.X().Column().DataIndex(Model, m => m.fldId).Text("کد").Hidden(true).Flex(1),
+                                Html.X().Column().DataIndex(Model, m => m.fldTarikh).Text("تاریخ").Flex(2).Wrap(true),
+                                Html.X().Column().DataIndex(Model, m => m.fldNerkhDolar).Text("نرخ دلار").Flex(2).Wrap(true),
+                                    Html.X().Column().DataIndex(Model, m => m.fldSarfeJooee).Text("یارانه صرفه جویی").Flex(2).Wrap(true)
+                    )
+                    .SelectionModel(
+                        Html.X().RowSelectionModel()
+                            .Mode(Ext.Net.SelectionMode.Single)
+                    )
+                )
+            )
+)
+
+<script type="text/javascript">
+    function showHelp_VideoCarBarg() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/CarBarg/VideoWinCarBarg',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+
+    }
+    function HelpCarBarg() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/CarBarg/Help',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+
+
+    function setHeightCarBarg() {
+        App.CarBarg.queryById('GridCarBarg').setHeight(App.BasicInfWin.getHeight() - 83);
+        Ext.net.Mask.hide();
+        InsertToLog("تعریف اشخاص حقوقی", 2, true);
+    }
+
+
+
+    function EditCarBarg() {
+        var SelectedRow = App.CarBarg.queryById('GridCarBarg').selModel.getLastSelected();
+        if (SelectedRow != null) {
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/CarBarg/New',
+                params: {
+                    Id: SelectedRow.data.fldId
+                },
+                success: function () {
+                    /*Ext.net.Mask.hide();*/
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+
+    function NewCarBarg() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/CarBarg/New',
+            params: {
+                Id: 0
+            },
+            success: function () {
+                /*Ext.net.Mask.hide();*/
+            }
+        });
+    }
+
+  
+
+    function DeleteCarBarg() {
+        var SelectedRow = App.CarBarg.queryById('GridCarBarg').selModel.getLastSelected();
+        if (SelectedRow != null) {
+            Ext.MessageBox.show({
+                title: "هشدار",
+                msg: "آیا برای حذف مطمئن هستید؟",
+                icon: Ext.MessageBox.WARNING,
+                buttons: Ext.MessageBox.YESNO,
+                fn: function (btn) {
+                    if (btn == 'yes') {
+                        Ext.net.Mask.show({ msg: 'در حال انجام عملیات...' });
+                        Ext.net.DirectMethod.request({
+                            url: '/CarBarg/Delete',
+                            params: {
+                                Id: SelectedRow.data.fldId,
+                                __RequestVerificationToken: App.CarBarg.queryById('antiForgeryToken').getValue()
+                            },
+                            success: function (data) {
+                                chat.server.reloadLog();
+                                if (data.Er == 1) {
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.ERROR,
+                                        buttons: Ext.MessageBox.OK
+                                    });
+                                }
+                                else {
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.INFO,
+                                        buttons: Ext.MessageBox.OK
+                                    });
+                                    App.CarBarg.queryById('GridCarBarg').store.load();
+                                }
+
+
+                                Ext.net.Mask.hide();
+                            }
+                        });
+                    }
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+</script>
+

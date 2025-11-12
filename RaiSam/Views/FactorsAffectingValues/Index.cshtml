@@ -1,0 +1,439 @@
+﻿@model RaiSam.Models.FactorsAffectingValues
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+
+@{
+    var X = Html.X();
+}
+
+<script>
+    Ext.net.FilterHeader.behaviour.string[0].match = function (recordValue, matchValue) {
+        return (Ext.net.FilterHeader.behaviour.getStrValue(recordValue) || "").indexOf(matchValue) > -1;
+    };
+
+    Ext.net.FilterHeader.behaviour.string[0].getStrValue = function (value) {
+        return value.toString();
+    };
+
+    Ext.net.FilterHeader.behaviour.string[0].serialize = function (value) {
+        return {
+            type: "string",
+            op: "*",
+            value: value
+        };
+    };
+</script>
+<style>
+    .Factor .x-grid-group-title {
+        text-align: right !important;
+        word-wrap: break-word;
+        white-space: normal;
+        direction: rtl !important;
+        display: table-header-group;
+    }
+</style>
+
+@(X.Panel()
+    .Title("مقادیر عوامل مؤثر بر چرخه")
+    .Border(false)
+    .ID("FactorsAffectingValues")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .AutoScroll(true)
+    .Listeners(li => li.AfterRender.Handler = "setHeightFactorsAffectingValues();")
+    .Items(
+             X.AntiForgeryField()
+            .ItemID("antiForgeryToken")
+            .Hidden(true),
+        X.Panel()
+            .Border(false)
+            .AutoScroll(true)
+            .Layout(Ext.Net.LayoutType.VBox)
+            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Stretch })
+            .Items(
+                X.GridPanel()
+                    .AutoScroll(true)
+                    .ItemID("GridFactorsAffectingValues")
+                    .Listeners(li => li.ItemClick.Handler = "loadDetailGrid()")
+                    .BottomBar(X.PagingToolbar())
+                    .TopBar(
+                        Html.X().Toolbar()
+                            .Items(
+                                X.Button()
+                                    .Text("جدید")
+                                    .Icon(Ext.Net.Icon.Add)
+                                    .Listeners(li => li.Click.Handler = "NewFactorsAffectingValues_Header();"),
+                                X.Button()
+                                    .Text("ویرایش")
+                                    .Icon(Ext.Net.Icon.Pencil)
+                                    .Listeners(li => li.Click.Handler = "EditFactorsAffectingValues_Header();"),
+                                X.Button()
+                                    .Text("حذف")
+                                    .Icon(Ext.Net.Icon.Delete)
+                                    .Listeners(li => li.Click.Handler = "DeleteFactorsAffectingValues();"),
+                                X.Button()
+                                    .Text("ثبت مقادیر")
+                                    .Icon(Ext.Net.Icon.TextListNumbers)
+                                    .Listeners(li => li.Click.Handler = "NewFactorsAffectingValues();")
+                                  , X.SplitButton()
+                                    .Text("راهنما")
+                                    .Icon(Ext.Net.Icon.Help)
+                                    .Menu(X.Menu()
+                                    .Items(
+                                    X.MenuItem()
+                                            .Text("راهنما متنی")
+                                            .Icon(Ext.Net.Icon.TextPaddingTop)
+                                                        .Listeners(l => l.Click.Handler = "HelpFactorsAffectingValues()"),
+                                        X.MenuItem()
+                                                .Text("راهنما تصویری")
+                                                .Icon(Ext.Net.Icon.PlayBlue)
+                                                .Listeners(l => l.Click.Handler = "showHelp_VideoFactorsAffectingValues()")
+
+                                )
+                            )
+        //X.Button()
+        //    .Text("راهنما")
+        //    .Icon(Ext.Net.Icon.Help)
+        //    .Listeners(li => li.Click.Handler = "HelpFactorsAffectingValues();")
+                        )
+                    )
+                    .Store(
+                            X.StoreFor(Model.FactorsAffectingValues_Header)
+                            .Listeners(l => l.DataChanged.Handler = "App.FactorsAffectingValues.queryById('GridFactorsAffectingValues').selModel.refresh();")
+                                 .Listeners(l => l.BeforeLoad.Handler = "App.FactorsAffectingValues.queryById('GridFactorsAffectingValues').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.FactorsAffectingValues.queryById('antiForgeryToken').getValue());")
+                                .Proxy(Html.X().AjaxProxy()
+                                    .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                .Url(Url.Action("Read"))
+                                .Reader(Html.X().JsonReader().Root("data"))
+                        )
+                            .PageSize(20)
+                            .RemoteFilter(true)
+                            .RemotePaging(true)
+                    )
+                    .View(
+                        Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                    )
+                    .Plugins(X.FilterHeader().Remote(true))
+                    .ColumnModel(
+                            Html.X().RowNumbererColumn(),
+                            Html.X().Column().DataIndex(Model.FactorsAffectingValues_Header, m => m.fldTimeStamp).Text("کد").Hidden(true).Flex(2),
+                        Html.X().Column().DataIndex(Model.FactorsAffectingValues_Header, m => m.fldId).Text("کد").Hidden(true).Flex(2),
+                        Html.X().Column().DataIndex(Model.FactorsAffectingValues_Header, m => m.fldTarikh).Text("تاریخ اجرا").Flex(3),
+        //Html.X().Column().DataIndex(Model.FactorsAffectingValues_Header, m => m.fldTitle).Text("عنوان").Flex(6).Wrap(true),
+                        Html.X().Column().DataIndex(Model.FactorsAffectingValues_Header, m => m.fldNameCharkhe).Text("عنوان چرخه").Flex(3).Wrap(true),
+        //Html.X().Column().DataIndex(Model.FactorsAffectingValues_Header, m => m.fldTitlePaye).Text("پایه شغلی").Flex(3).Wrap(true),
+                        Html.X().Column().DataIndex(Model.FactorsAffectingValues_Header, m => m.fldDesc).Text("توضیحات").Wrap(true).Flex(10)
+                    )
+                    .SelectionModel(
+                        Html.X().RowSelectionModel()
+                            .Mode(Ext.Net.SelectionMode.Single)
+                    )
+                ),
+                X.GridPanel()
+                    .AutoScroll(true)
+                    .Cls("Factor")
+                    .ItemID("GridFactorsAffectingValuesDetail")
+                    .BottomBar(X.PagingToolbar().HideRefresh(true))
+                    .Listeners(l => l.GroupClick.Fn = "GetCurrentRow")
+                    .Title("لیست مقادیر")
+                                .Features(X.Grouping().EnableGroupingMenu(true).StartCollapsed(false).GroupHeaderTplString("&nbsp;&nbsp;&nbsp;&nbsp;{name}&nbsp;&nbsp<input type='button' value='ویرایش' style='font-family:tahoma;font-size:10px' onclick='javascript:GotoEditMode()'></input>"))
+        //.TopBar(
+        //    Html.X().Toolbar()
+        //        .Items(
+        //            X.Button()
+        //                .Text("جدید")
+        //                .Icon(Ext.Net.Icon.Add)
+        //                .Listeners(li => li.Click.Handler = "NewFactorsAffectingValues();"),
+        //            X.Button()
+        //                .Text("ویرایش")
+        //                .Icon(Ext.Net.Icon.Pencil)
+        //                .Listeners(li => li.Click.Handler = "EditFactorsAffectingValues();")
+        //    )
+        //)
+                    .Store(
+                        X.StoreFor(Model.FactorsAffectingValues_Details)
+                            .GroupField("fldTitleEducation").GroupDir(Ext.Net.SortDirection.ASC)
+                            .AutoLoad(false)
+                            .Listeners(l => l.DataChanged.Handler = "App.FactorsAffectingValues.queryById('GridFactorsAffectingValuesDetail').selModel.refresh();")
+                                .Listeners(l => l.BeforeLoad.Handler = "App.FactorsAffectingValues.queryById('GridFactorsAffectingValuesDetail').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.FactorsAffectingValues.queryById('antiForgeryToken').getValue());")
+                                    .Proxy(Html.X().AjaxProxy()
+                                        .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                .Url(Url.Action("ReadDetail"))
+                                .Reader(Html.X().JsonReader().Root("data"))
+                            )
+                            .PageSize(20)
+                            .RemoteFilter(false)
+                            .RemotePaging(false)
+                    )
+                    .View(
+                        Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                    )
+                    .Plugins(X.FilterHeader().Remote(false))
+                    .ColumnModel(
+                        Html.X().RowNumbererColumn(),
+                        Html.X().Column().DataIndex(Model.FactorsAffectingValues_Details, m => m.fldId).Text("کد").Hidden(true).Flex(1),
+        //Html.X().Column().DataIndex(Model.FactorsAffectingValues_Details, m => m.fldTitleEducation).Text("مدرک تحصیلی").Flex(3),
+                        Html.X().Column().DataIndex(Model.FactorsAffectingValues_Details, m => m.fldName).Text("عامل مؤثر").Wrap(true).Flex(6),
+                        Html.X().Column().DataIndex(Model.FactorsAffectingValues_Details, m => m.fldValue).Text("مقدار").Flex(4)
+                    )
+                    .SelectionModel(
+                        Html.X().RowSelectionModel()
+                            .Mode(Ext.Net.SelectionMode.Single)
+                    )
+            )
+)
+
+<script type="text/javascript">
+    var ISClick=0;
+    function showHelp_VideoFactorsAffectingValues() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/FactorsAffectingValues/VideoWinFactorsAffecting',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+
+    }
+    function GotoEditMode() {
+        ISClick = 1;
+    }
+
+    var GetCurrentRow = function (view, htmlNode, groupName, event, opt) {
+        var SelectedRow = App.FactorsAffectingValues.queryById('GridFactorsAffectingValues').selModel.getLastSelected();
+        if (SelectedRow != null) {
+            if (ISClick == 1) {
+                Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+                Ext.net.DirectMethod.request({
+                    url: '/FactorsAffectingValues/New',
+                    params: {
+                        DegreeIds: view.getStore().getGroups(groupName).children[0].data.fldDesc,
+                        CharkheId: SelectedRow.data.fldCharkheId,
+                        fldTarikh: SelectedRow.data.fldTarikh
+                    },
+                    success: function () {
+                        ISClick = 0;
+                        Ext.net.Mask.hide();
+                    }
+                });
+            }
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک تاریخ اجرا را انتخاب کنید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    };
+
+    function setHeightFactorsAffectingValues() {
+        App.FactorsAffectingValues.queryById('GridFactorsAffectingValues').setHeight((App.OperationWin.getHeight() - 83) / 2);
+        App.FactorsAffectingValues.queryById('GridFactorsAffectingValuesDetail').setHeight((App.OperationWin.getHeight() - 83) / 2);
+        Ext.net.Mask.hide();
+        InsertToLog("مقادیر عوامل موثر بر چرخه",2, true);
+    }
+
+    function loadDetailGrid() {
+        var SelectedRow = App.FactorsAffectingValues.queryById('GridFactorsAffectingValues').getSelectionModel().getLastSelected();
+        if (SelectedRow != null) {
+            App.FactorsAffectingValues.queryById('GridFactorsAffectingValuesDetail').getStore().getProxy().setExtraParam("HeaderId", SelectedRow.data.fldId);
+            App.FactorsAffectingValues.queryById('GridFactorsAffectingValuesDetail').store.load();
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+
+    /*function EditFactorsAffectingValues() {
+        var SelectedRow = App.FactorsAffectingValues.queryById('GridFactorsAffectingValues').selModel.getLastSelected();
+        if (SelectedRow != null) {
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/FactorsAffectingValues/New',
+                params: {
+                    HeaderId: SelectedRow.data.fldId,
+                    CharkheId: SelectedRow.data.fldCharkheId,
+                    fldTarikh: SelectedRow.data.fldTarikh
+                },
+                success: function () {
+                    Ext.net.Mask.hide();
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }*/
+
+    function NewFactorsAffectingValues() {
+        var SelectedRow = App.FactorsAffectingValues.queryById('GridFactorsAffectingValues').selModel.getLastSelected();
+        if (SelectedRow != null) {
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/FactorsAffectingValues/New',
+                params: {
+                    DegreeIds: "",
+                    CharkheId: SelectedRow.data.fldCharkheId,
+                    fldTarikh: SelectedRow.data.fldTarikh
+                },
+                success: function () {
+                   Ext.net.Mask.hide();
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک تاریخ اجرا را انتخاب کنید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+
+    function NewFactorsAffectingValues_Header() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/FactorsAffectingValues/New_Header',
+            params: {
+                Id: 0
+            },
+            success: function () {
+                /*Ext.net.Mask.hide();*/
+            }
+        });
+    }
+
+    function EditFactorsAffectingValues_Header() {
+        var SelectedRow = App.FactorsAffectingValues.queryById('GridFactorsAffectingValues').selModel.getLastSelected();
+        if (SelectedRow != null) {
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/FactorsAffectingValues/New_Header',
+                params: {
+                    Id: SelectedRow.data.fldId
+                },
+                success: function () {
+                    Ext.net.Mask.hide();
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+
+    function DeleteFactorsAffectingValues() {
+        var SelectedRow = App.FactorsAffectingValues.queryById('GridFactorsAffectingValues').selModel.getLastSelected();
+        if (SelectedRow != null) {
+            Ext.MessageBox.show({
+                title: "هشدار",
+                msg: "آیا برای حذف مطمئن هستید؟",
+                icon: Ext.MessageBox.WARNING,
+                buttons: Ext.MessageBox.YESNO,
+                fn: function (btn) {
+                    if (btn == 'yes') {
+                        Ext.net.Mask.show({ msg: 'در حال انجام عملیات...' });
+                        Ext.net.DirectMethod.request({
+                            url: '/FactorsAffectingValues/Delete',
+                            params: {
+                                HeaderId: SelectedRow.data.fldId,
+                                TimeStamp: SelectedRow.data.fldTimeStamp,
+                                __RequestVerificationToken: App.FactorsAffectingValues.queryById('antiForgeryToken').getValue()
+                            },
+                            success: function (data) {
+                                chat.server.reloadLog();
+                                if (data.Er == 1 && data.Change == 1) {/*vaghti TimeStamp==0*/
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.WARNING,
+                                        buttons: Ext.MessageBox.OK,
+                                        fn: function (btn) {
+                                            if (btn == 'ok') {
+                                                App.FactorsAffectingValues.queryById('GridFactorsAffectingValues').store.load();
+                                                App.FactorsAffectingValues.queryById('GridFactorsAffectingValuesDetail').getStore().getProxy().setExtraParam("HeaderId", 0);
+                                                App.FactorsAffectingValues.queryById('GridFactorsAffectingValuesDetail').store.load();
+                                            }
+                                        }
+                                    });
+                                }
+                                else if (data.Er == 1 && data.Change == 2) {/*vaghti TimeStamp==2*/
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.ERROR,
+                                        buttons: Ext.MessageBox.OK,
+                                        fn: function (btn) {
+                                            if (btn == 'ok') {
+                                                App.FactorsAffectingValues.queryById('GridFactorsAffectingValues').store.load();
+                                                App.FactorsAffectingValues.queryById('GridFactorsAffectingValuesDetail').getStore().getProxy().setExtraParam("HeaderId", 0);
+                                                App.FactorsAffectingValues.queryById('GridFactorsAffectingValuesDetail').store.load();
+                                            }
+                                        }
+                                    });
+                                }
+                                else if (data.Er == 1) {
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.ERROR,
+                                        buttons: Ext.MessageBox.OK
+                                    });
+                                }
+                                else {
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.INFO,
+                                        buttons: Ext.MessageBox.OK
+                                    });
+                                    App.FactorsAffectingValues.queryById('GridFactorsAffectingValues').store.load();
+                                    App.FactorsAffectingValues.queryById('GridFactorsAffectingValuesDetail').getStore().getProxy().setExtraParam("HeaderId", 0);
+                                    App.FactorsAffectingValues.queryById('GridFactorsAffectingValuesDetail').store.load();
+                                }
+                                Ext.net.Mask.hide();
+                            }
+                        });
+                    }
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+
+    function HelpFactorsAffectingValues() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/FactorsAffectingValues/Help',
+            success: function () {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+</script>

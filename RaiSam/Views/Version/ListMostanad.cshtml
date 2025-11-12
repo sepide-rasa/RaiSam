@@ -1,0 +1,109 @@
+﻿@model IEnumerable<RaiSam.Models.prs_tblVersionMostanadatSelect>
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@using Ext.Net.Utilities;
+@{
+    var X = Html.X();
+}
+<script src="~/Scripts/jquery-ajax-native.js"></script>
+<script>
+    Ext.net.FilterHeader.behaviour.string[0].match = function (recordValue, matchValue) {
+        return (Ext.net.FilterHeader.behaviour.getStrValue(recordValue) || "").indexOf(matchValue) > -1;
+    };
+
+    Ext.net.FilterHeader.behaviour.string[0].getStrValue = function (value) {
+        return value.toString();
+    };
+
+    Ext.net.FilterHeader.behaviour.string[0].serialize = function (value) {
+        return {
+            type: "string",
+            op: "*",
+            value: value
+        };
+    };
+</script>
+@(Html.X().Window()
+    .Closable(true)
+    .Title("لیست مستندات")
+    .ID("ListMostanad")
+    .Width(615)
+    .Height(283)
+    .AutoScroll(true)
+    .Modal(true)
+    .Resizable(false)
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Layout(LayoutType.VBox)
+    .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+    .Items(
+         X.AntiForgeryField()
+        .ItemID("antiForgeryToken")
+        .Hidden(true),
+
+                X.GridPanel()//.Frame(true)
+                    .AutoScroll(true)
+                    .Border(true)
+                        .ItemID("GridListMostanad")
+                    .BottomBar(X.PagingToolbar())
+                    .Plugins(X.FilterHeader().Remote(false))
+                    .Width(600)
+                    .Height(250)
+                    .Store(
+                        X.StoreForModel()
+                                .Listeners(l => l.BeforeLoad.Handler = "App.ListMostanad.queryById('GridListMostanad').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.ListMostanad.queryById('antiForgeryToken').getValue());")
+                                .Listeners(l => l.DataChanged.Handler = "App.ListMostanad.queryById('GridListMostanad').selModel.refresh();")
+                            .Proxy(Html.X().AjaxProxy()
+                                .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                 .Url(Url.Action("ReadVersionMostanadat"))
+                                .Reader(Html.X().JsonReader().Root("data"))
+                                 .ExtraParams(pa => pa.Add(new { VersionId = ViewBag.VersionId }))
+                            )
+                            .PageSize(10)
+                            .RemoteFilter(false)
+                            .RemotePaging(false)
+                    )
+                    .View(
+                        Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                    )
+                    .ColumnModel(
+                        Html.X().RowNumbererColumn(),
+                                    Html.X().Column().DataIndex(Model, m => m.fldTimestamp).Text("").Flex(1).Hidden(true),
+                        Html.X().Column().DataIndex(Model, m => m.fldId).Text("کد").Flex(1).Hidden(true),
+                          Html.X().Column().DataIndex(Model, m => m.fldSharhMostanadat).Text("شرح مستندات").Flex(3).Wrap(true),
+                              Html.X().Column().DataIndex(Model, m => m.fldPasvand).Text("فایل").Flex(1).Wrap(true),
+                        Html.X().ComponentColumn().ItemID("buttonDownloadMostanad").Listeners(l => l.Bind.Fn = "CheckEnableDownload").Text("دانلود").Filterable(false)
+                           .Component(Html.X().Button().ItemID("btnDownloadMostanad").Text("دانلود فایل").Listeners(l => l.Click.Handler = "DownloadMostanad()"))
+                    )
+        )
+)
+
+<script type="text/javascript">
+    var CheckEnableDownload = function (columnn, component, record, rowIndex) {
+        if (record.data.fldFileId == 0) {
+            component.disable();
+        }
+    };
+    function DownloadMostanad() {
+        var fldFileId = App.ListMostanad.queryById("buttonDownloadMostanad").activeRecord.record.data.fldFileId;
+        $.ajax({
+            type: "POST",
+            dataType: 'native',
+            url: "/Version/DownloadMostanad",
+            xhrFields: {
+                responseType: 'blob'
+            },
+            data: {
+                FileIdMostanad: fldFileId,
+                __RequestVerificationToken: App.ListMostanad.queryById('antiForgeryToken').getValue()
+            },
+            success: function (blob) {
+                var link = document.createElement('a');
+                link.href = window.URL.createObjectURL(blob);
+                link.download = "DownloadFile";
+                link.click();
+            }
+        });
+    }
+</script>

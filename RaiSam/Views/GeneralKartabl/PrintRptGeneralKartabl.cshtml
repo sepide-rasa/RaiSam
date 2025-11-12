@@ -1,0 +1,46 @@
+﻿@using Ext.Net.MVC;
+@(
+ Html.X().Window()
+    .ID("PrintKartabl")
+    .Modal(true)
+    .Width(1000)
+    .Height(605)
+    .Title("پیش نمایش")
+    .AutoScroll(true)
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+        .Items(
+            Html.X().AntiForgeryField().ItemID("antiForgeryToken").Listeners(l => l.AfterRender.Handler = "GetPDFKT()")
+        )
+        .Html("<center style='width: 100%;height: 565px;' class='se-pre-con' id='pdftagKT'></center>")
+        //.Html("<center><object class='se-pre-con' style='width: 100%;height: 565px;border: 1px solid #ccc;' type='application/pdf'"+
+        //" data='/SpecializedKartabl/GeneratePDFRptSpecializedKartabl?NahiId=" + ViewBag.NahiId + "&PayeId=" + ViewBag.PayeId + "&EghdamId=" + ViewBag.EghdamId
+        //+ "&TypeEstekhdam=" + ViewBag.TypeEstekhdam + "&NahiName=" + ViewBag.NahiName + "&TypeParvande=" + ViewBag.TypeParvande + "&CartableId=" + ViewBag.CartableId
+        //+ "&StationId=" + ViewBag.StationId + "&PostId=" + ViewBag.PostId + "&PostName=" + ViewBag.PostName + "'></object></center>")
+)
+<script>
+    function GetPDFKT() {
+        $.ajax({
+            type: "POST",
+            dataType: 'native',
+            url: '/GeneralKartabl/GeneratePDFRptGeneralKartabl',
+            xhrFields: {
+                responseType: 'blob'
+            },
+            data: {
+                EghdamId: '@ViewBag.EghdamId',
+                CartableId: '@ViewBag.CartableId',
+                CompanyId: '@ViewBag.CompanyId',
+                __RequestVerificationToken: App.PrintKartabl.queryById('antiForgeryToken').getValue()
+            },
+            success: function (blob, status, xhr) {
+                var tag = "<iframe style='width: 100%;height:100%;border: 1px solid #ccc;position:relative;' type='application/pdf' src=" + URL.createObjectURL(blob) + "></iframe>";
+                $("#pdftagKT").html(tag);
+            },
+            error: function () {
+                alert("خطا");
+            },
+            timeout: 7200000
+        });
+    }
+</script>

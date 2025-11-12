@@ -1,0 +1,285 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+
+<style>
+    .custom-icon {
+        margin-right: 124px !important;
+    }
+</style>
+@(Html.X().Window().Modal(true).Listeners(li => { li.AfterRender.Handler = "LoadVersion()"; li.Render.Fn = "addKeyMapVersion"; })
+.Width(450)//.Height(300)
+    .Title("ثبت ورژن")
+             .ID("NewVersion")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+        .ButtonAlign(Ext.Net.Alignment.Center)
+        .Buttons(X.Button().Text("ذخیره").Icon(Ext.Net.Icon.Disk)
+                    .Listeners(l =>
+                    {
+                        l.Click.Handler = "SaveVersion()";
+
+                    })
+                            .ItemID("btnSaveVersion")
+                    ,
+                    X.Button().Text("خروج").Icon(Ext.Net.Icon.DoorOut).ToolTip("کلید میانبر Esc")
+                                .OnClientClick("App.NewVersion.destroy();"))
+    .Items(
+        X.AntiForgeryField()
+            .ItemID("antiForgeryToken").Hidden(true),
+            X.FormPanel().Border(false)
+            .Items(
+                X.FieldSet().Border(true).Title("ارجاع")
+                .Center()
+                .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 4 })
+                .Defaults(new { Margin = 2 })
+                .Items(
+                X.Hidden().ItemID("fldId"),
+                    X.Label("تاریخ ورژن:"),
+                        X.PDateField()
+                        .AutoFocus(true)
+                            .ItemID("txtTarikhVersion")
+                            .AllowBlank(false)
+                            .BlankText("لطفا تاریخ ورژن را وارد کنید.")
+                            .Editable(true)
+                            .MaskRe("/[0-9/]/")
+                            .MaxLength(10)
+                            .MinLength(10)
+                            .EnforceMaxLength(true),
+                                X.Label("ساعت ورژن:"),
+                                     X.TextField().Width(70)
+                                    .MaskRe("/[0-9/]/")
+                                    .FieldStyle("direction:ltr;")
+                                    .EmptyText("مثال: 730")
+                                    .MaxLength(4)
+                                    .MinLength(3)
+                                    .ItemID("txtSaatVersion")
+                                    .AllowBlank(false)
+                                    .BlankText("لطفا ساعت ورژن را وارد کنید.")
+                                        .Listeners(l =>
+                                        {
+                                            l.Blur.Handler = "CheckSaatVersion()";
+                                        }),
+                           X.Label("ورژن:"),
+                                  X.TextField()
+                                  .ItemID("txtVersion")
+                                    .MaxLength(6).MaskRe("/[0-9-./]/")
+                                .EnforceMaxLength(true)
+                                .AllowBlank(false)
+                                .BlankText("لطفا ورژن را وارد کنید.")
+                                        , X.FieldSet()//.MarginSpec("0 0 0 50px")
+                                        .ColSpan(2).Border(false)
+                                    .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 2 })
+                                        .Defaults(new { Margin = 2 })
+                                .Items(
+                                X.Label("نیاز به بررسی امنیت"),
+                                     X.Checkbox().ItemID("ChkNiyazTestAmniyat")
+
+
+                                )
+
+
+                        )
+
+                )
+                    .Layout(Ext.Net.LayoutType.VBox)
+                    .LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Center })
+        )
+)
+<script type="text/javascript">
+    var fldTimeStamp = 0;
+    function CheckSaatVersion() {
+        var txtSaatVersion = App.NewVersion.queryById("txtSaatVersion");
+        if (txtSaatVersion.getValue().length == 3) {
+            App.NewVersion.queryById("txtSaatVersion").setValue("0" + App.NewVersion.queryById("txtSaatVersion").getValue());
+        }
+        if (txtSaatVersion.getValue() > 2359) {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "ساعت ارجاع معتبر نمی باشد.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+            txtSaatVersion.setValue("");
+        }
+        if (txtSaatVersion.getValue().length == 3) {
+            if (txtSaatVersion.getValue().substring(1, 3) > 59) {
+                Ext.MessageBox.show({
+                    title: "خطا",
+                    msg: "ساعت ارجاع معتبر نمی باشد.",
+                    icon: Ext.MessageBox.ERROR,
+                    buttons: Ext.MessageBox.OK
+                });
+                txtSaatVersion.setValue("");
+            }
+        }
+        else if (txtSaatVersion.getValue().length == 4) {
+            if (txtSaatVersion.getValue().substring(2, 4) > 59 || txtSaatVersion.getValue().substring(0, 2) > 23) {
+                Ext.MessageBox.show({
+                    title: "خطا",
+                    msg: "ساعت ارجاع معتبر نمی باشد.",
+                    icon: Ext.MessageBox.ERROR,
+                    buttons: Ext.MessageBox.OK
+                });
+                txtSaatVersion.setValue("");
+            }
+        }
+    }
+    function LoadVersion() {
+        ReplaceArabic();
+        if ('@ViewBag.Id' != '0') {
+            App.NewVersion.body.mask("در حال بارگذاری...");
+            Ext.net.DirectMethod.request({
+                url: '/Version/Details',
+                params: {
+                    Id: '@ViewBag.Id',
+                    __RequestVerificationToken: App.NewVersion.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+                    var txtTarikhVersion = App.NewVersion.queryById('txtTarikhVersion');
+                    txtTarikhVersion.setValue(data.fldTarikh);
+                    var txtVersion = App.NewVersion.queryById('txtVersion');
+                    txtVersion.setValue(data.fldVersion);
+                    var ChkNiyazTestAmniyat = App.NewVersion.queryById('ChkNiyazTestAmniyat');
+                    ChkNiyazTestAmniyat.setValue(data.fldNiyazTestAmniyat);
+                    var Id = App.NewVersion.queryById('fldId');
+                    Id.setValue(data.fldId);
+                    var txtSaatVersion = App.NewVersion.queryById("txtSaatVersion");
+                    txtSaatVersion.setValue(data.fldTime);
+                    fldTimeStamp = data.fldTimeStamp;
+
+
+                    App.NewVersion.body.mask().hide();
+                }
+            });
+        }
+        else {
+
+        }
+
+    }
+
+    function SaveVersion() {
+        var txtTarikhVersion = App.NewVersion.queryById('txtTarikhVersion');
+        var txtVersion = App.NewVersion.queryById('txtVersion');
+        var ChkNiyazTestAmniyat = App.NewVersion.queryById('ChkNiyazTestAmniyat');
+        var txtSaatVersion = App.NewVersion.queryById("txtSaatVersion");
+        var txtSharh = App.NewVersion.queryById('txtSharh');
+        var Id = App.NewVersion.queryById('fldId');
+        var er = false;
+        if (txtTarikhVersion.validate() == false) {
+            er = true;
+        }
+        if (txtVersion.validate() == false) {
+            er = true;
+        }
+        if (txtSaatVersion.validate() == false) {
+            er = true;
+        }
+        if (er == true)
+            return;
+        var SaatVersion = "";
+
+        SaatVersion = txtSaatVersion.getValue().substring(0, 2) + ":" + txtSaatVersion.getValue().substring(2, 4);
+
+        App.NewVersion.body.mask("در حال ذخیره سازی");
+        Ext.net.DirectMethod.request({
+            url: '/Version/Save',
+            params: {
+                fldId: Id.getValue(),
+                fldTarikh: txtTarikhVersion.rawValue,
+                fldVersion: txtVersion.getValue(),
+                fldNiyazTestAmniyat: ChkNiyazTestAmniyat.getValue(),
+                fldTimeStamp: fldTimeStamp,
+                fldTime:SaatVersion,
+                __RequestVerificationToken: App.NewVersion.queryById('antiForgeryToken').getValue()
+            },
+            success: function (data) {
+                chat.server.reloadLog();
+                if (data.Er == 1 && data.Change == 1) {/*vaghti TimeStamp==0*/
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: Ext.MessageBox.WARNING,
+                        buttons: Ext.MessageBox.OK,
+                        fn: function (btn) {
+                            if (btn == 'ok') {
+                                LoadVersion();
+                            }
+                        }
+                    });
+                }
+                else if (data.Er == 1 && data.Change == 2) {/*vaghti TimeStamp==2*/
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK,
+                        fn: function (btn) {
+                            if (btn == 'ok') {
+                                App.NewVersion.destroy();
+                            }
+                        }
+                    });
+
+                }
+                else if (data.Er == 1) {
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK,
+                    });
+                }
+                else {
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: Ext.MessageBox.INFO,
+                        buttons: Ext.MessageBox.OK,
+                    });
+                }
+
+                App.Version.queryById('GridVersion').store.load();
+                if (data.Er != 1)
+                    ClearVersion();
+                App.NewVersion.body.mask().hide();
+            }
+
+        });
+    }
+    function ClearVersion() {
+        App.NewVersion.queryById('txtTarikhVersion').setValue("");
+        App.NewVersion.queryById('txtVersion').setValue("");
+        App.NewVersion.queryById('fldId').setValue(0);
+        App.NewVersion.queryById("txtSaatVersion").setValue("");;
+    }
+    var addKeyMapVersion = function (cmp) {
+        this.keyMap = new Ext.util.KeyMap({
+            target: cmp.getEl(),
+            binding: [{
+                key: [13, 9], /*Ext.EventObject.ENTER,*/
+                fn: function (key, e) {
+                    if (e.getKey() == 9) {
+                        e.stopEvent();
+                    }
+                    var keyfield = App.NewVersion.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+                    var nextfld;
+                    if (keyfield.itemId == "ChkNiyazTestAmniyat") {
+                        nextfld = App.NewVersion.queryById('btnSaveVersion');
+                        SaveVersion();
+                        return;
+                    }
+                    else {
+                        nextfld = keyfield.nextSibling().nextSibling();
+                    }
+                    nextfld.focus();
+                    nextfld.selectText();
+                }
+            }]
+        });
+    }
+</script>

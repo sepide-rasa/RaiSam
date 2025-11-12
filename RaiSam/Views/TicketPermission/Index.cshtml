@@ -1,0 +1,146 @@
+﻿@model IEnumerable<RaiSam.Models.prs_SelectUserByUserIdTicket>
+@using Ext.Net.MVC;
+@{
+    var X = Html.X();
+}
+
+@(X.Panel()
+    .Title("دسترسی گفتگو")
+    .Border(false)
+    .ID("TicketPermission")
+    .AutoScroll(true)
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Items(
+        X.AntiForgeryField().ItemID("antiForgeryToken").Hidden(true),
+        X.Panel()
+            .Border(false)
+            .AutoScroll(true)
+            .Items(
+                X.GridPanel()
+                    .AutoScroll(true)
+                    .TopBar(
+                        Html.X().Toolbar()
+                            .Items(
+                                X.Button()
+                                        .Text("دسترسی به شاخه گفتگو")
+                                    .Icon(Ext.Net.Icon.Add)
+                                    .Listeners(Li => Li.Click.Handler = "EditTicketPermission();"),
+
+                                X.SplitButton()
+                                    .Text("راهنما")
+                                    .Icon(Ext.Net.Icon.Help)
+                                    .Menu(X.Menu()
+                                        .Items(
+                                            X.MenuItem()
+                                                .Text("راهنما متنی")
+                                                .Icon(Ext.Net.Icon.TextPaddingTop)
+                                                .Listeners(l => l.Click.Handler = "HelpTicketPermission()"),
+                                            X.MenuItem()
+                                                .Text("راهنما تصویری")
+                                                .Icon(Ext.Net.Icon.PlayBlue)
+                                                .Listeners(l => l.Click.Handler = "showHelp_VideoTicketPermission()")
+
+                                        )
+                                    )
+                            )
+                    )
+                    .ItemID("GridTicketPermission")
+                    .BottomBar(X.PagingToolbar())
+                    .Listeners(l => l.AfterRender.Handler = "App.TicketPermission.queryById('GridTicketPermission').setHeight(App.TicketingWin.height-82);")
+                    .Store(
+                        X.StoreForModel()
+                            .Listeners(l => l.BeforeLoad.Handler = "App.TicketPermission.queryById('GridTicketPermission').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.TicketPermission.queryById('antiForgeryToken').getValue());")
+                            .Proxy(Html.X().AjaxProxy()
+                                .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                .Url(Url.Action("Read"))
+                                .Reader(Html.X().JsonReader().Root("data"))
+                            )
+                            .PageSize(20)
+                            .RemoteFilter(true)
+                            .RemotePaging(true)
+                    )
+                    .View(
+                        Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                    )
+                    .Plugins(X.FilterHeader().Remote(true))
+                    .ColumnModel(
+                        Html.X().RowNumbererColumn(),
+                        Html.X().Column().DataIndex(Model, m => m.fldId).Text("کد").Flex(1).Hidden(true),
+                            Html.X().Column().DataIndex(Model, m => m.fldNamePersonal).Text("نام و نام خانوادگی").Flex(2).Wrap(true),
+                        Html.X().Column().DataIndex(Model, m => m.fldCodeMeli).Text("کد ملی").Flex(2),
+                        Html.X().Column().DataIndex(Model, m => m.fldActive_DeactiveName).Text("وضعیت").Flex(2),
+                        Html.X().Column().DataIndex(Model, m => m.fldUserName).Text("نام کاربری").Flex(5)
+                    )
+            )
+    )
+)
+<script type="text/javascript">
+    function showHelp_VideoTicketPermission() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/TicketPermission/VideoWinTicketPermission',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+
+    }
+    function HelpTicketPermission() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/TicketPermission/Help',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+    function EditTicketPermission() {
+        var SelectedRow = App.TicketPermission.queryById('GridTicketPermission').selModel.getLastSelected();
+        if (SelectedRow != null) {
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/TicketPermission/new',
+                params: {
+                    UserId: SelectedRow.data.fldId
+                },
+                success: function () {
+                    Ext.net.Mask.hide();
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+    function EditTicketCategoryPermission() {
+        var SelectedRow = App.TicketPermission.queryById('GridTicketPermission').selModel.getLastSelected();
+
+        if (SelectedRow != null) {
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/TicketPermission/TicketCategoryPermission',
+                params: {
+                    id: SelectedRow.data.fldId
+                },
+                success: function () {
+                    Ext.net.Mask.hide();
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+</script>
+

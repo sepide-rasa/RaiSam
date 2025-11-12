@@ -1,0 +1,127 @@
+﻿@model IEnumerable<RaiSam.Models.prs_GetName_applicationpart>
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+
+    var X = Html.X();
+}
+<style>
+    .borderrPerUser {
+        border-radius: 20px;
+        border-width: 3px;
+    }
+</style>
+@(Html.X().Window()
+    .Modal(true)
+    .Width(670)
+    .Height(400)
+    .Title("لیست پرسنل")
+    .ID("UserListPer")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Layout(LayoutType.Fit)
+    .Items(
+         X.AntiForgeryField()
+        .ItemID("antiForgeryToken")
+        .Hidden(true),
+        X.Panel()
+            .Border(false)
+            .AutoScroll(true)
+            .Layout(LayoutType.Fit)
+            .Items(
+                X.GridPanel()
+                    .AutoScroll(true)
+                    .Border(false)
+                    .ItemID("GridUsersPer")
+                    .BottomBar(X.PagingToolbar())
+                    .Store(
+                        X.StoreForModel()
+                            .Listeners(l => l.BeforeLoad.Handler = "App.UserListPer.queryById('GridUsersPer').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.UserListPer.queryById('antiForgeryToken').getValue());")
+                            .Proxy(Html.X().AjaxProxy()
+                                .Url(Url.Action("ReadUsers"))
+                                .Reader(Html.X().JsonReader().Root("data"))
+                                .ExtraParams(l => l.Add(new { ApplicationPartId = ViewBag.ApplicationPartId }))
+                                    .ActionMethods(l => l.Read = HttpMethod.POST)
+                        )
+                        .PageSize(500)
+                        .RemoteFilter(true)
+                        .RemotePaging(true)
+                    )
+                    .ViewConfig(
+                        X.GridView()
+                            .Listeners(l => l.AfterRender.Fn = "createTooltipUserListPer")
+                            .LoadingText("در حال بارگذاری...").RTL(true)
+                        )
+                    .View(
+                        Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                    )
+                    .ColumnModel(
+                        Html.X().RowNumbererColumn(),
+                            Html.X().Column().DataIndex(Model, m => m.FullName).Text("نام و نام خانوادگی").Flex(4).Wrap(true),
+                        Html.X().Column().DataIndex(Model, m => m.NameEdare).Text("محل سازمانی").Flex(3).Wrap(true),
+                        Html.X().Column().DataIndex(Model, m => m.NameDastresi).Text("سطح دسترسی").Flex(3).Wrap(true),
+                        Html.X().Column().DataIndex(Model, m => m.fldUserGroupName).Text("گروه کاربری").Flex(3).Wrap(true)
+                    )
+                    .SelectionModel(
+                        Html.X().RowSelectionModel()
+                            .Mode(Ext.Net.SelectionMode.Single)
+                    )
+            )
+        )
+)
+
+<script>
+    var createTooltipUserListPer = function (view) {
+        view.tip = Ext.create('Ext.tip.ToolTip', {
+            target: view.el,
+            delegate: view.itemSelector,
+            trackMouse: true,
+            renderTo: Ext.getBody(),
+            /*anchorToTarget: true,*/
+            anchorOffset: 25,
+            anchorSize: {
+                width: 58,
+                height: 20
+            },
+            dismissDelay: 1000000,
+            autohide: false,
+            /*baseCls:"test",*/
+            anchor: 'top',
+            shadow: true,
+            listeners: {
+                beforeshow: function (tip) {
+                    Ext.net.DirectMethod.request({
+                        url: '/User/getToolsData',
+                        params: {
+                            Id: view.getRecord(tip.triggerElement).get('fldId'),
+                            __RequestVerificationToken: App.UserListPer.queryById('antiForgeryToken').getValue()
+                        },
+                        success: function (data) {
+                            if (data.fldCodeEnhesari != "") {
+                                if (view.getRecord(tip.triggerElement) != undefined) {
+                                    tip.update("<div style=' display: flex;'><div style='margin-top:25px;margin-left:20px;'><img class='borderrUser' style='width:120px;height:150px;' src='data:image/jpeg;base64," + data.image + "'/></div><div><p><strong>نام و نام خانوادگی: " +
+                                        data.fldName + "</strong></p><p><strong>نام پدر: " + data.fldFatherName +
+                                        "</strong></p>" + "<p><strong>کد انحصاری: " + data.fldCodeEnhesari + "</strong></p><p><strong>کد ملی: " + data.fldCodeMeli +
+                                        "</strong></p><p><strong>شماره موبایل: " + data.fldMobile + "</strong></p><p><strong>پایه: " + data.fldPayeName +
+                                        "</strong></p><p><strong>شرح پست: " + data.fldDescPost +
+                                        "</strong></p><p><strong>محل خدمت: " + data.fldTitle + "(" + data.fldStationName + ")" +
+                                        "</strong></p></div></div>");
+                                }
+                            }
+                            else {
+                                if (view.getRecord(tip.triggerElement) != undefined) {
+                                    tip.update("<div style=' display: flex;'><div style=';margin-top:25px;margin-left:20px;'><img class='borderrUser' style='width:120px;height:80px;' src='data:image/jpeg;base64," + data.image + "'/></div><div><p><strong>نام و نام خانوادگی: " +
+                                        data.fldName + "</strong></p><p><strong>نام پدر: " + data.fldFatherName +
+                                        "</strong></p>" + "<p><strong>کد ملی: " + data.fldCodeMeli +
+                                        "</strong></p><p><strong>شماره موبایل: " + data.fldMobile + "</strong></p></div></div>");
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+        });
+        Ext.QuickTips.init();
+    };
+</script>

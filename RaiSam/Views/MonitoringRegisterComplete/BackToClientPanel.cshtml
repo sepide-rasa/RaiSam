@@ -1,0 +1,92 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@{
+
+    var X = Html.X();
+}
+
+@(X.Window()
+    .Width(500)
+    .Modal(true)
+    .ID("BackToClientPanel")
+    .Title("علت عدم تایید")
+    .Closable(true)
+    .Border(false)
+    .Resizable(false)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Layout(Ext.Net.LayoutType.VBox)
+    .LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Center })
+    .ButtonAlign(Ext.Net.Alignment.Center)
+    .Buttons(
+        Html.X().Button()
+            .Text("ارسال")
+            .Icon(Ext.Net.Icon.Disk)
+            .ItemID("BtnSend")
+                .Listeners(l => l.Click.Handler = "SaveBackToClientPanel();"),
+        Html.X().Button()
+            .Text("خروج")
+            .Icon(Ext.Net.Icon.BulletCross)
+                .OnClientClick("App.BackToClientPanel.destroy();")
+    )
+    .Items(
+        X.Panel()
+            .Border(false)
+            .ItemID("panelMsgMS")
+            .Listeners(l => l.Render.Handler = "setsizepanelMS()")
+            .BodyStyle("background-color:green;")
+            .Layout(Ext.Net.LayoutType.Fit)
+            .Items(
+                    X.TextArea()
+            .Height(200)
+        .Width(500)
+                    .ItemID("TextAreaMsgMS")
+                    .AllowBlank(false)
+                    .Listeners(l => l.Render.Handler = "App.BackToClientPanel.queryById('TextAreaMsgMS').validate();")
+                    .BlankText("لطفاً پیام خود را وارد نمایید"))
+    )
+)
+
+<script>
+    function SaveBackToClientPanel() {
+        var BtnSend = App.BackToClientPanel.queryById('BtnSend');
+        BtnSend.setDisabled(true);
+        BtnSend.setText("درحال ارسال...");
+
+        var TextAreaMsgMS = App.BackToClientPanel.queryById('TextAreaMsgMS');
+        if (TextAreaMsgMS.validate() == false) {
+            return;
+        }
+        Ext.net.Mask.show({ msg: 'در حال ارسال...' });
+        Ext.net.DirectMethod.request({
+            url: '/MonitoringRegisterComplete/UpdateBackToClientPanel',
+            params: {
+                Chat: TextAreaMsgMS.getValue(),
+                CompanyProfileId: '@ViewBag.CompanyProfileId',
+                PersonType: '@ViewBag.PersonType'
+            },
+            success: function (data) {
+                BtnSend.setDisabled(false);
+                BtnSend.setText("ارسال شد");
+
+                var ic = Ext.MessageBox.INFO;
+                if (data.Er == 1)
+                    ic = Ext.MessageBox.ERROR;
+                Ext.MessageBox.show({
+                    title: data.MsgTitle,
+                    msg: data.Msg,
+                    icon: ic,
+                    buttons: Ext.MessageBox.OK
+                });
+                GridID.store.load();
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+    function setsizepanelMS() {
+       /* App.BackToClientPanel.queryById('panelMsgMS').setSize(App.BackToClientPanel.getWidth() - 30, App.BackToClientPanel.getHeight() - 110);*/
+    }
+
+
+</script>

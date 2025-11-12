@@ -1,0 +1,259 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+
+    var X = Html.X();
+}
+
+@(X.Window()
+    .Border(false)
+    .Height(500)
+    .Width(600)
+    .AutoScroll(true)
+    .Modal(true)
+    .ID("NewPermissionUSerGroup")
+    .Title("تعیین دسترسی")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Layout(LayoutType.Fit)
+    .ButtonAlign(Alignment.Center)
+    .Buttons(X.Button().Text("ذخیره").Icon(Icon.Disk).Listeners(l => l.Click.Handler = "SavePermission2()"),
+        X.Button().Text("خروج").Icon(Icon.DoorOut).Listeners(l => l.Click.Handler = "App.NewPermissionUSerGroup.destroy()()"))
+    .Items(
+         X.AntiForgeryField()
+            .ItemID("antiForgeryToken").Listeners(l => l.AfterRender.Handler = "App.TreePermissionUser.store.load();setTimeout(function(){App.TreePermissionUser.expandAll();GetAllChecked();},2500);")
+            .Hidden(true),
+        X.Panel()
+            .Border(false)
+            .ItemID("PnlForTree")
+            .AutoScroll(true)
+            .Layout(LayoutType.Fit)
+            .Items(
+                X.TreePanel()
+                    .ID("TreePermissionUser")
+                    .Expand(true)
+                    .UseArrows(true)
+                    .Border(false)
+                    .Listeners(l =>
+                    {
+                        // l.AfterRender.Handler = "App.TreePermissionUser.expandAll()";
+                        l.CheckChange.Fn = "ChangeStatusCheck";
+                    })
+                    .Store(
+                        X.TreeStore()
+        //.Listeners(l => l.Load.Handler = "GetAllChecked()")
+                            .AutoLoad(false)
+                            .Proxy(
+                                Html.X().AjaxProxy()
+                                    .Url(Url.Action("NodeLoad"))
+                                        .ActionMethods(l => l.Read = HttpMethod.POST)
+                                )
+                                .Listeners(l =>
+                                {
+                                    l.BeforeLoad.Fn = "GetParamTreePermissionUser";
+                                })
+                        )
+                    .Root(
+                        Html.X().Node()
+                            .NodeID("0")
+                            .Text("ساختار درختی دسترسی")
+                            .Checked(null))
+                    )
+)
+)
+<script type="text/javascript">
+    var CheckdBeforeChange = new Array();
+
+    var GetParamTreePermissionUser = function (store, operation, eOpts) {
+        var nodeId = operation.node.getId();
+        operation.params.node = nodeId;
+        operation.params.GrohKarbari = '@ViewBag.UserGroupId';
+        operation.params.__RequestVerificationToken = App.NewPermissionUSerGroup.queryById('antiForgeryToken').getValue();
+    };
+
+    function GetAllChecked() {
+        CheckdBeforeChange = App.TreePermissionUser.getChecked();
+    }
+
+    /*var UnChecked = "";*/
+    var ChangeStatusCheck = function (node, checked, eOpts) {
+        if (node.childNodes.length > 0) {
+            node.cascadeBy(function (n) {
+                n.set('checked', checked);
+                /*if (checked == false) {
+                    UnChecked = UnChecked + n.getId() + ";";
+                }*/
+            });
+            if (checked == true) {
+                while (node.parentNode.getId() != 0) {
+                    node.parentNode.set('checked', true);
+                    node = node.parentNode;
+                }
+            }
+            else {
+                var StateEqual = true;
+                while (node.parentNode.getId() != 0) {
+                    node.parentNode.cascadeBy(function (n) {
+                        if (n != node.parentNode) {
+                            if (n.get('checked') == true) {
+                                StateEqual = false;
+                            }
+                        }
+                    });
+                    if (StateEqual == true) {
+                        node.parentNode.set('checked', false);
+                        /*UnChecked = UnChecked + node.getId() + ";";
+                        UnChecked = UnChecked + node.parentNode.getId() + ";";*/
+
+                    }
+                    node = node.parentNode;
+                }
+            }
+        }
+        else {
+            /*if (checked == false) {
+                UnChecked = UnChecked + node.getId() + ";";
+            }*/
+            if (checked == true) {
+                while (node.parentNode.getId() != 0) {
+                    node.parentNode.set('checked', true);
+                    node = node.parentNode;
+                }
+            }
+            else {
+                var StateEqual = true;
+                node.parentNode.cascadeBy(function (n) {
+                    if (n != node.parentNode) {
+                        if (n.get('checked') != checked) {
+                            StateEqual = false;
+                        }
+                    }
+                });
+                if (StateEqual != checked) {
+                    node.parentNode.set('checked', checked);
+                    /*if (checked == false) {
+                        UnChecked = UnChecked + node.getId() + ";";
+                        UnChecked = UnChecked + node.parentNode.getId() + ";";
+                    }*/
+                }
+
+                var StateEqual2 = true;
+                while (node.parentNode.getId() != 0) {
+                    node.parentNode.cascadeBy(function (n) {
+                        if (n != node.parentNode) {
+                            if (n.get('checked') == true) {
+                                StateEqual2 = false;
+                            }
+                        }
+                    });
+                    if (StateEqual2 == true) {
+                        node.parentNode.set('checked', false);
+                        /*UnChecked = UnChecked + node.getId() + ";";
+                        UnChecked = UnChecked + node.parentNode.getId() + ";";*/
+                    }
+                    node = node.parentNode;
+                }
+            }
+        }
+    };
+
+    function SavePermission2() {
+        var Checked = App.TreePermissionUser.getChecked();
+        DeletedPer = CheckdBeforeChange.filter(function (el) { return Checked.indexOf(el) < 0 });
+        var Permission = new Array();
+        var UnChecked = "";
+        if (DeletedPer.length != 0) {
+            Ext.MessageBox.show({
+                title: "اخطار",
+                msg: "با حذف دسترسی موردنظر، این دسترسی از تمامی گروه های کاربری زیرمجموعه نیز حذف می گردد.",
+                icon: Ext.MessageBox.WARNING,
+                buttons: Ext.MessageBox.OKCANCEL,
+                closable:true,
+                fn: function (btn) {
+                    if (btn == 'ok') {
+                        for (var i = 0; i < DeletedPer.length; i++) {
+                            UnChecked = UnChecked + DeletedPer[i].data.id + ";";
+                        }
+                        for (var i = 0; i < Checked.length ; i++) {
+                            Permission.push({
+                                'fldApplicationPartID': Checked[i].getId(),
+                                @*'fldUserGroupID': '@ViewBag.UserGroupId'*@
+                            });
+                        }
+                        var data = {
+                            permi1: JSON.stringify(Permission),
+                            UserGroupID: '@ViewBag.UserGroupId',
+                            UnChecked: UnChecked,
+                            __RequestVerificationToken: App.NewPermissionUSerGroup.queryById('antiForgeryToken').getValue()
+                        };
+                        App.NewPermissionUSerGroup.body.mask("در حال ذخیره سازی...");
+                        $.ajax({
+                            type: "POST",
+                            url: '/Permission/SavePermission',
+                            datatype: "json",
+                            data: data,
+                            /*contentType: 'application/json',*/
+                            success: function (data) {
+                                var ic = Ext.MessageBox.INFO;
+                                if (data.Er == 1)
+                                    ic = Ext.MessageBox.ERROR;
+                                Ext.MessageBox.show({
+                                    title: data.MsgTitle,
+                                    msg: data.Msg,
+                                    icon: ic,
+                                    buttons: Ext.MessageBox.OK
+                                });
+                                App.NewPermissionUSerGroup.body.mask().hide();
+                                CheckdBeforeChange = Checked;
+                            },
+                            failure: function (data) {
+                                alert(data.data);
+                            }
+                        });
+                    }
+                }
+            });
+        }
+        else {
+            App.NewPermissionUSerGroup.body.mask("در حال ذخیره سازی...");
+            for (var i = 0; i < Checked.length ; i++) {
+                if (Checked[i].getId() != 0)
+                    Permission.push({
+                        'fldApplicationPartID': Checked[i].getId(),
+                        @*'fldUserGroupID': '@ViewBag.UserGroupId'*@
+                    });
+            }
+
+            var data = {
+                permi1: JSON.stringify(Permission),
+                'UserGroupID': '@ViewBag.UserGroupId',
+                UnChecked: "",
+                __RequestVerificationToken: App.NewPermissionUSerGroup.queryById('antiForgeryToken').getValue()
+            };
+            $.ajax({
+                type: "POST",
+                url: '/Permission/SavePermission',
+                datatype: "json",
+                data: data,
+                /*contentType: 'application/json',*/
+                success: function (data) {
+                    var ic = Ext.MessageBox.INFO;
+                    if (data.Er == 1)
+                        ic = Ext.MessageBox.ERROR;
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: ic,
+                        buttons: Ext.MessageBox.OK
+                    });
+                    App.NewPermissionUSerGroup.body.mask().hide();
+                    CheckdBeforeChange = Checked;
+                },
+                failure: function (data) {
+                    alert(data.data);
+                }
+            });
+        }
+    }
+</script>

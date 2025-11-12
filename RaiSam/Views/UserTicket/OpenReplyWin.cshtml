@@ -1,0 +1,299 @@
+﻿@model IEnumerable<RaiSam.Models.prs_tblTicketCategorySelect>
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+
+    var X = Html.X();
+}
+<script src="~/Scripts/accounting.js"></script>
+<style>
+    .x-form-cb-wrap {
+        text-align: center;
+    }
+
+    .redwarning {
+        color: red;
+    }
+
+    .wrapmessage {
+        word-wrap: break-word;
+        text-justify: auto;
+    }
+</style>
+
+@(X.Window()
+        .Modal(true).Resizable(false)
+    .Title("پاسخ به پیام")
+    .Border(true)
+    .ID("ReplyWin")
+    .Closable(true)
+    .AutoScroll(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+        //.Height(350)
+    .Width(400)
+    .Layout(LayoutType.Fit)
+        .ButtonAlign(Ext.Net.Alignment.Center)
+         .Buttons(
+                X.Button()
+                    .Text("ارسال پاسخ")
+                    .Icon(Ext.Net.Icon.PreviousGreen)
+        //.ToolTip("کلید میانبر F8")
+                    .Listeners(l =>
+                    {
+                        l.Click.Handler = "SaveReplyWin();";
+                    })
+             ,
+                X.Button().Text("خروج").Icon(Ext.Net.Icon.DoorOut)
+                .OnClientClick("App.ReplyWin.destroy();")
+     )
+    .Items(
+            X.AntiForgeryField()
+        .ItemID("antiForgeryToken").Hidden(true),
+        X.Panel()
+            .Border(false)
+            .Items(
+                X.FormPanel()
+                    .Border(false)
+                    .Items(
+                    X.Label("متن پیام:").MarginSpec("0 0 0 10px"),
+                    X.FieldSet().MarginSpec("0 10px 10px 10px").Border(true).Items(
+                       X.Label()
+                    .AutoScroll(true)
+                    .Width(300)
+                    .Cls("wrapmessage")
+                    .ItemID("lableMsgSS")
+                        .Listeners(l => l.Render.Handler = "LoadMatn();"))
+                    ,
+                                    X.Label("متن پاسخ:").MarginSpec("0 0 0 10px"),
+                                X.FieldSet().Border(false)
+                            .Center()
+                            .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 2 })
+                            .Defaults(new { Margin = 2 })
+                            .Items(
+                                    X.HtmlEditor().ItemID("txtMatn").EnableSourceEdit(false)
+        //.ColSpan(4)
+                                            .Width(300)
+                                            .Height(80)
+                                            .RTL(true)
+                                                ,
+                                            X.FieldSet().Border(false)
+                                            .Center()
+                                            .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 1 })
+                                                    .Defaults(new { Margin = 2 }).Height(70)
+                                            .Items(
+                                            X.FileUploadField()
+                                            .ID("FileUploadFieldReply")
+        //.Width(175)
+        // .Height(40)
+                                                   .Width(50)
+                                            .ButtonOnly(true)
+                                            .ButtonText("فایل")
+                                            .DirectEvents(l =>
+                                                    {
+                                                        l.Change.Action = "UploadReply";
+                                                        l.Change.Delay = 1000;
+                                                        l.Change.Before = "if(GotoServerReply==false){return false;}";
+                                                        l.Change.Success = "hideprogressReply";
+                                                    }
+                                                )
+                                            .Listeners(l => l.Change.Fn = "showFileReply")
+                                                    .Icon(Ext.Net.Icon.DiskUpload)
+                                                    ,
+                                                        X.Button().Text("حذف").Width(50).ItemID("btn1Reply").Icon(Ext.Net.Icon.Delete).Listeners(l => l.Click.Handler = "ClearFileReply()")//.Width(75).Height(45)
+                                                          )
+                                                    ,
+                                                        X.Container().Height(15).Content(@<div id="fi-button-msgReply" style="display:none;text-align:right; width:300px;height:20px;color: blue;"></div>)
+
+                                                )
+
+                        )
+                )
+        )
+)
+<script type="text/javascript">
+    var HaveFileReply = false;
+    var EndUploadReply = false;
+    var GotoServerReply = false;
+    var CheckReply = setInterval(CheckEndReply, 500);
+
+    function CheckEndReply() {
+        if (EndUploadReply == true) {
+            Ext.MessageBox.hide();
+            GotoServerReply = false;
+            Ext.Msg.alert('عملیات موفق', 'فایل با موفقیت آپلود شد.');
+            clearInterval(CheckEndReply);
+            EndUploadReply = false;
+        }
+    }
+    function showProgressBarReply() {
+        Ext.MessageBox.show({
+            msg: 'لطفاً منتظر باشید',
+            progressText: 'در حال آپلود فایل...',
+            width: 300,
+            wait: true,
+            waitConfig:
+            {
+                interval: 200,
+                text: 'در حال آپلود فایل...',
+                scope: this
+            }
+        });
+    }
+    function hideprogressReply(Responsdtxt, ResponseObj) {
+        if (ResponseObj.IsValid == true) {
+            EndUploadReply = true;
+        }
+        else {
+            var el = Ext.get('fi-button-msgReply');
+            GotoServerReply = false;
+            clearInterval(CheckEndReply);
+            EndUploadReply = false;
+            el.update("");
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: ResponseObj.Message,
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+    var showFileReply = function (fb, v) {
+        var id = fb.fileInputEl.dom.id;
+        var el = Ext.get('fi-button-msgReply');
+        if (v) {
+            HaveFileReply = true;
+            showProgressBarReply();
+
+            var ValidFormatArray = '@ViewBag.ValidFormat'.split(";");
+            if (ValidFormatArray.includes(v.split('.').pop().toLowerCase())/*v.split('.').pop().toLowerCase() == "jpg" || v.split('.').pop().toLowerCase() == "jpeg" || v.split('.').pop().toLowerCase() == "png" || v.split('.').pop().toLowerCase() == "tif"
+                || v.split('.').pop().toLowerCase() == "tiff" || v.split('.').pop().toLowerCase() == "ico" || v.split('.').pop().toLowerCase() == "bmp" || v.split('.').pop().toLowerCase() == "pdf"
+                || v.split('.').pop().toLowerCase() == "doc" || v.split('.').pop().toLowerCase() == "docx" || v.split('.').pop().toLowerCase() == "txt" || v.split('.').pop().toLowerCase() == "xls"
+                || v.split('.').pop().toLowerCase() == "xlsx" || v.split('.').pop().toLowerCase() == "gif"*/) {
+
+
+                if (document.getElementById(id).files[0].size <= 10485760) {
+                    GotoServerReply = true;
+                    el.update('<b>فایل انتخاب شده:</b> ' + v);
+
+                }
+                else {
+                    clearInterval(CheckEndReply);
+                    el.update("");
+                    Ext.MessageBox.show({
+                        title: "خطا",
+                        msg: "حجم فایل انتخاب شده غیرمجاز است.",
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK
+                    });
+                }
+                if (!el.isVisible()) {
+                    el.slideIn('t', {
+                        duration: .2,
+                        easing: 'easeIn',
+                        callback: function () {
+                            el.highlight();
+                        }
+                    });
+                } else {
+                    el.highlight();
+                }
+            }
+            else {
+                clearInterval(CheckEndReply);
+                el.update("");
+                Ext.MessageBox.show({
+                    title: "خطا",
+                    msg: "فایل انتخاب شده غیرمجاز است.",
+                    icon: Ext.MessageBox.ERROR,
+                    buttons: Ext.MessageBox.OK
+                });
+            }
+        }
+
+    };
+    function ClearFileReply() {
+        Ext.get('fi-button-msgReply').update('');
+        HaveFileReply = false;
+    }
+    function LoadMatn() {
+        App.ReplyWin.body.mask('در حال بارگذاری...');
+        Ext.net.DirectMethod.request({
+            url: '/TicketKartabl/LoadMatnHtml',
+            params: {
+                chatId: '@ViewBag.chatId',
+                __RequestVerificationToken: App.ReplyWin.queryById('antiForgeryToken').getValue()
+            },
+            success: function (data) {
+                App.ReplyWin.queryById("lableMsgSS").setText(data.fldHTML, false);
+                App.ReplyWin.body.mask().hide();
+
+            }
+        });
+}
+function SaveReplyWin() {
+    var txtMatn = App.ReplyWin.queryById('txtMatn');
+    var er = false;
+    if (HaveFileReply == false && Ext.util.Format.trim(txtMatn.getEditorBody().textContent) == "") {
+        alert("لطفا متن را وارد کنید.");
+        return;
+    }
+
+    if (er == true)
+        return;
+
+    App.ReplyWin.queryById('btn1Reply').disable();
+    var data = {
+        MatnHtml: encodeURI(txtMatn.getValue()),
+        SourceId: '@ViewBag.chatId',
+        HaveFile: HaveFileReply
+    };
+    App.ReplyWin.body.mask('در حال ذخیره سازی...');
+    $.ajax({
+        type: "POST",
+        url: '/UserTicket/SaveReply',
+        datatype: "json",
+        data: {
+            Data: JSON.stringify(data),
+            __RequestVerificationToken: App.ReplyWin.queryById('antiForgeryToken').getValue()
+        },
+        /*contentType: 'application/json',*/
+        success: function (data1) {
+            var ic = Ext.MessageBox.INFO;
+            var result = data1;
+            if (result.Err == 1)
+                ic = Ext.MessageBox.ERROR;
+            Ext.MessageBox.show({
+                title: result.MsgTitle,
+                msg: result.Msg,
+                icon: ic,
+                buttons: Ext.MessageBox.OK,
+                fn: function (btn) {
+                    if (btn == 'ok') {
+                        LoadChatComite();
+                        App.ReplyWin.destroy();
+                    }
+                }
+            });
+
+            App.ReplyWin.body.mask().hide();
+        },
+        failure: function (data) {
+            App.ReplyWin.queryById('btn1Reply').enable();
+        }
+    });
+}
+
+
+
+/*function EnterNext() {
+    var keyfield = App.ReplyWin.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+    var nextfld = keyfield.nextSibling().nextSibling();
+    nextfld.focus();
+    nextfld.selectText();
+}*/
+
+</script>
+
+
+

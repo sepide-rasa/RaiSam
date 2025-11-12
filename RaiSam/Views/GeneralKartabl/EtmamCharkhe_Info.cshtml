@@ -1,0 +1,344 @@
+﻿@model IEnumerable<MedicalExaminations.SrvClasses.TOL.BasicInfo.OBJ_PersonalInfo>
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+<script>
+    Ext.net.FilterHeader.behaviour.string[0].match = function (recordValue, matchValue) {
+        return (Ext.net.FilterHeader.behaviour.getStrValue(recordValue) || "").indexOf(matchValue) > -1;
+    };
+
+    Ext.net.FilterHeader.behaviour.string[0].getStrValue = function (value) {
+        return value.toString();
+    };
+
+    Ext.net.FilterHeader.behaviour.string[0].serialize = function (value) {
+        return {
+            type: "string",
+            op: "*",
+            value: value
+        };
+    };
+</script>
+<style>
+    .titlebold {
+        font-weight: bold;
+        font-size: 12px;
+        color: ThreeDDarkShadow;
+    }
+
+    .wrap-lable {
+        word-wrap: break-word;
+    }
+</style>
+@(Html.X().Window()
+    .Modal(true)
+    .Width(860)
+    .ID("EtmamCharkhe_InfoWin")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Layout(LayoutType.Fit)
+        .Listeners(l =>
+        {
+            l.AfterRender.Handler = "SetSizeEtmamCharkhe_Info()";
+            l.Render.Fn = "addKeyMapEtmamCharkhe_Info";
+        })
+                    .Title("اتمام چرخه")
+                .ButtonAlign(Ext.Net.Alignment.Center)
+    .Buttons(
+                X.Button().Text("خروج").Icon(Ext.Net.Icon.DoorOut).ToolTip("کلید میانبر Esc")
+                                                    .OnClientClick("App.EtmamCharkhe_InfoWin.hide();"))
+    .Items(
+         X.AntiForgeryField().ItemID("antiForgeryToken").Hidden(true),
+        X.Panel()
+            .Border(false)
+            .AutoScroll(true)
+            .Layout(LayoutType.VBox)
+            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+            .Items(
+                        X.FieldSet()
+                        .Border(true)
+                            .Title("مشخصات فردی")
+                                      .ItemID("Single")
+                        .Center()
+                        .Layout(LayoutType.HBox)
+                            .Items(
+                            X.FieldSet()
+                                .Border(false)
+                                .Center()
+                                .Width(720)
+                                .Padding(0)
+                                .Margin(0)
+                                .Layout(LayoutType.VBox)
+                                .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Right })
+                                .Items(
+                                    X.FieldSet()
+                                        .Layout(LayoutType.HBox)
+                                        .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                                        .Border(false)
+                                        .Padding(0)
+                                        .Width(725)
+                                        .Items(
+                                            X.Label()
+                                                .Text("نام و نام خانوادگی:")
+                                                .Cls("titlebold"),
+                                            X.Label()
+                                                .Width(210)
+                                                .ItemID("NamePersonal")
+                                                .Text("")
+                                                .PaddingSpec("0 0 0 5px")
+                                                .Height(18)
+                                                .Cls("wrap-lable"),
+                                            X.Label()
+                                                .Text("نام پدر:")
+                                                .Cls("titlebold"),
+                                            X.Label()
+                                                .Width(190)
+                                                .Text("")
+                                                .ItemID("NameFatherPersonal")
+                                                .Height(18)
+                                                .PaddingSpec("0 0 0 5px")
+                                                .Cls("wrap-lable"),
+                                            X.Label()
+                                                .Text("کد ملی:")
+                                                .Cls("titlebold"),
+                                            X.Label()
+                                                .Width(243)
+                                                .Text("")
+                                                .Height(18)
+                                                .ItemID("CodeMelliPersonal")
+                                                .PaddingSpec("0 0 0 5px")
+                                                .Cls("wrap-lable")
+                                        ),
+                                    X.FieldSet()
+                                        .Layout(LayoutType.HBox)
+                                        .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                                        .Width(725)
+                                        .Border(false)
+                                        .Padding(0)
+                                        .Items(
+                                            X.Label()
+                                                .Text("وضعیت تاهل:")
+                                                .Cls("titlebold"),
+                                            X.Label()
+                                                .Width(237)
+                                                .Text("")
+                                                .ItemID("TaaholPersonal")
+                                                .Height(18)
+                                                .PaddingSpec("0 0 0 5px")
+                                                .Cls("wrap-lable"),
+                                            X.Label()
+                                                .Text("جنسیت:")
+                                                .Cls("titlebold"),
+                                            X.Label()
+                                                .Width(182)
+                                                .Text("")
+                                                .Height(18)
+                                                .ItemID("JensiatPersonal")
+                                                .PaddingSpec("0 0 0 5px")
+                                                .Cls("wrap-lable"),
+                                            X.Label()
+                                                .Text("تعداد فرزند:")
+                                                .Cls("titlebold"),
+                                            X.Label()
+                                                .Width(155)
+                                                .Text("")
+                                                .ItemID("FarzandPersonal")
+                                                .Height(18)
+                                                .PaddingSpec("0 0 0 5px")
+                                                .Cls("wrap-lable")
+                                        ),
+                                    X.FieldSet()
+                                        .Layout(LayoutType.HBox)
+                                        .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                                        .Width(725)
+                                        .Padding(0)
+                                        .Border(false)
+                                        .Items(
+                                            X.Label()
+                                                .Text("سال تولد:")
+                                                .Cls("titlebold"),
+                                            X.Label()
+                                                .Width(253)
+                                                .Text("")
+                                                .ItemID("TavalodPersonal")
+                                                .Height(18)
+                                                .PaddingSpec("0 0 0 5px")
+                                                .Cls("wrap-lable"),
+                                            X.Label()
+                                            .Text("نظام وظیفه:")
+                                                .Cls("titlebold"),
+                                            X.Label()
+                                                .Width(165)
+                                                .Text("")
+                                                .Height(18)
+                                                .ItemID("NezamVazifePersonal")
+                                                .PaddingSpec("0 0 0 5px")
+                                                .Cls("wrap-lable"),
+                                            X.Label()
+                                                .Text("رسته خدمت:")
+                                                .Cls("titlebold"),
+                                            X.Label()
+                                                .Width(140)
+                                                .Text("")
+                                                .Height(18)
+                                                .ItemID("RastePersonal")
+                                                .PaddingSpec("0 0 0 5px")
+                                                .Cls("wrap-lable")
+                                        ),
+                                    X.FieldSet()
+                                        .Layout(LayoutType.HBox)
+                                        .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                                        .Width(725)
+                                        .Padding(0)
+                                        .Border(false)
+                                        .Items(
+                                            X.Label()
+                                                .Text("آدرس محل کار:")
+                                                .Cls("titlebold"),
+                                            X.Label()
+                                                .Width(270)
+                                                .Text("")
+                                                .ItemID("AdressPersonal")
+                                                .Height(18)
+                                                .PaddingSpec("0 0 0 5px")
+                                                .Cls("wrap-lable")
+                                        )
+                                ),
+                            X.FieldSet()
+                                .Border(true)
+                                .Layout(LayoutType.Fit)
+                                .Width(83)
+                                .Height(100)
+                                .Padding(0)
+                                .Items(
+                                    X.Image()
+                                        .ItemID("AxPerson")
+                                )
+                            )
+                                ,
+                                                    X.FieldSet()
+                                        .Border(true)
+                                            .Title("مشخصات پرونده")
+                                                      .ItemID("SingleP")
+                                        .Center()
+                                        .Layout(LayoutType.HBox)
+                                            .Items(
+                                                X.FieldSet()
+                                                    .Border(false)
+                                                    .Center()
+                                                    .Width(800)
+                                                    .Padding(0)
+                                                    .Margin(0)
+                                                    .Layout(LayoutType.VBox)
+                                                    .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Right })
+                                                    .Items(
+                                                        X.FieldSet()
+                                                            .Layout(LayoutType.HBox)
+                                                            .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                                                            .Border(false)
+                                                            .Padding(0)
+                                                            .Width(725)
+                                                            .Items(
+                                                                X.Label()
+                                                                    .Text("عنوان:")
+                                                                    .Cls("titlebold"),
+                                                                X.Label()
+                                                                    .Width(410)
+                                                                    .ItemID("NameParvande")
+                                                                    .Text("")
+                                                                    .PaddingSpec("0 0 0 5px")
+                                                                    .Height(18)
+                                                                    .Cls("wrap-lable")
+                                                                )
+
+                                                    )
+                                           )
+                            ,
+                    X.FieldSet()
+                    .ItemID("FieldSetDesc")
+                    .Width(830)
+                        .Border(true)
+                        .Title("توضیحات")
+        //  .Defaults(new { Margin = 2 })
+                            .Layout(LayoutType.Fit)
+                        .Items(
+                                X.Label().Width(800).ItemID("LblDesc")
+                                        .Text(@ViewBag.Desc)
+                                        .Cls("wrap-lable")
+                        )
+
+            )
+        )
+)
+
+<script type="text/javascript">
+    function SetSizeEtmamCharkhe_Info() {
+        /*App.EtmamCharkhe_InfoWin.setSize(870, Ext.getBody().getViewSize().height - 200);
+        App.EtmamCharkhe_InfoWin.queryById("Single").setWidth(800);
+        App.EtmamCharkhe_InfoWin.queryById("FieldSetDesc").setWidth(800);*/
+        if ('@ViewBag.AshkhasIdLocoId' != 0) {
+
+            App.EtmamCharkhe_InfoWin.queryById("Single").show();
+            App.EtmamCharkhe_InfoWin.queryById("SingleP").hide();
+        }
+        else {
+            App.EtmamCharkhe_InfoWin.queryById("Single").hide();
+            App.EtmamCharkhe_InfoWin.queryById("SingleP").show();
+        }
+        LoadPersonInf();
+    }
+
+    function LoadPersonInf() {
+        if ('@ViewBag.AshkhasIdLocoId' != 0) {
+            Ext.net.DirectMethod.request({
+                url: '/SpecializedKartabl/DetailsAshkhas',
+                params: {
+                    Id: '@ViewBag.AshkhasIdLocoId',
+                    __RequestVerificationToken: App.EtmamCharkhe_InfoWin.queryById('antiForgeryToken').getValue()
+                },
+                success: function (result) {
+
+                    App.EtmamCharkhe_InfoWin.queryById("NamePersonal").setText(result.fldName_Family);
+                    App.EtmamCharkhe_InfoWin.queryById("NameFatherPersonal").setText(result.fldFatherName);
+                    App.EtmamCharkhe_InfoWin.queryById("CodeMelliPersonal").setText(result.fldCodeMeli);
+                    App.EtmamCharkhe_InfoWin.queryById("JensiatPersonal").setText(result.fldJensiyat);
+                    App.EtmamCharkhe_InfoWin.queryById("TaaholPersonal").setText(result.fldStatusTaahol);
+                    App.EtmamCharkhe_InfoWin.queryById("FarzandPersonal").setText(result.fldTedadFarzand);
+                    App.EtmamCharkhe_InfoWin.queryById("TavalodPersonal").setText(result.fldTarikhTavalod);
+                    App.EtmamCharkhe_InfoWin.queryById("NezamVazifePersonal").setText(result.fldStatusNazemVazife);
+                    App.EtmamCharkhe_InfoWin.queryById("AdressPersonal").setText(result.fldWorkAddress);
+                    App.EtmamCharkhe_InfoWin.queryById("RastePersonal").setText(result.RasteKhedmat);
+                    value = "data:image/gif;base64," + result.image;
+                    App.EtmamCharkhe_InfoWin.queryById("AxPerson").setImageUrl(value);
+                    Ext.net.Mask.hide();
+                }
+            });
+        }
+        else {
+            App.EtmamCharkhe_InfoWin.queryById("NameParvande").setText('@ViewBag.Name');
+        }
+    }
+
+
+
+    var addKeyMapEtmamCharkhe_Info = function (cmp) {
+        this.keyMap = new Ext.util.KeyMap({
+            target: cmp.getEl(),
+            binding: [{
+                key: [13, 9], /*Ext.EventObject.ENTER,*/
+                fn: function (key, e) {
+                    if (e.getKey() == 9) {
+                        e.stopEvent();
+                    }
+                    var keyfield = App.EtmamCharkhe_InfoWin.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+                    var nextfld = keyfield.nextSibling().nextSibling();
+                    nextfld.focus();
+                    nextfld.selectText();
+                }
+            }]
+        });
+    }
+</script>

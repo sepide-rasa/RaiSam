@@ -1,0 +1,75 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+
+    var X = Html.X();
+}
+
+@(X.Window()
+    .Border(false)
+    .Height(450)
+    .Width(530)
+    .AutoScroll(true)
+    .Modal(true)
+    .ID("PermissionUSerGroup")
+    .Title("مشاهده دسترسی")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Items(
+         X.AntiForgeryField()
+            .ItemID("antiForgeryToken").Listeners(l => l.AfterRender.Handler = "App.TreePermissionUser.store.load();")
+            .Hidden(true),
+        X.Panel()
+            .Border(false)
+            .ItemID("PnlForTree")
+            .AutoScroll(true)
+            .Width(500)
+            .Layout(LayoutType.Fit)
+            .Items(
+                X.TreePanel()
+                    .ID("TreePermissionUser")
+                    .Expand(true)
+                    .UseArrows(true)
+                    .Border(false)
+                    .Listeners(l =>
+                    {
+                        l.AfterRender.Handler = "App.TreePermissionUser.expandAll()";
+                        l.BeforeSelect.Fn = "disabledChecked";
+                        l.BeforeItemClick.Fn = "disabledChecked";
+                        l.CheckChange.Fn = "disabledChecked";
+                    })
+                    .Store(
+                        X.TreeStore()
+                            .AutoLoad(false)
+                            .Proxy(
+                                Html.X().AjaxProxy()
+                                    .Url(Url.Action("NodeLoad"))
+                                        .ActionMethods(l => l.Read = HttpMethod.POST)
+                                )
+                                .Listeners(l =>
+                                {
+                                    l.BeforeLoad.Fn = "GetParamTreePermissionUser";
+                                })
+                        )
+                    .Root(
+                        Html.X().Node()
+                            .NodeID("0")
+                            .Text("ساختار درختی دسترسی")
+                            .Checked(null))
+                    )
+)
+)
+<script type="text/javascript">
+
+    var GetParamTreePermissionUser = function (store, operation, eOpts) {
+        var nodeId = operation.node.getId();
+        operation.params.node = nodeId;
+        operation.params.GrohKarbari = '@ViewBag.UserGroupId';
+        operation.params.__RequestVerificationToken = App.PermissionUSerGroup.queryById('antiForgeryToken').getValue();
+    };
+
+    var disabledChecked = function () {
+        return false;
+    };
+</script>

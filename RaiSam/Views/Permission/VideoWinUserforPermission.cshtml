@@ -1,0 +1,28 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+
+@using Ext.Net.MVC;
+
+@(
+ Html.X().Window().Listeners(l => l.BeforeClose.Handler = "CloseVideoUserforPermission()")
+             .Height(565)
+         .Width(1000)
+                .ID("VideoUserforPermission")
+        .Closable(true)
+            .Title("راهنمای تصویری بازبینی دسترسی ها")
+        .AutoScroll(true)
+        .Closable(true)
+            .Maximizable(true)
+        .Content(@<video width="100%;" id="AmozeshVideoUserforPermission" controls="true" autoplay="true" controls><source src='@Url.Action("DownloadFileVideoUserforPermission", "Permission")' type="video/mp4"></video>)
+
+)
+<script type="text/javascript">
+    function CloseVideoUserforPermission() {
+        $('#AmozeshVideoUserforPermission')[0].pause();
+    }
+
+</script>

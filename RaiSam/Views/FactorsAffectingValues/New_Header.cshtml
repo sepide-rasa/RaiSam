@@ -1,0 +1,308 @@
+﻿@model IEnumerable<RaiSam.Models.prs_SelectAllAvamelMoasser_Upgrade_Effecting>
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+}
+
+@(Html.X()
+    .Window()
+    .Modal(true)
+    .Listeners(li => li.Render.Fn = "addKeyMapFactorsAffectingValues_H")
+    .Width(480)
+    .Title("ثبت تاریخ اجرا")
+    .ID("NewFactorsAffectingValues_H")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .ButtonAlign(Ext.Net.Alignment.Center)
+    .Layout(LayoutType.Fit)
+    .Buttons(
+        X.Button()
+            .Text("ذخیره")
+            .Icon(Ext.Net.Icon.Disk)
+            .Listeners(l => l.Click.Handler = "SaveFactorsAffectingValues_H();"),
+        X.Button()
+            .Text("خروج")
+            .Icon(Ext.Net.Icon.DoorOut)
+            .ToolTip("کلید میانبر Esc")
+            .OnClientClick("App.NewFactorsAffectingValues_H.hide();"))
+    .Items(
+             X.AntiForgeryField()
+                .ItemID("antiForgeryToken")
+            .Hidden(true),
+        X.Panel()
+            .Border(false)
+            .ItemID("pnlInfo")
+            .Layout(LayoutType.VBox)
+            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+            .Items(
+                X.FieldSet()
+                    .Border(true)
+                    .Title("انتخاب تاریخ و چرخه")
+                    .ItemID("FieldSetFilter")
+                    .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 4 })
+                    .Defaults(new { Margin = 2 })
+                    .Items(
+                        X.Hidden().ItemID("fldId"),
+                        X.Label("عنوان چرخه:"),
+                        X.ComboBox()
+                            .ItemID("CboCharkhe")
+                            .AutoFocus(true)
+                            .TypeAhead(true)
+                            .Editable(true)
+                            .ForceSelection(true)
+                            .QueryMode(DataLoadMode.Local)
+                            .TriggerAction(TriggerAction.All)
+                            .AllowBlank(false)
+                            .BlankText("لطفا چرخه را انتخاب کنید.")
+                            .DisplayField("fldName")
+                            .ValueField("fldId")
+                            .Listeners(l => l.BeforeQuery.Fn = "SearchMatchCombo")
+                            .EmptyText("چرخه...")
+                            .Store(X.Store()
+                                .Listeners(l => l.Load.Handler = "setDefaultCboCharkhe_H();LoadFactorsAffectingValues_H();")
+                                .Model(X.Model()
+                                    .IDProperty("fldId")
+                                    .Fields(
+                                        new ModelField("fldId", ModelFieldType.Int) { Mapping = "fldId" },
+                                        new ModelField("fldName", ModelFieldType.String) { Mapping = "fldName" }
+                                        )
+                                )
+                                    .Listeners(l => l.BeforeLoad.Handler = "App.NewFactorsAffectingValues_H.queryById('CboCharkhe').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.NewFactorsAffectingValues_H.queryById('antiForgeryToken').getValue());")
+                                .Proxy(Html.X().AjaxProxy()
+                                    .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                    .Timeout(200000000)
+                                        .Url(Url.Action("GetCharkhe"))
+                                    .Reader(X.JsonReader().Root("data"))
+                                )
+                        ),
+                        X.Label("تاریخ اجرا:"),
+                        X.PDateField()
+                            .ItemID("txtExecDate")
+                            .AllowBlank(false)
+                            .BlankText("لطفا تاریخ اجرا را وارد کنید.")
+                            .Editable(true)
+                            .MaskRe("/[0-9 /]/")
+                            .Listeners(l =>
+                            {
+                                l.AfterRender.Handler = "SetDefaulttxtExecDate()";
+                                //l.Change.Handler = "SetValidateExecDate()";
+                            })
+                            .MaxLength(10)
+                            .EnforceMaxLength(true),
+                        X.Label("توضیحات:"),
+                        X.TextField()
+                            .ItemID("txtDesc")
+                            .ColSpan(3)
+                            .Width(348)
+                     )
+            )
+        )
+)
+<script type="text/javascript">
+
+    var SearchMatchCombo = function (record) {
+        return record.query = new RegExp(record.query.replace("(", "[(]").replace(")", "[)]"), 'i');
+    };
+
+    function SetDefaulttxtExecDate() {
+        if ('@ViewBag.Id' == "0") {
+            App.NewFactorsAffectingValues_H.queryById("txtExecDate").setRawValue('@ViewBag.CurrentDate');
+        }
+    }
+
+    @*function SetValidateExecDate() {
+        if ('@ViewBag.Id' == "0") {
+            if (App.NewFactorsAffectingValues_H.queryById("txtExecDate").getRawValue().length == 10) {
+                Ext.net.DirectMethod.request({
+                    url: '/FactorsAffectingValues/GetLastDate',
+                    success: function (data) {
+                        if (data.MinDate != "") {
+                            App.NewFactorsAffectingValues_H.queryById("txtExecDate").setMinValue(new Date(data.MinDate));
+                            App.NewFactorsAffectingValues_H.queryById("txtExecDate").validate();
+                            App.NewFactorsAffectingValues_H.queryById("txtExecDate").minText = 'تاریخ اجرا باید بزرگتر از آخرین تاریخ اجرای ثبت شده باشد.';
+                        }
+                    }
+                });
+            }
+        }
+    }*@
+
+    function setDefaultCboCharkhe_H() {
+        if ('@ViewBag.Id' == "0") {
+            App.NewFactorsAffectingValues_H.queryById("CboCharkhe").setValue(App.NewFactorsAffectingValues_H.queryById("CboCharkhe").store.getAt(0));
+        }
+    }
+
+    var fldTimeStamp = 0;
+    function LoadFactorsAffectingValues_H() {
+        if ('@ViewBag.Id' != '0') {
+            App.NewFactorsAffectingValues_H.body.mask("در حال بارگذاری...");
+            Ext.net.DirectMethod.request({
+                url: '/FactorsAffectingValues/Details',
+                params: {
+                    Id: '@ViewBag.Id',
+                    __RequestVerificationToken: App.NewFactorsAffectingValues_H.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+
+                    var CboCharkhe = App.NewFactorsAffectingValues_H.queryById('CboCharkhe');
+                    CboCharkhe.setValue(data.fldCharkheId).focus();
+
+                    var txtExecDate = App.NewFactorsAffectingValues_H.queryById('txtExecDate');
+                    txtExecDate.setRawValue(data.fldTarikh);
+
+                    var txtDesc = App.NewFactorsAffectingValues_H.queryById('txtDesc');
+                    txtDesc.setValue(data.fldDesc);
+
+                    var Id = App.NewFactorsAffectingValues_H.queryById('fldId');
+                    Id.setValue(data.fldId);
+                    fldTimeStamp = data.fldTimeStamp;
+                    App.NewFactorsAffectingValues_H.body.mask().hide();
+                }
+            });
+        }
+        else {
+            App.NewFactorsAffectingValues_H.queryById('txtExecDate').validate();
+            App.NewFactorsAffectingValues_H.queryById('CboCharkhe').validate();
+            Ext.net.Mask.hide();
+        }
+    }
+
+    function SaveFactorsAffectingValues_H() {
+        var CboCharkhe = App.NewFactorsAffectingValues_H.queryById('CboCharkhe');
+        var txtExecDate = App.NewFactorsAffectingValues_H.queryById('txtExecDate');
+        var txtDesc = App.NewFactorsAffectingValues_H.queryById('txtDesc');
+        var Id = App.NewFactorsAffectingValues_H.queryById('fldId');
+        var er = false;
+        if (txtExecDate.validate() == false) {
+            er = true;
+        }
+        if (CboCharkhe.validate() == false) {
+            er = true;
+        }
+
+        if (er == true)
+            return;
+
+        var data = {
+            fldId: Id.getValue(),
+            fldTarikh: txtExecDate.getRawValue(),
+            fldDesc: txtDesc.getValue(),
+            fldCharkheId: CboCharkhe.getValue(),
+            fldNameCharkhe: CboCharkhe.getDisplayValue(),
+            fldTimeStamp: fldTimeStamp,
+            __RequestVerificationToken: App.NewFactorsAffectingValues_H.queryById('antiForgeryToken').getValue()
+        };
+        App.NewFactorsAffectingValues_H.body.mask("در حال ذخیره سازی");
+        $.ajax({
+            type: "POST",
+            url: '/FactorsAffectingValues/SaveHeader',
+            datatype: "json",
+            data: data,
+            /*contentType: 'application/json',*/
+            success: function (result) {
+                chat.server.reloadLog();
+                if (result.Er == 1 && result.Change == 1) {/*vaghti TimeStamp==0*/
+                    Ext.MessageBox.show({
+                        title: result.MsgTitle,
+                        msg: result.Msg,
+                        icon: Ext.MessageBox.WARNING,
+                        buttons: Ext.MessageBox.OK,
+                        fn: function (btn) {
+                            if (btn == 'ok') {
+                                LoadFactorsAffectingValues_H();
+                            }
+                        }
+                    });
+                }
+                else if (result.Er == 1 && result.Change == 2) {/*vaghti TimeStamp==2*/
+                    Ext.MessageBox.show({
+                        title: result.MsgTitle,
+                        msg: result.Msg,
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK,
+                        fn: function (btn) {
+                            if (btn == 'ok') {
+                                App.NewFactorsAffectingValues_H.destroy();
+                            }
+                        }
+                    });
+
+                }
+                else if (result.Er == 1) {
+                    Ext.MessageBox.show({
+                        title: result.MsgTitle,
+                        msg: result.Msg,
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK,
+                        fn: function (btn) {
+                            if (btn == "ok") {
+                                App.NewFactorsAffectingValues_H.queryById('CboCharkhe').focus();
+                            }
+                        }
+                    });
+                }
+                else {
+                    Ext.MessageBox.show({
+                        title: result.MsgTitle,
+                        msg: result.Msg,
+                        icon: Ext.MessageBox.INFO,
+                        buttons: Ext.MessageBox.OK,
+                            fn: function (btn) {
+                                if (btn == "ok") {
+                                    App.NewFactorsAffectingValues_H.queryById('CboCharkhe').focus();
+                                }
+                            }
+                    });
+                }
+
+
+
+                App.FactorsAffectingValues.queryById('GridFactorsAffectingValues').store.load();
+                App.FactorsAffectingValues.queryById('GridFactorsAffectingValuesDetail').getStore().getProxy().setExtraParam("HeaderId", 0);
+                App.FactorsAffectingValues.queryById('GridFactorsAffectingValuesDetail').store.load();
+
+                if (result.Er != 1)
+                    ClearFactorsAffectingValues();
+                App.NewFactorsAffectingValues_H.body.mask().hide();
+            },
+            failure: function () {
+            }
+        });
+    }
+
+    function ClearFactorsAffectingValues() {
+        App.NewFactorsAffectingValues_H.queryById('txtExecDate').setRawValue("");
+        App.NewFactorsAffectingValues_H.queryById('txtExecDate').validate();
+        App.NewFactorsAffectingValues_H.queryById('txtDesc').setValue("");
+        App.NewFactorsAffectingValues_H.queryById('fldId').setValue(0);
+    }
+
+    var addKeyMapFactorsAffectingValues_H = function (cmp) {
+        this.keyMap = new Ext.util.KeyMap({
+            target: cmp.getEl(),
+            binding: [{
+                key: [13, 9], /*Ext.EventObject.ENTER,*/
+                fn: function (key, e) {
+                    if (e.getKey() == 9) {
+                        e.stopEvent();
+                    }
+                    var keyfield = App.NewFactorsAffectingValues_H.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+                    var nextfld;
+                    if (keyfield.itemId == "txtDesc") {
+                        SaveFactorsAffectingValues_H();
+                        return;
+                    }
+                    else {
+                        nextfld = keyfield.nextSibling().nextSibling();
+                    }
+                    nextfld.focus();
+                    nextfld.selectText();
+                }
+            }]
+        });
+    };
+</script>

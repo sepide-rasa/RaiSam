@@ -1,0 +1,77 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Report ScriptLanguage="CSharp" ReportInfo.Created="07/24/2023 08:14:14" ReportInfo.Modified="08/21/2023 09:47:57" ReportInfo.CreatorVersion="2023.2.17.0">
+  <Styles>
+    <Style Name="title" Font="RasaFont, 14pt, style=Bold"/>
+    <Style Name="rasafont10" Font="RasaFont, 10pt"/>
+  </Styles>
+  <Dictionary>
+    <MsSqlDataConnection Name="Connection" ConnectionString="rijcmlqHwzMSgwTFaHpjtG3vsOj8fZULXKsps7Zg7MDBgVV+mo6JB3kBScZsLgR9x+rPoqwjyAEUavfEWXswmUJFU3jp6up3VY1cDxJCsOPoq2owjlzvPvY1VfkKYeQtt3o8dm1rI2/6qcYWn/2pphdeAE8sKIBy4UW5FQSbj7E8xMRxaLqhnDHcaOOrd/gZwoAlD0i+O1DZHE7uzWZCyNSrw5+DQOK+uncfJnhjY9QqAYEvVo=" ConnectionStringExpression="[ConectionStr]">
+      <ProcedureDataSource Name="prs_GetDate" DataType="System.Int32" Enabled="true" TableName="prs_GetDate" SelectCommand="prs_GetDate">
+        <Column Name="fldDateTime" DataType="System.DateTime"/>
+        <Column Name="fldTarikh" DataType="System.String"/>
+        <Column Name="fldTime" DataType="System.String"/>
+        <Column Name="fldDate" DataType="System.DateTime"/>
+      </ProcedureDataSource>
+      <ProcedureDataSource Name="prs_RptName_LogoCompany" DataType="System.Int32" Enabled="true" TableName="prs_RptName_LogoCompany" SelectCommand="prs_RptName_LogoCompany">
+        <Column Name="fldNameCompany" DataType="System.String"/>
+        <Column Name="fldLogo" DataType="System.Byte[]" BindableControl="Picture"/>
+        <Column Name="fldTitleContract" DataType="System.String"/>
+        <ProcedureParameter Name="@IdContract" DataType="8" Expression="[Idcontract]" Direction="Input"/>
+      </ProcedureDataSource>
+      <ProcedureDataSource Name="prs_RptScheduleTitle_Contract" DataType="System.Int32" Enabled="true" TableName="prs_RptScheduleTitle_Contract" SelectCommand="prs_RptScheduleTitle_Contract">
+        <Column Name="fldTitleContract" DataType="System.String"/>
+        <Column Name="fldAzTarikh" DataType="System.String"/>
+        <Column Name="fldTaTarikh" DataType="System.String"/>
+        <Column Name="fldTilteSchedule" DataType="System.String"/>
+        <ProcedureParameter Name="@IdContract" DataType="8" Expression="[Idcontract]" Direction="Input"/>
+      </ProcedureDataSource>
+    </MsSqlDataConnection>
+    <Parameter Name="Idcontract" DataType="System.Int32" Expression="6"/>
+    <Parameter Name="UserName" DataType="System.String" Expression="&quot;مدیرسیستم&quot;"/>
+    <Parameter Name="ConectionStr" DataType="System.String" Expression="@&quot;Data Source=192.168.1.34;AttachDbFilename=;Initial Catalog=RaiSam;Integrated Security=False;Persist Security Info=False;User ID=rasasystem;Password=rasasystem!@#&quot;"/>
+  </Dictionary>
+  <ReportPage Name="Page1" Guides="0,718.2,146.76,587.04,290.4,434.04,730.68,619.99,695.59" Watermark.Font="Arial, 60pt">
+    <PageHeaderBand Name="PageHeader1" Width="718.2" Height="114.33" CanGrow="true" CanShrink="true" CanBreak="true" Guides="0,114.33,34.32,79.98,5.25,80.85,114.3">
+      <TableObject Name="Table1" Width="718.2" Height="114.33" Dock="Fill">
+        <TableColumn Name="Column1" Width="146.76"/>
+        <TableColumn Name="Column2" Width="143.64"/>
+        <TableColumn Name="Column3" Width="143.64"/>
+        <TableColumn Name="Column4" Width="153"/>
+        <TableColumn Name="Column5" Width="143.64"/>
+        <TableRow Name="Row1" Height="34.32">
+          <TableCell Name="Cell1" Text="تاریخ چاپ: [prs_GetDate.fldTarikh]" AutoShrink="FontSize" HorzAlign="Right" VertAlign="Center" Font="RasaFont, 10pt" Style="rasafont10"/>
+          <TableCell Name="Cell2" Text="سامانه  یکپارچه ماده 12 &#13;&#10;گزارش جدول زمان بندی اجرای پروژه" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 14pt, style=Bold" Style="title" ColSpan="3" RowSpan="2"/>
+          <TableCell Name="Cell3" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 14pt, style=Bold" Style="title"/>
+          <TableCell Name="Cell4" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 14pt, style=Bold" Style="title"/>
+          <TableCell Name="Cell5" Font="Arial, 10pt" RowSpan="2">
+            <PictureObject Name="Picture1" Left="32.95" Top="5.25" Width="75.6" Height="75.6" DataColumn="prs_RptName_LogoCompany.fldLogo"/>
+          </TableCell>
+        </TableRow>
+        <TableRow Name="Row2" Height="45.66">
+          <TableCell Name="Cell6" Text="ساعت چاپ: [prs_GetDate.fldTime]" AutoShrink="FontSize" HorzAlign="Right" VertAlign="Center" Font="RasaFont, 10pt" Style="rasafont10"/>
+          <TableCell Name="Cell7" AutoShrink="FontSize" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 14pt, style=Bold" Style="title"/>
+          <TableCell Name="Cell8" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 14pt, style=Bold" Style="title"/>
+          <TableCell Name="Cell9" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 14pt, style=Bold" Style="title"/>
+          <TableCell Name="Cell10" Font="Arial, 10pt"/>
+        </TableRow>
+        <TableRow Name="Row3" Height="34.32">
+          <TableCell Name="Cell11" Text="کاربر چاپ کننده: [UserName]" AutoShrink="FontSize" VertAlign="Center" RightToLeft="true" Font="RasaFont, 10pt" Style="rasafont10"/>
+          <TableCell Name="Cell12" Text="[prs_RptName_LogoCompany.fldTitleContract]" AutoShrink="FontSize" HorzAlign="Center" VertAlign="Center" RightToLeft="true" Font="RasaFont, 12pt, style=Bold" ColSpan="3"/>
+          <TableCell Name="Cell13" Font="Arial, 10pt"/>
+          <TableCell Name="Cell14" Font="Arial, 10pt"/>
+          <TableCell Name="Cell15" Text="[prs_RptName_LogoCompany.fldNameCompany]" AutoShrink="FontSize" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 10pt" Style="rasafont10"/>
+        </TableRow>
+      </TableObject>
+    </PageHeaderBand>
+    <DataBand Name="Data1" Top="160.46" Width="718.2" Height="35.81" CanGrow="true" CanShrink="true" CanBreak="true" Guides="0,35.81" DataSource="prs_RptScheduleTitle_Contract">
+      <TableObject Name="Table2" Width="718.2" Height="35.81" Dock="Fill" PrintOnParent="true">
+        <TableColumn Name="Column6" Width="718.2"/>
+        <TableRow Name="Row5" Height="35.81" AutoSize="true">
+          <TableCell Name="Cell21" Text="[prs_RptScheduleTitle_Contract.fldTilteSchedule] از تاریخ [prs_RptScheduleTitle_Contract.fldAzTarikh] لغایت [prs_RptScheduleTitle_Contract.fldTaTarikh]" AutoShrink="FontSize" HorzAlign="Justify" VertAlign="Center" RightToLeft="true" Font="RasaFont, 11pt" TextRenderType="HtmlTags"/>
+        </TableRow>
+      </TableObject>
+      <DataHeaderBand Name="DataHeader1" Top="118.5" Width="718.2" Height="37.8"/>
+    </DataBand>
+    <PageFooterBand Name="PageFooter1" Top="200.44" Width="718.2" Height="18.9"/>
+  </ReportPage>
+</Report>

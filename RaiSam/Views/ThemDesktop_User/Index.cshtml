@@ -1,0 +1,432 @@
+﻿@using Ext.Net.MVC
+@using Ext.Net;
+@using Ext.Net.Utilities;
+@{
+    var X = Html.X();
+}
+
+<style>
+    .lbl {
+        color: red;
+    }
+
+    .custom-EyeIC2 {
+        margin-right: 3px !important;
+    }
+    #fieldsetfile legend{
+        text-align:right;
+        font-family:Tahoma !important;
+    }
+</style>
+
+@(Html.X().Window()
+    .Modal(true)
+    .Width(505)
+    .Listeners(li =>
+    {
+        li.AfterRender.Handler = "LoadThemDesktop_User();";
+    })
+    .Title("شخصی سازی")
+    .ID("ThemDesktop_User")
+    .Closable(false)
+    .CloseAction(CloseAction.Destroy)
+    .ButtonAlign(Alignment.Center)
+    .Buttons(
+        X.Button()
+            .Text("ذخیره")
+            .Icon(Ext.Net.Icon.Disk)
+            .ItemID("btnSave")
+            .Listeners(l => l.Click.Handler = "SaveThemDesktop_User();"),
+            X.SplitButton()
+                .Text("راهنما")
+                .Icon(Ext.Net.Icon.Help)
+                .Menu(X.Menu()
+                .Items(
+                X.MenuItem()
+                            .Text("راهنما متنی")
+                            .Icon(Ext.Net.Icon.TextPaddingTop)
+                                            .Listeners(l => l.Click.Handler = "HelpThemDesktop()"),
+                    X.MenuItem()
+                            .Text("راهنما تصویری")
+                            .Icon(Ext.Net.Icon.PlayBlue)
+                                    .Listeners(l => l.Click.Handler = "showHelp_VideoThemDesktop()")
+
+            )
+        ),
+        X.Button()
+            .Text("خروج")
+            .ItemID("btnExit")
+            .Icon(Ext.Net.Icon.DoorOut)
+            .OnClientClick("App.ThemDesktop_User.destroy()"))
+    .Items(
+         X.AntiForgeryField()
+          .ItemID("antiForgeryToken").Hidden(true),
+        X.Panel()
+            .Border(false)
+            .Layout(Ext.Net.LayoutType.VBox)
+            .LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Center })
+            .Items(
+                X.FieldSet()
+                    .Border(false)
+        //  .Title("مشخصات")
+                    .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 4 })
+                    .Defaults(new { Margin = 5 })
+                    .ItemID("fieldSetAsli")
+                    .Height(30)
+                    .Items(
+                         X.Label("انتخاب نمایه:"),
+                            X.ComboBox()
+                                    .ItemID("CboThem")
+                                .Editable(false)
+                                .TypeAhead(true)
+                                .BlankText("لطفا وضعیت تصویر پس زمینه را انتخاب کنید.")
+                                .QueryMode(DataLoadMode.Local)
+                                .TriggerAction(TriggerAction.All)
+                                .AllowBlank(false)
+                                .EmptyText("نمایه...")
+                                .Items(
+                                        new ListItem("Default", "0"),
+                                        new ListItem("Gray", "1"),
+                                        new ListItem("Neptune", "4")
+                                    )
+                                .SelectedItems(new { Value = "1" })
+                                ,
+                       X.Label("تصویر پس زمینه:"),
+                        X.ComboBox()
+                            .ItemID("CboType")
+                            .Editable(false)
+                            .TypeAhead(true)
+                            .BlankText("لطفا وضعیت تصویر پس زمینه را انتخاب کنید.")
+                            .QueryMode(DataLoadMode.Local)
+                            .TriggerAction(TriggerAction.All)
+                            .AllowBlank(false)
+                            .EmptyText("...")
+                                .Listeners(l => l.Select.Handler = "SelectType()")
+                            .Items(
+                                new ListItem("پیش فرض", "1"),
+                                new ListItem("بدون عکس", "2"),
+                                new ListItem("انتخاب عکس", "3")
+                                )
+        // .SelectedItems(new { Value = "1" })
+
+                            ,
+                             X.FieldSet()
+                            .Border(true)
+                            .AutoScroll(true)
+                            .Height(150)
+                            .ColSpan(4)
+                            .Title("انتخاب فایل(حداکثر حجم مجاز: 10MB)")
+                            .ID("fieldsetfile")
+                            .Layout(LayoutType.HBox)
+                            .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Middle })
+                            .Items(
+                                X.FormPanel()
+                                    .Border(false)
+                                    .Layout(LayoutType.VBox)
+                                    .ItemID("fieldsetShowFile")
+                                    .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Right })
+                                    .Width(346)
+        //.Listeners(l => l.AfterRender.Handler = "App.ThemDesktop_User.queryById('fieldsetShowFile').setWidth(App.BasicInfWin.getWidth() - 1050)")
+                                    .Items(
+                                        X.FileUploadField()
+                                            .MarginSpec("0 10px 10px 0")
+                                            .Icon(Ext.Net.Icon.DiskUpload)
+                                            .ButtonOnly(true)
+                                            .ButtonText("انتخاب فایل")
+                                            .DirectEvents(l =>
+                                            {
+                                                l.Change.Action = "Upload";
+                                                l.Change.Delay = 1000;
+                                                l.Change.Before = "if(GotoServerThem==false){return false;}";
+                                                l.Change.Success = "hideprogressThem";
+                                            })
+                                            .Listeners(l => l.Change.Fn = "showFileThem"),
+                                        X.Container()
+                                            .Content(@<div id="fi-button-msg" class="Wrap-label" style="width:336px;height:auto; text-align:right;"><b>فایل انتخاب شده:</b></div>)
+                                        ),
+                                X.Panel()
+                                    .Border(false)
+                                    .Layout(LayoutType.VBox)
+                                    .LayoutConfig(new VBoxLayoutConfig { Align=VBoxAlign.Center})
+                                    .Items(
+                                        X.Label("پیش نمایش"),
+                                        X.Panel()
+                                            .Frame(true)
+                                            .MarginSpec("3px 0 0 0")
+                                            .Layout(LayoutType.Fit)
+                                            .Items(
+                                        X.Image()
+                                            .ItemID("ImageThem")
+                                            .Flex(1)
+                                            .ImageUrl("/Content/icon/Blank.jpg")
+                                            .Width(80)
+                                            .Height(80)
+                                            .Border(true)
+                                            .Frame(true)))
+                            )
+
+                    )
+                )
+        )
+)
+
+<script type="text/javascript">
+    var GotoServerThem = false;
+    var EndUploadThem = false;
+
+
+    var CheckThem = setInterval(CheckEndThem, 500);
+
+    function CheckEndThem() {
+        if (EndUploadThem == true) {
+            Ext.net.DirectMethod.request({
+                url: '/ThemDesktop_User/ShowPic',
+                params: {
+                    __RequestVerificationToken: App.ThemDesktop_User.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+                    value = "data:image/gif;base64," + data.image;
+                    App.ThemDesktop_User.queryById('ImageThem').setImageUrl(value);
+                }
+            });
+            GotoServerThem = false;
+            Ext.MessageBox.hide();
+            Ext.Msg.alert('عملیات موفق', 'فایل با موفقیت آپلود شد.');
+            clearInterval(CheckEndThem);
+            EndUploadThem = false;
+        }
+    }
+    var showFileThem = function (fb, v) {
+        var id = fb.fileInputEl.dom.id;
+        var el = Ext.get('fi-button-msg');
+        if (v) {
+            showProgressBarThem();
+            if (v.split('.').pop().toLowerCase() == "jpg" || v.split('.').pop().toLowerCase() == "png" || v.split('.').pop().toLowerCase() == "jpeg") {
+                if (document.getElementById(id).files[0].size <= 10485760) {
+                    GotoServerThem = true;
+                    el.update('<b>فایل انتخاب شده: ' + v + '</b>' + "&nbsp;&nbsp;" + '<img id="DeleteActionFileimg6" title="حذف فایل" src="/Content/cancel.png" style="width:15px;height:15px;margin-bottom: -4px;" onclick="javascript:DeleteFileThem()" />');
+                }
+                else {
+                    clearInterval(CheckEndThem);
+                    el.update('<b>فایل انتخاب شده:</b> ');
+                    App.ThemDesktop_User.queryById('ImageThem').setImageUrl("/Content/icon/Blank.jpg");
+                    Ext.MessageBox.show({
+                        title: "خطا",
+                        msg: "حجم فایل انتخاب شده غیرمجاز است.",
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK
+                    });
+                }
+
+                if (!el.isVisible()) {
+                    el.slideIn('t', {
+                        duration: .2,
+                        easing: 'easeIn',
+                        callback: function () {
+                            el.highlight();
+                        }
+                    });
+                } else {
+                    el.highlight();
+                }
+            }
+            else {
+                clearInterval(CheckEndThem);
+                el.update('<b>فایل انتخاب شده:</b> ');
+                App.ThemDesktop_User.queryById('ImageThem').setImageUrl("/Content/icon/Blank.jpg");
+                Ext.MessageBox.show({
+                    title: "خطا",
+                    msg: "فایل انتخاب شده غیرمجاز است.",
+                    icon: Ext.MessageBox.ERROR,
+                    buttons: Ext.MessageBox.OK
+                });
+            }
+        }
+    };
+
+    var DeleteFileHu = false;
+    function DeleteFileThem() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/ThemDesktop_User/DeleteSessionFile',
+            success: function (data) {
+                DeleteFileHu = true;
+                App.ThemDesktop_User.queryById('ImageThem').setImageUrl("/Content/icon/Blank.jpg");
+                Ext.get('fi-button-msg').update('<b>فایل انتخاب شده:</b>');
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+    var hideprogressThem = function (Responsdtxt, ResponseObj) {
+        if (ResponseObj.IsValid == true) {
+            EndUploadThem = true;
+        }
+        else {
+            var el = Ext.get('fi-button-msg');
+            GotoServerThem = false;
+            clearInterval(CheckEndThem);
+            EndUploadThem = false;
+            el.update('<b>فایل انتخاب شده:</b> ');
+            App.ThemDesktop_User.queryById('ImageThem').setImageUrl("/Content/icon/Blank.jpg");
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: ResponseObj.Message,
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    };
+
+    function showProgressBarThem() {
+        Ext.MessageBox.show({
+            msg: 'لطفاً منتظر باشید',
+            progressText: 'در حال آپلود فایل...',
+            width: 300,
+            wait: true,
+            waitConfig:
+            {
+                interval: 200,
+                text: 'در حال آپلود فایل...',
+                scope: this
+            }
+        });
+    }
+
+
+     function HelpThemDesktop() {
+         Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+         Ext.net.DirectMethod.request({
+             url: '/ThemDesktop_User/Help',
+             success: function (data) {
+                 Ext.net.Mask.hide();
+             }
+         });
+     }
+     function showHelp_VideoThemDesktop() {
+         Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+         Ext.net.DirectMethod.request({
+             url: '/ThemDesktop_User/VideoWinThemDesktop',
+             success: function (data) {
+                 Ext.net.Mask.hide();
+             }
+         });
+     }
+    function SelectType() {
+        var fieldSetAsli = App.ThemDesktop_User.queryById('fieldSetAsli');
+        var CboType = App.ThemDesktop_User.queryById('CboType');
+        if (CboType.getValue() != "3") {
+            App.ThemDesktop_User.queryById('fieldsetfile').hide();
+            fieldSetAsli.setHeight(30);
+        }
+        else {
+            App.ThemDesktop_User.queryById('fieldsetfile').show();
+            fieldSetAsli.setHeight(190);
+        }
+    }
+    function LoadThemDesktop_User() {
+        var fieldSetAsli = App.ThemDesktop_User.queryById('fieldSetAsli');
+
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/ThemDesktop_User/Details',
+            params: {
+                __RequestVerificationToken: App.ThemDesktop_User.queryById('antiForgeryToken').getValue()
+            },
+            success: function (data) {
+                App.ThemDesktop_User.queryById('CboType').setValue(data.fldType);
+                App.ThemDesktop_User.queryById('CboThem').setValue(data.fldThem);
+
+                if (data.fldType == "3") {
+                    fieldSetAsli.setHeight(190);
+
+                    if (data.NameFile != "") {
+                        var fldfile = "data:image/gif;base64," + data.pic;
+                        App.ThemDesktop_User.queryById('ImageThem').setImageUrl(fldfile);
+                        Ext.get('fi-button-msg').update('<b>فایل انتخاب شده: ' + data.NameFile + '</b>' + "&nbsp;&nbsp;" + '<img id="DeleteActionFileimg6" title="حذف فایل" src="/Content/cancel.png" style="width:15px;height:15px;margin-bottom: -4px;" onclick="javascript:DeleteFileThem()" />');
+                    }
+                    else {
+                        App.ThemDesktop_User.queryById('ImageThem').setImageUrl("/Content/icon/Blank.jpg");
+                        Ext.get('fi-button-msg').update('<b>فایل انتخاب شده:</b>');
+                    }
+                }
+                else {
+                    fieldSetAsli.setHeight(30);
+                    App.ThemDesktop_User.queryById('fieldsetfile').hide();
+                }
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+    function SaveThemDesktop_User() {
+        var CboType = App.ThemDesktop_User.queryById('CboType');
+        var CboThem = App.ThemDesktop_User.queryById('CboThem');
+
+        var er = false;
+
+        if (CboType.validate() == false) {
+            er = true;
+        }
+        if (CboThem.validate() == false) {
+            er = true;
+        }
+        if (er == true)
+            return;
+
+        App.ThemDesktop_User.body.mask("در حال ذخیره سازی");
+        Ext.net.DirectMethod.request({
+            url: '/ThemDesktop_User/Save',
+            params: {
+                fldType: CboType.getValue(),
+                fldThem: CboThem.getValue(),
+                __RequestVerificationToken: App.ThemDesktop_User.queryById('antiForgeryToken').getValue()
+            },
+            success: function (data) {
+                if (data.Er == 1) {
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK
+                    });
+                    App.ThemDesktop_User.body.mask().hide();
+                }
+                else
+                    location.reload();
+
+            }
+        });
+    }
+
+    var addKeyMapThemDesktop_User = function (cmp) {
+        this.keyMap = new Ext.util.KeyMap({
+            target: cmp.getEl(),
+            binding: [{
+                key: [13, 9], /*Ext.EventObject.ENTER,*/
+                fn: function (key, e) {
+                    if (e.getKey() == 9) {
+                        e.stopEvent();
+                    }
+                    var nextfld;
+                    if (Ext.Element.getActiveElement().name == "") {
+                        SaveThemDesktop_User();
+                        return;
+                    }
+                    else {
+                        var keyfield = App.ThemDesktop_User.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+                        if (keyfield.itemId == "txtConfirmPass") {
+                            nextfld = App.ThemDesktop_User.queryById("btnSave");
+                            nextfld.focus();
+                            return;
+                        }
+                        else {
+                            nextfld = keyfield.nextSibling().nextSibling();
+                        }
+                        nextfld.focus();
+                        nextfld.selectText();
+                    }
+                }
+            }]
+        });
+    };
+</script>

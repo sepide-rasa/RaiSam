@@ -1,0 +1,89 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+
+
+@(Html.X().Window()
+    .Modal(true)
+    .Width(260)
+    .Title("تعریف شهر جدید")
+    .ID("NewCity")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .ButtonAlign(Ext.Net.Alignment.Center)
+    .Buttons(
+        X.Button()
+            .Text("ذخیره")
+            .Icon(Ext.Net.Icon.Disk)
+            .Listeners(l => l.Click.Handler = "SaveCity();"),
+        X.Button()
+            .Text("خروج")
+            .Icon(Ext.Net.Icon.DoorOut)
+            .ToolTip("کلید میانبر Esc")
+            .OnClientClick("App.NewCity.hide();"))
+    .Items(
+        X.AntiForgeryField()
+            .ItemID("antiForgeryToken")
+            .Hidden(true),
+        X.Panel()
+            .Border(false)
+            .Padding(5)
+            .Layout(LayoutType.VBox)
+            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+            .Items(
+                X.Panel()
+                    .Border(false)
+                    .Layout(Ext.Net.LayoutType.Table)
+                    .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 2 })
+                    .Items(
+                        X.Label("عنوان:"),
+                        X.TextField()
+                            .ItemID("txtTitle")
+                            .MaxLength(50)
+                            .EnforceMaxLength(true)
+                            .AllowBlank(false)
+                            .BlankText("لطفا عنوان را وارد کنید.")
+                            .AutoFocus(true)
+                        )
+                )
+        )
+)
+<script type="text/javascript">
+
+    function SaveCity() {
+        var txtTitle = App.NewCity.queryById('txtTitle');
+        var er = false;
+        if (txtTitle.validate() == false) {
+            er = true;
+        }
+        if (er == true)
+            return;
+        App.NewCity.body.mask("در حال ذخیره سازی");
+        Ext.net.DirectMethod.request({
+            url: '/Human/SaveCity',
+            params: {
+                fldName: txtTitle.getValue(),
+                __RequestVerificationToken: App.NewCity.queryById('antiForgeryToken').getValue()
+            },
+            success: function (data) {
+                if (data.Er == 1) {
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK
+                    });
+                    App.NewCity.body.mask().hide();
+                }
+                else {
+                    App.SearchCity.queryById('GridSearchCity').store.load();
+                    App.NewCity.body.mask().hide();
+                    App.NewCity.hide();
+                }
+            }
+        });
+    }
+</script>

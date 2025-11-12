@@ -1,0 +1,704 @@
+﻿@font-face {
+    font-family: 'Tahoma';
+    src: url('TTahoma.eot') format('embedded-opentype'), url('TTahoma.woff') format('woff'), url('TTahoma.ttf') format('truetype');
+}
+/**{
+    font-family:'IRANSansWeb(FaNum)' !important;
+}*/
+/*
+          
+           
+       
+    */
+.avatar {
+	float: inherit;
+	-moz-border-radius: 50%;
+	-webkit-border-radius: 50%;
+	border-radius: 50%;
+	margin: 0 15px 0 0;
+    border-style: solid;
+    border-width:1px;
+    border-color: #2E4796;
+}
+.miniTaiidat{
+     background-image:url("/Content/icon/BasicInf/mini/miniتاییدات لازم.png");
+    background-size:contain!important;
+}
+.miniRptLoco{
+     background-image:url("/Content/icon/Report/mini/miniگزارش لکوموتیوها.png");
+    background-size:contain!important;
+}
+.shortcut-Schedule{
+background-image:url("/Content/icon/Desktop/زمانبندی پروژه.png");
+    background-size:contain!important;
+}
+.minTicketFormatFile{
+     background-image:url("/Content/icon/Ticketing/Mini/فرمت های مجازmini.png");
+    background-size:contain!important;
+}
+.miniRptKoliBarname{
+     background-image:url("/Content/icon/Report/mini/گزارش کلی بارنامه ها.png");
+    background-size:contain!important;
+}
+.miniRptBarname{
+     background-image:url("/Content/icon/Report/mini/گزارش بارنامه ها.png");
+    background-size:contain!important;
+}
+.shortcut_SmsFromExcel{
+    background-image:url("/Content/icon/Desktop/ارسال پیامک و ایمیل از اکسل1.png");
+    background-size:contain!important;
+}
+.shortcut_CacheSmsEmail{
+background-image:url("/Content/icon/Desktop/ایمیل ها و پیامکهای ارسال شده.png");
+    background-size:contain!important;
+}
+.contract_projectMini{
+       background-image:url("/Content/icon/BasicInf/mini/ثبت پروژه ها و قراردادها.png");
+    background-size:contain!important;
+}
+.HadafSabtNamMini  {
+     background-image:url("/Content/icon/BasicInf/mini/هدف ثبت نام.png");
+    background-size:contain!important;
+}
+.HadafGroupNameMini{
+     background-image:url("/Content/icon/BasicInf/mini/گزوه بندی هدف ثبت نام.png");
+    background-size:contain!important;
+}
+.shortcut_MonitoringFirstRegister{
+     background-image:url("/Content/icon/Desktop/مانیتورینگ ثبت نام اولیه.png");
+    background-size:contain!important;
+}
+.shortcut_MonitoringRegisterComplete{
+     background-image:url("/Content/icon/Desktop/مانیتورینگ تکمیل ثبت نام.png");
+    background-size:contain!important;
+}
+.TypeVagonMini{
+     background-image:url("/Content/icon/BasicInf/mini/انواع واگن.png");
+    background-size:contain!important;
+}
+.Malek_VagonMini{
+     background-image:url("/Content/icon/BasicInf/mini/اطلاعات مالکان.png");
+    background-size:contain!important;
+}
+.VagonMini{
+     background-image:url("/Content/icon/BasicInf/mini/ثبت واگن.png");
+    background-size:contain!important;
+}
+.MiniCostCenter{
+     background-image:url("/Content/icon/BasicInf/mini/تعریف مراکز هزینه.png");
+    background-size:contain!important;
+}
+.MiniNahi{
+     background-image:url("/Content/icon/BasicInf/mini/تعریف ادارات کل موثر.png");
+    background-size:contain!important;
+}
+.miniVersion{
+     background-image:url("/Content/icon/CRM/mini/ورژن.png");
+    background-size:contain!important;
+}
+.VersionM{
+     background-image:url("/Content/icon/CRM/mini/مستندات ورژن.png");
+    background-size:contain!important;
+}
+.NatijeErja{
+     background-image:url("/Content/icon/CRM/mini/نتیجه ارجاع.png");
+    background-size:contain!important;
+}
+.miniErja{
+     background-image:url("/Content/icon/CRM/mini/ارجاع.png");
+    background-size:contain!important;
+}
+.shortcut-crm{
+     background-image:url("/Content/icon/Desktop/crm.png");
+    background-size:contain!important;
+}
+.miniRptEnterCycle{
+     background-image:url("/Content/icon/Report/mini/گزارش پرسنل وارد شده به چرخه.png");
+    background-size:contain!important;
+}
+.MiniJobGroup{
+     background-image:url("/Content/icon/BasicInf/mini/گروه شغلی.png");
+    background-size:contain!important;
+}
+.MiniAnvaMotekhases{
+     background-image:url("/Content/icon/BasicInf/mini/انواع متخصص.png");
+    background-size:contain!important;
+}
+.minVoroodBeMoayenat{
+    background-image:url("/Content/icon/Operation/Mini/ورود به معاینات بدو استخدام.png");
+    background-size:contain!important;
+}
+.minPicMoayenat{
+    background-image:url("/Content/icon/mini/moayene.png");
+    background-size:contain!important;
+}
+.minCharkheEnter{
+    background-image:url("/Content/icon/mini/ورود به چرخه2.png");
+    background-size:contain!important;
+}
+.minVorudBeMoayenat{
+    background-image:url("/Content/icon/Operation/Mini/ورود به معاینات دوره ای.png");
+    background-size:contain!important;
+}
+.rptBasicInf{
+ background-image:url("/Content/icon/Report/mini/گزارشات اطلاعات پایهmini.png");
+    background-size:contain!important;
+}
+.MiniTarefe{
+        background-image:url("/Content/icon/BasicInf/mini/ابلاغ تعرفه.png");
+    background-size:contain!important;
+}
+.MiniAshkhasHoghooghi{
+        background-image:url("/Content/icon/BasicInf/mini/تعریف اشخاص حقوقی.png");
+    background-size:contain!important;
+}
+.miniSpark{
+    background-image:url("/Content/icon/mini/جرقه.png");
+    background-size:contain!important;
+}
+.MiniComboBox{
+       background-image:url("/Content/icon/BasicInf/mini/لیست کشویی.png");
+    background-size:contain!important;
+}
+.MiniMoayenatDynamic{
+       background-image:url("/Content/icon/BasicInf/mini/معاینات داینامیک.png");
+    background-size:contain!important;
+}
+.miniContactGroupTree{
+     background-image:url("/Content/icon/Contact/mini/ساختار درختی گروه تماس.png");
+    background-size:contain!important;
+}
+.miniContactGroup{
+     background-image:url("/Content/icon/Contact/mini/گروه.png");
+    background-size:contain!important;
+}
+.MiniShahr{
+     background-image:url("/Content/icon/BasicInf/mini/ویرایش موقعیت شهرهاmini.png");
+    background-size:contain!important;
+}
+.MiniMarakezTeb{
+     background-image:url("/Content/icon/BasicInf/mini/تعریف مراکز طب کار.png");
+    background-size:contain!important;
+}
+.miniContact{
+     background-image:url("/Content/icon/Contact/mini/تماس.png");
+    background-size:contain!important;
+}
+.miniContactType{
+     background-image:url("/Content/icon/Contact/mini/نوع تماس.png");
+    background-size:contain!important;
+}
+.shortcut-Contact{
+     background-image:url("/Content/icon/Desktop/تماس ها.png");
+    background-size:contain!important;
+}
+.MiniSpecificPermi_UserGroup{
+     background-image:url("/Content/icon/User/Mini/دسترسی کارتابل تخصصی.png");
+    background-size:contain!important;
+}
+.MiniSpecificPermi_UserGroup{
+     background-image:url("/Content/icon/User/Mini/دسترسی کارتابل تخصصی.png");
+    background-size:contain!important;
+}
+.MiniPezeshkan{
+     background-image:url("/Content/icon/BasicInf/mini/ثبت پزشکان.png");
+    background-size:contain!important;
+}
+.Cycles{
+    background-image:url("/Content/icon/mini/چرخه ها.png");
+    background-size:cover!important;
+}
+.MiniKarshenasan{
+    background-image:url("/Content/icon/BasicInf/mini/ثبت کارشناسان بهداشت.png");
+    background-size:contain!important;
+}
+.MiniPorseshname{
+    background-image:url("/Content/icon/BasicInf/mini/پرسشنامه.png");
+    background-size:contain!important;
+}
+.referralRuls{
+    background-image:url("/Content/icon/mini/قوانین ارجاع1.png");
+    background-size:contain!important;
+}
+.MiniMaghadirEllat{
+    background-image:url("/Content/icon/BasicInf/mini/تعریف مقادیر علت ها.png");
+    background-size:contain!important;
+}
+.MiniParametrs{
+    background-image:url("/Content/icon/BasicInf/mini/تعریف پارامترها.png");
+    background-size:contain!important;
+}
+.MiniAnavinGhabelCharkhesh{
+    background-image:url("/Content/icon/BasicInf/mini/عناوین قابل چرخش.png");
+    background-size:contain!important;
+}
+.referralRuls{
+    background-image:url("/Content/icon/mini/rules2.png");
+    background-size:contain!important;
+}
+.MiniEkhtesasMoayene_Tree{
+    background-image:url("/Content/icon/BasicInf/mini/اختصاص معاینه به ساختار درختی.png");
+    background-size:contain!important;
+}
+.shortcut-Events{
+    background-image:url("/Content/icon/Desktop/رویدادها.png");
+    background-size:contain!important;
+}   
+.miniUserLog{
+    background-image:url("/Content/icon/Transaction/mini/مانیتورینگ رد پای کاربران.png");
+    background-size:contain!important;
+}  
+.miniNameTables{
+    background-image:url("/Content/icon/Transaction/mini/جداولmini.png");
+    background-size:contain!important;
+}  
+.miniTransactionGroup{
+    
+    background-image:url("/Content/icon/Transaction/mini/گروه تراکنش هاmini.png");
+    background-size:contain!important;
+}  
+.miniTransactionType{
+    background-image:url("/Content/icon/Transaction/mini/انواع تراکنش هاmini.png");
+    background-size:contain!important;
+}  
+.miniEvent{
+    background-image:url("/Content/icon/Transaction/mini/رویدادهای تراکنش ها.png");
+    background-size:contain!important;
+}  
+.miniEventTables{
+    background-image:url("/Content/icon/Transaction/mini/رویدادهای جداول.png");
+    background-size:contain!important;
+}
+
+
+
+.shortcut-UserLog{
+      background-image:url("/Content/icon/Desktop/مانیتورینگ ردپای کاربر.png");
+    background-size:contain!important;
+}
+.MiniDastoorAmal{
+    background-image:url("/Content/icon/BasicInf/mini/دستورالعمل معاینات.png");
+    background-size:contain!important;
+}
+.MiniMoayeneGrouping{
+    background-image:url("/Content/icon/BasicInf/mini/گروه بندی انواع معاینه.png");
+    background-size:contain!important;
+}
+.minAvamelMoaser{
+    background-image:url("/Content/icon/Operation/Mini/عوامل موثر در چرخهmini.png");
+    background-size:contain!important;
+}
+.MiniWebService{
+    background-image:url("/Content/icon/BasicInf/mini/تعریف وب سرویسmini.png");
+    background-size:contain!important;
+}    
+.MiniShoghleAmaliyati{
+    background-image:url("/Content/icon/BasicInf/mini/مشاغل عملیاتیmini.png");
+    background-size:contain!important;
+}   
+.MiniAnvaPaye{
+    background-image:url("/Content/icon/BasicInf/mini/انواع پایهmini.png");
+    background-size:contain!important;
+}
+.minRules{
+    background-image:url("/Content/icon/Operation/Mini/قوانین چرخهmini.png");
+    background-size:contain!important;
+} 
+.minFactorsAffectingValues{
+    
+    background-image:url("/Content/icon/Operation/Mini/مقادیرعوامل موثر در چرخهmini.png");
+    background-size:contain!important;
+}
+.shortcut-Archive{
+      background-image:url("/Content/icon/Desktop/آرشیوالکترونیک.png");
+    background-size:contain!important;
+}
+.minFormat{
+    background-image:url("/Content/icon/Archive/mini/فرمت های مجازmini.png");
+    background-size:contain!important;
+}
+.minProperties{
+    background-image:url("/Content/icon/Archive/mini/خاصیت هاmini.png");
+    background-size:contain!important;
+}
+.minArchive{
+    background-image:url("/Content/icon/Archive/mini/ساختاردرختی آرشیو الکترونیکmini.png");
+    background-size:contain!important;
+}
+.rptMarakezTeb{
+    background-image:url("/Content/icon/Report/mini/تمامی مراکزطب کارmini.png");
+    background-size:contain!important;
+}
+.MiniAmadegi{
+    background-image:url("/Content/icon/BasicInf/mini/آمادگی قبل از معاینات.png");
+    background-size:contain!important;
+}
+.MiniMoayen_Azmayesh{
+    background-image:url("/Content/icon/BasicInf/mini/انواع معاینه.png");
+    background-size:contain!important;
+}
+.MiniAnvaMarakezTeb{
+    background-image:url("/Content/icon/BasicInf/mini/انواع مراکز طب کار.png");
+    background-size:contain!important;
+}
+.MiniAnvaMoayenat{
+    background-image:url("/Content/icon/BasicInf/mini/انواع معاینات.png");
+    background-size:contain!important;
+}
+.Action{
+    background-image:url("/Content/icon/Operation/Mini/تعریف اقداماتmini.png");
+    background-size:contain!important;
+}
+.OperationMini{
+    background-image:url("/Content/icon/Operation/Mini/تعریف اکشنmini.png");
+    background-size:contain!important;
+}
+.Charkhe{
+    background-image:url("/Content/icon/Operation/Mini/تعریف چرخهmini.png");
+    background-size:contain!important;
+}
+.Cartable{
+    background-image:url("/Content/icon/Operation/Mini/miniتعریف کارتابل.png");
+    background-size:contain!important;
+}
+.HelpMini{
+    background-image:url("/Content/icon/mini/mp41.jpg");
+    background-size:contain!important;
+}
+.Mp4Icon{
+    background-image:url("/Content/icon/mini/mp41.jpg");
+    background-size:contain!important;
+}
+.PdfIcon{
+    background-image:url("/Content/icon/mini/pdf.png");
+    background-size:contain!important;
+}
+.MinAnnouncement{
+background-image:url("/Content/icon/BasicInf/mini/miniثبت اطلاعیه.png");
+     background-size:cover!important;
+}
+.HappenedError{
+background-image:url("/Content/icon/BasicInf/mini/بررسی خطاهاmini.png");
+     background-size:cover!important;
+}
+.shortcut-ReportRaiSam{
+      background-image:url("/Content/icon/Desktop/گزارشات.png");
+    background-size:contain!important;
+}
+.shortcut_MostanadFanii{
+      background-image:url("/Content/icon/Desktop/مستندات فنی.png");
+    background-size:contain!important;
+}
+.shortcut_Help{
+      background-image:url("/Content/icon/Desktop/راهنمای فرم ها.png");
+    background-size:contain!important;
+}
+.shortcut-SpecializedKartabl{
+      background-image:url("/Content/icon/Desktop/کارتابل تخصصی.png");
+    background-size:contain!important;
+}
+.shortcut-GeneralKartabl{
+      background-image:url("/Content/icon/Desktop/کارتابل عمومی.png");
+    background-size:contain!important;
+}
+.shortcut-Operation{
+      background-image:url("/Content/icon/Desktop/عملیات.png");
+    background-size:contain!important;
+}
+.shortcut_HelpKoli{
+      background-image:url("/Content/icon/Desktop/راهنما.png");
+    background-size:contain!important;
+}
+.shortcut_NobatMoayene{
+    background-image:url("/Content/icon/Desktop/ثبت نوبت معاینه.png");
+    background-size:contain!important;
+}
+.shortcut_SendTicket{
+    background-image:url("/Content/icon/Desktop/ارسال تیکت.png");
+    background-size:contain!important;
+}
+.User{
+background-image:url("/Content/icon/User/mini/تعریف کاربرmini.png");
+     background-size:cover!important;
+}
+.minTicketCategory{
+background-image:url("/Content/icon/Ticketing/mini/موضوع گفتگوmini.png");
+    background-size:contain!important;
+}
+.minTicketPermission{
+background-image:url("/Content/icon/Ticketing/mini/دسترسی گفتگوmini.png");
+    background-size:contain!important;
+}
+.minChats{
+background-image:url("/Content/icon/Ticketing/mini/گفتگوهاmini.png");
+    background-size:contain!important;
+}
+.MiniHuman{
+     background-image:url("/Content/icon/BasicInf/mini/تعریف اشخاصmini.png");
+    background-size:contain!important;
+}
+.PersonalInfo{
+     background-image:url("/Content/icon/BasicInf/mini/اطلاعات پرسنل mini.png");
+    background-size:contain!important;
+}
+.MiniUserPer{
+     background-image:url("/Content/icon/User/mini/بازبینی دسترسیmini.png");
+    background-size:contain!important;
+}
+.eyeSee{
+    background-image:url("/Content/icon/see.png");
+    background-size:contain!important;
+}
+.eyeNotSee{
+     background-image:url("/Content/icon/notsee.png");
+     background-size:contain!important;
+}
+.UserGroup{
+     background-image:url("/Content/icon/User/mini/گروه کاربریmini.png");
+     background-size:cover!important;
+}
+.Permission{
+     background-image:url("/Content/icon/User/mini/تعیین دسترسیmini.png");
+     background-size:cover!important;
+}
+
+.shortcut-BasicInf{
+     background-image:url("/Content/icon/Desktop/اطلاعات پایه.png");
+     background-size:cover!important;
+}
+
+.MiniBasicInf{
+     background-image:url("/Content/icon/Desktop/اطلاعات پایه.png");
+     background-size:cover!important;
+}
+.miniBlood{
+    background-image:url("/Content/icon/Blood.png")!important;
+    background-size:contain!important;
+}
+.miniCXR{
+    background-image:url("/Content/icon/CXR.png")!important;
+    background-size:contain!important;
+}
+.miniECG{
+    background-image:url("/Content/icon/ECG.png")!important;
+    background-size:contain!important;
+}
+.miniDrugs{
+    background-image:url("/Content/icon/Drug.PNG")!important;
+    background-size:contain!important;
+}
+.miniVaccine{
+    background-image:url("/Content/icon/Vaccine.png")!important;
+    background-size:contain!important;
+}
+.miniDynamic{
+    background-image:url("/Content/icon/معاینات داینامیک.png")!important;
+    background-size:contain!important;
+}
+.shortcut-User{
+     background-image:url("/Content/icon/Desktop/کاربران.png");
+     background-size:cover!important;
+}
+.shortcut-Ticketing{
+    background-image:url("/Content/icon/Desktop/تیکت.png");
+    background-size:cover!important;
+}
+.shortcut_PageHtml{
+     background-image:url("/Content/icon/Desktop/صفحات html.png");
+    background-size:cover!important;
+}
+@media (max-width: 767px) {
+  ul.timeline:before {
+    left: 40px;
+  }
+  ul.timeline > li > .timeline-panel {
+    width: calc(100% - 90px);
+    float: right;
+  }
+  ul.timeline > li > .timeline-panel:before {
+    border-left-width: 0;
+    border-right-width: 15px;
+    left: -15px;
+    right: auto;
+  }
+  ul.timeline > li > .timeline-panel:after {
+    border-left-width: 0;
+    border-right-width: 14px;
+    left: -14px;
+    right: auto;
+  }
+  ul.timeline > li > .timeline-badge {
+    left: 15px;
+    margin-left: 0;
+    top: 16px;
+  }
+}
+
+.badge:after{
+    content:"5";
+    position: absolute;
+    background:red; /*rgba(0,0,255,1);*/
+    height:1.2rem;
+    top:0.3rem;
+    right:0.5rem;
+    width:1.2rem;
+    text-align: center;
+    line-height: 1.2rem;
+    font-size: 0.7rem;
+    border-radius: 20%;
+    color:white;
+    border:1px solid white;
+}
+
+.badgeA:after{
+    content:"5";
+    position: absolute;
+    background:red; /*rgba(0,0,255,1);*/
+    height:1.2rem;
+    top:0.3rem;
+    right:0.5rem;
+    width:1.2rem;
+    text-align: center;
+    line-height: 1.2rem;
+    font-size: 0.7rem;
+    border-radius: 20%;
+    color:white;
+    border:1px solid white;
+}
+
+
+.menuCheck
+{
+	width: 100%;
+}
+.x-btn-default-large-icon-text-top .x-btn-icon-el
+{
+	height: 52px;
+}
+.x-btn-default-large-icon-text-top .x-btn-inner
+{
+	padding-top: 44px;
+}
+.x-datepicker-month .x-btn-inner {
+    color: #00001e;
+}
+.x-fieldset-header-text {
+    color: #38158b;
+    padding: 1px 0;
+    font-family: tahoma;
+    font-weight: bold;
+}
+.x-datepicker-header {
+    padding: 3px 6px;
+    text-align: center;
+    background-image: -webkit-linear-gradient(top,#dfe8f6,#cad9ee);
+    background-image: -moz-linear-gradient(top,#264888,#1f3a6c);
+    background-image: -o-linear-gradient(top,#264888,#1f3a6c);
+    background-image: linear-gradient(top,#264888,#1f3a6c);
+    color:black;
+}
+.x-menu
+{
+	background:#FFFFFF;
+}
+.x-panel-body {
+background-color:white;/*#dfe8f6;*/
+}
+.x-window-body-default{
+background:#FFFFFF;
+}
+
+.x-rtl.x-message-box-info, .x-rtl.x-message-box-warning, .x-rtl.x-message-box-question, .x-rtl.x-message-box-error
+{
+	right: -15px;
+	top: 10px;
+}
+.x-message-box .x-form-display-field{
+    text-align: right !important;
+}
+
+.x-message-box-error {
+background-image: url("/content/Error.png");
+right: -15px;
+	top: 10px;
+}
+
+.x-message-box-info {
+background-image: url("/content/Info.png");
+right: -15px;
+	top: 10px;
+} 
+.x-message-box-warning {
+background-image: url("/content/warning.png");
+right: -15px;
+	top: 10px;
+}
+.x-message-box-question {
+background-image: url("/content/question.png");
+right: -15px;
+	top: 10px;
+}
+.field-validation-error{
+    color: #ff0000;
+}
+.ux-start-button-icon {
+    background-image: url("/content/small-rasa-red.png") !important;
+    background-color: transparent;
+}
+.msg-wrap {
+    word-wrap: break-word !important;
+}
+.ux-wallpaper {
+    background-color:transparent;
+}
+.rotation90{
+transform: rotate(90deg);
+}
+.mylabel {
+font-weight: bold;
+font-size:11px;
+}
+
+.ux-desktop-shortcut-text {
+ color:black;
+/*width: 100px;*/
+}
+.ux-desktop-shortcut-text {
+ color:black;
+
+}
+.ux-desktop-shortcut-wrap {
+
+}
+.ux-desktop-shortcut-bg{
+    height:auto;
+    width:auto;
+   top:8px;
+  
+   margin:auto;
+}
+.ux-desktop-shortcut-text{
+    height:auto;
+   
+}
+.ux-desktop-shortcut{
+    padding:20px;
+    margin:20px;
+}
+.x-clear-button{
+    right:auto !important;
+    left:2px !important;
+} 
+/*.x-column-header{
+    border-right:1px solid #c5c5c5;
+    color:black;
+    /*font:normal 11px/13px tahoma,arial,verdana,sans-serif;
+    background-image:none;
+    background-color:#c5c5c5;
+    background-image:-webkit-gradient(linear,50% 0,50% 100%,color-stop(0%,#f9f9f9),color-stop(100%,#e3e4e6));
+    background-image:-webkit-linear-gradient(top,#f9f9f9,#e3e4e6);
+    background-image:-moz-linear-gradient(top,#f9f9f9,#e3e4e6);
+    background-image:-o-linear-gradient(top,#f9f9f9,#e3e4e6);
+    background-image:linear-gradient(top,#f9f9f9,#e3e4e6)
+}*/
+

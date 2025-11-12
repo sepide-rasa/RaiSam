@@ -1,0 +1,165 @@
+﻿@using Ext.Net.MVC
+@using RaiSam.Models
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+@(X.Window()
+    .Border(false)
+    .Title("تعیین اکشن پیش فرض")
+    .ID("DefaultOP_ACforCh_Ac")
+    .Resizable(false)
+    .Modal(true)
+    .Height(100)
+    .Width(380)
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Layout(LayoutType.VBox)
+    .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+    .ButtonAlign(Alignment.Center)
+    .Buttons(
+        X.Button()
+            .Text("ذخیره")
+            .Icon(Ext.Net.Icon.Disk)
+            .Listeners(l => l.Click.Handler = "SaveDefaultOP_AC();"),
+        X.Button()
+            .Text("خروج")
+            .Icon(Ext.Net.Icon.DoorOut)
+            .ToolTip("کلید میانبر Esc")
+            .OnClientClick("App.DefaultOP_ACforCh_Ac.hide();"))
+    .Items(
+        X.AntiForgeryField()
+                .ItemID("antiForgeryToken")
+                .Hidden(true),
+        X.Panel()
+            .Border(false)
+            .Layout(LayoutType.Table)
+            .Padding(10)
+            .LayoutConfig(new TableLayoutConfig { Columns = 2 })
+            .Items(
+                X.Label("عنوان اکشن:"),
+                X.ComboBox()
+                    .ItemID("CboOP_Ac")
+                    .TypeAhead(true)
+                    .AllowBlank(false)
+                    .Width(280)
+                    .Editable(true)
+                    .QueryMode(DataLoadMode.Local)
+                    .Listeners(l => l.AfterRender.Handler = "App.DefaultOP_ACforCh_Ac.queryById('CboOP_Ac').validate();")
+                    .BlankText("لطفا اکشن مورد نظر را انتخاب کنید.")
+                    .QueryMode(DataLoadMode.Local)
+                    .TriggerAction(TriggerAction.All)
+                    .DisplayField("fldName")
+                    .ValueField("fldId")
+                    .Store(X.Store()
+                        .Listeners(l => l.Load.Handler = "setCboOP_Ac()")
+                        .Model(X.Model()
+                            .IDProperty("fldId")
+                            .Fields(
+                                new ModelField("fldId", ModelFieldType.String) { Mapping = "ID" },
+                                new ModelField("fldName", ModelFieldType.String) { Mapping = "fldName" }
+                                )
+                            )
+                            .Listeners(l => l.BeforeLoad.Handler = "App.DefaultOP_ACforCh_Ac.queryById('CboOP_Ac').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.DefaultOP_ACforCh_Ac.queryById('antiForgeryToken').getValue());")
+                                .Proxy(Html.X().AjaxProxy()
+                                    .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                            .Url(Url.Action("GetAllOpration_Charkhe"))
+                            .Reader(X.JsonReader().Root("data"))
+                            )
+                        .Parameters(ps => ps.Add(new StoreParameter("CharkheId", ViewBag.CharkheId, ParameterMode.Raw)))
+                    )
+                )
+        )
+)
+
+<script type="text/javascript">
+    function setCboOP_Ac() {
+        if ('@ViewBag.DefaultOP' != "0") {
+            App.DefaultOP_ACforCh_Ac.queryById('CboOP_Ac').setValue('@ViewBag.DefaultOP');
+        }
+    }
+
+    function SaveDefaultOP_AC() {
+        var CboOP_Ac = App.DefaultOP_ACforCh_Ac.queryById('CboOP_Ac');
+        if ('@ViewBag.DefaultOP' == "0") {
+            var er = false;
+            if (CboOP_Ac.validate() == false) {
+                er = true;
+            }
+            if (er == true)
+                return;
+
+            App.DefaultOP_ACforCh_Ac.body.mask("در حال ذخیره سازی");
+            Ext.net.DirectMethod.request({
+                url: '/Charkhe/SaveDefaultOP_AcforCh_Ac',
+                params: {
+                    CharkheEghdam: '@ViewBag.Charkhe_EghdamId',
+                    OPeration_Action: CboOP_Ac.getValue(),
+                    __RequestVerificationToken: App.DefaultOP_ACforCh_Ac.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+                    chat.server.reloadLog();
+                    var ic = Ext.MessageBox.INFO;
+                    if (data.Er == 1)
+                        ic = Ext.MessageBox.ERROR;
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: ic,
+                        buttons: Ext.MessageBox.OK,
+                        fn:function(btn){
+                            if(btn=="ok")
+                                App.DefaultOP_ACforCh_Ac.hide();
+                        }
+                    });
+                    if (data.Er != 1) {
+                        var SelectedRow = App.Charkhe.queryById('GridCharkhe').getSelectionModel().getLastSelected();
+                        App.Charkhe.queryById('GridCharkheDetail').getStore().getProxy().setExtraParam("CharkheId", SelectedRow.data.fldId);
+                        App.Charkhe.queryById('GridCharkheDetail').store.load();
+
+                        App.Charkhe.queryById('GridCharkheDetail_Order').getStore().getProxy().setExtraParam("CharkheId", SelectedRow.data.fldId);
+                        App.Charkhe.queryById('GridCharkheDetail_Order').store.load();
+                    }
+                    App.DefaultOP_ACforCh_Ac.body.mask().hide();
+                }
+            });
+        }
+        else {
+            App.DefaultOP_ACforCh_Ac.body.mask("در حال ذخیره سازی");
+            Ext.net.DirectMethod.request({
+                url: '/Charkhe/SaveDefaultOP_AcforCh_Ac',
+                params: {
+                    CharkheEghdam: '@ViewBag.Charkhe_EghdamId',
+                    OPeration_Action: CboOP_Ac.getValue(),
+                    __RequestVerificationToken: App.DefaultOP_ACforCh_Ac.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+                    chat.server.reloadLog();
+                    var ic = Ext.MessageBox.INFO;
+                    if (data.Er == 1)
+                        ic = Ext.MessageBox.ERROR;
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: ic,
+                        buttons: Ext.MessageBox.OK,
+                        fn: function (btn) {
+                            if (btn == "ok")
+                                App.DefaultOP_ACforCh_Ac.hide();
+                        }
+                    });
+                    if (data.Er != 1) {
+                        var SelectedRow = App.Charkhe.queryById('GridCharkhe').getSelectionModel().getLastSelected();
+                        App.Charkhe.queryById('GridCharkheDetail').getStore().getProxy().setExtraParam("CharkheId", SelectedRow.data.fldId);
+                        App.Charkhe.queryById('GridCharkheDetail').store.load();
+
+                        App.Charkhe.queryById('GridCharkheDetail_Order').getStore().getProxy().setExtraParam("CharkheId", SelectedRow.data.fldId);
+                        App.Charkhe.queryById('GridCharkheDetail_Order').store.load();
+                    }
+                    App.DefaultOP_ACforCh_Ac.body.mask().hide();
+                }
+
+            });
+        }
+    }
+</script>

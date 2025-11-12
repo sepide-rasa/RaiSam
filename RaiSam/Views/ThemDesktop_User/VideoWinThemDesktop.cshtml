@@ -1,0 +1,28 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+
+@using Ext.Net.MVC;
+
+@(
+ Html.X().Window().Listeners(l => l.BeforeClose.Handler = "CloseVideoThemDesktop_User()")
+             .Height(565)
+         .Width(1000)
+                    .ID("VideoThemDesktop_User")
+        .Closable(true)
+            .Title("راهنمای تصویری شخصی سازی")
+        .AutoScroll(true)
+        .Closable(true)
+            .Maximizable(true)
+        .Content(@<video width="100%;" id="AmozeshVideoThemDesktop_User" controls="true" autoplay="true" controls><source src='@Url.Action("DownloadFileVideoThemDesktop", "ThemDesktop_User")' type="video/mp4"></video>)
+
+)
+<script type="text/javascript">
+    function CloseVideoThemDesktop_User() {
+        $('#AmozeshVideoThemDesktop_User')[0].pause();
+    }
+
+</script>

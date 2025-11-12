@@ -1,0 +1,922 @@
+﻿@model RaiSam.Models.ProjectDetails
+@*@model IEnumerable<RaiSam.Models.prs_tblRegistrationFirstContract_HaghighiSelect>*@
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@using Ext.Net.Utilities;
+@{
+    var X = Html.X();
+}
+<script src="~/Scripts/accounting.min.js"></script>
+<script src="~/Scripts/accounting.js"></script>
+@(Html.X().Window()
+    .Modal(true)
+    //.Listeners(li => li.AfterRender.Handler = "LoadProject()")
+    .Width(660)
+    .Title("تعریف  پروژه")
+    .ID("NewProject")
+    .Closable(true)
+    .Resizable(false)
+    .Layout(LayoutType.Fit)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .ButtonAlign(Ext.Net.Alignment.Center)
+    .Buttons(
+        X.Button()
+            .Text("ثبت")
+            .Icon(Ext.Net.Icon.Disk)
+            .Listeners(l =>
+            {
+                l.Click.Handler = "SaveProject(0)";
+            })
+             .Disabled(@ViewBag.IsInClient==0)
+            .ItemID("btnSave"),
+        //X.Button()
+        //    .Text("ثبت قطعی")
+        //    .Icon(Ext.Net.Icon.Disk)
+        //    .Listeners(l =>
+        //    {
+        //        l.Click.Handler = "SaveProject(1)";
+        //    })
+        //    .ItemID("btnCertainSave"),
+        X.Button()
+            .Text("خروج")
+            .Icon(Ext.Net.Icon.BulletCross)
+            .ToolTip("کلید میانبر Esc")
+            .OnClientClick("App.NewProject.destroy()"))
+
+    .Items(
+        X.FormPanel()
+            .Border(false)
+            .MarginSpec("10px 0 10px 0")
+            .Layout(Ext.Net.LayoutType.VBox)
+            .LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Center })
+                .Items(
+                 X.AntiForgeryField().ItemID("AntiForgeryField"),
+                X.FieldSet()
+                    .Title("اطلاعیه مهم")
+                    .AutoScroll(true)
+                    .Height(100)
+                    .ItemID("NewProjectNotification")
+                    .Width(608)
+                    .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 1 })
+                    .Defaults(new { Margin = 5 })
+                    .Items(
+                        X.Label()
+                            .ItemID("lblMatnHtmlNewProject")
+                            .Cls("lblInfo")
+                            .Listeners(l => l.Render.Handler = "loadMatnHtmlNewProject();")
+                        ),
+                X.FieldSet()
+                    .Border(true)
+                    .ItemID("ProjectInfo")
+                    .Title("مشخصات پروژه")
+                    .Center()
+                    .Height(80)
+                    .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 6 })
+                    .Defaults(new { Margin = 2 })
+                    .Items(
+                        X.Hidden()
+                            .ItemID("fldId"),
+                          //    X.Hidden().ItemID("fldTypeVagonId"),
+                       
+                                X.Label("نوع واگن:")
+                                      .ItemID("lblTypeVagon"),
+                X.ComboBox()
+                .ItemID("CboTypeVagon")
+                    .ColSpan(3)
+                .TypeAhead(true)
+                .Editable(true)
+                    .ForceSelection(true)
+                        .AutoFocus(true)
+                .QueryMode(DataLoadMode.Local)
+                .TriggerAction(TriggerAction.All)
+                .DisplayField("fldName")
+                .ValueField("fldId")
+                .EmptyText("...")
+            .Width(200)
+                                .Listeners(l => l.Change.Handler = "CreateTitle()")
+                .AllowBlank(false)
+                .BlankText("لطفا نوع را انتخاب کنید.")
+                .Store(X.Store()
+                        .Listeners(l => l.Load.Handler = "LoadProject();")
+                    .Model(X.Model()
+                        .IDProperty("fldId")
+                        .Fields(
+                            new ModelField("fldId", ModelFieldType.String) { Mapping = "Id" },
+                            new ModelField("fldName", ModelFieldType.String) { Mapping = "Name" }
+                            )
+                    )
+                                    .Listeners(l => l.BeforeLoad.Handler = "App.NewProject.queryById('CboTypeVagon').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.NewProject.queryById('AntiForgeryField').getValue());")
+                    .Proxy(X.AjaxProxy()
+                        .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                .Url(Url.Action("GetTypeVagon"))
+                        .Reader(X.JsonReader().Root("data"))
+                    )
+                )
+                
+                            //X.Label("نوع واگن:"),
+                            // X.TextField().AutoFocus(true)
+                            // .ItemID("CboTypeVagon")
+                            //     .ColSpan(3)
+                            //    .AllowBlank(false)
+                            //        .ReadOnly(true)
+                            //        .FieldStyle("padding-right:4px;")
+                            //            .Icon(Icon.UserAdd)
+                            //        .BlankText("لطفا نوع واگن را وارد کنید.")
+                            //        .Listeners(l =>
+                            //        {
+                            //            l.SpecialKey.Handler = "searchTypeVagon(e.getKey())";
+                            //            l.IconClick.Handler = "searchTypeVagon(45)";
+                            //            l.AfterRender.Handler = "App.NewProject.queryById('CboTypeVagon').icon.dom.classList.add('custom-icon');";
+                            //        })
+                       , X.Label("تعداد واگن:")
+                           .ItemID("lblTedad"),
+                         X.TextField()
+                            .ColSpan(3)
+                            .ItemID("txtTedad")
+                            .MaxLength(100).Width(135)
+                            .EnforceMaxLength(true)
+                            .AllowBlank(false)//.MaskRe("[1-9 ,),(,ا-ی-آ-ئ-ء]")
+                            .BlankText("لطفا تعداد واگن را وارد کنید.")
+                            .Listeners(l => l.Change.Handler = "CreateTitle()")
+                        ,X.Label("عنوان:"),
+                         X.TextField().ReadOnly(true)
+                                .ItemID("txtName")
+                                .MaxLength(200)
+                                .EnforceMaxLength(true)
+                                .AllowBlank(false)
+                                .BlankText("لطفا عنوان قرارداد/پروژه را وارد کنید.")
+                                .MsgTarget(Ext.Net.MessageTarget.Side)
+                                    .Width(400)
+                        .ColSpan(5)
+                                                 
+                       
+                )
+                ,
+                     X.GridPanel()
+                     .Title("نمایندگان")
+                         .Height(150).Width(600)
+                        .AutoScroll(true)
+                             .ItemID("GridNamayande")
+                      //  .BottomBar(X.PagingToolbar())
+                           .TopBar(
+                            Html.X().Toolbar()
+                                .Items(
+                                    X.Button()
+                                        .Text("افزودن شخص جدید")
+                                        .Icon(Ext.Net.Icon.BulletPlus)
+                                        .Listeners(l => l.Click.Handler = "AddRowNamayande();")
+                                            .Disabled(@ViewBag.IsInClient == 0)
+                                        ,
+
+                                        X.Button()
+                                            .Text("حذف")
+                                            .Icon(Ext.Net.Icon.BulletMinus)
+                                            .Listeners(l => l.Click.Handler = "DelRowNamayande();")
+                                                .Disabled(@ViewBag.IsInClient == 0)
+                                )
+                        )
+                        .Store(
+                                X.StoreFor(Model.Namayande)
+                                    //X.StoreForModel()
+                                        .AutoLoad(false)
+                                                     .Listeners(l => l.BeforeLoad.Handler = "App.NewProject.queryById('GridNamayande').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.NewProject.queryById('AntiForgeryField').getValue());")
+                                        .Proxy(Html.X().AjaxProxy()
+                                        .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                        .Url(Url.Action("ReadNamayande"))
+                                        .Reader(Html.X().JsonReader().Root("data"))
+             .ExtraParams(ex => ex.Add(new { ProjectId = @ViewBag.Id }))
+                                )
+                                        .Listeners(l => l.DataChanged.Handler = "App.NewProject.queryById('GridNamayande').selModel.refresh();")
+                                .PageSize(200)
+                                .RemoteFilter(true)
+                                .RemotePaging(true)
+                        )
+                        .View(
+                            Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                        )
+                             .Plugins(
+                            Html.X().CellEditing().ClicksToEdit(1)
+                        )
+                      //  .Plugins(X.FilterHeader().Remote(true))
+                        .ColumnModel(
+                                Html.X().RowNumbererColumn(),
+                                            Html.X().Column().DataIndex(Model.Namayande, m => m.fldId).Text("کد").Hidden(true).Flex(1),
+                                                    Html.X().Column().DataIndex(Model.Namayande, m => m.fldAshkhasId).Text("کدشخص").Hidden(true).Flex(1),
+                                                        Html.X().Column().DataIndex(Model.Namayande, m => m.fldName_Family).Text("نام").Flex(5)
+                            //        ,
+                            //    Html.X().ComponentColumn().ID("ColNamayande").DataIndex(Model.Namayande, m => m.fldName_Family)
+                            //.Flex(5).Editor(true).Sortable(false).Text("نام شخص")
+                            //.Component(
+                            //    Html.X().TextField().Icon(Icon.Add)
+                            //    .ItemID("txtName").FieldStyle("padding-right:20px;").EnableKeyEvents(true).ReadOnly(true)
+                            //    .Listeners(l =>
+                            //    {
+                            //        l.SpecialKey.Fn = "SelectNamayande";
+                            //        l.IconClick.Fn = "GotoSelectNamayande";
+                            //        l.KeyDown.Fn = "GotoNextField";
+                            //        l.Focus.Handler = "this.selectText();";
+                            //    })
+                            //    )
+                                ,
+                                              Html.X().Column().DataIndex(Model.Namayande, m => m.fldCodeMeli).Text("کدملی").Wrap(true).Flex(2),
+                                             // Html.X().Column().DataIndex(Model.Namayande, m => m.fldMobile).Text("موبایل").Wrap(true).Flex(2)
+                                                             Html.X().ComponentColumn().DataIndex(Model.Namayande, m => m.fldMobile)
+                                            .Flex(2).Editor(true).Sortable(false).Text("موبایل")
+                                        .Component(
+                                                    Html.X().TextField().EnableKeyEvents(true).MaskRe("[0-9]")
+                                        )
+                                )
+                                     .SelectionModel(
+                            X.RowSelectionModel()
+                                .Mode(Ext.Net.SelectionMode.Single)
+                        )
+                           ,
+                              X.GridPanel()
+                         .Title("درخواست")
+                             .Height(200).Width(600)
+                            .AutoScroll(true)
+                                  .TopBar(
+                                Html.X().Toolbar()
+                                    .Items(
+                                        X.Button()
+                                            .Text("افزودن")
+                                            .Icon(Ext.Net.Icon.BulletPlus)
+                                                .Listeners(l => l.Click.Handler = "AddRowHoghughi();")
+                                                    .Disabled(@ViewBag.IsInClient == 0)
+                                                ,
+
+                                        X.Button()
+                                            .Text("حذف")
+                                            .Icon(Ext.Net.Icon.BulletMinus)
+                                                .Listeners(l => l.Click.Handler = "DelRowHoghughi();")
+                                                    .Disabled(@ViewBag.IsInClient == 0)
+                                    )
+                            )
+                                 .ItemID("GridHoghughi")
+        //  .BottomBar(X.PagingToolbar())
+                            .Store(
+                                        X.StoreFor(Model.Darkhast)
+        //X.StoreForModel()
+                                            .AutoLoad(false)
+                                                             .Listeners(l => l.BeforeLoad.Handler = "App.NewProject.queryById('GridHoghughi').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.NewProject.queryById('AntiForgeryField').getValue());")
+                                            .Proxy(Html.X().AjaxProxy()
+                                            .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                                .Url(Url.Action("ReadHoghughi"))
+                                            .Reader(Html.X().JsonReader().Root("data"))
+                 .ExtraParams(ex => ex.Add(new { ProjectId = @ViewBag.Id }))
+                                    )
+                                                .Listeners(l => l.DataChanged.Handler = "App.NewProject.queryById('GridHoghughi').selModel.refresh();")
+                                    .PageSize(200)
+                                    .RemoteFilter(true)
+                                    .RemotePaging(true)
+                            )
+                            .View(
+                                Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                            )
+                                 .Plugins(
+                                Html.X().CellEditing().ClicksToEdit(1)
+                            )
+        //  .Plugins(X.FilterHeader().Remote(true))
+                            .ColumnModel(
+                                    Html.X().RowNumbererColumn(),
+                                    Html.X().Column().DataIndex(Model.Darkhast, m => m.fldId).Text("کد").Hidden(true).Flex(1),
+                                    Html.X().Column().DataIndex(Model.Darkhast, m => m.fldAshkhasHoghoghiId).Text("کدشخص").Hidden(true).Flex(1),
+                                    Html.X().Column().DataIndex(Model.Darkhast, m => m.fldNameHoghoghi).Text("نام").Wrap(true).Flex(5)
+                                        ,
+                                //                Html.X().ComponentColumn().ID("ColHoghoghi").DataIndex(Model.Darkhast, m => m.fldNameHoghoghi)
+                                //.Flex(5).Editor(true).Sortable(false).Text("عنوان")
+                                //.Component(
+                                //    Html.X().TextField().Icon(Icon.Add)
+                                //        .ItemID("txtNameHoghoghi").FieldStyle("padding-right:20px;").EnableKeyEvents(true).ReadOnly(true)
+                                //    .Listeners(l =>
+                                //    {
+                                //        l.SpecialKey.Fn = "SelectHoghoghi";
+                                //        l.IconClick.Fn = "GotoSelectHoghoghi";
+                                //        //l.KeyDown.Fn = "GotoNextFieldHoghoghi";
+                                //        l.Focus.Handler = "this.selectText();";
+                                //    })
+                                //    )
+                                //    ,
+                               Html.X().ComponentColumn().DataIndex(Model.Darkhast, m => m.fldTarikhSanad)
+                                    .Flex(2).Editor(true).Sortable(false).Text("تاریخ سند")
+                                    .Component(
+                                                Html.X().TextField().ItemID("txtTarikh").EnableKeyEvents(true).MaskRe("[0-9,/]").MaxLength(10).EnforceMaxLength(true)
+                                    ),
+                                Html.X().ComponentColumn().DataIndex(Model.Darkhast, m => m.fldTedadVagon)
+                                    .Flex(2).Editor(true).Sortable(false).Text("تعداد واگن")
+                                    .Component(
+                                                    Html.X().TextField().ItemID("txtTedadVagon").EnableKeyEvents(true).MaskRe("[0-9]").MaxLength(4).EnforceMaxLength(true)
+                                    ),
+                              Html.X().ComponentColumn().ID("ColRiali").DataIndex(Model.Darkhast, m => m.fldArzeshRiyali)
+                                .Flex(2).Renderer("Sepearate").Editor(true).Sortable(false).Text("ارزش ریالی")
+                                .Component(
+                                            Html.X().TextField().ItemID("txtRiali").EnableKeyEvents(true).MaskRe("[0-9,*,/]").MaxLength(18).EnforceMaxLength(true)
+                                    .Listeners(l =>
+                                    {
+                                        l.Change.Fn = "setSeperate";
+                                       // l.KeyDown.Fn = "GotoNextField_Khazane4";
+                                        l.Focus.Handler = "this.selectText();";
+                                    })
+                                ),
+                                         Html.X().ComponentColumn().ID("ColDolari").DataIndex(Model.Darkhast, m => m.fldArzeshDolari)
+                                    .Flex(2).Renderer("Sepearate").Editor(true).Sortable(false).Text("ارزش دلاری")
+                                .Component(
+                                                Html.X().TextField().ItemID("txtDolari").EnableKeyEvents(true).MaskRe("[0-9,*,/]").MaxLength(18).EnforceMaxLength(true)
+                                    .Listeners(l =>
+                                    {
+                                        l.Change.Fn = "setSeperate";
+                                        // l.KeyDown.Fn = "GotoNextField_Khazane4";
+                                        l.Focus.Handler = "this.selectText();";
+                                    })
+                                )
+                                ,
+                                                        Html.X().ImageCommandColumn().Listeners(l => l.Command.Handler = "WinUploadFiles(record);").Align(Ext.Net.Alignment.Center).Text("فایل")
+                                                    .Flex(1).Commands(Html.X().ImageCommand().Cls("margin:10px;").CommandName("buttonUp").Icon(Ext.Net.Icon.DiskUpload).ToolTip(tt => tt.Text = "آپلودمستندات"))
+                                //      Html.X().ComponentColumn().ItemID("buttonUp").Text("آپلود").Flex(2)
+                                //.Component(Html.X().Button().ItemID("btnbindupload").Text("آپلود مستندات").Listeners(l => l.Click.Fn = "WinUploadFiles"))
+                                                                  
+                                    )
+                                         .SelectionModel(
+                                X.RowSelectionModel()
+                                    .Mode(Ext.Net.SelectionMode.Single)
+                            )        
+            )
+        )
+)
+
+<script type="text/javascript">
+   /* function WinUploadFiles() {
+        var id=App.NewProject.queryById("GridHoghughi").activeRecord.record.data.fldId;
+        if (id == 0) {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "ابتدا اطلاعات اولیه را ذخیره نمایید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK,
+            });
+        }
+        else {
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/Faces/Project/WinUploadFiles',
+                params: {
+                    Id: id
+                },
+                success: function () {
+                    Ext.net.Mask.hide();
+                }
+            });
+        }
+    }*/
+    function WinUploadFiles(record) {
+        if (record.data.fldId == 0) {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "ابتدا اطلاعات اولیه را ذخیره نمایید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK,
+            });
+        }
+        else {
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/Faces/Project/WinUploadFiles',
+                params: {
+                    Id: record.data.fldId
+                },
+                success: function () {
+                    Ext.net.Mask.hide();
+                }
+            });
+        }
+    }
+    function AddRowNamayande() {
+        App.NewProject.body.mask("در حال بارگذاری");
+        Ext.net.DirectMethod.request({
+            url: '/Faces/SearchAshkhas/SearchAll',
+            params: {
+                State: 4
+            },
+            success: function () {
+                App.NewProject.body.mask().hide();
+            }
+        });
+    }
+    function AddRowHoghughi() {
+        App.NewProject.body.mask("در حال بارگذاری");
+        Ext.net.DirectMethod.request({
+            url: '/SearchAshkhasHoghooghi/Index',
+            params: {
+                State: 2
+            },
+            success: function () {
+                App.NewProject.body.mask().hide();
+            }
+        });
+    }
+    var Sepearate = function (value) {
+        return value.toLocaleString();
+    };
+    var setSeperate = function (Fieldd, value, c) {
+        Fieldd.setValue(accounting.formatNumber(value.split("*").join("000").split("/").join("00")));
+        /*if (value != 0) {
+            if (Fieldd.itemId == "txtRiali") {
+                if (Ext.getCmp("ColRiali").getComponent(App.NewProject.queryById("GridHoghughi").store.indexOf(Fieldd.record)) != null) {
+                    Ext.getCmp("ColRiali").getComponent(App.NewProject.queryById("GridHoghughi").store.indexOf(Fieldd.record)).setValue(0);
+                }
+            }
+            else {
+                if (Ext.getCmp("ColDolari").getComponent(App.NewProject.queryById("GridHoghughi").store.indexOf(Fieldd.record)) != null) {
+                    Ext.getCmp("ColDolari").getComponent(App.NewProject.queryById("GridHoghughi").store.indexOf(Fieldd.record)).setValue(0);
+                }
+            }
+        }*/
+    };
+    var SelectNamayande = function (Fieldd, Eventt) {
+        if (Eventt.keyCode == 45) {
+            App.NewProject.body.mask("در حال بارگذاری");
+            Ext.net.DirectMethod.request({
+                url: '/Faces/SearchAshkhas/SearchAll',
+                params: {
+                    rowIdx: App.NewProject.queryById("GridNamayande").store.indexOf(Fieldd.record),/*Fieldd.record.index*/
+                    State:4
+                },
+                success: function () {
+                    App.NewProject.body.mask().hide();
+                }
+            });
+        }
+    };
+    var GotoSelectNamayande = function (Fieldd, Event, html) {
+        App.NewProject.body.mask("در حال بارگذاری");
+        Ext.net.DirectMethod.request({
+            url: '/Faces/SearchAshkhas/SearchAll',
+            params: {
+                rowIdx: App.NewProject.queryById("GridNamayande").store.indexOf(Fieldd.record),/*Fieldd.record.index*/
+                State: 4
+            },
+            success: function () {
+                App.NewProject.body.mask().hide();
+            }
+        });
+    };
+    var SelectHoghoghi = function (Fieldd, Eventt) {
+        if (Eventt.keyCode == 45) {
+            App.NewProject.body.mask("در حال بارگذاری");
+            Ext.net.DirectMethod.request({
+                url: '/SearchAshkhasHoghooghi/Index',
+                params: {
+                    rowIdx: App.NewProject.queryById("GridHoghughi").store.indexOf(Fieldd.record),/*Fieldd.record.index*/
+                    State: 2
+                },
+                success: function () {
+                    App.NewProject.body.mask().hide();
+                }
+            });
+        }
+    };
+    var GotoSelectHoghoghi = function (Fieldd, Event, html) {
+        App.NewProject.body.mask("در حال بارگذاری");
+        Ext.net.DirectMethod.request({
+            url: '/SearchAshkhasHoghooghi/Index',
+            params: {
+                rowIdx: App.NewProject.queryById("GridHoghughi").store.indexOf(Fieldd.record),/*Fieldd.record.index*/
+                State: 2
+            },
+            success: function () {
+                App.NewProject.body.mask().hide();
+            }
+        });
+    };
+    function GotoNextField(Fieldd, Eventt) {
+        if (Eventt.keyCode == 13) {
+            var grid = App.NewProject.queryById("GridNamayande");
+            var LastRec = grid.store.getAt(grid.store.count() - 1);
+            if (grid.store.count() - 1 == grid.store.indexOf(Fieldd.record)/*Fieldd.record.index*/) {/*رکورد جدید insert*/
+                grid.store.insert(grid.store.indexOf(Fieldd.record)/*Fieldd.record.index*/ + 1, {
+                    fldId: 0, fldAshkhasId: 0, fldName_Family: "", fldCodeMeli: "", fldMobile: ""
+                });
+                App.ColNamayande.getComponent(App.NewProject.queryById("GridNamayande").store.indexOf(Fieldd.record) + 1/*Fieldd.record.index*/).focus();
+            }
+            else {
+                App.ColNamayande.getComponent(App.NewProject.queryById("GridNamayande").store.indexOf(Fieldd.record) + 1/*Fieldd.record.index*/).focus();
+            }
+
+        }
+    };
+
+    function searchTypeVagon(Code) {
+        if (Code == 45) {
+            App.NewProject.body.mask("در حال بارگذاری");
+            Ext.net.DirectMethod.request({
+                url: '/Faces/SearchTypeVagon/Index',
+                params: {
+                    State: 1,
+                },
+                success: function () {
+                    App.NewProject.body.mask().hide();
+                }
+            });
+        }
+    }
+    function CreateTitle() {
+        var txtTedad = App.NewProject.queryById('txtTedad').getValue();
+        var CboTypeVagon = App.NewProject.queryById('CboTypeVagon').getDisplayValue();
+        var title="";
+        if (txtTedad != "" && CboTypeVagon != ""){
+            title = txtTedad + " دستگاه واگن " + CboTypeVagon + " متعلق به شرکت " + '@ViewBag.CompanyTitle';
+            if ('@ViewBag.HadafId' == 1)
+                title = txtTedad + " دستگاه لکوموتیو "  + " متعلق به شرکت " + '@ViewBag.CompanyTitle';
+        App.NewProject.queryById('txtName').setValue(title);
+    }
+    }
+     function loadMatnHtmlNewProject() {
+         var lblMatnHtmlNewProject = App.NewProject.queryById("lblMatnHtmlNewProject");
+         Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+         Ext.net.DirectMethod.request({
+             url: '/Faces/Project/MatnHtmlNewProject',
+             params: {
+                 ReqId: '@ViewBag.ReqId'
+             },
+             success: function (data) {
+                 if (data.MatnHtmlNewProject != "") {
+                     lblMatnHtmlNewProject.setText(data.MatnHtmlNewProject, false);
+                 }
+                 else {
+                     App.NewProject.queryById('NewProjectNotification').hide();
+                 }
+                 Ext.net.Mask.hide();
+             }
+         });
+     }
+
+     function LoadProject() {
+       
+        if ('@ViewBag.Id' != '0') {
+            Ext.net.DirectMethod.request({
+                url: '/Faces/Project/Details',
+                params: {
+                    Id: '@ViewBag.Id',
+                    __RequestVerificationToken: App.NewProject.queryById('AntiForgeryField').getValue()
+                },
+                success: function (data) {
+                    App.NewProject.queryById('GridNamayande').store.load();
+                    App.NewProject.queryById('GridHoghughi').store.load();
+
+                    var txtName = App.NewProject.queryById('txtName');
+                    txtName.setValue(data.fldTitle);
+                    
+                    var txtTedad = App.NewProject.queryById('txtTedad');
+                    txtTedad.setValue(data.fldTedad);
+                    var CboTypeVagon = App.NewProject.queryById('CboTypeVagon');
+                    CboTypeVagon.setValue(data.fldTypeVagonId);
+                    if ('@ViewBag.HadafId' == 1)
+                        CboTypeVagon.setReadOnly(true);
+                    /*var fldTypeVagonId = App.NewProject.queryById('fldTypeVagonId');
+                    fldTypeVagonId.setValue(data.fldTypeVagonId);*/
+                    
+                    var Id = App.NewProject.queryById('fldId');
+                    Id.setValue(data.fldId);
+                }
+            });
+        }
+        else  {
+            App.NewProject.queryById('txtName').validate();
+            App.NewProject.queryById('txtTedad').validate();
+            var CboTypeVagon = App.NewProject.queryById('CboTypeVagon');
+            CboTypeVagon.select(CboTypeVagon.store.getAt(0));
+
+            var CboTypeVagon = App.NewProject.queryById('CboTypeVagon');
+            var lblTypeVagon = App.NewProject.queryById('lblTypeVagon');
+            var lblTedad = App.NewProject.queryById('lblTedad');
+            if ('@ViewBag.HadafId' == 1) {
+                CboTypeVagon.setValue("30");
+                CboTypeVagon.setReadOnly(true);
+                lblTypeVagon.setText("نوع");
+                lblTypeVagon.setText("تعداد");
+            }
+
+          /*  var grid = App.NewProject.queryById("GridNamayande");
+                grid.store.insert(0, {
+                    fldId: 0, fldAshkhasId: 0, fldName_Family: "", fldCodeMeli: "", fldMobile: ""
+                });
+                App.ColNamayande.getComponent(0).focus();
+            
+                var grid2 = App.NewProject.queryById("GridHoghughi");
+                grid2.store.insert(0, {
+                    fldId: 0, fldAshkhasHoghoghiId: 0, fldNameHoghoghi: "", fldArzeshRiyali: 0, fldArzeshDolari: 0
+                });
+                App.ColHoghoghi.getComponent(0).focus();*/
+        }
+    }
+
+    function SaveProject(status) {
+        if (App.Project)
+            if (App.Project.queryById('GridProject').store.count() > 0) {
+                Ext.MessageBox.show({
+                    title: "خطا",
+                    msg: "ثبت بیش از یک پروژه در یک درخواست امکان پذیر نمی باشد.",
+                    icon: Ext.MessageBox.ERROR,
+                    buttons: Ext.MessageBox.OK,
+                });
+                return;
+            }
+        var txtName = App.NewProject.queryById('txtName');
+        var CboTypeVagon = App.NewProject.queryById('CboTypeVagon');
+        var Id = App.NewProject.queryById('fldId');
+       /* var fldTypeVagonId = App.NewProject.queryById('fldTypeVagonId');*/
+        var txtTedad = App.NewProject.queryById('txtTedad');
+
+        var er = false;
+
+        var fldId = 0;
+        var fldAshkhasId = 0;
+        var fldMobile = "";
+        var Namayande = new Array();
+        var SelectedRow = App.NewProject.queryById("GridNamayande");
+        for (var i = 0; i < SelectedRow.selModel.store.count() ; i++) {
+            row = SelectedRow.selModel.store.data.items[i];
+            fldId = row.data.fldId;
+            fldAshkhasId = row.data.fldAshkhasId;
+            fldMobile = row.data.fldMobile;
+           
+            Namayande.push({
+                    'fldId': fldId,
+                    'fldAshkhasId': fldAshkhasId,
+                    'fldMobile': fldMobile
+                });
+           
+        }
+        if (Namayande.length == 0) {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "انتخاب حداقل یک نماینده ضروری می باشد.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK,
+            });
+            return;
+        }
+        /*****/
+        var kk = "";
+        var fldId = 0;
+        var fldAshkhasHoghoghiId = 0;
+        var fldTarikhSanad = "";
+        var fldTedadVagon = 0;
+        var fldArzeshRiyali = 0;
+        var fldArzeshDolari = 0;
+        var SumVagon = 0;
+        var Hoghughi = new Array();
+        var SelectedRow = App.NewProject.queryById("GridHoghughi");
+        for (var i = 0; i < SelectedRow.selModel.store.count() ; i++) {
+            row = SelectedRow.selModel.store.data.items[i];
+            fldId = row.data.fldId;
+            fldAshkhasHoghoghiId = row.data.fldAshkhasHoghoghiId;
+            fldTarikhSanad = row.data.fldTarikhSanad;
+            kk = row.data.fldTarikhSanad;
+            fldTedadVagon = row.data.fldTedadVagon;
+            fldArzeshRiyali = row.data.fldArzeshRiyali;
+            fldArzeshDolari = row.data.fldArzeshDolari;
+            SumVagon = SumVagon + parseInt(row.data.fldTedadVagon);
+            if (fldTarikhSanad == "") {
+                Ext.MessageBox.show({
+                    title: "خطا",
+                    msg: "وارد کردن تاریخ سند ضروری است.",
+                    icon: Ext.MessageBox.ERROR,
+                    buttons: Ext.MessageBox.OK,
+                });
+                return;
+            }
+            if (fldTedadVagon == 0) {
+                Ext.MessageBox.show({
+                    title: "خطا",
+                    msg: "وارد کردن تعداد واگن ضروری است.",
+                    icon: Ext.MessageBox.ERROR,
+                    buttons: Ext.MessageBox.OK,
+                });
+                return;
+            }
+            if (fldArzeshRiyali == 0) {
+                Ext.MessageBox.show({
+                    title: "خطا",
+                    msg: "وارد کردن ارزش ریالی ضروری است.",
+                    icon: Ext.MessageBox.ERROR,
+                    buttons: Ext.MessageBox.OK,
+                });
+                return;
+            }
+            if (fldArzeshDolari == 0) {
+                Ext.MessageBox.show({
+                    title: "خطا",
+                    msg: "وارد کردن ارزش دلاری ضروری است.",
+                    icon: Ext.MessageBox.ERROR,
+                    buttons: Ext.MessageBox.OK,
+                });
+                return;
+            }
+            Hoghughi.push({
+                'fldId': fldId,
+                'fldAshkhasHoghoghiId': fldAshkhasHoghoghiId,
+                'fldTarikhSanad': fldTarikhSanad,
+                'fldTedadVagon': fldTedadVagon,
+                'fldArzeshRiyali': fldArzeshRiyali,
+                'fldArzeshDolari': fldArzeshDolari
+            });
+
+        }
+        if (Hoghughi.length == 0) {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "انتخاب حداقل یک شرکت ضروری می باشد.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK,
+            });
+            return;
+        }
+        if (SumVagon > parseInt(txtTedad.getValue())) {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "تعداد واگن های درخواست شده با مجموع واگن های مالکان مطابقیت ندارد.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK,
+            });
+            return;
+        }
+
+        
+        if (txtTedad.validate() == false) {
+            er = true;
+        }
+        if (CboTypeVagon.validate() == false) {
+            er = true;
+        }
+        if (txtName.validate() == false) {
+            er = true;
+        }
+
+        if (er == true)
+            return;
+
+        var data1 = {
+            Namayande: JSON.stringify(Namayande),
+            Hoghughi:JSON.stringify(Hoghughi),
+           /* kk:new Date(kk),*/
+            fldId: Id.getValue(),
+            fldTitle: txtName.getValue(),
+            fldTypeVagonId: CboTypeVagon.getValue(),
+            fldTedad: txtTedad.getValue(),
+            __RequestVerificationToken: App.NewProject.queryById('AntiForgeryField').getValue()
+        };
+        App.NewProject.body.mask('در حال ذخیره سازی...');
+        $.ajax({
+            type: "POST",
+            url: '/Faces/Project/Save',
+            /* datatype: "json",*/
+            data: data1,
+            /*contentType: 'application/json',*/
+
+            /*data: JSON.stringify(data1),*/
+
+            success: function (data) {
+
+                if (data.Er == 1) {
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK,
+                    });
+                }
+                else {
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg+"لطفا فایل مستندات را برای هر شرکت آپلود نمایید.",
+                        icon: Ext.MessageBox.INFO,
+                        buttons: Ext.MessageBox.OK,
+                    });
+                }
+                if (App.Project)
+                    App.Project.queryById('GridProject').store.load();
+                if (data.Er != 1) {
+                    
+                    App.NewProject.queryById('fldId').setValue(data.HeaderId);
+                    /*   ClearProject();*/
+                    App.NewProject.queryById('GridNamayande').store.load();
+                    App.NewProject.queryById('GridHoghughi').store.load();
+                }
+                App.NewProject.body.mask().hide();
+            },
+            failure: function (data) {
+                alert(data.data);
+            }
+        });
+
+        
+    }
+
+    function ClearProject() {
+        /*App.NewProject.queryById('fldTypeVagonId').setValue("0");*/
+        App.NewProject.queryById('txtTedad').setValue("");
+        App.NewProject.queryById('CboTypeVagon').setValue("");
+        App.NewProject.queryById('txtName').setValue("");
+        App.NewProject.queryById('fldId').setValue(0);
+    }
+    function DelRowNamayande() {
+        var SelectedHeaderRow = App.NewProject.queryById('GridNamayande').selModel.getLastSelected();
+        if (SelectedHeaderRow != null) {
+            Ext.MessageBox.show({
+                title: "هشدار",
+                msg: "آیا برای حذف مطمئن هستید؟",
+                icon: Ext.MessageBox.WARNING,
+                buttons: Ext.MessageBox.YESNO,
+                fn: function (btn) {
+                    if (btn == 'yes') {
+                        if (SelectedHeaderRow.data.fldId != 0) {
+                            Ext.net.DirectMethod.request({
+                                url: '/Faces/Project/DeleteNamayande',
+                                params: {
+                                    id: SelectedHeaderRow.data.fldId,
+                                    __RequestVerificationToken: App.NewProject.queryById('AntiForgeryField').getValue()
+                                },
+                                success: function (data) {
+
+                                    App.NewProject.queryById('GridNamayande').deleteSelected();
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.INFO,
+                                        buttons: Ext.MessageBox.OK
+                                    });
+
+
+                                }
+                            });
+                        }
+
+                        else {
+                            App.NewProject.queryById('GridNamayande').deleteSelected();
+                        }
+                    }
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+
+    function DelRowHoghughi() {
+        var SelectedHeaderRow = App.NewProject.queryById('GridHoghughi').selModel.getLastSelected();
+        if (SelectedHeaderRow != null) {
+            Ext.MessageBox.show({
+                title: "هشدار",
+                msg: "آیا برای حذف مطمئن هستید؟",
+                icon: Ext.MessageBox.WARNING,
+                buttons: Ext.MessageBox.YESNO,
+                fn: function (btn) {
+                    if (btn == 'yes') {
+                        if (SelectedHeaderRow.data.fldId != 0) {
+                            Ext.net.DirectMethod.request({
+                                url: '/Faces/Project/DeleteHoghughi',
+                                params: {
+                                    id: SelectedHeaderRow.data.fldId,
+                                    __RequestVerificationToken: App.NewProject.queryById('AntiForgeryField').getValue()
+                                },
+                                success: function (data) {
+
+                                    App.NewProject.queryById('GridHoghughi').deleteSelected();
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.INFO,
+                                        buttons: Ext.MessageBox.OK
+                                    });
+
+
+                                }
+                            });
+                        }
+
+                        else {
+                            App.NewProject.queryById('GridHoghughi').deleteSelected();
+                        }
+                    }
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+  
+</script>

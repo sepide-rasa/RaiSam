@@ -1,0 +1,267 @@
+﻿@model IEnumerable<RaiSam.Models.prs_tblHadafGroupNameSelect>
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+
+    var X = Html.X();
+}
+
+@(X.Panel().Border(false).Listeners(li => { li.AfterRender.Handler = "HadafGroupNameSetSize();"; })
+.Title("گروه های هدف از ثبت نام")
+            .ID("HadafGroupName")
+            .Closable(true)
+            .AutoScroll(true)
+            .CloseAction(Ext.Net.CloseAction.Destroy)
+            .Items(
+                 X.AntiForgeryField()
+                .ItemID("antiForgeryToken")
+                .Hidden(true),
+                X.Panel().Border(false)
+                .Border(false)
+                .AutoScroll(true)
+                .Items(
+                    X.GridPanel().AutoScroll(true)
+                        .TopBar(
+                        Html.X().Toolbar()
+                        .Items(
+                            X.Button().Text("جدید").Icon(Ext.Net.Icon.Add)
+                                        .Listeners(li => li.Click.Handler = "NewHadafGroupName();"),
+                            X.Button().Text("ویرایش").Icon(Ext.Net.Icon.Pencil)
+                                        .Listeners(Li => Li.Click.Handler = "EditHadafGroupName();"),
+                            X.Button().Text("حذف").Icon(Ext.Net.Icon.Delete)
+                                .Listeners(de =>
+                                {
+                                    de.Click.Handler = "DeleteHadafGroupName();";
+                                }),
+
+                                X.Button().Text("گروه بندی").Icon(Ext.Net.Icon.Group)
+                                            .Listeners(li => li.Click.Handler = "HadafGrouping();")
+                                , X.SplitButton()
+                                    .Text("راهنما")
+                                    .Icon(Ext.Net.Icon.Help)
+                                    .Menu(X.Menu()
+                                    .Items(
+                                    X.MenuItem()
+                                                .Text("راهنما متنی")
+                                                .Icon(Ext.Net.Icon.TextPaddingTop)
+                                                        .Listeners(l => l.Click.Handler = "HelpHadafGroupName()")
+                                                .ItemID("btnshowHelpDirectorate"),
+                                        X.MenuItem()
+                                                .Text("راهنما تصویری")
+                                                .Icon(Ext.Net.Icon.PlayBlue)
+                                                    .Listeners(l => l.Click.Handler = "showHelp_VideoHadafGroupName()")
+
+                                )
+                            )
+                        )
+                    )
+                    .ItemID("GridHadafGroupName")
+                    .BottomBar(X.PagingToolbar())
+                    .Store(
+                        X.StoreForModel()
+                            .Listeners(l => l.BeforeLoad.Handler = "App.HadafGroupName.queryById('GridHadafGroupName').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.HadafGroupName.queryById('antiForgeryToken').getValue());")
+                        .Proxy(Html.X().AjaxProxy()
+                            .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                            .Url(Url.Action("Read"))
+                            .Reader(Html.X().JsonReader().Root("data"))
+
+                        )
+                        .PageSize(20)
+                        .RemoteFilter(true)
+                        .RemotePaging(true)
+                        .Listeners(l => l.DataChanged.Handler = "App.HadafGroupName.queryById('GridHadafGroupName').selModel.refresh();")
+                    )
+                    .View(
+                        Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                    )
+                    .Plugins(X.FilterHeader().Remote(true))
+                         .Listeners(l =>
+                         {
+                             l.AfterRender.Handler = "var grid = App.HadafGroupName.queryById('GridHadafGroupName');grid.setHeight(App.BasicInfWin.getHeight() - 83); ";
+
+                         })
+                    .ColumnModel(
+                        Html.X().RowNumbererColumn(),
+                            Html.X().Column().DataIndex(Model, m => m.fldTimeStamp).Text("").Hidden(true).Flex(1),
+                        Html.X().Column().DataIndex(Model, m => m.fldId).Text("کد").Hidden(true).Flex(1),
+                                Html.X().Column().DataIndex(Model, m => m.fldName).Text("عنوان").Wrap(true).Flex(7)
+
+                    )
+                    .SelectionModel(
+                        Html.X().RowSelectionModel()
+                            .Mode(Ext.Net.SelectionMode.Single)
+                    )
+            )
+        )
+)
+
+<script type="text/javascript">
+
+
+    function HadafGroupNameSetSize() {
+        App.HadafGroupName.setWidth(App.BasicInfWin.getWidth());
+        var grid = App.HadafGroupName.queryById('GridHadafGroupName');
+        grid.setHeight(App.BasicInfWin.getHeight() - 83);
+        InsertToLog("گروه بندی هدف از ثبت نام", 2, true);
+    }
+    function NewHadafGroupName() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/HadafGroupName/new',
+            params: {
+                id: 0
+            },
+            success: function () {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+    function EditHadafGroupName() {
+        var SelectedRow = App.HadafGroupName.queryById('GridHadafGroupName').selModel.getLastSelected();
+
+        if (SelectedRow != null) {
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/HadafGroupName/new',
+                params: {
+                    id: SelectedRow.data.fldId
+                },
+                success: function () {
+                    Ext.net.Mask.hide();
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+    function DeleteHadafGroupName() {
+        var SelectedHeaderRow = App.HadafGroupName.queryById('GridHadafGroupName').selModel.getLastSelected();
+        if (SelectedHeaderRow != null) {
+            Ext.MessageBox.show({
+                title: "هشدار",
+                msg: "آیا برای حذف مطمئن هستید؟",
+                icon: Ext.MessageBox.WARNING,
+                buttons: Ext.MessageBox.YESNO,
+                fn: function (btn) {
+                    if (btn == 'yes') {
+                        Ext.net.Mask.show({ msg: 'در حال انجام عملیات...' });
+                        Ext.net.DirectMethod.request({
+                            url: '/HadafGroupName/Delete',
+                            params: {
+                                id: SelectedHeaderRow.data.fldId,
+                                TimeStamp: SelectedHeaderRow.data.fldTimeStamp,
+                                __RequestVerificationToken: App.HadafGroupName.queryById('antiForgeryToken').getValue()
+                            },
+                            success: function (data) {
+                                chat.server.reloadLog();
+                                if (data.Er == 1 && data.Change == 1) {/*vaghti TimeStamp==0*/
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.WARNING,
+                                        buttons: Ext.MessageBox.OK,
+                                        fn: function (btn) {
+                                            if (btn == 'ok') {
+                                                App.HadafGroupName.queryById('GridHadafGroupName').store.load();
+                                            }
+                                        }
+                                    });
+                                }
+                                else if (data.Er == 1 && data.Change == 2) {/*vaghti TimeStamp==2*/
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.ERROR,
+                                        buttons: Ext.MessageBox.OK,
+                                        fn: function (btn) {
+                                            if (btn == 'ok') {
+                                                App.HadafGroupName.queryById('GridHadafGroupName').store.load();
+                                            }
+                                        }
+                                    });
+                                }
+                                else if (data.Er == 1) {
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.ERROR,
+                                        buttons: Ext.MessageBox.OK
+                                    });
+                                }
+                                else {
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.INFO,
+                                        buttons: Ext.MessageBox.OK
+                                    });
+                                    App.HadafGroupName.queryById('GridHadafGroupName').store.load();
+                                }
+                                Ext.net.Mask.hide();
+                            }
+                        });
+                    }
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+    function HadafGrouping() {
+        var SelectedRow = App.HadafGroupName.queryById('GridHadafGroupName').selModel.getLastSelected();
+
+        if (SelectedRow != null) {
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/HadafGroupName/HadafGrouping',
+                params: {
+                    id: SelectedRow.data.fldId
+                },
+                success: function () {
+                    Ext.net.Mask.hide();
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+    function HelpHadafGroupName() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/HadafGroupName/Help',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+    function showHelp_VideoHadafGroupName() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/HadafGroupName/VideoWinHadafGroupName',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+
+    }
+</script>

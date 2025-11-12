@@ -1,0 +1,83 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@using Ext.Net.Utilities;
+@{
+    var X = Html.X();
+}
+<style type="text/css">
+    html {
+        height: 100%;
+    }
+
+    body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    #map_canvas {
+        height: 100%;
+    }
+</style>
+
+@(Html.X().Window()
+    .Modal(true)
+        //.Listeners(li => li.AfterRender.Handler = "LoadDirectorate();")
+    .Width(535).Height(400)
+    .Title("تعیین محل")
+    .ID("mapp")
+    .Resizable(false)
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .ButtonAlign(Alignment.Center)
+    .Layout(LayoutType.Fit)
+    .Buttons(
+        X.Button()
+            .Text("ذخیره")
+            .Icon(Ext.Net.Icon.Disk)
+            .Listeners(l =>
+            {
+                l.Click.Handler = "SaveDirectorate();";
+            })
+            .ItemID("btnSave"),
+        X.Button()
+            .Text("خروج")
+            .Icon(Ext.Net.Icon.BulletCross)
+            .ToolTip("کلید میانبر Esc")
+            .OnClientClick("App.mapp.destroy()"))
+    .Items(
+        X.FormPanel()
+            .Border(false)
+            .Layout(Ext.Net.LayoutType.VBox)
+                .Width(500).Height(350)
+            .LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Center })
+            .Items(
+                    X.Container().AutoScroll(true)
+                        .Width(520).Height(350)
+                        .Listeners(l => l.AfterRender.Handler = "initialize()")
+                    .Content(
+                    @<div id="map_canvas" style="width:520px;height:350px;">
+                    </div>
+                )
+
+            )
+        )
+)
+<script type="text/javascript">
+    function initialize() {
+        var myOptions = {
+            center: new google.maps.LatLng(-34.397, 150.644),
+            zoom: 5,
+            mapTypeId: google.maps.MapTypeId.ROADMAP
+        };
+        var map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
+        google.maps.event.addDomListener(window, 'load', initialize);
+        map.setCenter(new google.maps.LatLng(33.5802152, 55.8552992), 5);
+        /*var marker = new google.maps.Marker({
+            position: new google.maps.LatLng(-34.1, 150.1),
+            map: map,
+            title: "Hello World!"
+        });*/
+    }
+</script>

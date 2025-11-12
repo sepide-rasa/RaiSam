@@ -1,0 +1,134 @@
+﻿@model IEnumerable<RaiSam.Models.prs_tblHadafSabtNamSelect>
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+
+    var X = Html.X();
+}
+@(Html.X().Window()
+    .Modal(true)
+    .Width(650)
+    .Height(320)
+    .Title("لیست اهداف")
+    .ID("HadafGrouping")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+                .Listeners(l => { l.AfterRender.Handler = "LoadHadafGrouping()"; })
+                    .ButtonAlign(Ext.Net.Alignment.Center)
+            .Buttons(X.Button().Text("ذخیره").Icon(Ext.Net.Icon.Disk)
+                .Listeners(l =>
+                {
+                    l.Click.Handler = "SaveHadafGrouping();";
+
+                })
+                .ItemID("btnSaveHadafGroupName"),
+                X.Button().Text("خروج").Icon(Ext.Net.Icon.DoorOut).ToolTip("کلید میانبر Esc")
+                          .OnClientClick("App.HadafGrouping.destroy();"))
+    .Layout(LayoutType.Fit)
+    .Items(
+        X.AntiForgeryField()
+            .ItemID("antiForgeryToken")
+            .Hidden(true),
+        X.Panel()
+            .Border(false)
+            .AutoScroll(true)
+            .Layout(LayoutType.Fit)
+            .Items(
+                X.GridPanel()
+                    .AutoScroll(true)
+                    .Border(false)
+                    .ItemID("GridHadafGrouping")
+                           .Store(
+                            X.StoreForModel()
+                                    .RemoteFilter(true)
+                                .PageSize(40)
+                                    )
+                        .Plugins(X.FilterHeader().Remote(false))
+                        .SelectionModel(
+                            Html.X().CheckboxSelectionModel().PruneRemoved(false).ShowHeaderCheckbox(false)
+                                .Mode(SelectionMode.Multi).CheckOnly(true))
+                        .ColumnModel(
+                            Html.X().Column().DataIndex(Model, m => m.fldId).Text("کد").Flex(1).Hidden(true),
+                                    Html.X().Column().DataIndex(Model, m => m.fldTitle).Text("عنوان").Flex(6).Wrap(true)
+                )  
+            )
+        )
+)
+
+<script type="text/javascript">
+    function LoadHadafGrouping() {
+       
+
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/HadafGroupName/LoadAllData',
+            params: {
+                HadafGroupId: '@ViewBag.Id'
+            },
+            success: function (result) {
+                var store = App.HadafGrouping.queryById("GridHadafGrouping").store;
+                store.load({ start: 0, limit: store.count(), page: 1 });
+                store.loadData(result.data);
+
+                if (result.checkId.length != 0) {
+
+                    for (var j = 0; j < result.checkId.length; j++) {
+                        var index = App.HadafGrouping.queryById('GridHadafGrouping').getStore().findExact("fldId", result.checkId[j]);
+                        App.HadafGrouping.queryById('GridHadafGrouping').getSelectionModel().select(index, true);
+                    }
+                }
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+   
+
+
+
+    function SaveHadafGrouping() {
+        var SelRows = App.HadafGrouping.queryById('GridHadafGrouping').getSelectionModel().getSelection();
+        var HadafIds = "";
+        if (SelRows.length != 0) {
+            for (var i = 0; i < SelRows.length; i++) {
+                HadafIds = HadafIds + SelRows[i].data.fldId + ",";
+            }
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/HadafGroupName/SaveGrouping',
+                params: {
+                    HadafIds: HadafIds,
+                    HadafGroupId: '@ViewBag.Id'
+                },
+                success: function (data) {
+                    var ic = Ext.MessageBox.INFO;
+                    if (data.Err == 1)
+                        ic = Ext.MessageBox.ERROR;
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: ic,
+                        buttons: Ext.MessageBox.OK
+                    });
+                    if (data.ExistId != "") {
+                        ExistIdArray = data.ExistId.split('،');
+                        for (var k = 0; k < ExistIdArray.length - 1; k++) {
+                            var ind = App.HadafGrouping.queryById('GridHadafGrouping').getStore().findExact("fldId", parseInt(ExistIdArray[k]));
+                            var record = App.HadafGrouping.queryById('GridHadafGrouping').getStore().getAt(ind);
+                            App.HadafGrouping.queryById('GridHadafGrouping').getSelectionModel().deselect(record);
+                        }
+                    }
+                    Ext.net.Mask.hide();
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفاً اهداف مرتبط با گروه مشخص شده را انتخاب نمایید .",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+</script>

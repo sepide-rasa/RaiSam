@@ -1,0 +1,522 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    @{
+        RaiSam.Models.RaiSamEntities hh = new RaiSam.Models.RaiSamEntities();
+        var ThemeId = 1;
+        var UserInputId = 0;
+        if (Session["User"] != null)
+        {
+            RaiSam.Models.UserInfo u = (RaiSam.Models.UserInfo)Session["User"];
+            UserInputId = u.UserInputId;
+            string IP = System.Web.HttpContext.Current.Request.ServerVariables["REMOTE_HOST"];
+
+            var tt = hh.prs_tblThemDesktop_UserSelect("fldUserId", u.UserSecondId.ToString(), 1).FirstOrDefault();
+            if (tt != null)
+            {
+                ThemeId = tt.fldThem;
+            }
+            else
+            {
+                ThemeId = 1;
+            }
+        }
+    }
+    <meta charset="utf-8" />
+    @*<meta name="viewport" content="width=device-width, initial-scale=1.0">*@
+    <title>سامانه جامع و هوشمند ماده 12</title>
+    <link href="~/Content/StyleSheet1.css" rel="stylesheet" />
+    <link href="~/Content/Site.css" rel="stylesheet" />
+    <script src="~/Scripts/jquery-3.5.1.min.js"></script>
+    <script src="~/Scripts/duplicate.js"></script>
+    <script src="~/Scripts/json2.min.js"></script>
+    <script src="~/Scripts/jquery.signalR-2.2.3.js"></script>
+    <script src="@Url.Content("~/signalr/hubs")"></script>
+
+
+    <script src="~/Scripts/bootstrap.min.js"></script>
+    <script src="@Url.Content("~/scripts/jquery.ribbon.js")" type="text/javascript"></script>
+    <link href="@Url.Content("~/Ribbon/themes/windows7/ribbon.css")" rel="stylesheet" />
+    <script src="~/Scripts/anychart/iran.js"></script>
+    <script src="~/Scripts/anychart/proj4.js"></script>
+    <script src="~/Scripts/anychart/anychart-base.min.js"></script>
+    <script src="~/Scripts/anychart/anychart-annotations.min.js"></script>
+    <script src="~/Scripts/anychart/anychart-bullet.min.js"></script>
+    <script src="~/Scripts/anychart/anychart-bundle.min.js"></script>
+    <script src="~/Scripts/anychart/anychart-cartesian.min.js"></script>
+    <script src="~/Scripts/anychart/anychart-core.min.js"></script>
+    <script src="~/Scripts/anychart/anychart-circular-gauge.min.js"></script>
+    <script src="~/Scripts/anychart/anychart-data-adapter.min.js"></script>
+    <script src="~/Scripts/anychart/anychart-default-theme.min.js"></script>
+    <script src="~/Scripts/anychart/anychart-cartesian-3d.min.js"></script>
+    <script src="~/Scripts/anychart/anychart-editor.min.js"></script>
+    <script src="~/Scripts/anychart/anychart-exports.min.js"></script>
+    <script src="~/Scripts/anychart/anychart-gantt.min.js"></script>
+    <script src="~/Scripts/anychart/anychart-heatmap.min.js"></script>
+    <script src="~/Scripts/anychart/anychart-linear-gauge.min.js"></script>
+    <script src="~/Scripts/anychart/anychart-map.min.js"></script>
+    <script src="~/Scripts/anychart/anychart-mekko.min.js"></script>
+    <script src="~/Scripts/anychart/anychart-pareto.min.js"></script>
+    <script src="~/Scripts/anychart/anychart-pert.min.js"></script>
+    <script src="~/Scripts/anychart/anychart-pie.min.js"></script>
+    <script src="~/Scripts/anychart/anychart-polar.min.js"></script>
+    <script src="~/Scripts/anychart/anychart-pyramid-funnel.min.js"></script>
+    <script src="~/Scripts/anychart/anychart-radar.min.js"></script>
+    <script src="~/Scripts/anychart/anychart-resource.min.js"></script>
+    <script src="~/Scripts/anychart/anychart-scatter.min.js"></script>
+    <script src="~/Scripts/anychart/anychart-sparkline.min.js"></script>
+    <script src="~/Scripts/anychart/anychart-stock.min.js"></script>
+    <script src="~/Scripts/anychart/anychart-table.min.js"></script>
+    <script src="~/Scripts/anychart/anychart-sunburst.min.js"></script>
+    <script src="~/Scripts/anychart/anychart-tag-cloud.min.js"></script>
+    <script src="~/Scripts/anychart/anychart-treemap.min.js"></script>
+    <script src="~/Scripts/anychart/anychart-ui-binding.min.js"></script>
+    <script src="~/Scripts/anychart/anychart-ui.min.js"></script>
+    <script src="~/Scripts/anychart/anychart-venn.min.js"></script>
+    <script src="~/Scripts/anychart/anychart-vml.min.js"></script>
+    <script src="~/Scripts/anychart/anychart-waterfall.min.js"></script>
+    <script src="~/Scripts/anychart/graphics.min.js"></script>
+    @*theme*@
+    <script src="~/Scripts/anychart/themes/coffee.min.js"></script>
+    <script src="~/Scripts/anychart/themes/dark_blue.min.js"></script>
+    <script src="~/Scripts/anychart/themes/dark_earth.min.js"></script>
+    <script src="~/Scripts/anychart/themes/dark_glamour.min.js"></script>
+    <script src="~/Scripts/anychart/themes/dark_provence.min.js"></script>
+    <script src="~/Scripts/anychart/themes/dark_turquoise.min.js"></script>
+    <script src="~/Scripts/anychart/themes/light_blue.min.js"></script>
+    <script src="~/Scripts/anychart/themes/light_earth.min.js"></script>
+    <script src="~/Scripts/anychart/themes/light_glamour.min.js"></script>
+    <script src="~/Scripts/anychart/themes/light_provence.min.js"></script>
+    <script src="~/Scripts/anychart/themes/light_turquoise.min.js"></script>
+    <script src="~/Scripts/anychart/themes/monochrome.min.js"></script>
+    <script src="~/Scripts/anychart/themes/pastel.min.js"></script>
+    <script src="~/Scripts/anychart/themes/morning.min.js"></script>
+    <script src="~/Scripts/anychart/themes/sea.min.js"></script>
+    <script src="~/Scripts/anychart/themes/wines.min.js"></script>
+
+    @*<link href="~/Content/leaflet.css" rel="stylesheet" />
+        <script src="~/Scripts/leaflet.js"></script>
+        <script src="~/Scripts/leaflet.geometryutil.js"></script>*@
+
+    @*<link href="https://static.neshan.org/sdk/leaflet/1.4.0/leaflet.css" rel="stylesheet" type="text/css">
+    <script src="https://static.neshan.org/sdk/leaflet/1.4.0/leaflet.js" type="text/javascript"></script>
+    <script src="https://npmcdn.com/leaflet-geometryutil"></script>*@
+
+    <style type="text/css">
+        input[type=text]:focus {
+            background: Yellow repeat-x 0 0;
+        }
+
+        textarea:focus {
+            background: Yellow repeat-x 0 0;
+        }
+
+        td {
+            text-align: left;
+        }
+
+        .Wrap-label {
+            word-wrap: break-word;
+        }
+
+        .row-imagecommand {
+            display: inline-block;
+            float: none !important;
+        }
+    </style>
+
+
+    <script type="text/javascript">
+
+    var chat = $.connection.S_hub;
+    /*var Chhub = $.connection.Ch_hub;*/
+    var OpenedChat = false;
+    var OpenedChatUser = false;
+    var OpenedLogForm = false;
+    /*var connectionIdProg = "";*/
+
+    /*$(function () {
+        var progress = $.connection.progressHub;
+
+        progress.client.AddProgress = function (message, percentage) {
+
+            ProgressBarModal("show", message + " " + percentage);
+            $('#ProgressMessage').width(percentage);
+            if (percentage == "100%") {
+                ProgressBarModal("hide");
+            }
+        };
+
+        $.connection.hub.start().done(function () {
+            /*var connectionId = $.connection.hub.id;*/
+         /*   connectionIdProg = $.connection.hub.id;
+        });
+
+    });*/
+    function InsertToLog(TransactiontTypeName, TransactionGroupId, Status) {
+        Ext.net.DirectMethod.request({
+            url: '/Home/InsertToLog',
+            params: {
+                TransactiontTypeName: TransactiontTypeName,
+                TransactionGroupId: TransactionGroupId,
+                Status: Status
+            },
+            success: function () {
+                chat.server.reloadLog();
+            }
+        });
+    }
+    function InsertToLogReport(TransactiontTypeName, TransactionGroupId, Status) {
+        Ext.net.DirectMethod.request({
+            url: '/Home/InsertToLogReport',
+            params: {
+                TransactiontTypeName: TransactiontTypeName,
+                TransactionGroupId: TransactionGroupId,
+                Status: Status
+            },
+            success: function () {
+                chat.server.reloadLog();
+            }
+        });
+    }
+    $(document).ready(function () {
+       /* chat.client.broadcastInsertLog = function (TransactiontTypeName, TransactionGroupId, Status) {
+
+            Ext.net.DirectMethod.request({
+                url: '/Home/InsertToLog',
+                params: {
+                    TransactiontTypeName: TransactiontTypeName,
+                    TransactionGroupId: TransactionGroupId,
+                    Status: Status
+                },
+                success: function () {
+                    if (OpenedLogForm) {
+                        LoadGridLog();
+                    }
+                }
+            });
+        };*/
+        chat.client.UpdateSmsPanelInfo = function (Sharj,Er, inputId) {
+                UpdateSmsPanelInfoo(Sharj, Er);
+            
+        };
+
+        chat.client.broadcastReloadLog = function () {
+            if (OpenedLogForm) {
+                LoadGridLog();
+            }
+        };
+        chat.client.broadcastAddProgress = function (Title, Darsad, Id, st, inputId) {
+           
+            if (App.Progress) {
+                if(parseInt(@UserInputId) == inputId){
+                    if (st == 1)
+                        App.Progress.queryById('GridProgress').store.insert(0, {
+                            id: Id, Title: Title, darsad: Darsad
+                        });
+                    else
+                        LoadGridProgress(Title, Darsad, Id);
+                }
+            }
+        };
+        chat.client.broadcastMessage = function (message) {
+            /*var c = App.Contain1;
+             c.update({ html: message });
+             App.pnlScroll.body.scroll('b', 1000000);*/
+            if (App.TicketKartabl)
+                ReloadGridTicket();
+            if (OpenedChat) {
+                Ext.net.DirectMethod.request({
+                    url: '/TicketKartabl/UpdateSeenAdmin',
+                    params: {
+                        Id: SetadUserId,
+                        CategoryId: categoryId,
+                        __RequestVerificationToken: App.NewTicketKartabl.queryById('antiForgeryToken').getValue()
+                    },
+                    success: function () {
+                        LoadChatAdmin();
+                    }
+                });
+            }
+            else {
+                Ext.net.DirectMethod.request({
+                    url: '/TicketKartabl/GetCountPM',
+                    params: {
+                    },
+                    success: function (data) {
+                        var ElUserTicket1 = document.getElementsByClassName("shortcut_SendTicket");
+                        var ElAdminTicket1 = document.getElementsByClassName("shortcut-Ticketing");
+                        if (data.CountUser == 0) {
+                            if (ElUserTicket1[0]) {
+                                ElUserTicket1[0].classList.remove("badge");
+                            }
+                        }
+                        else {
+                            var countt = "'" + data.CountUser + "'";
+                            Ext.util.CSS.updateRule('.badge::after', 'content', countt);
+                            if (ElUserTicket1[0]) {
+                                ElUserTicket1[0].classList.add("badge");
+                            }
+                        }
+                        if (data.CountAdmin == 0) {
+                            if (ElAdminTicket1[0]) {
+                                ElAdminTicket1[0].classList.remove("badgeA");
+                            }
+                        }
+                        else {
+                            var countt1 = "'" + data.CountAdmin + "'";
+                            Ext.util.CSS.updateRule('.badgeA::after', 'content', countt1);
+                            if (ElAdminTicket1[0]) {
+                                ElAdminTicket1[0].classList.add("badgeA");
+                            }
+                        }
+                    }
+                });
+            }
+
+            if (OpenedChatUser) {
+                Ext.net.DirectMethod.request({
+                    url: '/UserTicket/UpdateSeenUser',
+                    params: {
+                        Id: SetadUserId,
+                        CategoryId: category,
+                        __RequestVerificationToken: App.NewUserTicket.queryById('antiForgeryToken').getValue()
+                    },
+                    success: function () {
+                        LoadChatUser();
+                    }
+                });
+            }
+            else {
+                Ext.net.DirectMethod.request({
+                    url: '/TicketKartabl/GetCountPM',
+                    params: {
+                    },
+                    success: function (data) {
+                        var ElUserTicket1 = document.getElementsByClassName("shortcut_SendTicket");
+                        var ElAdminTicket1 = document.getElementsByClassName("shortcut-Ticketing");
+                        if (data.CountUser == 0) {
+                            if (ElUserTicket1[0]) {
+                                ElUserTicket1[0].classList.remove("badge");
+                            }
+                        }
+                        else {
+                            var countt = "'" + data.CountUser + "'";
+                            Ext.util.CSS.updateRule('.badge::after', 'content', countt);
+                            if (ElUserTicket1[0]) {
+                                ElUserTicket1[0].classList.add("badge");
+                            }
+                        }
+
+                        if (data.CountAdmin == 0) {
+                            if (ElAdminTicket1[0]) {
+                                ElAdminTicket1[0].classList.remove("badgeA");
+                            }
+                        }
+                        else {
+                            var countt1 = "'" + data.CountAdmin + "'";
+                            Ext.util.CSS.updateRule('.badgeA::after', 'content', countt1);
+                            if (ElAdminTicket1[0]) {
+                                ElAdminTicket1[0].classList.add("badgeA");
+                            }
+                        }
+                    }
+                });
+            }
+        };
+        $.connection.hub.start();
+        /* chat.client.addMessage = function (message, groupName, userid, FriendId) {
+             alert(2);
+         }*/
+    });
+    </script>
+    
+    @using Ext.Net.MVC;
+    @Html.X().ResourceManager().RTL(true).Locale("fa-ir").Theme((Ext.Net.Theme)ThemeId).AjaxTimeout(7200000).ShowWarningOnAjaxFailure(true)
+
+    @*@Styles.Render("~/Content/css")
+        @Scripts.Render("~/bundles/modernizr")*@
+</head>
+<body dir="rtl">
+    @(Html.X().KeyNav()
+        .ID("NewNav")
+        .Target("={Ext.getBody()}")
+        .Enter(a => a.Handler = "EnterNext();")
+    )
+
+    <script>
+    var HandleError = function (opt, errorMsg) {
+        window.location.href = "/Home/Error?Code=" + opt.status;
+    };
+
+    document.addEventListener("visibilitychange", function () {
+        if (document.hidden) {
+
+        } else {
+            if (App.Properties != undefined) {
+                App.Properties.queryById('GridProperties').store.load();
+            }
+            if (App.WebService != undefined) {
+                App.WebService.queryById('GridWebService').store.load();
+            }
+            if (App.Rules != undefined) {
+                App.Rules.queryById('GridRulesHeader').store.load();
+            }
+            if (App.Operation != undefined) {
+                App.Operation.queryById('GridOperation').store.load();
+            }
+            if (App.ReferralRules != undefined) {
+                App.ReferralRules.queryById('GridReferralRules').store.load();
+            }
+        }
+    }, false);
+
+    Ext.define("Ext.locale.fa.toolbar.Paging", {
+        override: "Ext.PagingToolbar",
+        beforePageText: "صفحه",
+        afterPageText: "از {0}",
+        firstText: "صفحه اول",
+        prevText: "صفحه قبل",
+        nextText: "صفحه بعد",
+        lastText: "صفحه آخر",
+        refreshText: "بازخوانی",
+        displayMsg: "نمایش {0} - {1} از {2}",
+        emptyMsg: 'داده ای برای نمایش وجود ندارد'
+    });
+
+    Ext.define("Ext.locale.fa.picker.Month", {
+        override: "Ext.picker.Month",
+        okText: "تایید",
+        cancelText: "انصراف"
+    })
+
+    function EnterNext() {
+    }
+
+    function Save() { }
+
+    var isWinOpen = false;
+    function ReplaceArabic() {
+        $("input:text").keyup(function () {
+            var str = $(this).val();
+            str = str.replace('ك', 'ک');
+            str = str.replace('ي', 'ی');
+            $(this).val(str);
+        });
+        $("textarea").keyup(function () {
+            var str = $(this).val();
+            str = str.replace('ك', 'ک');
+            str = str.replace('ي', 'ی');
+            $(this).val(str);
+        });
+    }
+    function changeLagToEn(str) {
+        var tt = str;
+        tt.setValue(tt.getValue().replace('ش', 'a'));
+        tt.setValue(tt.getValue().replace('ذ', 'b'));
+        tt.setValue(tt.getValue().replace('ز', 'c'));
+        tt.setValue(tt.getValue().replace('ی', 'd'));
+        tt.setValue(tt.getValue().replace('ث', 'e'));
+        tt.setValue(tt.getValue().replace('ب', 'f'));
+        tt.setValue(tt.getValue().replace('ل', 'g'));
+        tt.setValue(tt.getValue().replace('ا', 'h'));
+        tt.setValue(tt.getValue().replace('ه', 'i'));
+        tt.setValue(tt.getValue().replace('ت', 'j'));
+        tt.setValue(tt.getValue().replace('ن', 'k'));
+        tt.setValue(tt.getValue().replace('م', 'l'));
+        tt.setValue(tt.getValue().replace('ئ', 'm'));
+        tt.setValue(tt.getValue().replace('د', 'n'));
+        tt.setValue(tt.getValue().replace('خ', 'o'));
+        tt.setValue(tt.getValue().replace('ح', 'p'));
+        tt.setValue(tt.getValue().replace('ض', 'q'));
+        tt.setValue(tt.getValue().replace('ف', 't'));
+        tt.setValue(tt.getValue().replace('ق', 'r'));
+        tt.setValue(tt.getValue().replace('س', 's'));
+        tt.setValue(tt.getValue().replace('ع', 'u'));
+        tt.setValue(tt.getValue().replace('ر', 'v'));
+        tt.setValue(tt.getValue().replace('ص', 'w'));
+        tt.setValue(tt.getValue().replace('ط', 'x'));
+        tt.setValue(tt.getValue().replace('غ', 'y'));
+        tt.setValue(tt.getValue().replace('ظ', 'z'));
+        tt.setValue(tt.getValue().replace('ک', ';'));
+        tt.setValue(tt.getValue().replace('ج', '['));
+        tt.setValue(tt.getValue().replace('چ', ']'));
+        tt.setValue(tt.getValue().replace('ژ', 'C'));
+        tt.setValue(tt.getValue().replace('و', ','));
+        tt.setValue(tt.getValue().replace('پ', '\\'));
+        return tt;
+    }
+    function FaLangAlert(str) {
+        var IsFa = false;
+        var FaId = 0;
+        for (var i = 0; i < str.length ; i++) {
+            var c = str.codePointAt(i);
+            if (c >= 0x0600 && c <= 0x06FF || c == 0xFB8A || c == 0x067E || c == 0x0686 || c == 0x06AF) {
+                IsFa = true;
+                FaId = i;
+            }
+        }
+        if (IsFa) {
+            alert("زبان سیستم را به En تغییر دهید.");
+            return str.replace(str[FaId], "");
+        }
+        else
+            return str;
+    }
+    function changeLagToFa(str) {
+        var tt = str;
+        tt.setValue(tt.getValue().replace('a', 'ش').replace('A', 'ش'));
+        tt.setValue(tt.getValue().replace('b', 'ذ').replace('B', 'ذ'));
+        tt.setValue(tt.getValue().replace('c', 'ز').replace('C', 'ز'));
+        tt.setValue(tt.getValue().replace('d', 'ی').replace('D', 'ی'));
+        tt.setValue(tt.getValue().replace('e', 'ث').replace('E', 'ث'));
+        tt.setValue(tt.getValue().replace('f', 'ب').replace('F', 'ب'));
+        tt.setValue(tt.getValue().replace('g', 'ل').replace('G', 'ل'));
+        tt.setValue(tt.getValue().replace('h', 'ا'));
+        tt.setValue(tt.getValue().replace('H', 'آ'));
+        tt.setValue(tt.getValue().replace('i', 'ه').replace('I', 'ه'));
+        tt.setValue(tt.getValue().replace('j', 'ت').replace('J', 'ت'));
+        tt.setValue(tt.getValue().replace('k', 'ن').replace('K', 'ن'));
+        tt.setValue(tt.getValue().replace('l', 'م').replace('L', 'م'));
+        tt.setValue(tt.getValue().replace('m', 'ئ').replace('M', 'ئ'));
+        tt.setValue(tt.getValue().replace('n', 'د').replace('N', 'د'));
+        tt.setValue(tt.getValue().replace('o', 'خ').replace('O', 'خ'));
+        tt.setValue(tt.getValue().replace('p', 'ح').replace('P', 'ح'));
+        tt.setValue(tt.getValue().replace('q', 'ض').replace('Q', 'ض'));
+        tt.setValue(tt.getValue().replace('t', 'ف').replace('T', 'ف'));
+        tt.setValue(tt.getValue().replace('r', 'ق').replace('R', 'ق'));
+        tt.setValue(tt.getValue().replace('s', 'س').replace('S', 'س'));
+        tt.setValue(tt.getValue().replace('u', 'ع').replace('U', 'ع'));
+        tt.setValue(tt.getValue().replace('v', 'ر').replace('V', 'ر'));
+        tt.setValue(tt.getValue().replace('w', 'ص').replace('W', 'ص'));
+        tt.setValue(tt.getValue().replace('x', 'ط').replace('X', 'ط'));
+        tt.setValue(tt.getValue().replace('y', 'غ').replace('Y', 'غ'));
+        tt.setValue(tt.getValue().replace('z', 'ظ').replace('Z', 'ظ'));
+        tt.setValue(tt.getValue().replace(';', 'ک'));
+        tt.setValue(tt.getValue().replace("'", 'گ'));
+        tt.setValue(tt.getValue().replace('[', 'ج'));
+        tt.setValue(tt.getValue().replace(']', 'چ'));
+        tt.setValue(tt.getValue().replace(',', 'و'));
+        tt.setValue(tt.getValue().replace('\\', 'پ'));
+        return tt;
+    }
+    </script>
+    <style>
+        .se-pre-con {
+            /*position: fixed;*/
+            left: 0px;
+            top: 0px;
+            width: 100%;
+            height: 100%;
+            z-index: 9999;
+            background: url("/Content/themes/animated train.gif") center no-repeat #fff;
+        }
+    </style>
+
+    @RenderBody()
+
+    @*@Scripts.Render("~/bundles/jquery")*@
+    @*@Scripts.Render("~/bundles/bootstrap")*@
+    @*@RenderSection("scripts", required: false)*@
+</body>
+</html>

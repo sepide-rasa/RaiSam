@@ -1,0 +1,146 @@
+﻿@model IEnumerable<RaiSam.Models.prs_tblRegistrationFirstContractSelect>
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+<script>
+    Ext.net.FilterHeader.behaviour.string[0].match = function (recordValue, matchValue) {
+        return (Ext.net.FilterHeader.behaviour.getStrValue(recordValue) || "").indexOf(matchValue) > -1;
+    };
+
+    Ext.net.FilterHeader.behaviour.string[0].getStrValue = function (value) {
+        return value.toString();
+    };
+
+    Ext.net.FilterHeader.behaviour.string[0].serialize = function (value) {
+        return {
+            type: "string",
+            op: "*",
+            value: value
+        };
+    };
+</script>
+<style>
+    .titlebold {
+        font-weight: bold;
+        font-size: 12px;
+        color: ThreeDDarkShadow;
+    }
+
+    .wrap-lable {
+        word-wrap: break-word;
+    }
+</style>
+@(Html.X().Window()
+    .Modal(true)
+    .ID("TaiidMarhale_InfoWin")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Layout(LayoutType.Fit)
+        .Listeners(l =>
+        {
+            l.AfterRender.Handler = "SetSizeTaiidMarhale_Info()";
+            l.Render.Fn = "addKeyMapTaiidMarhale_Info";
+        })
+        //    .Title("تایید مرحله(نام اقدام: " + @ViewBag.EghdamTitle + " )")
+                    .Title("تایید مرحله")
+                .ButtonAlign(Ext.Net.Alignment.Center)
+    .Buttons(
+                X.Button().Text("خروج").Icon(Ext.Net.Icon.DoorOut).ToolTip("کلید میانبر Esc")
+                                                    .OnClientClick("App.TaiidMarhale_InfoWin.hide();"))
+    .Items(
+        X.AntiForgeryField().ItemID("antiForgeryToken").Hidden(true),
+        X.Panel()
+            .Border(false)
+            .AutoScroll(true)
+            .Layout(LayoutType.VBox)
+            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+            .Items(
+                              X.FieldSet()
+                                    .Border(true)
+                                        .Title("مشخصات درخواست")
+                                                  .ItemID("Single")
+                                    .Center()
+                                    .Layout(LayoutType.HBox)
+                                        .Items(
+                                            X.FieldSet()
+                                                .Border(false)
+                                                .Center()
+                                                .Width(800)
+                                                .Padding(0)
+                                                .Margin(0)
+                                                .Layout(LayoutType.VBox)
+                                                .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Right })
+                                                .Items(
+                                                    X.FieldSet()
+                                                        .Layout(LayoutType.HBox)
+                                                        .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                                                        .Border(false)
+                                                        .Padding(0)
+                                                        .Width(725)
+                                                        .Items(
+                                                            X.Label()
+                                                                .Text("عنوان:")
+                                                                .Cls("titlebold"),
+                                                            X.Label()
+                                                                .Width(410)
+                                                                .ItemID("NameRequest")
+                                                                .Text("")
+                                                                .PaddingSpec("0 0 0 5px")
+                                                                .Height(18)
+                                                                .Cls("wrap-lable")
+                                                            )
+
+                                                )
+                                                )
+                        ,
+                X.FieldSet()
+                .ItemID("FieldSetDesc")
+                    .Border(true)
+                    .Title("توضیحات")
+        //  .Defaults(new { Margin = 2 })
+                        .Layout(LayoutType.Fit)
+                    .Items(
+                            X.Label().Width(330).ItemID("LblDesc")
+                                    .Text(@ViewBag.Desc)
+                                    .Cls("wrap-lable")
+                    )
+
+            )
+        )
+)
+
+<script type="text/javascript">
+    function SetSizeTaiidMarhale_Info() {
+        App.TaiidMarhale_InfoWin.setSize(870, Ext.getBody().getViewSize().height - 200);
+        App.TaiidMarhale_InfoWin.queryById("Single").setWidth(837);
+        App.TaiidMarhale_InfoWin.queryById("FieldSetDesc").setWidth(837);
+        LoadPersonInf();
+    }
+
+    function LoadPersonInf() {
+        App.TaiidMarhale_InfoWin.queryById("NameRequest").setText('@ViewBag.TitleContract');
+    }
+
+
+
+    var addKeyMapTaiidMarhale_Info = function (cmp) {
+        this.keyMap = new Ext.util.KeyMap({
+            target: cmp.getEl(),
+            binding: [{
+                key: [13, 9], /*Ext.EventObject.ENTER,*/
+                fn: function (key, e) {
+                    if (e.getKey() == 9) {
+                        e.stopEvent();
+                    }
+                    var keyfield = App.TaiidMarhale_InfoWin.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+                    var nextfld = keyfield.nextSibling().nextSibling();
+                    nextfld.focus();
+                    nextfld.selectText();
+                }
+            }]
+        });
+    }
+</script>

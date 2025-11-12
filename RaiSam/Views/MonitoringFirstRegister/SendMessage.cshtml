@@ -1,0 +1,170 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+<script>
+    var h;
+    var onInitializeToEn = function (htmlEditor) {
+        h = htmlEditor;
+        htmlEditor.getDoc()[Ext.isGecko ? 'onkeypress' : 'onkeyup'] = function (e) {
+            htmlEditor.setValue(FaLangAlert(htmlEditor.getValue()));
+        };
+    };
+</script>
+
+@(Html.X().Window()
+    .Modal(true)
+    .Width(750)
+    .Title("ارسال گروهی پیامک و ایمیل")
+    .ID("GroupSendSmsEmail2")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Layout(LayoutType.Fit)
+    .ButtonAlign(Alignment.Center)
+    .Buttons(
+        //X.Button()
+        //    .Text("ذخیره")
+        //    .Icon(Ext.Net.Icon.Disk)
+        //    .Listeners(l =>l.Click.Handler = "SaveSendSmsEmail(0);")
+        //    .ItemID("btnSave"),
+        X.Button()
+            .Text("ارسال")
+            .Icon(Ext.Net.Icon.ArrowOut)
+            .Listeners(l => l.Click.Handler = "SaveSendSmsEmail();"),
+        X.Button()
+            .Text("خروج")
+            .Icon(Ext.Net.Icon.DoorOut)
+            .ToolTip("کلید میانبر Esc")
+            .OnClientClick("App.GroupSendSmsEmail2.destroy()"))
+    .Items(
+        X.FormPanel()
+            .MarginSpec("10px 0 0 0")
+            .Border(false)
+            .Layout(Ext.Net.LayoutType.VBox)
+            .LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Center })
+            .Items(
+                X.FieldSet()
+                    .Border(false)
+                    .Center()
+                    .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 1 })
+                    .Defaults(new { Margin = 2 })
+                    .Items(
+        //X.Label("ارسال به:"),
+        //X.ComboBox()
+        //    .ItemID("cboPersonSend")
+        //    .FieldLabel("ارسال به")
+        //    .LabelAlign(LabelAlign.Right)
+        //    .Editable(false)
+        //    .TypeAhead(true)
+        //    .QueryMode(DataLoadMode.Local)
+        //    .TriggerAction(TriggerAction.All)
+        //    .SelectedItems(new { Value = "0" })
+        //    .Items(
+        //        new ListItem("مدیرعامل", "0"),
+        //        new ListItem("نماینده", "1")
+        //        ),
+        //X.Label("نوع ارسال:"),
+                        X.ComboBox()
+                            .ItemID("cboSentType")
+                            .FieldLabel("نوع ارسال")
+                            .LabelAlign(LabelAlign.Right)
+                            .Editable(false)
+                            .TypeAhead(true)
+                            .QueryMode(DataLoadMode.Local)
+                            .TriggerAction(TriggerAction.All)
+                            .SelectedItems(new { Value = "0" })
+                            .Items(
+                                new ListItem("پیامک", "1"),
+                                new ListItem("ایمیل", "0")
+                                ),
+                        X.HtmlEditor()
+                            .ItemID("txtMatn")
+                            .ColSpan(4)
+                            .Width(700)
+                            .Height(150)
+                            .RTL(true)
+                                .EnableSourceEdit(false)
+        //.Listeners(l => l.Initialize.Fn = "onInitializeToEn")
+                        )
+                )
+        )
+)
+
+<script type="text/javascript">
+
+    function SaveSendSmsEmail() {
+        Ext.net.Mask.show({ msg: 'در حال ارسال...' });
+
+        var txtMatn = App.GroupSendSmsEmail2.queryById('txtMatn');
+        var cboSentType = App.GroupSendSmsEmail2.queryById('cboSentType');
+        /*var cboPersonSend = App.GroupSendSmsEmail2.queryById('cboPersonSend');*/
+
+        var er = false;
+        if (Ext.util.Format.trim(txtMatn.getEditorBody().textContent) == "") {
+            alert("لطفا متن مورد نظر خود را وارد کنید.");
+            return;
+        }
+       /* if (cboPersonSend.validate() == false) {
+            er = true;
+        }*/
+        if (cboSentType.validate() == false) {
+            er = true;
+        }
+
+        if (er == true)
+            return;
+
+        /*var PersonType = false;
+        if (cboPersonSend.getValue() == "1")
+            PersonType = true;*/
+
+        var SentType = false;
+        if (cboSentType.getValue() == "1")
+            SentType = true;
+
+        var data1 = {
+            FirstRegisterIdS: '@ViewBag.FirstRegisterIdS',
+            fldMatn: txtMatn.getValue(),
+            /*fldPersonSend: PersonType,*/
+            fldType: SentType
+        };
+
+        $.ajax({
+            type: "POST",
+            url: '/MonitoringFirstRegister/SendShMessage',
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(data1),
+            datatype: "json",
+            success: function (data) {
+                var ic = Ext.MessageBox.INFO;
+                if (data.Er == 1)
+                    ic=Ext.MessageBox.ERROR;
+                Ext.MessageBox.show({
+                    title: data.MsgTitle,
+                    msg: data.Msg,
+                    icon: ic,
+                    buttons: Ext.MessageBox.OK
+                });
+                Ext.net.Mask.hide();
+                App.GroupSendSmsEmail2.destroy();
+            },
+            failure: function (data) {
+                /*alert(data.data);*/
+            }
+        });
+    }
+    function ClearSendSmsEmail() {
+        App.NewSendSmsEmail.queryById('txtMatn').setValue("");
+        App.NewSendSmsEmail.queryById('cboSentType').setValue("");
+        App.NewSendSmsEmail.queryById('fldId').setValue(0);
+    }
+    function EnterNext() {
+        var keyfield = App.NewSendSmsEmail.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+        var nextfld = keyfield.nextSibling();
+        nextfld.focus();
+        nextfld.selectText();
+
+    }
+</script>

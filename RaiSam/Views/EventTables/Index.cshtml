@@ -1,0 +1,230 @@
+﻿@model IEnumerable<RaiSam.Models.prs_tblEventTablesSelect>
+@using Ext.Net.MVC;
+@using Ext.Net;
+
+@{
+
+    var X = Html.X();
+}
+
+
+
+@(X.Panel().Border(false).Listeners(li => { li.AfterRender.Handler = "EventTablesSetSize();"; })
+.Title("رویدادهای جداول")
+                    .ID("EventTables")
+            .Closable(true)
+            .AutoScroll(true)
+            .CloseAction(Ext.Net.CloseAction.Destroy)
+            .Items(
+                 X.AntiForgeryField()
+                .ItemID("antiForgeryToken").Hidden(true),
+                X.Panel().Border(false)
+                .Border(false)
+                .AutoScroll(true)
+                .Items(
+                    X.GridPanel().AutoScroll(true)
+                        .TopBar(
+                        Html.X().Toolbar()
+                        .Items(
+                            X.Button().Text("جدید").Icon(Ext.Net.Icon.Add)
+                                       .Listeners(li => li.Click.Handler = "NewEventTables();"),
+                            X.Button().Text("ویرایش").Icon(Ext.Net.Icon.Pencil)
+                                       .Listeners(Li => Li.Click.Handler = "EditEventTables();"),
+                            X.Button().Text("حذف").Icon(Ext.Net.Icon.Delete)
+                                .Listeners(de =>
+                                {
+                                    de.Click.Handler = "DeleteEventTables();";
+                                })
+        //,
+        //    X.SplitButton()
+        //        .Text("راهنما")
+        //        .Icon(Ext.Net.Icon.Help)
+        //        .Menu(X.Menu()
+        //        .Items(
+        //        X.MenuItem()
+        //                    .Text("راهنما متنی")
+        //                    .Icon(Ext.Net.Icon.TextPaddingTop)
+        //                                .Listeners(l => l.Click.Handler = "HelpEventTables()"),
+        //            X.MenuItem()
+        //                    .Text("راهنما تصویری")
+        //                    .Icon(Ext.Net.Icon.PlayBlue)
+        //                        .Listeners(l => l.Click.Handler = "showHelp_VideoHelpEventTables()")
+
+                                //    )
+        //)
+                        )
+                    )
+                    .ItemID("GridEventTables")
+                    .BottomBar(X.PagingToolbar())
+                    .Store(
+                        X.StoreForModel()
+                            .Listeners(l => l.BeforeLoad.Handler = "App.EventTables.queryById('GridEventTables').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.EventTables.queryById('antiForgeryToken').getValue());")
+                            .Proxy(Html.X().AjaxProxy()
+                            .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                            .Url(Url.Action("Read"))
+                            .Reader(Html.X().JsonReader().Root("data"))
+
+                        )
+                        .PageSize(20)
+                        .RemoteFilter(true)
+                        .RemotePaging(true)
+                                 .Listeners(l => l.DataChanged.Handler = "App.EventTables.queryById('GridEventTables').selModel.refresh();")
+                    )
+                    .View(
+                        Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                    )
+                    .Plugins(X.FilterHeader().Remote(true))
+                         .Listeners(l =>
+                         {
+                             l.AfterRender.Handler = "var grid = App.EventTables.queryById('GridEventTables');grid.setHeight(App.EventsWin.getHeight() - 83); ";
+
+                         })
+                    .ColumnModel(
+                            Html.X().RowNumbererColumn(),
+                                    Html.X().Column().DataIndex(Model, m => m.fldFormulId).Text("fldFormulId").Hidden(true).Flex(1),
+                        Html.X().Column().DataIndex(Model, m => m.fldId).Text("کد").Hidden(true).Flex(1),
+                            Html.X().Column().DataIndex(Model, m => m.fldFaName).Text("نام جدول").Flex(2),
+                            Html.X().Column().DataIndex(Model, m => m.fldNameType).Text("عنوان رویداد").Flex(2),
+                        Html.X().Column().DataIndex(Model, m => m.fldNameFlag).Text("نحوه اجرا").Flex(2)
+         //Html.X().Column().DataIndex(Model, m => m.fldDesc).Text("توضیحات").Flex(10),
+        //Html.X().ComponentColumn().ID("ColFormulaWriterET").Flex(1).Component(Html.X().Button().Icon(Icon.PageWhiteCode).Text("فرمول نویس")
+        //            .Listeners(l => l.Click.Handler = "GotoFormulaWriterET();")).Filterable(false)
+                    )
+                    .SelectionModel(
+                        Html.X().RowSelectionModel()
+                            .Mode(Ext.Net.SelectionMode.Single)
+                    )
+            )
+        )
+)
+
+<script type="text/javascript">
+    function showHelp_VideoHelpEventTables() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/EventTables/VideoWinEventTables',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+
+    }
+    function GotoFormulaWriterET() {
+        var record = App.ColFormulaWriterET.activeRecord.record;
+        openWindowWithPost("/ComputationFormula/Formul", {
+            Id: record.data.fldId,
+            FieldName: "EventTables",
+            FormulId: record.data.fldFormulId,
+            Name: "فرمول " + record.data.fldFaName + "-" + record.data.fldTypeName
+        });
+    }
+
+    /*document.addEventTablesListener("visibilitychange", function () {
+        alert();
+        if (document.hidden) {
+
+        }
+        else {
+            if (App.EventTables != undefined) {
+                App.EventTables.queryById('GridEventTables').store.load();
+            }
+        }
+    }, false);*/
+
+    function EventTablesSetSize() {
+        App.EventTables.setWidth(App.EventsWin.getWidth());
+        var grid = App.EventTables.queryById('GridEventTables');
+        grid.setHeight(App.EventsWin.getHeight() - 83);
+    }
+    function NewEventTables() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/EventTables/new',
+            params: {
+                id: 0
+            },
+            success: function () {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+    function EditEventTables() {
+        var SelectedRow = App.EventTables.queryById('GridEventTables').selModel.getLastSelected();
+
+        if (SelectedRow != null) {
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/EventTables/new',
+                params: {
+                    id: SelectedRow.data.fldId
+                },
+                success: function () {
+                    Ext.net.Mask.hide();
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+
+    function DeleteEventTables() {
+        var SelectedHeaderRow = App.EventTables.queryById('GridEventTables').selModel.getLastSelected();
+        if (SelectedHeaderRow != null) {
+            Ext.MessageBox.show({
+                title: "هشدار",
+                msg: "آیا برای حذف مطمئن هستید؟",
+                icon: Ext.MessageBox.WARNING,
+                buttons: Ext.MessageBox.YESNO,
+                fn: function (btn) {
+                    if (btn == 'yes') {
+                        Ext.net.Mask.show({ msg: 'در حال انجام عملیات...' });
+                        Ext.net.DirectMethod.request({
+                            url: '/EventTables/Delete',
+                            params: {
+                                id: SelectedHeaderRow.data.fldId,
+                                __RequestVerificationToken: App.EventTables.queryById('antiForgeryToken').getValue()
+                            },
+                            success: function (data) {
+                                var ic = Ext.MessageBox.INFO;
+                                if (data.Er == 1) {
+                                    ic = Ext.MessageBox.ERROR;
+                                }
+                                Ext.MessageBox.show({
+                                    title: data.MsgTitle,
+                                    msg: data.Msg,
+                                    icon: ic,
+                                    buttons: Ext.MessageBox.OK
+                                });
+                                App.EventTables.queryById('GridEventTables').store.load();
+                                Ext.net.Mask.hide();
+                            }
+                        });
+                    }
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+    function HelpEventTables() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/EventTables/Help',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+</script>

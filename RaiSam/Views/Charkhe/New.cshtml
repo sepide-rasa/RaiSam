@@ -1,0 +1,641 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+<style>
+    #fieldsetCh legend {
+        text-align: right;
+        font-family: Tahoma !important;
+    }
+
+    #DeleteActionFileimg2:hover {
+        cursor: pointer;
+    }
+</style>
+
+@(Html.X().Window()
+    .Modal(true)
+    .Listeners(li => li.Render.Fn = "addKeyMapCharkhe")
+    .Width(600)
+    .Title("تعریف چرخه")
+    .ID("NewCharkhe")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .ButtonAlign(Ext.Net.Alignment.Center)
+    .Buttons(
+        X.Button()
+            .Text("ذخیره")
+            .Icon(Ext.Net.Icon.Disk)
+            .Listeners(l => l.Click.Handler = "SaveCharkhe();")
+            .ItemID("btnSaveCharkhe"),
+        X.Button()
+            .Text("خروج")
+            .Icon(Ext.Net.Icon.DoorOut)
+            .ToolTip("کلید میانبر Esc")
+            .OnClientClick("App.NewCharkhe.hide();"))
+    .Items(
+        X.AntiForgeryField()
+            .ItemID("antiForgeryToken")
+            .Hidden(true),
+        X.Panel()
+            .Border(false)
+            .Layout(LayoutType.VBox)
+            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+            .Items(
+                X.FieldSet()
+                    .Border(true)
+                    .Title("چرخه")
+                    .Center()
+                    .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 4 })
+                    .Defaults(new { Margin = 2 })
+                    .Items(
+                        X.Hidden().ItemID("fldId"),
+                        X.Hidden().ItemID("fldTimeStamp"),
+                        X.Label("نام چرخه:"),
+                        X.TextField()
+                            .Width(200)
+                            .ItemID("txtTitle")
+                            .MaxLength(200)
+                            .EnforceMaxLength(true)
+                            .AllowBlank(false)
+                            .BlankText("لطفا نام چرخه را وارد کنید.")
+                            .AutoFocus(true),
+                        X.Label("عامل قابل چرخش:"),
+                        X.ComboBox()
+                            .ItemID("CboRotatingAgent")
+                            .Width(200)
+                            .EmptyText("عامل قابل چرخش...")
+                            .AllowBlank(false)
+                            .BlankText("لطفا عامل قابل چرخش را انتخاب نمایید.")
+                            .TypeAhead(true)
+                            .Editable(false)
+                            .QueryMode(DataLoadMode.Local)
+                            .ForceSelection(true)
+                            .TriggerAction(TriggerAction.All)
+                            .DisplayField("fldName")
+                            .ValueField("ID")
+                            .Store(
+                                X.Store()
+                                    .Listeners(l => l.Load.Handler = "setDefaultRotatingAgent()")
+                                    .Model(X.Model()
+                                    .IDProperty("ID")
+                                    .Fields(
+                                        new ModelField("ID", ModelFieldType.String) { Mapping = "ID" },
+                                        new ModelField("fldName", ModelFieldType.String) { Mapping = "fldName" })
+                                    )
+                                    .Listeners(l => l.BeforeLoad.Handler = "App.NewCharkhe.queryById('CboRotatingAgent').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.NewCharkhe.queryById('antiForgeryToken').getValue());")
+                                    .Proxy(Html.X().AjaxProxy()
+                                    .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                        .Url(Url.Action("GetRotatingAgent"))
+                                        .Reader(X.JsonReader().Root("data"))
+                                    )
+                            ),
+                        X.Label("وضعیت:"),
+                        X.ComboBox()
+                            .Width(200)
+                            .ItemID("CboStatus")
+                            .Editable(false)
+                            .TypeAhead(true)
+                            .BlankText("لطفا وضعیت را انتخاب کنید.")
+                            .QueryMode(DataLoadMode.Local)
+                            .TriggerAction(TriggerAction.All)
+                            .AllowBlank(false)
+                            .EmptyText("وضعیت...")
+                            .Items(
+                                new ListItem("فعال", "1"),
+                                new ListItem("غیرفعال", "0")
+                                )
+                            .SelectedItems(new { Value = "1" }),
+                        X.Label("اکشن پیش فرض:"),
+                        X.ComboBox()
+                            .ItemID("CboOpration")
+                            .Width(200)
+                            .EmptyText("اکشن...")
+                            .AllowBlank(true)
+                            .BlankText("لطفا اکشن پیش فرض را انتخاب نمایید.")
+                            .LabelAlign(Ext.Net.LabelAlign.Top)
+                            .TypeAhead(true)
+                            .Editable(false)
+                            .QueryMode(DataLoadMode.Local)
+                            .ForceSelection(true)
+                            .TriggerAction(TriggerAction.All)
+                            .DisplayField("fldName")
+                            .ValueField("ID")
+                            .Store(
+                                X.Store()
+                                    .Listeners(l => l.Load.Handler = "LoadCharkhe()")
+                                    .Model(X.Model()
+                                    .IDProperty("ID")
+                                    .Fields(
+                                        new ModelField("ID", ModelFieldType.String) { Mapping = "ID" },
+                                        new ModelField("fldName", ModelFieldType.String) { Mapping = "fldName" })
+                                    )
+                                    .Listeners(l => l.BeforeLoad.Handler = "App.NewCharkhe.queryById('CboOpration').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.NewCharkhe.queryById('antiForgeryToken').getValue());")
+                                .Proxy(Html.X().AjaxProxy()
+                                    .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                        .Url(Url.Action("GetAllOpration_Charkhe"))
+                                        .Reader(X.JsonReader().Root("data"))
+                                    )
+                                    .Parameters(ps => ps.Add(new StoreParameter("CharkheId", ViewBag.Id, ParameterMode.Raw)))
+                            ),
+                        X.Label("نوع چرخه:"),
+                        X.ComboBox()
+                            .Width(200)
+                            .ItemID("CboType")
+                            .Editable(false)
+                            .TypeAhead(true)
+                            .AllowBlank(false)
+                            .BlankText("لطفا نوع چرخه را انتخاب کنید.")
+                            .QueryMode(DataLoadMode.Local)
+                            .TriggerAction(TriggerAction.All)
+                            .Listeners(l =>
+                            {
+                                l.AfterRender.Handler = "App.NewCharkhe.queryById('CboType').setValue('0')";
+                                l.Select.Handler = "FirstLoadExamination=1;";
+                                l.Change.Handler = "if(App.NewCharkhe.queryById('CboType').getValue()=='0'){App.NewCharkhe.queryById('CboExamination').hide();" +
+                                "App.NewCharkhe.queryById('txtDesc').setWidth(503);App.NewCharkhe.queryById('lblExamination').hide();}else{App.NewCharkhe.queryById('CboExamination').show();" +
+                                "App.NewCharkhe.queryById('txtDesc').setWidth(200);App.NewCharkhe.queryById('lblExamination').show();App.NewCharkhe.queryById('CboExamination').store.load();}";
+                            })
+                            .AllowBlank(false)
+                            .EmptyText("نوع چرخه...")
+                            .Items(
+                                new ListItem("عادی", "0")/*,
+                                new ListItem("معاینات", "1")*/
+                                ),
+                        X.Label("انواع معاینات:").ItemID("lblExamination"),
+                        X.ComboBox()
+                            .ItemID("CboExamination")
+                            .Width(200)
+                            .EmptyText("انواع معاینات...")
+                            .Hidden(true)
+                            .AllowBlank(false)
+                            .BlankText("لطفا نوع معاینه را انتخاب نمایید.")
+                            .TypeAhead(true)
+                            .Editable(false)
+                            .QueryMode(DataLoadMode.Local)
+                            .ForceSelection(true)
+                            .TriggerAction(TriggerAction.All)
+                            .DisplayField("fldName")
+                            .ValueField("ID")
+                            .Store(
+                                X.Store()
+                                    .AutoLoad(false)
+                                    .Listeners(l => l.Load.Handler = "setDefaultExamination()")
+                                    .Model(X.Model()
+                                    .IDProperty("ID")
+                                    .Fields(
+                                        new ModelField("ID", ModelFieldType.Int) { Mapping = "ID" },
+                                        new ModelField("fldName", ModelFieldType.String) { Mapping = "fldName" })
+                                    )
+                                    .Proxy(X.AjaxProxy()
+                                        .Url(Url.Action("GetExamination"))
+                                        .Reader(X.JsonReader().Root("data"))
+                                    )
+                            )
+                                ,
+                            X.Label("نوع ورود:"),
+                            X.ComboBox()
+                                .Width(200)
+                                    .ItemID("CboTypeVorood")
+                                .Editable(false)
+                                .TypeAhead(true)
+                                .BlankText("لطفا نوع ورود را انتخاب کنید.")
+                                .QueryMode(DataLoadMode.Local)
+                                .TriggerAction(TriggerAction.All)
+                                .AllowBlank(false)
+                                .EmptyText("...")
+                                .Items(
+                                    new ListItem("خودکار", "1")
+                                    //,
+                                   // new ListItem("دستی", "0")
+                                    )
+        //.SelectedItems(new { Value = "1" })
+                                    ,
+                            X.Label("توضیحات:"),
+                            X.TextField()
+                                .Width(503)
+                                .ColSpan(3)
+                                .ItemID("txtDesc")
+                                ,
+                        X.FieldSet()
+                            .Border(true)
+                            .AutoScroll(true)
+                            .ColSpan(4)
+                            .Title("انتخاب فایل(حداکثر حجم مجاز: 300KB)")
+                            .ID("fieldsetCh")
+                            .Layout(LayoutType.HBox)
+                            .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Middle })
+                            .Items(
+                                X.FormPanel()
+                                    .Border(false)
+                                    .Layout(LayoutType.HBox)
+                                    .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Middle })
+                                    .Width(470)
+                                    .Items(
+                                        X.FileUploadField()
+                                            .MarginSpec("0 10px 10px 0")
+                                            .Icon(Ext.Net.Icon.DiskUpload)
+                                            .ButtonOnly(true)
+                                            .ButtonText("انتخاب فایل")
+                                            .DirectEvents(l =>
+                                            {
+                                                l.Change.Action = "Upload";
+                                                l.Change.Delay = 1000;
+                                                l.Change.Before = "if(GotoServer==false){return false;}";
+                                                l.Change.Success = "hideprogressCharkhe";
+                                            })
+                                            .Listeners(l => l.Change.Fn = "showFileCharkhe"),
+                                        X.Container()
+                                            .Content(@<div id="fi-button-msgK" class="Wrap-label" style="width:350px;height:auto;text-align:right;"><b>فایل انتخاب شده:</b></div>)
+                                    ),
+                                X.Panel()
+                                    .Border(false)
+                                    .Layout(LayoutType.VBox)
+                                    .LayoutConfig(new VBoxLayoutConfig { Align=VBoxAlign.Center})
+                                    .Items(
+                                        X.Label("پیش نمایش"),
+                                        X.Panel()
+                                            .Frame(true)
+                                            .MarginSpec("3px 0 0 0")
+                                            .Layout(LayoutType.Fit)
+                                            .Items(
+                                                X.Image()
+                                                    .ItemID("Image")
+                                                    .MarginSpec("3px 0 0 0")
+                                                    .Flex(1)
+                                                    .ImageUrl("/Content/icon/Blank.jpg")
+                                                    .Width(40)
+                                                    .Height(40)
+                                                    .Border(true)
+                                                    .Frame(true)
+                                            )
+                                    )
+                            )
+
+                     )
+
+                )
+
+        )
+)
+<script type="text/javascript">
+    var GotoServer = false;
+    var EndUploadCharkhe = false;
+    var Check = setInterval(CheckEnd, 500);
+    var FileId_Charkhe = 0;
+
+
+    var hideprogressCharkhe = function (Responsdtxt, ResponseObj) {
+        if (ResponseObj.IsValid == true) {
+            EndUploadCharkhe = true;
+        }
+        else {
+            var el = Ext.get('fi-button-msgK');
+            GotoServer = false;
+            clearInterval(CheckEnd);
+            EndUploadCharkhe = false;
+            el.update('<b>فایل انتخاب شده:</b> ');
+            App.NewCharkhe.queryById('Image').setImageUrl("/Content/icon/Blank.jpg");
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: ResponseObj.Message,
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    };
+    function CheckEnd() {
+        if (EndUploadCharkhe == true) {
+            Ext.net.DirectMethod.request({
+                url: '/Charkhe/ShowPicUpload',
+                success: function (data) {
+                    value = "data:image/gif;base64," + data.image;
+                    App.NewCharkhe.queryById('Image').setImageUrl(value);
+                }
+            });
+            Ext.MessageBox.hide();
+            GotoServer = false;
+            Ext.Msg.alert('عملیات موفق', 'فایل با موفقیت آپلود شد.');
+            clearInterval(CheckEnd);
+            EndUploadCharkhe = false;
+        }
+    }
+
+    var showFileCharkhe = function (fb, v) {
+        var id = fb.fileInputEl.dom.id;
+        var el = Ext.get('fi-button-msgK');
+        if (v) {
+            showProgressBar();
+            if (v.split('.').pop().toLowerCase() == "jpg" || v.split('.').pop().toLowerCase() == "jpeg" || v.split('.').pop().toLowerCase() == "png"
+                || v.split('.').pop().toLowerCase() == "tif" || v.split('.').pop().toLowerCase() == "tiff" || v.split('.').pop().toLowerCase() == "gif"
+                || v.split('.').pop().toLowerCase() == "bmp") {
+                if (document.getElementById(id).files[0].size <= 307200) {
+                    GotoServer = true;
+                    el.update('<b>فایل انتخاب شده: ' + v + '</b>' + "&nbsp;&nbsp;" + '<img id="DeleteActionFileimg2" title="حذف فایل" src="/Content/cancel.png" style="width:15px;height:15px;margin-bottom: -4px;" onclick="javascript:DeleteFileCharkhe()" />');
+                }
+                else {
+                    clearInterval(CheckEnd);
+                    el.update('<b>فایل انتخاب شده:</b>');
+                    App.NewCharkhe.queryById('Image').setImageUrl("/Content/icon/Blank.jpg");
+                    Ext.MessageBox.show({
+                        title: "خطا",
+                        msg: "حجم فایل انتخاب شده غیرمجاز است.",
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK
+                    });
+                }
+                if (!el.isVisible()) {
+                    el.slideIn('t', {
+                        duration: .2,
+                        easing: 'easeIn',
+                        callback: function () {
+                            el.highlight();
+                        }
+                    });
+                } else {
+                    el.highlight();
+                }
+            }
+            else {
+                clearInterval(CheckEnd);
+                el.update('<b>فایل انتخاب شده:</b>');
+                App.NewCharkhe.queryById('Image').setImageUrl("/Content/icon/Blank.jpg");
+                Ext.MessageBox.show({
+                    title: "خطا",
+                    msg: "فایل انتخاب شده غیرمجاز است.",
+                    icon: Ext.MessageBox.ERROR,
+                    buttons: Ext.MessageBox.OK
+                });
+            }
+        }
+    };
+
+    function showProgressBar() {
+        Ext.MessageBox.show({
+            msg: 'لطفاً منتظر باشید',
+            progressText: 'در حال آپلود فایل...',
+            width: 300,
+            wait: true,
+            waitConfig:
+            {
+                interval: 200,
+                text: 'در حال آپلود فایل...',
+                scope: this
+            }
+        });
+    }
+
+    var DeleteFileKK = false;
+    function DeleteFileCharkhe() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Charkhe/DeleteSessionFile',
+            success: function (data) {
+                DeleteFileKK = true;
+                App.NewCharkhe.queryById('Image').setImageUrl("/Content/icon/Blank.jpg");
+                Ext.get('fi-button-msgK').update('<b>فایل انتخاب شده:</b>');
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+    function setDefaultRotatingAgent() {
+        if ('@ViewBag.Id' == '0') {
+            App.NewCharkhe.queryById("CboRotatingAgent").setValue(App.NewCharkhe.queryById("CboRotatingAgent").store.getAt(0));
+        }
+    }
+    var FirstLoadExamination = 0;
+    function setDefaultExamination() {
+        if ('@ViewBag.Id' == '0' || FirstLoadExamination==1) {
+            App.NewCharkhe.queryById("CboExamination").setValue(App.NewCharkhe.queryById("CboExamination").store.getAt(0));
+        }
+    }
+
+    function LoadCharkhe() {
+        if ('@ViewBag.Id' != '0') {
+            App.NewCharkhe.body.mask("در حال بارگذاری...");
+            Ext.net.DirectMethod.request({
+                url: '/Charkhe/Details',
+                params: {
+                    Id: '@ViewBag.Id',
+                    __RequestVerificationToken: App.NewCharkhe.queryById('antiForgeryToken').getValue(),
+                },
+                success: function (data) {
+
+                    var CboTypeVorood = App.NewCharkhe.queryById('CboTypeVorood');
+                    CboTypeVorood.setValue(data.TypeVorood);
+                    var txtTitle = App.NewCharkhe.queryById('txtTitle');
+                    txtTitle.setValue(data.fldName);
+                    var CboStatus = App.NewCharkhe.queryById('CboStatus');
+                    CboStatus.setValue(data.Status);
+                    var CboOpration = App.NewCharkhe.queryById('CboOpration');
+                    CboOpration.setValue(data.fldDefulteOpertionId);
+                    var CboRotatingAgent = App.NewCharkhe.queryById('CboRotatingAgent');
+                    CboRotatingAgent.setValue(data.fldNoeGhebelCharkheshId);
+                    if (data.fldAnvaMoayenatId == null) {
+                        App.NewCharkhe.queryById('CboType').setValue('0');
+                    }
+                    else {
+                        App.NewCharkhe.queryById('CboType').setValue('1');
+                        App.NewCharkhe.queryById('CboExamination').setValue(data.fldAnvaMoayenatId);
+                    }
+
+                    var txtDesc = App.NewCharkhe.queryById('txtDesc');
+                    txtDesc.setValue(data.fldDesc);
+                    var Id = App.NewCharkhe.queryById('fldId');
+                    Id.setValue(data.fldId);
+                    var fldTimeStamp = App.NewCharkhe.queryById('fldTimeStamp');
+                    fldTimeStamp.setValue(data.fldTimeStamp);
+                    App.NewCharkhe.body.mask().hide();
+                    FileId_Charkhe = data.fldFileId;
+
+                    if (data.fldFileName != "") {
+                        var fldfile = "data:image/gif;base64," + data.fldIcon;
+                        App.NewCharkhe.queryById('Image').setImageUrl(fldfile);
+                        Ext.get('fi-button-msgK').update('<b>فایل انتخاب شده: ' + data.fldFileName + '</b>' + "&nbsp;&nbsp;" + '<img id="DeleteActionFileimg2" title="حذف فایل" src="/Content/cancel.png" style="width:15px;height:15px;margin-bottom: -4px;" onclick="javascript:DeleteFileCharkhe()" />');
+                    }
+                    else {
+                        App.NewCharkhe.queryById('Image').setImageUrl("/Content/icon/Blank.jpg");
+                        Ext.get('fi-button-msgK').update('<b>فایل انتخاب شده:</b>');
+                    }
+                }
+            });
+        }
+        else {
+            App.NewCharkhe.queryById('txtTitle').validate();
+        }
+    }
+
+    function SaveCharkhe() {
+        var txtTitle = App.NewCharkhe.queryById('txtTitle');
+        var CboOpration = App.NewCharkhe.queryById('CboOpration');
+        var CboRotatingAgent = App.NewCharkhe.queryById('CboRotatingAgent');
+        var CboStatus = App.NewCharkhe.queryById('CboStatus');
+        var txtDesc = App.NewCharkhe.queryById('txtDesc');
+        var Id = App.NewCharkhe.queryById('fldId');
+        var fldTimeStamp = App.NewCharkhe.queryById('fldTimeStamp');
+        var CboType = App.NewCharkhe.queryById('CboType');
+        var CboExamination = App.NewCharkhe.queryById('CboExamination');
+        var CboTypeVorood = App.NewCharkhe.queryById('CboTypeVorood');
+
+        var er = false;
+        if (CboTypeVorood.validate() == false) {
+            er = true;
+        }
+        if (txtTitle.validate() == false) {
+            er = true;
+        }
+        if (CboStatus.validate() == false) {
+            er = true;
+        }
+        if (CboRotatingAgent.validate() == false) {
+            er = true;
+        }
+        if (CboType.getValue() == 1 && CboExamination.validate()==false) {
+            er = true;
+        }
+        if (er == true)
+            return;
+        var status = true;
+        if (CboStatus.getValue() == "0") {
+            status = false;
+        }
+        var MoayeneId = null;
+        var MoayeneName = "";
+        if (CboType.getValue() == 1) {
+            MoayeneId = CboExamination.getValue();
+            MoayeneName = CboExamination.getDisplayValue();
+        }
+
+        var TypeVorood = true;
+        if (CboTypeVorood.getValue() == "0") {
+            TypeVorood = false;
+        }
+
+        App.NewCharkhe.body.mask("در حال ذخیره سازی");
+        Ext.net.DirectMethod.request({
+            url: '/Charkhe/Save',
+            params: {
+                fldDefulteOpertionId: CboOpration.getValue(),
+                fldNameOpertion:CboOpration.getDisplayValue(),
+                fldNoeGhebelCharkheshId: CboRotatingAgent.getValue(),
+                fldAnvaGhabelCharkheshName:CboRotatingAgent.getDisplayValue(),
+                fldAnvaMoayenatId: MoayeneId,
+                fldTitleMoayenat:MoayeneName,
+                DeleteFileKK: DeleteFileKK,
+                fldId: Id.getValue(),
+                fldName: txtTitle.getValue(),
+                fldStatus: status,
+                fldStatusName: CboStatus.getDisplayValue(),
+                fldDesc: txtDesc.getValue(),
+                fldFileId: FileId_Charkhe,
+                fldTimeStamp: fldTimeStamp.getValue(),
+                fldTypeVorood: TypeVorood,
+                __RequestVerificationToken: App.NewCharkhe.queryById('antiForgeryToken').getValue()
+            },
+            success: function (data) {
+                chat.server.reloadLog();
+                if (data.Er == 1) {
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK
+                    });
+                }
+                else if (data.TimeStamp == 0) {
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: Ext.MessageBox.WARNING,
+                        buttons: Ext.MessageBox.OK,
+                        fn: function (btn) {
+                            if (btn == 'ok') {
+                                LoadCharkhe();
+                            }
+                        }
+                    });
+                }
+                else if (data.TimeStamp == 2) {
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK,
+                        fn: function (btn) {
+                            if (btn == 'ok') {
+                                App.NewCharkhe.destroy();
+                            }
+                        }
+                    });
+                }
+                else {
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: Ext.MessageBox.INFO,
+                        buttons: Ext.MessageBox.OK
+                    });
+                }
+                App.Charkhe.queryById('GridCharkhe').store.load();
+                App.Charkhe.queryById('GridCharkheDetail').getStore().getProxy().setExtraParam("CharkheId", 0);
+                App.Charkhe.queryById('GridCharkheDetail').store.load();
+
+                App.Charkhe.queryById('GridCharkheDetail_Order').getStore().getProxy().setExtraParam("CharkheId", 0);
+                App.Charkhe.queryById('GridCharkheDetail_Order').store.load();
+                if (data.Er != 1)
+                    ClearCharkhe();
+                App.NewCharkhe.body.mask().hide();
+            }
+        });
+    }
+
+    function ClearCharkhe() {
+        App.NewCharkhe.queryById('txtTitle').setValue("");
+        App.NewCharkhe.queryById('txtDesc').setValue("");
+        App.NewCharkhe.queryById('CboOpration').setValue("");
+        App.NewCharkhe.queryById('CboExamination').setValue("");
+        App.NewCharkhe.queryById('fldId').setValue(0);
+        App.NewCharkhe.queryById('fldTimeStamp').setValue(0);
+        App.NewCharkhe.queryById('Image').setImageUrl("/Content/icon/Blank.jpg");
+        Ext.get('fi-button-msgK').update('<b>فایل انتخاب شده:</b>');
+        FileId_Charkhe = 0;
+    }
+
+    var addKeyMapCharkhe = function (cmp) {
+        this.keyMap = new Ext.util.KeyMap({
+            target: cmp.getEl(),
+            binding: [{
+                key: [13, 9], /*Ext.EventObject.ENTER,*/
+                fn: function (key, e) {
+                    if (e.getKey() == 9) {
+                        e.stopEvent();
+                    }
+                    var keyfield = App.NewCharkhe.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+                    var nextfld;
+                    if (keyfield.itemId == "txtDesc") {
+                        nextfld = App.NewCharkhe.queryById('btnSaveCharkhe');
+                        SaveCharkhe();
+                        return;
+                    }
+                    else if (keyfield.itemId == "CboType") {
+                        if (App.NewCharkhe.queryById('CboType').getValue() == 1) {
+                            nextfld = App.NewCharkhe.queryById('CboExamination');
+                        }
+                        else {
+                            nextfld = App.NewCharkhe.queryById('txtDesc');
+                        }
+                    }
+                    else {
+                        nextfld = keyfield.nextSibling().nextSibling();
+                        nextfld.selectText();
+                    }
+                    nextfld.focus();
+                    nextfld.selectText();
+                }
+            }]
+        });
+    }
+</script>

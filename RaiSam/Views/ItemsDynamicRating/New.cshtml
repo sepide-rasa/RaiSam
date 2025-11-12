@@ -1,0 +1,353 @@
+﻿@model IEnumerable<RaiSam.Models.prs_tblItemsDynamicRatingSelect>
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+<style>
+    .aa{
+        direction:rtl
+    }
+    #fieldset1 legend {
+        text-align: right;
+        font-family: Tahoma !important;
+    }
+
+    #DeleteActionFileimg:hover {
+        cursor: pointer;
+    }
+</style>
+<script src="~/Scripts/accounting.js"></script>
+@(Html.X().Window().Modal(true)//.Listeners(li => li.AfterRender.Handler = "LoadItemsDynamicRating();")
+.Width(500)//.Height(300)
+    .Title("ثبت مدارک حوزه های سرمایه گذاری")
+                     .ID("NewItemsDynamicRating")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Items(
+        X.FormPanel().Border(false)
+        .Border(false).ButtonAlign(Ext.Net.Alignment.Center)
+            .Margin(10)
+            .DefaultButton("btn")
+        .TitleAlign(Ext.Net.TitleAlign.Center)
+               .Buttons(X.Button().Text("ذخیره").Icon(Ext.Net.Icon.Disk).Margin(10)
+                           .Listeners(l =>
+                           {
+                               l.Click.Handler = "SaveItemsDynamicRating();";
+
+                           })
+                           .ItemID("btnSave")
+                            ,
+                            X.Button().Text("خروج").Icon(Ext.Net.Icon.DoorOut).ToolTip("کلید میانبر Esc")
+                                               .OnClientClick("App.NewItemsDynamicRating.destroy()"))
+
+                .Items(
+                X.Panel().Border(false)
+
+            .Items(
+                    X.FieldSet().Border(false)
+                .Center()
+                .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 4 })
+                .Defaults(new { Margin = 2 })
+                .Items(
+                X.Hidden().ItemID("fldId")
+                                , X.FieldSet().Border(false)
+                            .Layout(Ext.Net.LayoutType.VBox)
+                        .Items(
+                X.AntiForgeryField()
+                        .ItemID("antiForgeryToken").Hidden(true)
+                           //, X.Label("هدف ثبت نام")
+                           //         .Cls("aa")
+                               , X.ComboBox().Width(400)
+                               .LabelAlign(LabelAlign.Right)
+                                  .FieldLabel("هدف ثبت نام")
+                        .ItemID("CboHadaf")
+                        .TypeAhead(true)
+                        .AllowBlank(false)
+                            .BlankText("لطفا هدف را انتخاب کنید.")
+                        .QueryMode(DataLoadMode.Local)
+                        .Editable(false)
+                        .ForceSelection(true)
+                        .TriggerAction(TriggerAction.All)
+                        .DisplayField("Name")
+                        .ValueField("ID")
+                                .EmptyText("هدف")
+                        .Store(X.Store()
+                            .Model(X.Model()
+                                .IDProperty("ID")
+                                .Fields(
+                                new ModelField("ID", ModelFieldType.String) { Mapping = "ID" },
+                                new ModelField("Name", ModelFieldType.String) { Mapping = "Name" }
+                                )
+                            )
+                            .Proxy(X.AjaxProxy()
+                                    .Url(Url.Action("GetHadaf"))
+                                .Reader(X.JsonReader().Root("data"))
+                            )
+                                     .Listeners(li => li.Load.Handler = "LoadItemsDynamicRating();")
+                            )
+                                .Listeners(l => l.Select.Handler = "ChangeCbo();")
+                            ).ColSpan(4)
+                            , X.FieldSet().Border(false)
+                            .Items(
+                                 Html.X().GridPanel()
+                                .ID("GridDynamicRating")
+                    .Icon(Icon.Table)
+                    .Frame(true)
+                    .Title("عناوین مدارک")
+                    .Height(350)
+                    .Width(400)
+                    .Store(
+                        Html.X().StoreForModel().Control(s =>
+                        {
+                            // s.AutoSync = true;
+                        })
+
+                                   //.Listeners(li => li.BeforeLoad.Handler = "ReloadTajhizat()")
+                    )
+                       .ColumnModel(
+                                         Html.X().Column().DataIndex(Model, m => m.fldDynamicRatingId).Text("کد").Flex(1).Hidden(true),
+                                         Html.X().Column().DataIndex(Model, m => m.fldId).Text("کد").Flex(1),
+                                             Html.X().Column().DataIndex(Model, m => m.fldTitleRatingDynamic).Text("عناوین مدارک").Flex(2),
+                                             Html.X().CheckColumn().ID("ColIsCopy").Flex(1).Editable(true).DataIndex("fldIsCopy").Text("کپی از قبل"),
+                                             Html.X().CheckColumn().ID("ColElzami").Flex(1).Editable(true).DataIndex("fldElzami").Text("الزامی")
+                                           
+                        )
+
+                    .TopBar(
+                        Html.X().Toolbar()
+                            .Items(
+                                Html.X().Button()
+                                .Text("اضافه")
+                                .Icon(Icon.Add)
+                                        .Handler("insertDynamicRating")
+                          , Html.X().Button()
+                                                .ItemID("RemoveDynamicRating")
+                                    .Text("حذف")
+                                    .Icon(Icon.Exclamation)
+                                        .Listeners(li => li.Click.Handler = "if (App.NewItemsDynamicRating.queryById('GridDynamicRating').selModel.getLastSelected() == null) {Ext.MessageBox.show({ title: 'خطا', msg: 'لطفا یک سطر را انتخاب کنید',icon: Ext.MessageBox.ERROR,buttons: Ext.MessageBox.OK});return false;}else ItemsDynamicDelete();")
+                            )
+                    )
+                        .Plugins(
+                                Html.X().CellEditing()
+
+                        )
+                        )
+                        )
+
+                )
+                    .Layout(Ext.Net.LayoutType.VBox)
+                    .LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Center })
+            )
+        )
+)
+
+<script type="text/javascript">
+    var ItemDynamicRatingID = 0; var HadafId = 0;
+    var DynamicRatingId = ""; var ToolName = "";
+    var insertDynamicRating = function () {
+        Ext.net.DirectMethod.request({
+            url: '/SearchTitleRatingDynamic/Index',
+            params: {
+                State: 1
+            }
+        });
+    };
+    function ItemsDynamicDelete() {
+        var SelectedHeaderRow = App.NewItemsDynamicRating.queryById('GridDynamicRating').selModel.getLastSelected();
+        if (SelectedHeaderRow != null) {
+            Ext.MessageBox.show({
+                title: "هشدار",
+                msg: "آیا برای حذف مطمئن هستید؟",
+                icon: Ext.MessageBox.WARNING,
+                buttons: Ext.MessageBox.YESNO,
+                fn: function (btn) {
+                    if (btn == 'yes') {
+                        if (SelectedHeaderRow.data.fldId != 0) {
+                            Ext.net.DirectMethod.request({
+                                url: '/ItemsDynamicRating/DeleteItemsDynamicRating',
+                                params: {
+                                    id: SelectedHeaderRow.data.fldId,
+                                    State: 1,
+                                    __RequestVerificationToken: App.NewItemsDynamicRating.queryById('antiForgeryToken').getValue()
+                                },
+                                success: function (data) {
+                                    /*App.NewItemsDynamicRating.queryById('GridDynamicRating').deleteSelected();9192731330*/
+                                    var ic = Ext.MessageBox.INFO;
+                                    if (data.Er == 1)
+                                        ic = Ext.MessageBox.ERROR;
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: ic,
+                                        buttons: Ext.MessageBox.OK
+                                    });
+                                    if (data.Er != 1) {
+                                        App.ItemsDynamicRating.queryById('GridItemsDynamicRating').store.load();
+                                        ChangeCbo();
+                                    }
+
+                                }
+                            });
+                        }
+
+                        else {
+
+                            App.NewItemsDynamicRating.queryById('GridDynamicRating').deleteSelected();
+                        }
+                    }
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+    function ReloadDynamicRating(Hadaf) {
+        var Id = 0;
+        Ext.net.DirectMethod.request({
+            url: '/ItemsDynamicRating/ReloadDynamicRating',
+            params: {
+                HadafId: Hadaf,
+                __RequestVerificationToken: App.NewItemsDynamicRating.queryById('antiForgeryToken').getValue()
+            },
+            success: function (data) {
+                App.NewItemsDynamicRating.queryById('GridDynamicRating').getStore().loadData(data);
+            }
+        });
+
+    }
+
+
+
+
+    function ChangeCbo() {
+        var CboHadaf = App.NewItemsDynamicRating.queryById('CboHadaf');
+        ReloadDynamicRating(CboHadaf.getValue());
+    }
+    function LoadItemsDynamicRating() {
+        ReplaceArabic();
+        if ('@ViewBag.id' != '0') {
+            Ext.net.DirectMethod.request({
+                url: '/ItemsDynamicRating/Details',
+                params: {
+                    HadafId: '@ViewBag.id',
+                    __RequestVerificationToken: App.NewItemsDynamicRating.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+                    var fldId = App.NewItemsDynamicRating.queryById('fldId');
+                    fldId.setValue(data.fldId);
+                    var CboHadaf = App.NewItemsDynamicRating.queryById('CboHadaf');
+                    CboHadaf.setValue(data.fldHadafId);
+                    ItemDynamicRatingID = data.ItemDynamicRatingID;
+                    HadafId = data.fldHadafId;
+                    DynamicRatingId = data.fldDynamicRatingId;
+                    ReloadDynamicRating(data.fldHadafId);
+
+                }
+            });
+        }
+        else {
+            Ext.net.DirectMethod.request({
+                url: '/ItemsDynamicRating/DetailsItemsDynamicRating',
+                params: {
+                    __RequestVerificationToken: App.NewItemsDynamicRating.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+                    App.NewItemsDynamicRating.queryById('CboHadaf').setValue(data.fldHadafId);
+                    ReloadDynamicRating(data.fldHadafId);
+                }
+            });
+        }
+
+
+    }
+
+    function SaveItemsDynamicRating() {
+
+        var fldId = App.NewItemsDynamicRating.queryById('fldId');
+        var CboHadaf = App.NewItemsDynamicRating.queryById('CboHadaf');
+            var er = false;
+
+            if (CboHadaf.validate() == false) {
+                er = true;
+            }
+
+            if (er == true)
+                return;
+            var DynamicRating = new Array();
+            var fldDynamicRatingId; var fldTitleRatingDynamic;
+            var fldIsCopy; var fldElzami;
+            var SelectedRow = App.NewItemsDynamicRating.queryById('GridDynamicRating');
+            for (var i = 0; i < SelectedRow.selModel.store.count() ; i++) {
+                row = SelectedRow.selModel.store.data.items[i];
+                fldDynamicRatingId = row.data.fldDynamicRatingId;
+                fldTitleRatingDynamic = row.data.fldTitleRatingDynamic;
+                fldIsCopy = row.data.fldIsCopy;
+                fldElzami = row.data.fldElzami;
+                fldId = row.data.fldId;
+                if (fldDynamicRatingId != 0 ) {
+                    DynamicRating.push({
+                        'fldDynamicRatingId': fldDynamicRatingId,
+                        'fldTitleRatingDynamic': fldTitleRatingDynamic,
+                        'fldIsCopy': fldIsCopy,
+                        'fldElzami': fldElzami,
+                        'fldHadafId': CboHadaf.getValue(),
+                        'fldTitleHadaf': CboHadaf.getDisplayValue(),
+                        'fldId': fldId
+                    });
+                }
+
+                else if (DynamicRating == null) {
+                    alert("لطفا جدول عناوین امتیاز را تکمیل کنید.");
+                    return;
+                }
+            }
+            var data1 = {
+                ItemDynamic1:JSON.stringify(DynamicRating) ,
+                HadafId: HadafId,
+                __RequestVerificationToken: App.NewItemsDynamicRating.queryById('antiForgeryToken').getValue()
+            };
+            $.ajax({
+                type: "POST",
+                url: '/ItemsDynamicRating/Save',
+               /* contentType: "application/json; charset=utf-8",*/
+                data: data1,
+               /* datatype: "json",*/
+                success: function (data) {
+                    var ic = Ext.MessageBox.INFO;
+                    if (data.Err == 1)
+                        ic = Ext.MessageBox.ERROR;
+                    Ext.MessageBox.show({
+                        Name: data.MsgName,
+                        msg: data.Msg,
+                        icon: ic,
+                        buttons: Ext.MessageBox.OK
+                    });
+                    App.ItemsDynamicRating.queryById('GridItemsDynamicRating').store.load();
+                    if (data.Err != 1)
+                        ChangeCbo();
+                        ClearItemsDynamicRating();
+                },
+                failure: function (data) {
+                    alert(data.data);
+                }
+            });
+        }
+    function ClearItemsDynamicRating() {
+        App.NewItemsDynamicRating.queryById('fldId').setValue(0);
+        DynamicRatingId = 0;
+    }
+        function EnterNext() {
+            var keyfield = App.NewItemsDynamicRating.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+            var nextfld = keyfield.nextSibling();
+            nextfld.focus();
+            nextfld.selectText();
+        }
+</script>

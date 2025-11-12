@@ -1,0 +1,28 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+
+@using Ext.Net.MVC;
+
+@(
+ Html.X().Window().Listeners(l => l.BeforeClose.Handler = "CloseVideoHelp()")
+             .Height(565)
+         .Width(1000)
+                        .ID("VideoHelp")
+        .Closable(true)
+            .Title("راهنمای فرم ها")
+        .AutoScroll(true)
+        .Closable(true)
+            .Maximizable(true)
+        .Content(@<video width="100%;" id="AmozeshVideoHelp" controls="true" autoplay="true" controls><source src='@Url.Action("DownloadFileVideoHelp", "Help")' type="video/mp4"></video>)
+
+)
+<script type="text/javascript">
+    function CloseVideoHelp() {
+        $('#AmozeshVideoHelp')[0].pause();
+    }
+
+</script>

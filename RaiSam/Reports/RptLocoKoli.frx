@@ -1,0 +1,218 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Report ScriptLanguage="CSharp" DoublePass="true" TextQuality="AntiAlias" SmoothGraphics="true" ReportInfo.Created="05/24/2010 10:18:50" ReportInfo.Modified="10/02/2025 09:57:18" ReportInfo.CreatorVersion="2023.2.17.0">
+  <ScriptText>using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Windows.Forms;
+using System.Drawing;
+using System.Data;
+using FastReport;
+using FastReport.Data;
+using FastReport.Dialog;
+using FastReport.Barcode;
+using FastReport.Table;
+using FastReport.Utils;
+
+namespace FastReport
+{
+  public class ReportScript
+  { 
+
+    private void Data1_AfterData(object sender, EventArgs e)
+    {  
+    }
+
+    private void GroupHeader1_AfterData(object sender, EventArgs e)
+    {
+      
+    }
+  }
+}
+</ScriptText>
+  <Styles>
+    <Style Name="Style1" Fill.Color="232, 244, 255" Font="Arial, 10pt"/>
+  </Styles>
+  <Dictionary>
+    <TableDataSource Name="prs_GetDate" ReferenceName="raiSamDataSet.prs_GetDate" DataType="System.Int32" Enabled="true">
+      <Column Name="fldDateTime" DataType="System.DateTime"/>
+      <Column Name="fldTarikh" DataType="System.String"/>
+      <Column Name="fldTime" DataType="System.String"/>
+      <Column Name="fldDate" DataType="System.DateTime"/>
+    </TableDataSource>
+    <TableDataSource Name="prs_tblSettingSelect" ReferenceName="raiSamDataSet.prs_tblSettingSelect" DataType="System.Int32" Enabled="true">
+      <Column Name="fldId" DataType="System.Int32"/>
+      <Column Name="fldTitle" DataType="System.String"/>
+      <Column Name="fldFile" DataType="System.Byte[]" BindableControl="Picture"/>
+      <Column Name="flddesc" DataType="System.String"/>
+      <Column Name="fldCompanyFromService" DataType="System.Boolean" BindableControl="CheckBox"/>
+    </TableDataSource>
+    <TableDataSource Name="prs_tblUploadFileCompanySelect" ReferenceName="raiSamDataSet.prs_tblUploadFileCompanySelect" DataType="System.Int32" Enabled="true">
+      <Column Name="fldId" DataType="System.Int32"/>
+      <Column Name="fldFile" DataType="System.Byte[]" BindableControl="Picture"/>
+      <Column Name="fldPassvand" DataType="System.String"/>
+      <Column Name="fldSize" DataType="System.Decimal"/>
+      <Column Name="fldIP" DataType="System.String"/>
+      <Column Name="fldDate" DataType="System.DateTime"/>
+      <Column Name="fldFirstRegisterId" DataType="System.Int32"/>
+      <Column Name="fldCodeFileId" DataType="System.String"/>
+      <Column Name="fldFileName" DataType="System.String"/>
+      <Column Name="fldInputId" DataType="System.Int32"/>
+    </TableDataSource>
+    <TableDataSource Name="prs_RptHeaderContract_Dizel" ReferenceName="raiSamDataSet.prs_RptHeaderContract_Dizel" DataType="System.Int32" Enabled="true">
+      <Column Name="fldShomare_GH" DataType="System.String"/>
+      <Column Name="fldTarikh_GH" DataType="System.String"/>
+      <Column Name="fldTitle" DataType="System.String"/>
+      <Column Name="fldNameCompany" DataType="System.String"/>
+      <Column Name="fldLogoId" DataType="System.Int32"/>
+    </TableDataSource>
+    <TableDataSource Name="prs_RptKoliDizel" ReferenceName="raiSamDataSet.prs_RptKoliDizel" DataType="System.Int32" Enabled="true">
+      <Column Name="fldDizel_No" DataType="System.String"/>
+      <Column Name="fldSumTonazhBar" DataType="System.Double"/>
+      <Column Name="fldSumMasafat" DataType="System.Double"/>
+      <Column Name="fldSumTonKolimetr" DataType="System.Double"/>
+      <Column Name="MinTarikhBar" DataType="System.String"/>
+      <Column Name="fldTedadBarname" DataType="System.Int32"/>
+    </TableDataSource>
+    <Parameter Name="UserName" DataType="System.String" AsString=""/>
+    <Parameter Name="AzTarikh" DataType="System.String" AsString=""/>
+    <Parameter Name="TaTarikh" DataType="System.String" AsString=""/>
+    <Parameter Name="IsExcel" DataType="System.Int32" Expression="1"/>
+    <Total Name="TonKilometr" Expression="[prs_RptKoliDizel.fldSumTonKolimetr]" Evaluator="Data1" PrintOn="ReportSummary1"/>
+    <Total Name="masafat" Expression="[prs_RptKoliDizel.fldSumMasafat]" Evaluator="Data1" PrintOn="ReportSummary1"/>
+    <Total Name="TonazhBar" Expression="[prs_RptKoliDizel.fldSumTonazhBar]" Evaluator="Data1" PrintOn="ReportSummary1"/>
+  </Dictionary>
+  <ReportPage Name="Page1" RawPaperSize="9" LeftMargin="6.3" TopMargin="6.3" RightMargin="6.3" BottomMargin="6.3" Guides="746.55" Watermark.Font="Arial, 60pt" FirstPageSource="15">
+    <PageHeaderBand Name="PageHeader1" Width="746.17" Height="288.57" VisibleExpression="[IsExcel]!=1 || ([IsExcel]==1 &amp;&amp; [Page]==1)" ExportableExpression="[IsExcel]!=1 || ([IsExcel]==1 &amp;&amp; [Page]==1)" Guides="255.15">
+      <TableObject Name="Table1" Left="15.12" Top="242.84" Width="714.98" Height="45.73" Border.Lines="All" Fill="Glass" Fill.Color="SkyBlue" Fill.Blend="0.2" Fill.Hatch="true">
+        <TableColumn Name="Column62" Width="126.9"/>
+        <TableColumn Name="Column63" Width="115.56"/>
+        <TableColumn Name="Column64" Width="104.22"/>
+        <TableColumn Name="Column65" Width="104.22"/>
+        <TableColumn Name="Column66" Width="104.22"/>
+        <TableColumn Name="Column174" Width="126.9"/>
+        <TableColumn Name="Column191" Width="32.96"/>
+        <TableRow Name="Row1" Height="45.73">
+          <TableCell Name="Cell107" Border.Lines="All" Fill="Glass" Fill.Color="SkyBlue" Fill.Blend="0.2" Fill.Hatch="true" Text="تن کیلومتر" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 11pt, style=Bold"/>
+          <TableCell Name="Cell108" Border.Lines="All" Fill="Glass" Fill.Color="SkyBlue" Fill.Blend="0.2" Fill.Hatch="true" Text="مسافت" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 11pt, style=Bold"/>
+          <TableCell Name="Cell109" Border.Lines="All" Fill="Glass" Fill.Color="SkyBlue" Fill.Blend="0.2" Fill.Hatch="true" Text="وزن" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 11pt, style=Bold"/>
+          <TableCell Name="Cell110" Border.Lines="All" Fill="Glass" Fill.Color="SkyBlue" Fill.Blend="0.2" Fill.Hatch="true" Text="تعداد بارنامه" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 11pt, style=Bold"/>
+          <TableCell Name="Cell111" Border.Lines="All" Fill="Glass" Fill.Color="SkyBlue" Fill.Blend="0.2" Fill.Hatch="true" Text="تاریخ بارنامه" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 11pt, style=Bold"/>
+          <TableCell Name="Cell243" Border.Lines="All" Fill="Glass" Fill.Color="SkyBlue" Fill.Blend="0.2" Fill.Hatch="true" Text="شماره لکوموتیو" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 11pt, style=Bold"/>
+          <TableCell Name="Cell260" Border.Lines="All" Fill="Glass" Fill.Color="SkyBlue" Fill.Blend="0.2" Fill.Hatch="true" Text="ردیف" HorzAlign="Center" VertAlign="Center" Angle="270" Font="RasaFont, 11pt, style=Bold"/>
+        </TableRow>
+      </TableObject>
+      <TableObject Name="Table2" Left="4.73" Top="140.86" Width="739.73" Height="94.86">
+        <TableColumn Name="Column99" Width="82.01"/>
+        <TableColumn Name="Column100" Width="272.16"/>
+        <TableColumn Name="Column101" Width="385.56"/>
+        <TableRow Name="Row14" Height="31.62">
+          <TableCell Name="Cell158" AutoShrink="FontSize" VertAlign="Center" RightToLeft="true" Font="RasaFont, 12pt"/>
+          <TableCell Name="Cell159" Text="شماره قرار داد: [prs_RptHeaderContract_Dizel.fldShomare_GH]" AutoShrink="FontSize" VertAlign="Center" RightToLeft="true" Font="RasaFont, 12pt"/>
+          <TableCell Name="Cell160" Text="نام سرمایه گذار عامل صرفه جویی:" AutoShrink="FontSize" VertAlign="Center" RightToLeft="true" Font="RasaFont, 12pt"/>
+        </TableRow>
+        <TableRow Name="Row15" Height="31.62">
+          <TableCell Name="Cell163" AutoShrink="FontSize" VertAlign="Center" RightToLeft="true" Font="RasaFont, 12pt"/>
+          <TableCell Name="Cell164" Text="تاریخ قرار داد: [prs_RptHeaderContract_Dizel.fldTarikh_GH]" AutoShrink="FontSize" VertAlign="Center" RightToLeft="true" Font="RasaFont, 12pt"/>
+          <TableCell Name="Cell165" Text="[prs_RptHeaderContract_Dizel.fldNameCompany]" AutoShrink="FontSize" VertAlign="Center" RightToLeft="true" Font="RasaFont, 12pt"/>
+        </TableRow>
+        <TableRow Name="Row16" Height="31.62">
+          <TableCell Name="Cell168" AutoShrink="FontSize" VertAlign="Center" RightToLeft="true" Font="RasaFont, 12pt"/>
+          <TableCell Name="Cell169" Text="توان لکوموتیو: " AutoShrink="FontSize" VertAlign="Center" RightToLeft="true" Font="RasaFont, 12pt"/>
+          <TableCell Name="Cell170" Text="نوع و تعداد لکوموتیو: " AutoShrink="FontSize" VertAlign="Center" RightToLeft="true" Font="RasaFont, 12pt">
+            <Formats>
+              <GeneralFormat/>
+              <GeneralFormat/>
+            </Formats>
+          </TableCell>
+        </TableRow>
+      </TableObject>
+      <TableObject Name="Table8" Left="0.29" Top="1.9" Width="743.95" Height="120.9">
+        <TableColumn Name="Column39" Width="191.27"/>
+        <TableColumn Name="Column40" Width="210.92"/>
+        <TableColumn Name="Column41" Width="161.08"/>
+        <TableColumn Name="Column49" Width="180.68"/>
+        <TableRow Name="Row8" Height="28.9">
+          <TableCell Name="Cell58" Text="تاریخ چاپ: [prs_GetDate.fldTarikh]" AutoShrink="FontSize" AutoShrinkMinSize="8" VertAlign="Center" RightToLeft="true" Font="RasaFont, 9pt"/>
+          <TableCell Name="Cell59" Text="[prs_tblSettingSelect.fldTitle]&#13;&#10;گزارش عملکرد طرح توسعه حمل و نقل ریلی بار و مسافر&#13;&#10;از تاریخ [AzTarikh] تا تاریخ [TaTarikh]" HorzAlign="Center" VertAlign="Center" RightToLeft="true" Font="RasaFont, 12pt, style=Bold" ColSpan="2" RowSpan="4">
+            <Formats>
+              <GeneralFormat/>
+              <GeneralFormat/>
+              <GeneralFormat/>
+            </Formats>
+          </TableCell>
+          <TableCell Name="Cell60" HorzAlign="Center" VertAlign="Center" RightToLeft="true" Font="RasaFont, 12pt, style=Bold"/>
+          <TableCell Name="Cell71" Font="Arial, 10pt" RowSpan="4">
+            <PictureObject Name="Picture1" Left="50.08" Top="13.24" Width="96.38" Height="85.04" DataColumn="prs_tblUploadFileCompanySelect.fldFile"/>
+          </TableCell>
+        </TableRow>
+        <TableRow Name="Row2" Height="32.5">
+          <TableCell Name="Cell6" Text="ساعت چاپ: [prs_GetDate.fldTime]" AutoShrink="FontSize" AutoShrinkMinSize="8" VertAlign="Center" RightToLeft="true" Font="RasaFont, 9pt"/>
+          <TableCell Name="Cell7" RightToLeft="true" Font="Arial, 10pt"/>
+          <TableCell Name="Cell8" Font="Arial, 10pt"/>
+          <TableCell Name="Cell72" Font="Arial, 10pt"/>
+        </TableRow>
+        <TableRow Name="Row3" Height="28.9">
+          <TableCell Name="Cell11" Text="کاربر چاپ کننده: [UserName]" AutoShrink="FontSize" AutoShrinkMinSize="8" VertAlign="Center" RightToLeft="true" Font="RasaFont, 9pt"/>
+          <TableCell Name="Cell12" RightToLeft="true" Font="Arial, 10pt"/>
+          <TableCell Name="Cell13" Font="Arial, 10pt"/>
+          <TableCell Name="Cell73" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 9pt, style=Bold"/>
+        </TableRow>
+        <TableRow Name="Row9" Height="30.6">
+          <TableCell Name="Cell61" Text="صفحه [Page#] از [TotalPages#]" AutoShrink="FontSize" AutoShrinkMinSize="8" VertAlign="Center" RightToLeft="true" Font="RasaFont, 9pt"/>
+          <TableCell Name="Cell62" RightToLeft="true" Font="Arial, 10pt"/>
+          <TableCell Name="Cell63" Font="Arial, 10pt"/>
+          <TableCell Name="Cell74" Font="Arial, 10pt"/>
+        </TableRow>
+      </TableObject>
+    </PageHeaderBand>
+    <DataBand Name="Data1" Top="292.57" Width="746.17" Height="26.83" CanGrow="true" CanShrink="true" AfterDataEvent="Data1_AfterData" CanBreak="true" Guides="9.45" DataSource="prs_RptKoliDizel" KeepDetail="true">
+      <TableObject Name="Table15" Left="15.12" Width="715.57" Height="26.83" Anchor="None" Border.Lines="All" Fill.Color="White" PrintOnParent="true">
+        <TableColumn Name="Column197" Width="127.01"/>
+        <TableColumn Name="Column198" Width="115.67"/>
+        <TableColumn Name="Column199" Width="104.33"/>
+        <TableColumn Name="Column200" Width="104.33"/>
+        <TableColumn Name="Column201" Width="104.33"/>
+        <TableColumn Name="Column207" Width="127.01"/>
+        <TableColumn Name="Column208" Width="32.89"/>
+        <TableRow Name="Row23" Height="26.83">
+          <TableCell Name="Cell266" Border.Lines="All" Fill.Color="White" Text="[prs_RptKoliDizel.fldSumTonKolimetr]" AutoShrink="FontSize" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 10pt"/>
+          <TableCell Name="Cell267" Border.Lines="All" Fill.Color="White" Text="[prs_RptKoliDizel.fldSumMasafat]" AutoShrink="FontSize" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 10pt"/>
+          <TableCell Name="Cell268" Border.Lines="All" Fill.Color="White" Text="[prs_RptKoliDizel.fldSumTonazhBar]" AutoShrink="FontSize" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 10pt"/>
+          <TableCell Name="Cell269" Border.Lines="All" Fill.Color="White" Text="[prs_RptKoliDizel.fldTedadBarname]" AutoShrink="FontSize" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 10pt"/>
+          <TableCell Name="Cell270" Border.Lines="All" Fill.Color="White" Text="[Substring([prs_RptKoliDizel.MinTarikhBar].ToString(),0,4)]/[Substring([prs_RptKoliDizel.MinTarikhBar].ToString(),4,2)]/[Substring([prs_RptKoliDizel.MinTarikhBar].ToString(),6,2)]" AutoShrink="FontSize" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 10pt">
+            <Formats>
+              <GeneralFormat/>
+              <GeneralFormat/>
+              <GeneralFormat/>
+            </Formats>
+          </TableCell>
+          <TableCell Name="Cell276" Border.Lines="All" Fill.Color="White" Text="[prs_RptKoliDizel.fldDizel_No]" AutoShrink="FontSize" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 10pt"/>
+          <TableCell Name="Cell277" Border.Lines="All" Fill.Color="White" Text="[Row#]" AutoShrink="FontSize" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 10pt"/>
+        </TableRow>
+      </TableObject>
+    </DataBand>
+    <ReportSummaryBand Name="ReportSummary1" Top="323.4" Width="746.17" Height="110.03">
+      <TextObject Name="Text17" Left="2.02" Top="37.8" Width="744.53" Height="57.44" Border.Lines="All" Border.Style="Dot" Text="صحت صدور و ماهیت صورت وضعیت ارائه شده از سوی شرکت مورد تائید می باشد." HorzAlign="Center" RightToLeft="true" Font="RasaFont, 12pt"/>
+      <TextObject Name="Text18" Left="222.82" Top="70.09" Width="523.73" Height="23.05" Text="امضا و مهر شرکت [prs_RptBarname_Info.NameMalek] " AutoShrink="FontSize" HorzAlign="Right" Font="RasaFont, 12pt, style=Bold"/>
+      <TextObject Name="Text19" Left="-1.18" Top="70.09" Width="223.4" Height="23.05" Text="امضا و مهر شرکت راه آهن ج.ا.ا" HorzAlign="Center" Font="RasaFont, 12pt, style=Bold"/>
+      <TableObject Name="Table12" Left="15.12" Width="715.56" Height="26.84" Border.Lines="All" Fill="Glass" Fill.Color="SkyBlue" Fill.Blend="0.2" Fill.Hatch="true">
+        <TableColumn Name="Column144" Width="127.01"/>
+        <TableColumn Name="Column145" Width="115.67"/>
+        <TableColumn Name="Column209" Width="104.33"/>
+        <TableColumn Name="Column146" Width="368.55"/>
+        <TableRow Name="Row20" Height="26.84">
+          <TableCell Name="Cell213" Border.Lines="All" Fill="Glass" Fill.Color="SkyBlue" Fill.Blend="0.2" Fill.Hatch="true" Text="[TonKilometr]" Format="Number" Format.UseLocale="true" Format.DecimalDigits="2" AutoShrink="FontSize" HorzAlign="Center" VertAlign="Center" RightToLeft="true" Font="RasaFont, 11pt"/>
+          <TableCell Name="Cell214" Border.Lines="All" Fill="Glass" Fill.Color="SkyBlue" Fill.Blend="0.2" Fill.Hatch="true" Text="[masafat]" AutoShrink="FontSize" HorzAlign="Center" VertAlign="Center" RightToLeft="true" Font="RasaFont, 11pt"/>
+          <TableCell Name="Cell278" Border.Lines="All" Fill="Glass" Fill.Color="SkyBlue" Fill.Blend="0.2" Fill.Hatch="true" Text="[TonazhBar]" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 11pt"/>
+          <TableCell Name="Cell215" Border.Lines="All" Fill="Glass" Fill.Color="SkyBlue" Fill.Blend="0.2" Fill.Hatch="true" Text="جـــــــــــــــــــــــــــــــــــــــــــــــمع" HorzAlign="Center" VertAlign="Center" RightToLeft="true" Font="RasaFont, 11pt"/>
+        </TableRow>
+      </TableObject>
+    </ReportSummaryBand>
+    <PageFooterBand Name="PageFooter1" Top="437.43" Width="746.17" Height="80.07" VisibleExpression=" ([IsExcel]!=1 &amp;&amp; [Page]!=[TotalPages])" ExportableExpression="([IsExcel]!=1 &amp;&amp; [Page]!=[TotalPages])">
+      <TextObject Name="Text13" Left="2.7" Top="9.46" Width="743.85" Height="57.44" Border.Lines="All" Border.Style="Dot" Text="صحت صدور و ماهیت صورت وضعیت ارائه شده از سوی شرکت مورد تائید می باشد." HorzAlign="Center" RightToLeft="true" Font="RasaFont, 12pt"/>
+      <TextObject Name="Text16" Left="216.07" Top="41.75" Width="530.48" Height="23.05" Text="امضا و مهر شرکت [prs_RptBarname_Info.NameMalek] " AutoShrink="FontSize" HorzAlign="Right" Font="RasaFont, 12pt, style=Bold"/>
+      <TextObject Name="Text14" Left="-7.93" Top="41.75" Width="223.4" Height="23.05" Text="امضا و مهر شرکت راه آهن ج.ا.ا" HorzAlign="Center" Font="RasaFont, 12pt, style=Bold"/>
+    </PageFooterBand>
+  </ReportPage>
+</Report>

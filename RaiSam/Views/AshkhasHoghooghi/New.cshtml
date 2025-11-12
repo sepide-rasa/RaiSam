@@ -1,0 +1,670 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+<style>
+    #fieldsetfile legend {
+        text-align: right;
+        font-family: Tahoma !important;
+    }
+
+    #DeleteActionFileimg6:hover {
+        cursor: pointer;
+    }
+
+    .custom-icon-city {
+        margin-right: 124px !important;
+    }
+
+    .infoPanelSuccess {
+        border: solid 1px #d6e9c6 !important;
+        background: #dff0d8 !important;
+        border-radius: 4px !important;
+        box-shadow: 0 0 10px #ccc !important;
+    }
+
+    .infoPanelError {
+        border: solid 1px #ebccd1 !important;
+        background: #f2dede !important;
+        border-radius: 4px !important;
+        box-shadow: 0 0 10px #ccc !important;
+    }
+
+    .x-infopanel-danger .x-infopanel-body {
+        background: #f2dede !important;
+        color: #a94442 !important;
+    }
+
+    .x-infopanel-success .x-infopanel-body {
+        background: #dff0d8 !important;
+        color: #3c763d !important;
+    }
+</style>
+
+@(Html.X()
+    .Window()
+    .Modal(true)
+    .Listeners(li =>
+    {
+        li.Render.Fn = "addKeyMapNewHoghooghi";
+        li.AfterRender.Handler = "LoadHoghooghi();";
+    })
+    .Width(520)
+    .Title("ثبت شخص جدید")
+    .ID("NewHoghooghi")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Layout(LayoutType.Fit)
+    .ButtonAlign(Ext.Net.Alignment.Center)
+    .Buttons(
+        X.Button()
+            .Text("ذخیره")
+            .Icon(Ext.Net.Icon.Disk)
+            .Listeners(l => l.Click.Handler = "SaveHoghooghi();"),
+        X.Button()
+            .Text("خروج")
+            .Icon(Ext.Net.Icon.DoorOut)
+                .OnClientClick("App.NewHoghooghi.destroy();"))
+    .Items(
+        X.AntiForgeryField()
+         .ItemID("antiForgeryToken").Hidden(true),
+        X.Panel()
+        //.Padding(5)
+            .Border(false)
+            .Layout(LayoutType.VBox)
+            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+            .Items(
+                X.FieldSet()
+                    .Border(true)
+                    .Title("مشخصات شخص")
+                    .Defaults(new { Margin = 2 })
+                    .Layout(LayoutType.Table)
+                    .LayoutConfig(new TableLayoutConfig { Columns = 4 })
+                    .Items(
+                        X.Hidden().ItemID("fldId"),
+                        X.Hidden().ItemID("fldFileId"),
+                            X.Label("نام:"),
+                                X.TextField()
+                                .AutoFocus(true)
+                                .ItemID("txtName")
+                                .AllowBlank(false)
+                                .MaskRe("[أ-ئ,ا-ی, ,آ]")
+                                .BlankText("لطفا نام شخص حقوقی را وارد کنید.")
+                                .MaxLength(100)
+                                .EnforceMaxLength(true)
+                                    .ColSpan(3)
+                                    .Width(375)
+                                                       .Icon(Icon.Reload)
+                                            .Listeners(li =>
+                                            {
+                                                li.IconClick.Handler = "Estelam(2);";
+                                            }),
+                        X.Label("شناسه ملی:"),
+                        X.TextField()
+                            .ItemID("txtNationalCode")
+                            .MaskRe("/[0-9]/")
+                            .AllowBlank(false)
+                            .BlankText("لطفا شناسه ملی را وارد کنید.")
+                            .MinLength(11)
+                                .MaxLength(11)
+                                                .FieldStyle("direction:ltr;")
+                            .EnforceMaxLength(true)
+                                               .Icon(Icon.Reload)
+                                            .Listeners(li =>
+                                            {
+                                                li.IconClick.Handler = "Estelam(1);";
+                                            }),
+                             X.Label("کد اقتصادی:"), X.TextField()
+                                        .ItemID("txtCodeEghtesadi")
+                                        .AllowBlank(false)
+        //.RTL(false)
+                                            .FieldStyle("direction:ltr;")
+                                            .MaskRe("/[0-9]/")
+                                                .Plugins(X.InputMask()
+                                                    .Mask("AAAAAAAAAAAA")
+                                                    .UnmaskOnBlur(true)
+                                                    .MaskSymbols(ls =>
+                                                        {
+                                                            ls.Add(new MaskSymbol { Name = "A", Regex = "[0-9]", Placeholder = "_".ToCharArray()[0] });
+                                                        }))
+                                        .BlankText("لطفا کد اقتصادی را وارد کنید.")
+                                        .MsgTarget(Ext.Net.MessageTarget.Side)
+                                        ,
+                        X.Label("تاریخ تاسیس:"),
+
+                                X.PDateField()
+                                    .ItemID("txtTarikhTasis")
+                                    .AllowBlank(false)
+                                    .BlankText("لطفا تاریخ تاسیس را وارد کنید.")
+                                    .Editable(true)
+                                    .ReadOnly(true)
+                                    .MaskRe("/[0-9/]/")
+                                    .MaxLength(10)
+                                    .MinLength(10)
+                                    .EnforceMaxLength(true)
+                                   // .ColSpan(3)
+                                    ,
+                                     X.Label("تاریخ ثبت:"),
+                            X.PDateField()
+                                .ItemID("txtTarikhSabt")
+                                        .ReadOnly(true)
+                        .AllowBlank(true)
+                            .BlankText("لطفا تاریخ ثبت را وارد کنید.")
+                        .Editable(true)
+                        .MaskRe("/[0-9/]/")
+                        .MaxLength(10)
+                        .MinLength(10)
+                        .EnforceMaxLength(true)
+                       , X.Label("شماره ثبت:"),
+                         X.TextField()
+                                     .ItemID("txtShomareSabt")
+                                        .ReadOnly(true)
+                            .MaxLength(100)//.Width(330)
+                        .EnforceMaxLength(true)
+                        .AllowBlank(false)//.MaskRe("[1-9 ,),(,ا-ی-آ-ئ-ء]")
+                            .BlankText("لطفا شماره ثبت را وارد کنید."),
+                            X.Label("کدپستی:"), X.TextField()
+                                                .ItemID("txtCodePosti")
+                                            .AllowBlank(false)
+                                            .BlankText("لطفا کدپستی را وارد کنید.")
+        //.MaskRe("/[0-9]/")
+                                                    .Plugins(X.InputMask()
+                                            .Mask("AAAAAAAAAA")
+                                            .UnmaskOnBlur(true)
+                                            .MaskSymbols(ls =>
+                                                {
+                                                    ls.Add(new MaskSymbol { Name = "A", Regex = "[0-9]", Placeholder = "_".ToCharArray()[0] });
+                                                }))
+        //  .RTL(false)
+                                                .FieldStyle("direction:ltr;")
+                                            .MsgTarget(Ext.Net.MessageTarget.Side)
+                                                
+                                            ,
+                                            X.Label("آدرس:"),
+                 X.TextField()
+                                                    .ItemID("txtAddress")
+                                                        .MaxLength(200)
+                                                .EnforceMaxLength(true)
+                                                .AllowBlank(false)
+                                                .BlankText("لطفا آدرس را وارد کنید.")
+                                                .MsgTarget(Ext.Net.MessageTarget.Side)
+                                                    .Width(375)
+                                       .ColSpan(3)
+                                       ,
+                        X.FieldSet()
+                            .Border(true)
+                            .AutoScroll(true)
+                            .Height(150)
+                            .ColSpan(4)
+                            .Title("انتخاب فایل(حداکثر حجم مجاز: 1MB)")
+                            .ID("fieldsetfile")
+                            .Layout(LayoutType.HBox)
+                            .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Middle })
+                            .Items(
+                                X.FormPanel()
+                                    .Border(false)
+                                    .Layout(LayoutType.VBox)
+                                    .ItemID("fieldsetShowFile")
+                                    .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Right })
+                                    .Width(346)
+        //.Listeners(l => l.AfterRender.Handler = "App.NewHoghooghi.queryById('fieldsetShowFile').setWidth(App.BasicInfWin.getWidth() - 1050)")
+                                    .Items(
+                                        X.FileUploadField()
+                                            .MarginSpec("0 10px 10px 0")
+                                            .Icon(Ext.Net.Icon.DiskUpload)
+                                            .ButtonOnly(true)
+                                            .ButtonText("انتخاب فایل")
+                                            .DirectEvents(l =>
+                                            {
+                                                l.Change.Action = "Upload";
+                                                l.Change.Delay = 1000;
+                                                l.Change.Before = "if(GotoServerHoghooghi==false){return false;}";
+                                                l.Change.Success = "hideprogressHoghooghi";
+                                            })
+                                            .Listeners(l => l.Change.Fn = "showFileHoghooghi"),
+                                        X.Container()
+                                            .Content(@<div id="fi-button-msg" class="Wrap-label" style="width:336px;height:auto; text-align:right;"><b>فایل انتخاب شده:</b></div>)
+                                        ),
+                                X.Panel()
+                                    .Border(false)
+                                    .Layout(LayoutType.VBox)
+                                    .LayoutConfig(new VBoxLayoutConfig { Align=VBoxAlign.Center})
+                                    .Items(
+                                        X.Label("پیش نمایش"),
+                                        X.Panel()
+                                            .Frame(true)
+                                            .MarginSpec("3px 0 0 0")
+                                            .Layout(LayoutType.Fit)
+                                            .Items(
+                                        X.Image()
+                                            .ItemID("ImageHoghooghi")
+                                            .Flex(1)
+                                            .ImageUrl("/Content/icon/Blank.jpg")
+                                            .Width(80)
+                                            .Height(80)
+                                            .Border(true)
+                                            .Frame(true)))
+                            )
+                    )
+                        )
+
+                )
+)
+<script type="text/javascript">
+    var fldTimeStamp = 0;
+    var GotoServerHoghooghi = false;
+    var EndUploadHoghooghi = false;
+
+    var CheckHoghooghi = setInterval(CheckEndHoghooghi, 500);
+
+    function CheckEndHoghooghi() {
+        if (EndUploadHoghooghi == true) {
+            Ext.net.DirectMethod.request({
+                url: '/AshkhasHoghooghi/ShowPic',
+                params: {
+                    __RequestVerificationToken: App.NewHoghooghi.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+                    value = "data:image/gif;base64," + data.image;
+                    App.NewHoghooghi.queryById('ImageHoghooghi').setImageUrl(value);
+                }
+            });
+            GotoServerHoghooghi = false;
+            Ext.MessageBox.hide();
+            Ext.Msg.alert('عملیات موفق', 'فایل با موفقیت آپلود شد.');
+            clearInterval(CheckEndHoghooghi);
+            EndUploadHoghooghi = false;
+        }
+    }
+    var showFileHoghooghi = function (fb, v) {
+        var id = fb.fileInputEl.dom.id;
+        var el = Ext.get('fi-button-msg');
+        if (v) {
+            showProgressBarHoghooghi();
+            if (v.split('.').pop().toLowerCase() == "jpg" || v.split('.').pop().toLowerCase() == "png" || v.split('.').pop().toLowerCase() == "jpeg"
+                || v.split('.').pop().toLowerCase() == "tif" || v.split('.').pop().toLowerCase() == "tiff" || v.split('.').pop().toLowerCase() == "gif"
+                || v.split('.').pop().toLowerCase() == "bmp") {
+                if (document.getElementById(id).files[0].size <= 1024000) {
+                    GotoServerHoghooghi = true;
+                    el.update('<b>فایل انتخاب شده: ' + v + '</b>' + "&nbsp;&nbsp;" + '<img id="DeleteActionFileimg6" title="حذف فایل" src="/Content/cancel.png" style="width:15px;height:15px;margin-bottom: -4px;" onclick="javascript:DeleteFileHoghooghi()" />');
+                }
+                else {
+                    clearInterval(CheckEndHoghooghi);
+                    el.update('<b>فایل انتخاب شده:</b> ');
+                    App.NewHoghooghi.queryById('ImageHoghooghi').setImageUrl("/Content/icon/Blank.jpg");
+                    Ext.MessageBox.show({
+                        title: "خطا",
+                        msg: "حجم فایل انتخاب شده غیرمجاز است.",
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK
+                    });
+                }
+
+                if (!el.isVisible()) {
+                    el.slideIn('t', {
+                        duration: .2,
+                        easing: 'easeIn',
+                        callback: function () {
+                            el.highlight();
+                        }
+                    });
+                } else {
+                    el.highlight();
+                }
+            }
+            else {
+                clearInterval(CheckEndHoghooghi);
+                el.update('<b>فایل انتخاب شده:</b> ');
+                App.NewHoghooghi.queryById('ImageHoghooghi').setImageUrl("/Content/icon/Blank.jpg");
+                Ext.MessageBox.show({
+                    title: "خطا",
+                    msg: "فایل انتخاب شده غیرمجاز است.",
+                    icon: Ext.MessageBox.ERROR,
+                    buttons: Ext.MessageBox.OK
+                });
+            }
+        }
+    };
+
+    var DeleteFileHu = false;
+    function DeleteFileHoghooghi() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/AshkhasHoghooghi/DeleteSessionFile',
+            success: function (data) {
+                DeleteFileHu = true;
+                App.NewHoghooghi.queryById('ImageHoghooghi').setImageUrl("/Content/icon/Blank.jpg");
+                Ext.get('fi-button-msg').update('<b>فایل انتخاب شده:</b>');
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+    var hideprogressHoghooghi = function (Responsdtxt, ResponseObj) {
+        if (ResponseObj.IsValid == true) {
+            EndUploadHoghooghi = true;
+        }
+        else {
+            var el = Ext.get('fi-button-msg');
+            GotoServerHuman = false;
+            clearInterval(CheckEndHuman);
+            EndUploadHoghooghi = false;
+            el.update('<b>فایل انتخاب شده:</b> ');
+            App.NewHoghooghi.queryById('ImageHoghooghi').setImageUrl("/Content/icon/Blank.jpg");
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: ResponseObj.Message,
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    };
+
+
+    function showProgressBarHoghooghi() {
+        Ext.MessageBox.show({
+            msg: 'لطفاً منتظر باشید',
+            progressText: 'در حال آپلود فایل...',
+            width: 300,
+            wait: true,
+            waitConfig:
+            {
+                interval: 200,
+                text: 'در حال آپلود فایل...',
+                scope: this
+            }
+        });
+    }
+
+    function LoadHoghooghi() {
+        /*App.NewHoghooghi.setWidth(App.BasicInfWin.getWidth() - 881);*/
+        /*App.NewHoghooghi.queryById("txtDesc").setWidth(App.BasicInfWin.getWidth() - 996);
+        Ext.get('fi-button-msg').setWidth(App.BasicInfWin.getWidth() - 1050);*/
+        if ('@ViewBag.Id' != '0') {
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/AshkhasHoghooghi/Details',
+                params: {
+                    Id: '@ViewBag.Id',
+                    __RequestVerificationToken: App.NewHoghooghi.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+                    var txtName = App.NewHoghooghi.queryById('txtName');
+                    txtName.setValue(data.fldName);
+
+                    var txtTarikhTasis = App.NewHoghooghi.queryById('txtTarikhTasis');
+                    txtTarikhTasis.setRawValue(data.fldTarikhTasis);
+
+                    var txtNationalCode = App.NewHoghooghi.queryById('txtNationalCode');
+                    txtNationalCode.setValue(data.fldNationalCode);
+
+                    var Id = App.NewHoghooghi.queryById('fldId');
+                    Id.setValue(data.fldId);
+
+                    var fldFileId = App.NewHoghooghi.queryById('fldFileId');
+                    fldFileId.setValue(data.fldFileId);
+
+                    if (data.NameFile != "") {
+                        var fldfile = "data:image/gif;base64," + data.pic;
+                        App.NewHoghooghi.queryById('ImageHoghooghi').setImageUrl(fldfile);
+                        Ext.get('fi-button-msg').update('<b>فایل انتخاب شده: ' + data.NameFile + '</b>' + "&nbsp;&nbsp;" + '<img id="DeleteActionFileimg6" title="حذف فایل" src="/Content/cancel.png" style="width:15px;height:15px;margin-bottom: -4px;" onclick="javascript:DeleteFileHoghooghi()" />');
+                    }
+                    else {
+                        App.NewHoghooghi.queryById('ImageHoghooghi').setImageUrl("/Content/icon/Blank.jpg");
+                        Ext.get('fi-button-msg').update('<b>فایل انتخاب شده:</b>');
+                    }
+                    fldTimeStamp = data.fldTimeStamp;
+
+                    var txtTarikhSabt = App.NewHoghooghi.queryById('txtTarikhSabt');
+                    txtTarikhSabt.setValue(data.fldDateSabt);
+                    var txtShomareSabt = App.NewHoghooghi.queryById('txtShomareSabt');
+                    txtShomareSabt.setValue(data.fldShomareSabt);
+                    var txtCodePosti = App.NewHoghooghi.queryById('txtCodePosti');
+                    txtCodePosti.setValue(data.fldCodePosti); 
+                    var txtAddress = App.NewHoghooghi.queryById('txtAddress');
+                    txtAddress.setValue(data.fldAddress);
+                    var txtCodeEghtesadi = App.NewHoghooghi.queryById('txtCodeEghtesadi');
+                    txtCodeEghtesadi.setValue(data.fldCodeEghtesadi);
+
+
+                    Ext.net.Mask.hide();
+                }
+            });
+        }
+        else {
+            App.NewHoghooghi.queryById('txtName').validate();
+            App.NewHoghooghi.queryById('txtNationalCode').validate();
+            App.NewHoghooghi.queryById('txtTarikhTasis').validate();
+            App.NewHoghooghi.queryById('txtTarikhSabt').validate();
+            App.NewHoghooghi.queryById('txtShomareSabt').validate();
+            App.NewHoghooghi.queryById('txtCodePosti').validate();
+            App.NewHoghooghi.queryById('txtAddress').validate();
+            App.NewHoghooghi.queryById('txtCodeEghtesadi').validate();
+            Ext.net.Mask.hide();
+        }
+    }
+
+    function SaveHoghooghi() {
+        var txtName = App.NewHoghooghi.queryById('txtName');
+        var txtNationalCode = App.NewHoghooghi.queryById('txtNationalCode');
+        var txtTarikhTasis = App.NewHoghooghi.queryById('txtTarikhTasis');
+        var Id = App.NewHoghooghi.queryById('fldId');
+        var fldFileId = App.NewHoghooghi.queryById('fldFileId');
+        var txtTarikhSabt = App.NewHoghooghi.queryById('txtTarikhSabt');
+        var txtShomareSabt = App.NewHoghooghi.queryById('txtShomareSabt');
+        var txtCodePosti = App.NewHoghooghi.queryById('txtCodePosti');
+        var txtAddress = App.NewHoghooghi.queryById('txtAddress');
+        var txtCodeEghtesadi = App.NewHoghooghi.queryById('txtCodeEghtesadi');
+
+        var er = false;
+
+        if (txtName.validate() == false) {
+            er = true;
+        }
+        if (txtNationalCode.validate() == false) {
+            er = true;
+        }
+        if (txtTarikhTasis.validate() == false) {
+            er = true;
+        }
+        if (txtTarikhSabt.validate() == false) {
+            er = true;
+        }
+        if (txtShomareSabt.validate() == false) {
+            er = true;
+        }
+        if (txtCodePosti.validate() == false) {
+            er = true;
+        }
+        if (txtAddress.validate() == false) {
+            er = true;
+        }
+        if (txtCodeEghtesadi.validate() == false) {
+            er = true;
+        }
+        if (er == true)
+            return;
+
+        App.NewHoghooghi.body.mask("در حال ذخیره سازی");
+        Ext.net.DirectMethod.request({
+            url: '/AshkhasHoghooghi/Save',
+            params: {
+                DeleteFileHu: DeleteFileHu,
+                fldId: Id.getValue(),
+                fldName: txtName.getValue(),
+                fldNationalCode: txtNationalCode.getValue(),
+                fldFileId: fldFileId.getValue(),
+                fldTarikhTasis: txtTarikhTasis.getRawValue(),
+                fldDateSabt: txtTarikhSabt.rawValue,
+                fldShomareSabt: txtShomareSabt.getValue(),
+                fldCodePosti: txtCodePosti.getValue(),
+                fldAddress: txtAddress.getValue(),
+                txtCodeEghtesadi: txtCodeEghtesadi.getValue(),
+                fldTimeStamp: fldTimeStamp,
+                __RequestVerificationToken: App.NewHoghooghi.queryById('antiForgeryToken').getValue()
+            },
+            success: function (data) {
+                chat.server.reloadLog();
+
+                if (data.Er == 1 && data.Change == 1) {/*vaghti TimeStamp==0*/
+                   Ext.MessageBox.show({
+                       title: data.MsgTitle,
+                       msg: data.Msg,
+                       icon: Ext.MessageBox.WARNING,
+                       buttons: Ext.MessageBox.OK,
+                       fn: function (btn) {
+                           if (btn == 'ok') {
+                               LoadHoghooghi();
+                           }
+                       }
+                   });
+               }
+               else if (data.Er == 1 && data.Change == 2) {/*vaghti TimeStamp==2*/
+                   Ext.MessageBox.show({
+                       title: data.MsgTitle,
+                       msg: data.Msg,
+                       icon: Ext.MessageBox.ERROR,
+                       buttons: Ext.MessageBox.OK,
+                       fn: function (btn) {
+                           if (btn == 'ok') {
+                               App.NewHoghooghi.destroy();
+                           }
+                       }
+                   });
+
+               }
+               else if (data.Er == 1) {
+                   Ext.MessageBox.show({
+                       title: data.MsgTitle,
+                       msg: data.Msg,
+                       icon: Ext.MessageBox.ERROR,
+                       buttons: Ext.MessageBox.OK,
+                   });
+               }
+               else {
+                   Ext.MessageBox.show({
+                       title: data.MsgTitle,
+                       msg: data.Msg,
+                       icon: Ext.MessageBox.INFO,
+                       buttons: Ext.MessageBox.OK,
+                   });
+               }
+
+                if (data.Er != 1) {
+                    ClearHoghooghi();
+                }
+                else {
+                    Ext.get('fi-button-msg').update('<b>فایل انتخاب شده:</b> ');
+                    App.NewHoghooghi.queryById('ImageHoghooghi').setImageUrl("/Content/icon/Blank.jpg");
+                }
+                App.Hoghooghi.queryById('GridHoghooghi').getStore().load();
+                App.NewHoghooghi.body.mask().hide();
+            }
+        });
+    }
+
+    function ClearHoghooghi() {
+        App.NewHoghooghi.queryById('txtName').setValue("");
+        App.NewHoghooghi.queryById('txtNationalCode').setValue("");
+        App.NewHoghooghi.queryById('fldId').setValue(0);
+        App.NewHoghooghi.queryById("txtTarikhTasis").setRawValue("");
+        App.NewHoghooghi.queryById('fldFileId').setValue(0);
+        App.NewHoghooghi.queryById('txtTarikhSabt').setValue("");
+        App.NewHoghooghi.queryById('txtShomareSabt').setValue("");
+        App.NewHoghooghi.queryById('txtCodePosti').setValue("");
+        App.NewHoghooghi.queryById('txtAddress').setValue("");
+        App.NewHoghooghi.queryById('txtCodeEghtesadi').setValue("");
+        Ext.get('fi-button-msg').update('<b>فایل انتخاب شده:</b> ');
+        App.NewHoghooghi.queryById('ImageHoghooghi').setImageUrl("/Content/icon/Blank.jpg");
+    }
+    function Estelam(state) {
+        var txtShenase = App.NewHoghooghi.queryById('txtNationalCode');
+        var txtName = App.NewHoghooghi.queryById('txtName');
+        var d = txtShenase.getValue();
+        if (state == 2)
+            d = txtName.getValue();
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/AshkhasHoghooghi/LoadFromService',
+            params: {
+                state: state,
+                data: d,
+                __RequestVerificationToken: App.NewHoghooghi.queryById('antiForgeryToken').getValue()
+            },
+            success: function (data) {
+                if (data.Err == 1) {
+                    Ext.MessageBox.show({
+                        Name: "خطا",
+                        msg: "عدم برقراری ارتباط با سرور.",
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK
+                    });
+                }
+                else if (data.fldNationalCode == null) {
+                    Ext.MessageBox.show({
+                        Name: "خطا",
+                        msg: "شرکتی با این مشخصات یافت نشد.",
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK
+                    });
+                }
+                else {
+                    var txtShenase = App.NewHoghooghi.queryById('txtNationalCode');
+                    txtShenase.setValue(data.fldNationalCode);
+                    var txtName = App.NewHoghooghi.queryById('txtName');
+                    txtName.setValue(data.fldFullName);
+                    var txtTarikhSabt = App.NewHoghooghi.queryById('txtTarikhSabt');
+                    txtTarikhSabt.setValue(data.fldDateSabt);
+                    var txtTarikhTasis = App.NewHoghooghi.queryById('txtTarikhTasis');
+                    txtTarikhTasis.setValue(data.fldDateTasis);
+                    var txtShomareSabt = App.NewHoghooghi.queryById('txtShomareSabt');
+                    txtShomareSabt.setValue(data.fldSh_Sabt);
+                    var txtCodePosti = App.NewHoghooghi.queryById('txtCodePosti');
+                    txtCodePosti.setValue(data.fldCodePosti);
+                    var txtAddress = App.NewHoghooghi.queryById('txtAddress');
+                    txtAddress.setValue(data.fldAddress);
+                }
+                Ext.net.Mask.hide();
+            },
+            failure: function (data) {
+                Ext.net.Mask.hide();
+                Ext.MessageBox.show({
+                    Name: "خطا",
+                    msg: "عدم برقراری ارتباط با سرور.",
+                    icon: Ext.MessageBox.ERROR,
+                    buttons: Ext.MessageBox.OK
+                });
+                ClearHoghooghi();
+            }
+        });
+    }
+
+    var addKeyMapNewHoghooghi = function (cmp) {
+        this.keyMap = new Ext.util.KeyMap({
+            target: cmp.getEl(),
+            binding: [{
+                key: [13, 9], /*Ext.EventObject.ENTER,*/
+                fn: function (key, e) {
+                    if (e.getKey() == 9) {
+                        e.stopEvent();
+                    }
+                    var keyfield = App.NewHoghooghi.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+                    var nextfld;
+                    if (keyfield.itemId == "txtAddress") {
+                        return;
+                    }
+                    else if (keyfield.itemId == "txtNationalCode") {
+                        nextfld = App.NewHoghooghi.queryById("txtTarikhTasis");
+                    }
+                    else {
+                        nextfld = keyfield.nextSibling().nextSibling();
+                    }
+                    nextfld.focus();
+                    nextfld.selectText();
+                }
+            }]
+        });
+    }
+</script>

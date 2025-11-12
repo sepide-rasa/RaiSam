@@ -1,0 +1,154 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+<style>
+    .styleforlbl {
+        height: auto;
+        text-align: justify;
+        word-wrap: break-word;
+    }
+
+    .styleforlblVersion {
+        text-align: center;
+        font-family: 'Times New Roman';
+        font-size: 40px;
+        color: purple;
+    }
+</style>
+@(Html.X().Window()
+    .Modal(true)
+        .Listeners(li => li.AfterRender.Handler = "LoadInfoPageVersion();")
+    .Resizable(false)
+    .Width(300)
+    .Title("اطلاعات ورژن")
+    .ID("InfoPageVersion")
+    .Closable(true)
+    .ButtonAlign(Ext.Net.Alignment.Center)
+        .Layout(Ext.Net.LayoutType.VBox)
+           .LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Center })
+        .Listeners(l =>
+        {
+            l.Destroy.Handler = "SaveobservedAnnoncemnet()";
+            l.BeforeDestroy.Handler = "IsCheckedVertion=App.InfoPageVersion.queryById('ChkShow').checked";
+        })
+    .Buttons(
+        X.Button()
+            .Text("خروج")
+            .Icon(Ext.Net.Icon.DoorOut)
+                .OnClientClick("App.InfoPageVersion.destroy();"))
+            .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Items(
+
+            //X.FormPanel()
+        //.Border(false)
+        //.Height(200)
+        //.AutoScroll(true)
+
+            //    .Items(
+            X.FieldSet()
+                .Height(50)
+                .Layout(Ext.Net.LayoutType.VBox)
+                .LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Right })
+                .Defaults(new { Margin = 2 })
+                    .Border(false)
+                .Items(
+               X.Container().Content(@<div style="width:250px;" id="LblLastVersion"></div>).Cls("styleforlblVersion")),
+                //X.Panel()
+                //    .Border(true)
+                //    .PaddingSpec("15px 0 0 0")
+                //    .Items(
+                        X.FieldSet()
+                            .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 2 })
+                            .Defaults(new { Margin = 2 })
+                                .Border(false)
+                            .Items(
+
+                                X.Label().ItemID("LblTarikhVersion").ColSpan(2)
+                                //X.Container().Content(@<div style="width:350px;" id="LblInfo"></div>).Cls("styleforlbl")
+                                , X.Container().ItemID("DescVersion").Content(@<div><a id="haveDescVersion" href="javascript:void(0)" onclick="javascript:GotoDescVersion()">توضیحات ورژن</a></div>)
+                                , X.Container().ItemID("zMostanad").Content(@<div><a id="haveMostanad" href="javascript:void(0)" onclick="javascript:GotoMostanadat()">مستندات ورژن</a></div>)
+                                ),
+                                X.FieldSet()
+                            .Layout(Ext.Net.LayoutType.HBox)
+                            .Defaults(new { Margin = 2 })
+                            .Border(false)
+                            .Items(X.Checkbox().Checked(true).ItemID("ChkShow"),
+                            X.Label("عدم نمایش در دفعات آتی"))
+                //)
+           // )
+        )
+)
+
+<script type="text/javascript">
+    var IsCheckedVertion;
+    function LoadInfoPageVersion() {
+        App.InfoPageVersion.body.mask("در حال بارگذاری...");
+        Ext.net.DirectMethod.request({
+            url: '/Version/DetailsInfoPage',
+            params: {
+                VersionId: '@ViewBag.VersionId'
+            },
+            success: function (data) {
+                /*var LblInfo = document.getElementById("LblInfo");
+                LblInfo.innerHTML = "شرح ورژن: " + data.fldMatn;*/
+                var LblTarikhVersion = App.InfoPageVersion.queryById('LblTarikhVersion');
+                LblTarikhVersion.setText("تاریخ ورژن: " + data.fldTarikh);
+
+                var LblLastVersion = document.getElementById("LblLastVersion");
+                LblLastVersion.innerHTML = "Version  " + data.fldVersion;
+
+                if (data.SharhShow)
+                    App.InfoPageVersion.queryById('DescVersion').show();
+                else
+                    App.InfoPageVersion.queryById('DescVersion').hide();
+
+                if (data.HaveMostanad != 0) {
+                    App.InfoPageVersion.queryById('zMostanad').show();
+                }
+                else {
+                    App.InfoPageVersion.queryById('zMostanad').hide();
+                }
+                App.InfoPageVersion.body.mask().hide();
+            }
+        });
+    }
+    function GotoMostanadat() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: "/Version/ListMostanad",
+            params: {
+                VersionId: '@ViewBag.VersionId'
+            },
+            success: function () {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+    function GotoDescVersion() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: "/Version/DescVersion",
+            params: {
+                VersionId: '@ViewBag.VersionId'
+            },
+            success: function () {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+    function SaveobservedAnnoncemnet() {
+        Ext.net.DirectMethod.request({
+            url: '/Version/SaveVersion_Seen',
+            params: {
+                VersionId: '@ViewBag.VersionId',
+                Check: IsCheckedVertion
+            },
+            success: function () {
+            }
+        });
+    }
+
+</script>

@@ -1,0 +1,151 @@
+﻿@model IEnumerable<RaiSam.Models.SpecificCartablePermissionTree>
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+
+@{ var X = Html.X();}
+<style>
+    .no-leaf-icons .x-tree-icon-leaf {
+        display: none !important;
+    }
+
+    .x-tree-icon {
+        background-size: contain !important;
+    }
+</style>
+
+@(Html.X().Window()
+    .ID("SpecificK_Per")
+    .Title("تعیین دسترسی کارتابل تخصصی")
+    .Listeners(li => li.AfterRender.Handler = "SpecificK_PerSetSize();")
+    .Closable(true)
+    .Height(100)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Layout(LayoutType.Fit)
+    .Border(false)
+    .Modal(true)
+    .Items(
+         X.AntiForgeryField()
+                .ItemID("antiForgeryToken").Listeners(l => l.AfterRender.Handler = "App.TreeSpecificPer.store.load();setTimeout(function(){App.TreeSpecificPer.expandAll();},1000);")
+                .Hidden(true),
+        X.Panel()
+            .Border(false)
+            .Layout(LayoutType.Fit)
+            .ItemID("PnlTree")
+            .Items(
+                X.TreePanel()
+                    .ID("TreeSpecificPer")
+                    .Cls("no-leaf-icons")
+                    .AutoScroll(true)
+                    .TopBar(X.Toolbar().Items(
+                        X.Button().Text("ذخیره").Icon(Icon.Disk).Listeners(l => l.Click.Handler = "SaveSpecificTree()")
+                    ))
+                    .UseArrows(true)
+                    .Store(
+                        X.TreeStore()
+                            .Model(
+                                Html.X().Model()
+                                    .Fields(
+                                            X.ModelField().Name(Model, m => m.fldNodeId).Type(ModelFieldType.String),
+                                        X.ModelField().Name(Model, m => m.fldCartablId).Type(ModelFieldType.String),
+                                        X.ModelField().Name(Model, m => m.fldNodeType).Type(ModelFieldType.String),
+                                        X.ModelField().Name(Model, m => m.fldNodeName).Type(ModelFieldType.String),
+                                            X.ModelField().Name(Model, m => m.fldEffective).Type(ModelFieldType.Boolean),
+                                        X.ModelField().Name(Model, m => m.fldStatus).Type(ModelFieldType.Boolean),
+                                        X.ModelField().Name(Model, m => m.fldShowSpecific).Type(ModelFieldType.Boolean),
+                                        X.ModelField().Name(Model, m => m.fldShowGeneral).Type(ModelFieldType.Boolean)//,
+        //X.ModelField().Name(Model, m => m.fldDesc).Type(ModelFieldType.Boolean)
+                                    )
+                                )
+                            .Proxy(
+                                Html.X().AjaxProxy()
+                                    .Url(Url.Action("NodeLoadCartabl"))
+                                        .ActionMethods(l => l.Read = HttpMethod.POST)
+                                )
+                            .Listeners(l => l.BeforeLoad.Fn = "GetParamTreeSpecificPer")
+                        )
+                    .ColumnModel(
+                        X.Column().Text("عنوان").DataIndex("fldNodeId").Hidden(true).Flex(1),
+                        X.TreeColumn().Text("عنوان").DataIndex("fldNodeName").Wrap(true).Flex(5),
+                        X.CheckColumn().Text("مؤثر").DataIndex("fldEffective").Renderer("hidechecked").Editable(false).StopSelection(false).Flex(1),
+                        X.CheckColumn().Text("گروهی").DataIndex("fldStatus").Renderer("hidechecked").Editable(false).StopSelection(false).Flex(1),
+        //X.CheckColumn().Text("نمایش در کارتابل تخصصی").DataIndex("fldShowSpecific").Renderer("hidechecked").Editable(false).StopSelection(false).Flex(2),
+                        X.CheckColumn().Text("نمایش در کارتابل عمومی").DataIndex("fldShowGeneral").Renderer("hidechecked").Editable(false).StopSelection(false).Flex(1)
+                    )
+                    .Root(Html.X().Node().NodeID("0").AttributesObject(new { fldNodeId = "", fldNodeName = "دسترسی کارتابل تخصصی", fldNodeType = "0", CartablId = "0" })/*.Expanded(true)*/)
+                )
+        )
+)
+<script type="text/javascript">
+
+    var hidechecked = function (value, metaData, record, rowIndex, colIndex, store) {
+        if (record.data.fldNodeType == 4) {
+            return Ext.ux.CheckColumn.prototype.renderer.apply(this, arguments);
+        }
+    };
+
+    var GetParamTreeSpecificPer = function (store, operation, eOpts) {
+        operation.params.nod = operation.node.raw.fldNodeId;
+        operation.params.Typee = operation.node.raw.fldNodeType;
+        operation.params.UserAccessId = '@ViewBag.UserId';
+        operation.params.CartableIdd = operation.node.raw.cartablId;
+        operation.params.__RequestVerificationToken = App.SpecificK_Per.queryById('antiForgeryToken').getValue();
+    };
+
+    function SaveSpecificTree() {
+        var ExistOP = App.TreeSpecificPer.getRootNode().findChild("fldNodeType", 4, true);
+        if (ExistOP != null) {
+            var Checked = App.TreeSpecificPer.getChecked();
+            var Permission = new Array();
+            var AppIds = "";
+            App.SpecificK_Per.body.mask("در حال ذخیره سازی...");
+
+            for (var i = 0; i < Checked.length ; i++) {
+                AppIds = AppIds + Checked[i].raw.fldNodeId + ";";
+                /*Permission.push({
+                    'fldOperation_ActionId': Checked[i].raw.fldNodeId
+                });*/
+            }
+            var data = {
+                /*permi: Permission,*/
+                AppIds:AppIds,
+                'UserAccessId': '@ViewBag.UserId',
+                __RequestVerificationToken: App.SpecificK_Per.queryById('antiForgeryToken').getValue()
+            };
+            $.ajax({
+                type: "POST",
+                url: '/User/SavePermission',
+                datatype: "json",
+                data: data,
+                /*contentType: 'application/json',*/
+                success: function (data) {
+                    var ic = Ext.MessageBox.INFO;
+                    if (data.Er == 1)
+                        ic = Ext.MessageBox.ERROR;
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: ic,
+                        buttons: Ext.MessageBox.OK
+                    });
+                    App.SpecificK_Per.body.mask().hide();
+                },
+                failure: function (data) {
+                    alert(data.data);
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا ابتدا اکشن را به کارتابل اختصاص دهید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+
+    function SpecificK_PerSetSize() {
+        App.SpecificK_Per.setSize(App.UserWin.getWidth() - 400, App.UserWin.getHeight()-50);
+    }
+</script>

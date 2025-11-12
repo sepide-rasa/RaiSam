@@ -1,0 +1,67 @@
+﻿@using Ext.Net.MVC;
+@{
+
+    var X = Html.X();
+}
+
+@(X.Window()
+    .Height(300)
+    .Width(500)
+    .Modal(true)
+    .ID("NewCh_CompanyProfile")
+    .Title("گفتگوی جدید")
+    .Closable(true)
+    .Border(false)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Layout(Ext.Net.LayoutType.Fit)
+    .ButtonAlign(Ext.Net.Alignment.Center)
+    .Buttons(
+        Html.X().Button()
+            .Text("ذخیره")
+            .Icon(Ext.Net.Icon.Disk)
+            .Listeners(l => l.Click.Handler = "SaveNewCh_CompanyProfiles();"),
+        Html.X().Button()
+            .Text("خروج")
+            .Icon(Ext.Net.Icon.BulletCross)
+            .OnClientClick("App.NewCh_CompanyProfile.destroy();")
+    )
+    .Items(
+        X.TextArea()
+            .ItemID("TextAreaMsgCP")
+            .AllowBlank(false)
+            .Listeners(l => l.Render.Handler = "App.NewCh_CompanyProfile.queryById('TextAreaMsgCP').validate();")
+            .BlankText("لطفاً پیام خود را وارد نمایید")
+    )
+)
+
+<script>
+    function SaveNewCh_CompanyProfiles() {
+        TextAreaMsgCP = App.NewCh_CompanyProfile.queryById('TextAreaMsgCP');
+        if (TextAreaMsgCP.validate() == false) {
+            return;
+        }
+        Ext.net.Mask.show({ msg: 'در حال ذخیره سازی...' });
+        Ext.net.DirectMethod.request({
+            url: '/CompanyProfile/SaveNewCh_CompanyProfile',
+            params:{
+                fldMsg: TextAreaMsgCP.getValue(),
+                fldFirstRegisterId: '@ViewBag.FirstRegisterId'
+            },
+            success: function (data) {
+                var ic = Ext.MessageBox.INFO;
+                if (data.Er == 1)
+                    ic = Ext.MessageBox.ERROR;
+                Ext.MessageBox.show({
+                    title: data.MsgTitle,
+                    msg:data.Msg,
+                    icon: ic,
+                    buttons: Ext.MessageBox.OK
+                });
+                App.Ch_CompanyProfile.queryById("GridCh_CompanyProfile").store.load();
+                App.NewCh_CompanyProfile.destroy();
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+</script>

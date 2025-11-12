@@ -1,0 +1,11 @@
+﻿@using Ext.Net.MVC;
+
+@(
+ Html.X().Window().Maximized(true).Modal(true)
+    .Title("پیش نمایش")
+    .AutoScroll(true)
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Html("<center><object style='width: 100%;height:550px;border: 1px solid #ccc;' type='application/pdf' data='/CompanyProfile/GenerateForm?state=" + @ViewBag.state + "'></object></center>")
+
+)

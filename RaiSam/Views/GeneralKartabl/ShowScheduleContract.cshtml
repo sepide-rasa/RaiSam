@@ -1,0 +1,338 @@
+﻿@model IEnumerable<RaiSam.Models.prs_SelectScheduleTitleByFirstContract>
+
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+<style>
+    .titlebold {
+        font-weight: bold;
+        font-size: 12px;
+        color: ThreeDDarkShadow;
+    }
+
+    .wrap-lable {
+        word-wrap: break-word;
+    }
+    #SingleP legend {
+        text-align: right;
+        font-family: Tahoma !important;
+    }
+</style>
+<script>
+    var template = '<img src={0} alt="" title={1} />';
+
+    var Color = function (value) {
+        var Pic = "@Url.Content("~/Content/icon/mini/عدمتاییدصلاحیت.png")";
+        var ToolTip = "عدم" + '&nbsp;' + "تایید";
+         if (value == "1") {
+            Pic = "@Url.Content("~/Content/icon/mini/تاییدصلاحیت.png")";
+            ToolTip ="تایید" + '&nbsp;' + "شده";
+        }
+        else if (value == "-1") {
+            Pic = "@Url.Content("~/Content/icon/mini/درحالبررسی.png")";
+            ToolTip ="در" + '&nbsp;' + "حال"+'&nbsp;'+"بررسی";
+        }
+        
+
+        return Ext.String.format(template, Pic, ToolTip);
+    };
+</script>
+<script src="~/Scripts/accounting.js"></script>
+@(Html.X().Window().Modal(true).Listeners(li => li.AfterRender.Handler = "ReloadScheduleContract();")
+.Width(500)//.Height(300)
+    .Title("زمانبندی پروژه")
+                     .ID("NewScheduleContract")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Items(
+        X.FormPanel().Border(false)
+        .Border(false).ButtonAlign(Ext.Net.Alignment.Center)
+            .Margin(10)
+            .DefaultButton("btn")
+        .TitleAlign(Ext.Net.TitleAlign.Center)
+               .Buttons(
+                 X.SplitButton()
+                    .Text("بررسی")
+                    .Icon(Ext.Net.Icon.UserComment)
+                        .Listeners(l => l.Click.Handler = "GotoTaeedWin();")
+                .Hidden(@ViewBag.HaveTaeed == false)
+                                    .Menu(X.Menu()
+                                    .Items(
+                                    X.MenuItem()
+                                        .Text("سوابق بررسی")
+                                        .Icon(Ext.Net.Icon.Report)
+                                            .Listeners(l => l.Click.Handler = "GotoHistoryTaeedWin()")
+
+                                )
+                                )
+                    ,
+               X.SplitButton()
+                                    .Text("چاپ")
+                                    .Icon(Ext.Net.Icon.Printer)
+                                    .Menu(X.Menu()
+                                    .Items(
+                                    X.MenuItem()
+                                                .Text("گرافیکی")
+                                                .Icon(Ext.Net.Icon.Report)
+                                                            .Listeners(l => l.Click.Handler = "PrintScheduleContract(1)"),
+                                        X.MenuItem()
+                                                .Text("عادی")
+                                                .Icon(Ext.Net.Icon.Script)
+                                                                .Listeners(l => l.Click.Handler = "PrintScheduleContract(2)"),
+                                            X.MenuItem()
+                                                    .Text("اکسل")
+                                                    .Icon(Ext.Net.Icon.PageExcel)
+                                                                .Listeners(l => l.Click.Handler = "xlsScheduleContract()")
+
+                                )
+                                )
+                                ,
+                            X.Button().Text("خروج").Icon(Ext.Net.Icon.DoorOut).ToolTip("کلید میانبر Esc")
+                                               .OnClientClick("App.NewScheduleContract.destroy()"))
+
+                .Items(
+                X.Panel().Border(false)
+
+            .Items(
+                X.FieldSet().Border(false)
+                .Center()
+                .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 1 })
+                .Defaults(new { Margin = 2 })
+                .Items(
+                X.Hidden().ItemID("fldId")
+               , X.AntiForgeryField().ItemID("AntiForgeryField")
+                    ,
+                      X.FieldSet()
+                                .Border(true)
+                                        .Title("عنوان درخواست")
+                                              .ID("SingleP")
+                                .Center()
+                                .Layout(LayoutType.HBox)
+                                    .Items(
+                                        X.FieldSet()
+                                            .Border(false)
+                                            .Center()
+                                            .Width(420)
+                                            .Padding(0)
+                                            .Margin(0)
+                                            .Layout(LayoutType.VBox)
+                                            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Right })
+                                            .Items(
+                                                X.FieldSet()
+                                                    .Layout(LayoutType.HBox)
+                                                    .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                                                    .Border(false)
+                                                    .Padding(0)
+                                                    .Width(410)
+                                                    .Items(
+                                                        X.Label()
+                                                            .Width(410)
+                                                            .ItemID("NameRequest")
+                                                            .Text("")
+                                                            .PaddingSpec("0 0 0 5px")
+                                                            .Height(18)
+                                                            .Cls("wrap-lable")
+                                                        )
+
+                                            )
+                                            )
+                            , X.FieldSet().Border(false)
+                            .Items(
+                                 Html.X().GridPanel()
+                                .ID("GridScheduleContract")
+                    .Icon(Icon.Table)
+                    .Frame(true)
+                   // .Title(" زمانبندی")
+                    .Height(350)
+                    .Width(430)
+                    .Store(
+                            Html.X().StoreForModel().Control(s =>
+                        {
+                            // s.AutoSync = true;
+                        })
+
+                                   //.Listeners(li => li.BeforeLoad.Handler = "ReloadTajhizat()")
+                    )
+                       .ColumnModel(
+                            Html.X().RowNumbererColumn(),
+                                    Html.X().Column().DataIndex(Model, m => m.fldScheduleTitleId).Text("کد").Flex(1).Hidden(true),
+                                Html.X().Column().DataIndex(Model, m => m.fldScheduleContractId).Text("کد").Flex(1).Hidden(true),
+                                Html.X().Column().DataIndex(Model, m => m.fldTitleSchedule).Text("عنوان").Flex(3),
+                                            Html.X().Column().DataIndex(Model, m => m.fldAzTarikh).ItemID("AzTarikh").Text("از تاریخ").Flex(2),
+                                            Html.X().Column().DataIndex(Model, m => m.fldTaTarikh).ItemID("TaTarikh").Text("تا تاریخ").Flex(2),
+                                            Html.X().Column().DataIndex(Model, m => m.fldStatus).Text("وضعیت").Flex(1).Filterable(false).Renderer("Color")/*,
+                 Html.X().ImageCommandColumn()
+                                .Listeners(l => l.Command.Fn = "ShowInfoSchedule")
+                                .Flex(1).Commands(Html.X().ImageCommand().CommandName("InfoSchedule").Icon(Ext.Net.Icon.Information).ToolTip(tt => tt.Text = "بررسی"))*/
+
+                        )
+
+              
+                        .Plugins(
+                                Html.X().CellEditing()
+
+                        )
+                        )
+                        )
+
+                )
+                    .Layout(Ext.Net.LayoutType.VBox)
+                    .LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Center })
+            )
+        )
+)
+
+<script type="text/javascript">
+    var ItemScheduleContractID = 0; var TreeId = 0;
+    var ScheduleContractId = ""; var ToolName = "";
+
+
+    function ReloadScheduleContract() {
+        App.NewScheduleContract.queryById("NameRequest").setText('@ViewBag.TitleContract');
+
+            Ext.net.DirectMethod.request({
+                url: '/GeneralKartabl/ReloadScheduleContract',
+                params: {
+                    Proj: '@ViewBag.contractId'
+                },
+                success: function (data) {
+                    App.NewScheduleContract.queryById('GridScheduleContract').getStore().loadData(data);
+                }
+            });
+        }
+
+
+
+        function SaveScheduleContract() {
+
+            var fldId = App.NewScheduleContract.queryById('fldId');
+            var cboProject = App.NewScheduleContract.queryById('cboProject');
+            var er = false;
+
+            if (cboProject.validate() == false) {
+                er = true;
+            }
+
+            if (er == true)
+                return;
+            var ScheduleContract = new Array();
+            var AzTarikh;
+            var SelectedRow = App.NewScheduleContract.queryById('GridScheduleContract');
+            for (var i = 0; i < SelectedRow.selModel.store.count() ; i++) {
+                row = SelectedRow.selModel.store.data.items[i];
+                AzTarikh = row.data.fldAzTarikh;
+
+                if (AzTarikh != "") {
+                    ScheduleContract.push({
+                        'fldScheduleTitleId': row.data.fldScheduleTitleId,
+                        'fldAzTarikh': row.data.fldAzTarikh,
+                        'fldTaTarikh': row.data.fldTaTarikh,
+                        'fldId': row.data.fldScheduleContractId,
+                        'fldFirstContractId': cboProject.getValue()
+                    });
+                }
+                else if (ScheduleContract == null) {
+                    alert("لطفا جدول زمانبندی را تکمیل کنید.");
+                    return;
+                }
+            }
+            var data1 = {
+                ItemDetail: ScheduleContract
+            };
+            $.ajax({
+                type: "POST",
+                url: '/ScheduleContract/Save',
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify(data1),
+                datatype: "json",
+                success: function (data) {
+                    var ic = Ext.MessageBox.INFO;
+                    if (data.Err == 1)
+                        ic = Ext.MessageBox.ERROR;
+                    Ext.MessageBox.show({
+                        Name: data.MsgName,
+                        msg: data.Msg,
+                        icon: ic,
+                        buttons: Ext.MessageBox.OK
+                    });
+                    App.ScheduleContract.queryById('GridScheduleContract').store.load();
+
+                },
+                failure: function (data) {
+                    alert(data.data);
+                }
+            });
+        }
+        function ShowInfoSchedule(grid, command, record, row) {
+            /*var Id = record.data.fldId;*/
+            if (command == 'InfoSchedule') {
+                Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+                Ext.net.DirectMethod.request({
+                    url: '/GeneralKartabl/TaeedWin',
+                    params: {
+                        App_ClientId: 11,
+                        TableId: record.data.fldScheduleContractId,
+                        ContractId: '@ViewBag.contractId'
+                    },
+                    success: function () {
+                        Ext.net.Mask.hide();
+                    }
+                });
+            }
+        }
+
+        function EnterNext() {
+            var keyfield = App.NewScheduleContract.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+            var nextfld = keyfield.nextSibling();
+            nextfld.focus();
+            nextfld.selectText();
+        }
+        function PrintScheduleContract(state) {
+            Ext.net.DirectMethod.request({
+                url: '/Faces/ScheduleContract/PrintSchedule',
+                params: {
+                    Id: '@ViewBag.contractId',
+                    state: state,
+                    __RequestVerificationToken: App.NewScheduleContract.queryById('AntiForgeryField').getValue()
+                },
+                success: function (result) {
+
+                }
+            });
+        }
+    function xlsScheduleContract() {
+        window.location.href = '@Url.Content("~/Faces/ScheduleContract/CreateExcel")' + '?Id=' + '@ViewBag.contractId'
+       
+    }
+    function GotoTaeedWin() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/GeneralKartabl/TaeedWin',
+            params: {
+                App_ClientId: 11,
+                TableId: '@ViewBag.ScheduleHeader',
+                ContractId: '@ViewBag.contractId'
+            },
+            success: function () {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+    function GotoHistoryTaeedWin() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/GeneralKartabl/HistoryTaeedWin',
+            params: {
+                App_ClientId: 11,
+                TableId: '@ViewBag.ScheduleHeader',
+                ContractId: '@ViewBag.contractId'
+            },
+            success: function () {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+</script>

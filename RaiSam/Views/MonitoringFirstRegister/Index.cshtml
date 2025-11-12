@@ -1,0 +1,545 @@
+﻿@model IEnumerable<RaiSam.Models.prs_ListCompany_First>
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@using Ext.Net.Utilities;
+@{
+
+    var X = Html.X();
+    int P_Email = 0;
+    if (RaiSam.Models.Permission.haveAccess(192, "", "0"))
+    {
+        P_Email = 1;
+    }
+    int P_Sms = 0;
+    if (RaiSam.Models.Permission.haveAccess(193, "", "0"))
+    {
+        P_Sms = 1;
+    }
+    int P_Del = 0;
+    if (RaiSam.Models.Permission.haveAccess(194, "", "0"))
+    {
+        P_Del = 1;
+    }
+    int P_Send = 0;
+    if (RaiSam.Models.Permission.haveAccess(196, "", "0"))
+    {
+        P_Send = 1;
+    }
+}
+<script>
+    var template = '<img src={0} alt="" onclick={2} onmouseover="" style="{3}" title={1} />';
+
+
+    var ColorSms = function (value, record) {
+        var Pic = "@Url.Content("~/Content/Sms1.png")";
+        var ToolTip = "ارسال"+'&nbsp;'+"شده";
+        var k = String(record.record.data.fldId);
+        var s = "SendSmsIn(" + k + ");";
+        var m = "cursor: pointer;";
+        if (value == 0) {
+            Pic = "@Url.Content("~/Content/Sms2.png")";
+            var ToolTip = "ارسال"+'&nbsp;'+"نشده";
+        }
+        return Ext.String.format(template, Pic, ToolTip,s,m);
+    };
+    var ColorEmail = function (value) {
+        var Pic = "@Url.Content("~/Content/Email1.png")";
+        var ToolTip = "ارسال"+'&nbsp;'+"شده";
+        if (value == 0) {
+            Pic = "@Url.Content("~/Content/Email2.png")";
+            var ToolTip = "ارسال"+'&nbsp;'+"نشده";
+        }
+        return Ext.String.format(template, Pic, ToolTip);
+    };
+</script>
+
+
+@(X.Window().Maximized(true)//.Listeners(li => li.AfterRender.Handler = "App.ListCompany.queryById('GridListCompany').store.load();")
+            .ID("ListCompany")
+            .Closable(true)
+            .Height(500)
+                .Title("مانیتورینگ ثبت نام اولیه")
+            .AutoScroll(true)
+            .CloseAction(Ext.Net.CloseAction.Destroy)
+        //.Layout(Ext.Net.LayoutType.Fit)
+            .Items(
+            X.FieldSet().Border(false)
+                .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 5 })
+                    .Defaults(new { Margin = 5 })
+                .Items(
+                X.Label().Text("از تاریخ:")
+                    , X.PDateField()
+        //.Listeners(l => l.AfterRender.Handler = "load();")
+                    .Listeners(l =>
+                        {
+                            l.AfterRender.Handler = "load();";
+                            l.Change.Handler = "setDateAz();";
+                        })
+                    .ItemID("txtAzTarikh")
+        // .FieldLabel("از تاریخ")
+                       .Editable(false)
+                    .MsgTarget(Ext.Net.MessageTarget.Side)
+                        .AllowBlank(false)
+        //.MaskRe("/[0-9,/]/")
+                    .BlankText("لطفا تاریخ را وارد کنید.")
+                    .LabelAlign(Ext.Net.LabelAlign.Top)
+                    .AutoFocus(true)
+                   , X.Label().Text("تا تاریخ:")
+                    , X.PDateField()
+                    .Editable(false)
+                     .ItemID("txtTaTarikh")
+        //.Listeners(l => l.AfterRender.Handler = "load();")
+                    .Listeners(l =>
+                        {
+                            l.AfterRender.Handler = "load();";
+                            l.Change.Handler = "setDateTa();";
+                        })
+        //  .FieldLabel("تا تاریخ")
+        //.MaskRe("/[0-9,/]/")
+                    .MsgTarget(Ext.Net.MessageTarget.Side)
+                    .AllowBlank(false)
+                    .BlankText("لطفا تاریخ را وارد کنید.")
+                    .LabelAlign(Ext.Net.LabelAlign.Top)
+                    , X.Button().Text("جستجو").Icon(Ext.Net.Icon.Find)
+                              .Listeners(li => li.Click.Handler = "load();")
+                    )
+                    ,
+                    X.Panel().Border(false)
+                .Border(false)
+                .AutoScroll(true)
+        //    .Layout(Ext.Net.LayoutType.Fit)
+                .Items(
+
+                    X.GridPanel().AutoScroll(true)
+                        .TopBar(
+                            Html.X().Toolbar()
+                            .Items(
+        //X.Button().Text("ارسال پیامک گروهی").Icon(Ext.Net.Icon.ArrowOut)
+        //            .Listeners(li => li.Click.Handler = "SendGroupSms();"),
+                                X.Button().Text("بارگزاری مجدد").Icon(Ext.Net.Icon.Reload)
+                                        .Listeners(li => li.Click.Handler = "ReloadListCompany();"),
+                                    X.Button().Text("چاپ گزارش").Icon(Ext.Net.Icon.Printer)
+                                            .Listeners(Li => Li.Click.Handler = "PrintListCompany();"),
+        //X.Button().Text("ارسال مجدد پیامک").Icon(Ext.Net.Icon.ForwardGreen)
+        //    .Listeners(de =>
+        //    {
+        //        de.Click.Handler = "if (App.ListCompany.queryById('GridListCompany').selModel.getLastSelected() == null) {Ext.MessageBox.show({ title: 'خطا', msg: 'لطفا یک سطر را انتخاب کنید',icon: Ext.MessageBox.ERROR,buttons: Ext.MessageBox.OK});return false;}else SendSms();";
+        //    }),
+                                 X.Button()
+                                .Text("ارسال پیامک")
+                                .Icon(Ext.Net.Icon.DeviceStylus)
+                                .Listeners(de =>
+                                {
+                                    de.Click.Handler = "GotoSend()";
+                                }),
+                                X.Button().Text("حذف").Icon(Ext.Net.Icon.Delete)
+                                    .Listeners(de =>
+                                    {
+                                        de.Click.Handler = "if (App.ListCompany.queryById('GridListCompany').selModel.getLastSelected() == null) {Ext.MessageBox.show({ title: 'خطا', msg: 'لطفا یک سطر را انتخاب کنید',icon: Ext.MessageBox.ERROR,buttons: Ext.MessageBox.OK});return false;}else DeleteListCompany();";
+                                    })
+                                     , X.Button().Text("خروجی اکسل").Icon(Ext.Net.Icon.BookAdd)
+                                     .Listeners(l => l.Click.Handler = "Excel()")
+        //, X.Button().Text("تغییر رمزعبور").Icon(Ext.Net.Icon.Pencil)
+        //.Listeners(l => l.Click.Handler = "ResetPass()")
+                                     , X.Button()
+                                        .Text("تغییر رمزعبور")
+                                        .Icon(Ext.Net.Icon.Pencil)//.ToolTip("کلید میانبر F8")
+                                    .Menu(X.Menu()
+                                    .Items(
+                                        X.MenuItem()
+                                                .Text("ارسال پیامک به نماینده")
+                                            .Icon(Ext.Net.Icon.NoteGo)
+                                                .Listeners(li => li.Click.Handler = "ResetPass(1);"),
+                                                X.MenuItem()
+                                                    .Icon(Ext.Net.Icon.NoteGo)
+                                                .Text("نمایش رمز جدید")
+                                                    .Listeners(li => li.Click.Handler = "ResetPass(3);")
+                                )
+                                    )
+                                        ,
+                                             X.SplitButton()
+                                    .Text("راهنما")
+                                    .Icon(Ext.Net.Icon.Help)
+                                    .Menu(X.Menu()
+                                    .Items(
+                                    X.MenuItem()
+                                                .Text("راهنما متنی")
+                                                .Icon(Ext.Net.Icon.TextPaddingTop)
+                                                        .Listeners(l => l.Click.Handler = "HelpFirst()"),
+                                        X.MenuItem()
+                                                .Text("راهنما تصویری")
+                                                .Icon(Ext.Net.Icon.PlayBlue)
+                                                    .Listeners(l => l.Click.Handler = "showHelp_VideoFirst()")
+
+                                )
+                                )
+                            )
+                        )
+                      .ItemID("GridListCompany").Flex(2)
+                    .BottomBar(X.PagingToolbar())
+                    .Height(600)
+        //.ColumnWidth(0.6)
+        //.Layout(Ext.Net.LayoutType.Column)
+                    .Store(
+                        X.StoreForModel().AutoLoad(false)
+                        .Proxy(Html.X().AjaxProxy()
+
+                            .Url(Url.Action("Read"))
+                            .Reader(Html.X().JsonReader().Root("data"))
+        //  .ExtraParams(ex => ex.Add(new { AzTarikh = App.ListCompany.queryById("txtAzTarikh").rawValue, TaTarikh = App.ListCompany.queryById("txtTaTarikh").rawValue }))
+                            )
+                        .PageSize(20)
+                        .RemoteFilter(true)
+                        .RemotePaging(true)
+                 .Listeners(l => l.DataChanged.Handler = "var grid=App.ListCompany.queryById('GridListCompany');grid.setHeight(App.ListCompany.height-91);App.ListCompany.queryById('GridListCompany').selModel.refresh();")
+                    )
+                    .View(
+                        Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                    )
+                    .Plugins(X.FilterHeader().Remote(true))
+                    .ColumnModel(
+                            Html.X().Column().DataIndex(Model, m => m.fldId).Text("کد").Flex(1).Hidden(true),
+                            Html.X().Column().DataIndex(Model, m => m.fldFlag).Text("وضعیت ایمیل").Flex(3).Renderer("ColorEmail").Filterable(false),
+                            Html.X().Column().DataIndex(Model, m => m.fldSms).Text("وضعیت پیامک").Flex(3).Renderer("ColorSms").Filterable(false),
+        //Html.X().ImageCommandColumn().DataIndex(Model, m => m.fldSms).Listeners(l => l.Command.Handler = "SendSms(record);").Renderer("ColorSms")
+        //.Flex(3).Commands(Html.X().ImageCommand().CommandName("InfoShareholder")),
+                            Html.X().Column().DataIndex(Model, m => m.fldEmail).Text("پست الکترونیک").Flex(10),
+                            Html.X().Column().DataIndex(Model, m => m.fldUserName).Text("نام کاربری").Flex(5),
+                            Html.X().Column().DataIndex(Model, m => m.fldMobile).Text("شماره موبایل").Flex(5),
+                           // Html.X().Column().DataIndex(Model, m => m.fldGroupName).Text("هدف از ثبت نام").Flex(10),
+                            Html.X().Column().DataIndex(Model, m => m.fldTarikh).Text("تاریخ").Flex(3),
+                            Html.X().Column().DataIndex(Model, m => m.fldTime).Text("زمان").Flex(2)
+                    )
+                         .SelectionModel(
+                            Html.X().CheckboxSelectionModel()
+                                .Mode(Ext.Net.SelectionMode.Multi).CheckOnly(true)
+                        )
+
+                )
+            )
+)
+
+
+<script type="text/javascript">
+    function showHelp_VideoFirst() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/MonitoringFirstRegister/VideoWinFisrt',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+
+    }
+    function HelpFirst() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/MonitoringFirstRegister/Help',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+    function Excel(){
+        var AzTarikh = App.ListCompany.queryById('txtAzTarikh').rawValue;
+        var TaTarikh = App.ListCompany.queryById('txtTaTarikh').rawValue;
+        var Checked = "";
+        Checked = "Flag" + ";"+ "Sms" + ";" + "Email" + ";" + "UserName" + ";" + "Mobile" + ";"  + "Tarikh" + ";" + "Time" + ";";
+        window.location.href = '@Url.Content("~/MonitoringFirstRegister/CreateExcel/")' + '?Checked=' + Checked+'&AzTarikh='+AzTarikh+'&TaTarikh='+TaTarikh;
+    }
+    function setDateTa() {
+        var txtAzTarikh =App.ListCompany.queryById('txtAzTarikh');
+        var txtTaTarikh = App.ListCompany.queryById('txtTaTarikh');
+        txtAzTarikh.setMaxValue(txtTaTarikh.getValue());
+        txtAzTarikh.maxText = "تاریخ شروع نباید از تاریخ پایان بزرگتر باشد.";
+        /*txtTaTarikh.setMinValue (txtAzTarikh.getValue());
+        txtTaTarikh.minText = "تاریخ شروع نباید از تاریخ پایان بزرگتر باشد.";*/
+    }
+    function setDateAz() {
+        var txtAzTarikh = App.ListCompany.queryById('txtAzTarikh');
+        var txtTaTarikh = App.ListCompany.queryById('txtTaTarikh');
+        /*txtAzTarikh.setMaxValue ( txtTaTarikh.getValue());
+        txtAzTarikh.maxText = "تاریخ شروع نباید از تاریخ پایان بزرگتر باشد.";*/
+        txtTaTarikh.setMinValue(txtAzTarikh.getValue());
+        txtTaTarikh.minText = "تاریخ شروع نباید از تاریخ پایان بزرگتر باشد.";
+    }
+    function SendGroupSms() {
+        Ext.net.DirectMethod.request({
+            url: '/MonitoringFirstRegister/newPayam',
+            success: function () {
+            }
+        });
+    }
+    function ResetPass(st) {
+        var SelectedHeaderRow = App.ListCompany.queryById('GridListCompany').selModel.getLastSelected();
+        if (SelectedHeaderRow != null) {
+            Ext.MessageBox.show({
+                title: "هشدار",
+                msg: "آیا برای تغییر رمز عبور اطمینان دارید؟",
+                icon: Ext.MessageBox.WARNING,
+                buttons: Ext.MessageBox.YESNO,
+                fn: function (btn) {
+                    if (btn == 'yes') {
+                        Ext.net.DirectMethod.request({
+                            url: '/MonitoringFirstRegister/ResetPassword',
+                            params: {
+                                id: SelectedHeaderRow.data.fldId,
+                                State:st
+                            },
+                            success: function (data) {
+                                var ic = Ext.MessageBox.INFO;
+                                if (data.Er == 1)
+                                    ic = Ext.MessageBox.ERROR;
+                                Ext.MessageBox.show({
+                                    title: data.MsgTitle,
+                                    msg: data.Msg,
+                                    icon: ic,
+                                    buttons: Ext.MessageBox.OK
+                                });
+                            }
+                        });
+                    }
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+    function showBargozary() {
+        Ext.MessageBox.show({
+            msg: 'لطفاً منتظر باشید',
+            progressText: 'در حال بارگذاری...',
+            width: 300,
+            wait: true,
+            waitConfig:
+            {
+                /*duration: 10000,*/
+                interval: 200,
+                /*increment: 15,*/
+                text: 'در حال بارگذاری...',
+                scope: this
+                /*fn: function () {
+                    Ext.MessageBox.hide();
+                    Ext.Msg.alert('Status', 'Saved successfully!');
+                }*/
+            }
+        });
+
+    }
+
+    function load() {
+
+        var DateStart = new Date('@ViewBag.fldTarikhE');
+        var txtAzTarikh = App.ListCompany.queryById('txtAzTarikh');
+        var txtTaTarikh = App.ListCompany.queryById('txtTaTarikh');
+        txtAzTarikh.setMaxValue (DateStart);
+        txtTaTarikh.setMaxValue (DateStart);
+        txtAzTarikh.maxText = "تاریخ باید قبل از" + '@ViewBag.fldTarikh_Sh' + "باشد";
+        txtTaTarikh.maxText = "تاریخ باید قبل از" + '@ViewBag.fldTarikh_Sh' + "باشد";
+        App.ListCompany.queryById('GridListCompany').getStore().getProxy().setExtraParam("AzTarikh", App.ListCompany.queryById("txtAzTarikh").rawValue);
+        App.ListCompany.queryById('GridListCompany').getStore().getProxy().setExtraParam("TaTarikh", App.ListCompany.queryById("txtTaTarikh").rawValue);
+        App.ListCompany.queryById('GridListCompany').getStore().load();
+    }
+    function PrintListCompany() {
+        @* window.open('@Url.Content("~/faces/MonitoringFirstRegister/Print")');*@
+        var AzTarikh = App.ListCompany.queryById('txtAzTarikh').rawValue;
+        var TaTarikh = App.ListCompany.queryById('txtTaTarikh').rawValue;
+        showBargozary();
+        Ext.net.DirectMethod.request({
+            url: '/MonitoringFirstRegister/Print',
+            params: {
+                AzTarikh: AzTarikh,
+                TaTarikh: TaTarikh
+            },
+            success: function () {
+                Ext.MessageBox.hide();
+            }
+        });
+
+    }
+    function ReloadListCompany() {
+        App.ListCompany.queryById('GridListCompany').store.load();
+    }
+    function DeleteListCompany() {
+        if(@P_Del == 0){
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "شما مجاز به حذف نمی باشید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+        else{
+            var SelectedHeaderRow = App.ListCompany.queryById('GridListCompany').selModel.getLastSelected();
+            if (SelectedHeaderRow != null) {
+                Ext.MessageBox.show({
+                    title: "هشدار",
+                    msg: "آیا برای حذف مطمئن هستید؟",
+                    icon: Ext.MessageBox.WARNING,
+                    buttons: Ext.MessageBox.YESNO,
+                    fn: function (btn) {
+                        if (btn == 'yes') {
+                            Ext.net.DirectMethod.request({
+                                url: '/MonitoringFirstRegister/Delete',
+                                params: {
+                                    id: SelectedHeaderRow.data.fldId
+                                },
+                                success: function (data) {
+                                    var ic = Ext.MessageBox.INFO;
+                                    if (data.Er == 1)
+                                        ic = Ext.MessageBox.ERROR;
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: ic,
+                                        buttons: Ext.MessageBox.OK
+                                    });
+                                    App.ListCompany.queryById('GridListCompany').store.load()
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+            else {
+                Ext.MessageBox.show({
+                    title: "خطا",
+                    msg: "لطفا یک سطر را انتخاب کنید",
+                    icon: Ext.MessageBox.ERROR,
+                    buttons: Ext.MessageBox.OK
+                });
+            }
+        }
+    }
+    function SendSms() {
+        var SelectedHeaderRow = App.ListCompany.queryById('GridListCompany').selModel.getLastSelected();
+        if (SelectedHeaderRow != null) {
+            Ext.MessageBox.show({
+                title: "هشدار",
+                msg: "آیا برای ارسال مجدد پیامک مطمئن هستید؟",
+                icon: Ext.MessageBox.WARNING,
+                buttons: Ext.MessageBox.YESNO,
+                fn: function (btn) {
+                    if (btn == 'yes') {
+                        Ext.net.DirectMethod.request({
+                            url: '/MonitoringFirstRegister/SendSms',
+                            params: {
+                                id: SelectedHeaderRow.data.fldId
+                            },
+                            success: function (data) {
+                                var ic = Ext.MessageBox.INFO;
+                                if (data.Er == 1)
+                                    ic = Ext.MessageBox.ERROR;
+                                Ext.MessageBox.show({
+                                    title: data.MsgTitle,
+                                    msg: data.Msg,
+                                    icon: ic,
+                                    buttons: Ext.MessageBox.OK
+                                });
+                                App.ListCompany.queryById('GridListCompany').store.load()
+                            }
+                        });
+                    }
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+    function SendSmsIn(ID) {
+        if(@P_Sms == 0){
+                Ext.MessageBox.show({
+                    title: "خطا",
+                    msg: "شما مجاز به ارسال پیامک نمی باشید.",
+                    icon: Ext.MessageBox.ERROR,
+                    buttons: Ext.MessageBox.OK
+                });
+            }
+            else{
+                Ext.MessageBox.show({
+                    title: "هشدار",
+                    msg: "آیا برای ارسال مجدد پیامک مطمئن هستید؟",
+                    icon: Ext.MessageBox.WARNING,
+                    buttons: Ext.MessageBox.YESNO,
+                    fn: function (btn) {
+                        if (btn == 'yes') {
+                            Ext.net.Mask.show({ msg: 'در حال انجام عملیات...' });
+                            Ext.net.DirectMethod.request({
+                                url: '/MonitoringFirstRegister/SendSms',
+                                params: {
+                                    id: ID
+                                },
+                                success: function (data) {
+                                    Ext.net.Mask.hide();
+                                    var ic = Ext.MessageBox.INFO;
+                                    if (data.Er == 1)
+                                        ic = Ext.MessageBox.ERROR;
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: ic,
+                                        buttons: Ext.MessageBox.OK
+                                    });
+                                    App.ListCompany.queryById('GridListCompany').store.load()
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+    }
+
+
+    function GotoSend() {
+        var FirstRegisterIdS="";
+        if(@P_Send == 0){
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "شما مجاز به ارسال پیامک نمی باشید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+        else{
+            var Selection=App.ListCompany.queryById('GridListCompany').getSelectionModel().getSelection();
+            if(Selection.length>0){
+                for(var i=0;i<Selection.length;i++){
+                    FirstRegisterIdS=FirstRegisterIdS+Selection[i].data.fldId+";";
+                }
+                Ext.net.Mask.show({msg: 'در حال بارگذاری...'});
+                Ext.net.DirectMethod.request({
+                    url: '/MonitoringFirstRegister/SendMessage',
+                    params: {
+                        FirstRegisterIdS:FirstRegisterIdS
+                    },
+                    success: function () {
+                        Ext.net.Mask.hide();
+                    }
+                });
+            }
+            else{
+                Ext.MessageBox.show({
+                    title: "خطا",
+                    msg: "لطفا حداقل یک سطر را انتخاب نمایید.",
+                    icon: Ext.MessageBox.ERROR,
+                    buttons: Ext.MessageBox.OK
+                });
+            }
+        }
+    }
+   
+</script>

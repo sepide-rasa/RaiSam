@@ -1,0 +1,218 @@
+﻿@model IEnumerable<RaiSam.Models.prs_tblAshkhasSelect>
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+
+    var X = Html.X();
+}
+@(Html.X().Window()
+    .Modal(true)
+    .Width(650)
+    .Height(320)
+    .Title("لیست اشخاص")
+    .ID("SearchHuman")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+            .Listeners(l => { l.Destroy.Handler = "if(state==2){App.NewAnvaMaharat_Ashkhas.queryById('txtName').focus();}else if(state==3){App.NewGroupMaharat.queryById('txtName').focus();}"; l.AfterRender.Handler = "LoadSearchAshkhas()"; })
+    .Layout(LayoutType.Fit)
+    .Items(
+        X.AntiForgeryField()
+            .ItemID("antiForgeryToken")
+            .Hidden(true),
+        X.Panel()
+            .Border(false)
+            .AutoScroll(true)
+            .Layout(LayoutType.Fit)
+            .Items(
+                X.GridPanel()
+                    .AutoScroll(true)
+                    .Border(false)
+                    .ItemID("GridSearchHuman")
+                    .BottomBar(X.PagingToolbar())
+                            .TopBar(
+                                Html.X().Toolbar()
+                                    .Items(
+                                        X.FieldSet()
+                                            .Border(false)
+                                            .Padding(0)
+                                            .Layout(LayoutType.HBox)
+                                            .Items(
+                                                X.TextField()
+                                                    .ItemID("txtCodeEnhesari")
+                                                    .EmptyText("کد انحصاری")
+                                                    .Listeners(l => l.KeyUp.Fn = "addKeyMaptxtCodeEnhesari3")
+                                                    .EnableKeyEvents(true)
+                                                    .MaskRe("[0-9]")
+                                                    .EnforceMaxLength(true)
+                                                    .AllowBlank(false)
+                                                    .BlankText("لطفا کد انحصاری پرسنل مورد نظر را وارد نمایید.")
+                                                    .MaxLength(8)
+                                                    .MinLength(8)
+                                                    .PaddingSpec("0 5px 0 0"),
+                                                    X.Button().ItemID("btnLoader")
+                                                    .Text("بارگذاری از منابع انسانی")
+                                                    .Icon(Icon.UserAdd)
+                                                    .Listeners(l => l.Click.Handler = "showandReloadPerson()")
+                                                )
+                                        )
+                                )
+                    .Store(
+                        X.StoreForModel()
+                            .Listeners(l => l.BeforeLoad.Handler = "App.SearchHuman.queryById('GridSearchHuman').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.SearchHuman.queryById('antiForgeryToken').getValue());")
+                            .Proxy(Html.X().AjaxProxy()
+                                .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                .Url(Url.Action("Read"))
+                                .Reader(Html.X().JsonReader().Root("data"))
+                                .ExtraParams(x => x.Add(new { state = @ViewBag.state }))
+                        )
+                        .PageSize(10)
+                        .RemoteFilter(true)
+                        .RemotePaging(true)
+                    )
+                    .View(
+                        Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                    )
+                          .Listeners(a => a.CellDblClick.Handler = "NextSearchHuman();")
+                    .Plugins(X.FilterHeader().Remote(true))
+                    .ColumnModel(
+                        Html.X().RowNumbererColumn(),
+                        Html.X().Column().DataIndex(Model, m => m.fldId).Text("کد").Flex(1).Hidden(true),
+                        Html.X().Column().DataIndex(Model, m => m.fldMovazaf).Text("نوع پرسنل").Flex(2).Hidden(@ViewBag.state == 1 || @ViewBag.state == 4 || @ViewBag.state == 5),
+
+                            Html.X().Column().DataIndex(Model, m => m.fldCodeEnhesari).Text("کد انحصاری").Flex(3).Hidden(@ViewBag.state == 4 || @ViewBag.state == 5),
+                        Html.X().Column().DataIndex(Model, m => m.fldName).Text("نام").Wrap(true).Flex(3),
+                        Html.X().Column().DataIndex(Model, m => m.fldFamily).Text("نام خانوادگی").Wrap(true).Flex(5),
+                        Html.X().Column().DataIndex(Model, m => m.fldFatherName).Text("نام پدر").Wrap(true).Flex(3),
+                        Html.X().Column().DataIndex(Model, m => m.fldCodeMeli).Text("کد ملی").Flex(3)
+        //Html.X().Column().DataIndex(Model, m => m.fldDesc).Text("توضیحات").Flex(8)
+                    )
+
+                    //.Listeners(a => a.CellDblClick.Handler = "NextSearchHuman();")
+                    .SelectionModel(
+                        Html.X().RowSelectionModel()
+                            .Mode(Ext.Net.SelectionMode.Single)
+                    )
+            )
+        )
+)
+
+<script type="text/javascript">
+    var state = '@ViewBag.state';
+    function LoadSearchAshkhas() {
+        if (state == 4 || state == 5 || state == 1) {
+            App.SearchHuman.queryById('txtCodeEnhesari').hide();
+            App.SearchHuman.queryById('btnLoader').hide();
+
+        }
+        else {
+            App.SearchHuman.queryById('txtCodeEnhesari').show();
+            App.SearchHuman.queryById('btnLoader').show();
+        }
+    }
+    var addKeyMaptxtCodeEnhesari3 = function (a, b) {
+        if (b.getKey() == 13) {
+            showandReloadPerson();
+        }
+    };
+
+    function showandReloadPerson() {
+        if (App.SearchHuman.queryById('txtCodeEnhesari').validate() == true) {
+            App.SearchHuman.body.mask("در حال انجام عملیات...");
+            Ext.net.DirectMethod.request({
+                url: '/PersonalInfo/GetOnePersonelInfo',
+                params: {
+                    CodeEnhesari: App.SearchHuman.queryById('txtCodeEnhesari').getValue(),
+                    __RequestVerificationToken: App.SearchHuman.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+                    if (data.Er != 1) {
+                        App.SearchHuman.queryById('txtCodeEnhesari').setValue("");
+                        var a = Ext.Msg.info({ cls: "infoPanelSuccessPerson3", title: "عملیات موفق", html: "<div style='text-align:right;'>" + data.Msg + "</div>", iconCls: '#Accept' });
+                        a.setUI("success");
+                        App.SearchHuman.queryById('GridSearchHuman').store.load();
+                    }
+                    else {
+                        var b = Ext.MessageBox.info({ cls: 'infoPanelErrorPerson3', title: "خطا", html: "<div style='text-align:right;'>" + data.Msg + "</div>", iconCls: '#Exclamation' });
+                        b.setUI("danger");
+                        App.SearchHuman.queryById('txtCodeEnhesari').focus();
+                        /*Ext.MessageBox.show({
+                            title: "خطا",
+                            msg: data.Msg,
+                            icon: Ext.MessageBox.ERROR,
+                            buttons: Ext.MessageBox.OK
+                        });*/
+                    }
+                    App.SearchHuman.body.mask().hide();
+                }
+            });
+        }
+    }
+
+    function NextSearchHuman() {
+        var SelectedRow = App.SearchHuman.queryById('GridSearchHuman').selModel.getLastSelected();
+        if (SelectedRow != null) {
+            if (state == 1) {
+                App.NewUser.queryById('ShakhsId').setValue(SelectedRow.data.fldId);
+                App.NewUser.queryById('txtNameFamily').setValue(SelectedRow.data.fldName + " " + SelectedRow.data.fldFamily);
+                if (SelectedRow.data.fldCodeEnhesari != "") {
+                    App.NewUser.queryById('txtUserName').setValue(SelectedRow.data.fldCodeEnhesari);
+                }
+                else {
+                    App.NewUser.queryById('txtUserName').setValue(SelectedRow.data.fldCodeMeli);
+                }
+            }
+            else if (state == 2) {
+                App.NewAnvaMaharat_Ashkhas.queryById('fldAshkhasId').setValue(SelectedRow.data.fldId);
+                App.NewAnvaMaharat_Ashkhas.queryById('txtName').setValue(SelectedRow.data.fldName + " " + SelectedRow.data.fldFamily);
+            }
+            else if (state ==3) {
+                App.NewGroupMaharat.queryById('fldAshkhasId').setValue(SelectedRow.data.fldId);
+                App.NewGroupMaharat.queryById('txtName').setValue(SelectedRow.data.fldName + " " + SelectedRow.data.fldFamily);
+            }
+            else if (state == 4) {
+                App.NewKarshenasanBehdasht.queryById('fldAshkhasId').setValue(SelectedRow.data.fldId);
+                App.NewKarshenasanBehdasht.queryById('txtCodeMeli').setValue(SelectedRow.data.fldCodeMeli);
+                App.NewKarshenasanBehdasht.queryById('txtNameFamily').setValue(SelectedRow.data.fldName + " " + SelectedRow.data.fldFamily);
+            }
+            else if (state == 5) {
+                App.NewPezeshkan.queryById('fldAshkhasId').setValue(SelectedRow.data.fldId);
+                App.NewPezeshkan.queryById('txtCodeMeli').setValue(SelectedRow.data.fldCodeMeli);
+                App.NewPezeshkan.queryById('txtNameFamily').setValue(SelectedRow.data.fldName + " " + SelectedRow.data.fldFamily);
+            }
+            else if (state == 6) {
+                App.NewContact.queryById('fldAshkhasId').setValue(SelectedRow.data.fldId);
+                App.NewContact.queryById('txtTypeName').setValue(SelectedRow.data.fldName + " " + SelectedRow.data.fldFamily);
+            }
+            else if (state == 7) {
+                App.NatijeEstelamWin.queryById('fldAshkhasId').setValue(SelectedRow.data.fldId);
+                App.NatijeEstelamWin.queryById('txtNameFamily').setValue(SelectedRow.data.fldName + " " + SelectedRow.data.fldFamily);
+            }
+            else if (state == 8) {
+                var grid = App.VorudBeMoayenat.queryById('GridPersons');
+                grid.store.insert(0, {
+                    fldShakhsId: SelectedRow.data.fldId, fldName_Family: SelectedRow.data.fldName + " " + SelectedRow.data.fldFamily,
+                    fldCodeEnhesari: SelectedRow.data.fldCodeEnhesari, fldNameNahi: SelectedRow.data.fldNameNahi, fldTitleShoglAmaliyati: SelectedRow.data.ShoghlAmaliyati,
+                    fldIsMovazafName: SelectedRow.data.IsMovazafName, TypeEstekhdam: SelectedRow.data.TypeEstekhdam, fldNameCompany: SelectedRow.data.fldCompanyName,
+                    fldDescPost: SelectedRow.data.fldDescPost,TypeEstekhdamid: SelectedRow.data.fldTypeEstekhdamid,shoghleAmaliyati: SelectedRow.data.fldShoghlId,
+                    fldCompanyId:SelectedRow.data.fldCompanyId
+                });
+                App.VorudBeMoayenat.queryById('GridTarefe').store.loadData("");
+                App.VorudBeMoayenat.queryById('GridSaraneh').store.loadData("");
+            }
+            else if (state == 9) {
+                App.NewErja.queryById('ErjadahandeId').setValue(SelectedRow.data.fldId);
+                App.NewErja.queryById('txtErjaDahande').setValue(SelectedRow.data.fldName + " " + SelectedRow.data.fldFamily);
+            }
+            App.SearchHuman.destroy();
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک شخص را انتخاب کنید",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+</script>

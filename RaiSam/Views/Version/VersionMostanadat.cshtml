@@ -1,0 +1,526 @@
+﻿@model IEnumerable<RaiSam.Models.prs_tblVersionMostanadatSelect>
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@using Ext.Net.Utilities;
+@{
+    var X = Html.X();
+}
+<script>
+    Ext.net.FilterHeader.behaviour.string[0].match = function (recordValue, matchValue) {
+        return (Ext.net.FilterHeader.behaviour.getStrValue(recordValue) || "").indexOf(matchValue) > -1;
+    };
+
+    Ext.net.FilterHeader.behaviour.string[0].getStrValue = function (value) {
+        return value.toString();
+    };
+
+    Ext.net.FilterHeader.behaviour.string[0].serialize = function (value) {
+        return {
+            type: "string",
+            op: "*",
+            value: value
+        };
+    };
+</script>
+@(Html.X().Window()
+        .Listeners(li => { li.Render.Fn = "addKeyMapVersionMostanadat"; })
+    .Closable(true)
+    .Title("مستندات ورژن")
+    .ID("VersionMostanadat")
+    .Width(670)
+    .Height(550)
+    .AutoScroll(true)
+    .Modal(true)
+    .Resizable(false)
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Layout(LayoutType.VBox)
+    .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+    .Items(
+         X.AntiForgeryField()
+        .ItemID("antiForgeryToken")
+        .Hidden(true),
+        X.FieldSet()
+            .Border(true)
+            .Title("مستندات")
+            .Layout(LayoutType.Table)
+            .Defaults(new { Margin = 2 })
+            .LayoutConfig(new TableLayoutConfig { Columns = 2 })
+            .Items(
+                X.Hidden().ItemID("fldId"),
+                X.Label("شرح مستندات:"),
+                            X.TextArea().Width(490)
+                            .BlankText("لطفا شرح مستندات را انتخاب کنید.")
+                            .AllowBlank(false)
+                        .ItemID("txtSharhMostanad")
+                                  .Listeners(l => l.Focus.Handler = "App.VersionMostanadat.queryById('txtSharhMostanad').el.swallowEvent(['keypress', 'keydown']);")
+                )
+                , X.FieldSet().Width(600)
+                            .Border(true)
+                            .AutoScroll(true)
+                            .Title("انتخاب فایل(حداکثر حجم مجاز: 30MB)")
+                            .ID("fieldsetforfile")
+                            .Layout(LayoutType.HBox)
+                            .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                            .Items(
+                                X.FormPanel()
+                                    .Border(false)
+                                    .Width(570)
+                                    .Layout(LayoutType.HBox)
+                                    .ItemID("fieldsetShowFile_ver")
+                                    .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Middle })
+        //.Listeners(l => l.AfterRender.Handler = "App.NewHuman.queryById('fieldsetShowFile').setWidth(App.BasicInfWin.getWidth() - 1050)")
+                                    .Items(
+                                        X.FileUploadField()
+                                            .MarginSpec("0 10px 10px 0")
+                                            .Icon(Ext.Net.Icon.DiskUpload)
+                                            .ButtonOnly(true)
+                                            .ButtonText("انتخاب فایل")
+                                            .DirectEvents(l =>
+                                            {
+                                                l.Change.Action = "Upload";
+                                                l.Change.Delay = 1000;
+                                                l.Change.Before = "if(GotoServerVersionM==false){return false;}";
+                                                l.Change.Success = "hideprogressVersionM";
+                                            })
+                                                .Listeners(l => l.Change.Fn = "showFileVersionM"),
+                                        X.Container()
+                                            .Content(@<div id="fi-button-msg-Ver" style="width:560px;text-align:right;"><b>فایل انتخاب شده:</b></div>)
+                                        )
+                            )
+                ,
+        X.FieldSet()
+            .LayoutConfig(new TableLayoutConfig { Columns = 6 })
+            .Defaults(new { Margin = 2 })
+            .Border(false)
+            .Items(
+                X.Button()
+                    .Text("ذخیره")
+                    .Icon(Ext.Net.Icon.Disk)
+                        .Listeners(l => l.Click.Handler = "SaveVersionMostanadat()"),
+                X.Button()
+                    .Text("خروج")
+                    .Icon(Ext.Net.Icon.DoorOut)
+                    .OnClientClick("App.VersionMostanadat.destroy();")
+            ),
+        X.Panel()
+            .Title("لیست مستندات")
+            .Layout(LayoutType.Fit)
+            .Border(false)
+            .Frame(true)
+            .Items(
+                X.GridPanel()
+                    .AutoScroll(true)
+                    .TopBar(
+                        X.Toolbar()
+                            .Items(
+                                X.Button()
+                                    .Text("ویرایش")
+                                    .Icon(Ext.Net.Icon.Pencil)
+                                    .Listeners(l => l.Click.Handler = "EditVersionMostanadat()"),
+                                X.Button()
+                                    .Text("حذف")
+                                    .Icon(Ext.Net.Icon.Delete)
+                                        .Listeners(l => l.Click.Handler = "DeleteVersionMostanadat()")
+                            )
+                    )
+                    .Border(false)
+                        .ItemID("GridVersionMostanadat")
+                    .BottomBar(X.PagingToolbar())
+                    .Plugins(X.FilterHeader().Remote(false))
+                    .Width(630)
+                    .Height(290)
+                    .Store(
+                        X.StoreForModel()
+                                .Listeners(l => l.BeforeLoad.Handler = "App.VersionMostanadat.queryById('GridVersionMostanadat').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.VersionMostanadat.queryById('antiForgeryToken').getValue());")
+                                .Listeners(l => l.DataChanged.Handler = "App.VersionMostanadat.queryById('GridVersionMostanadat').selModel.refresh();")
+                            .Proxy(Html.X().AjaxProxy()
+                                .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                        .Url(Url.Action("ReadVersionMostanadat"))
+                                .Reader(Html.X().JsonReader().Root("data"))
+                                 .ExtraParams(pa => pa.Add(new { VersionId = ViewBag.VersionId }))
+                            )
+                            .PageSize(10)
+                            .RemoteFilter(false)
+                            .RemotePaging(false)
+                    )
+                    .View(
+                        Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                    )
+                    .ColumnModel(
+                        Html.X().RowNumbererColumn(),
+                                Html.X().Column().DataIndex(Model, m => m.fldTimestamp).Text("").Flex(1).Hidden(true),
+                            Html.X().Column().DataIndex(Model, m => m.fldId).Text("کد").Flex(1).Hidden(true),
+                                Html.X().Column().DataIndex(Model, m => m.fldSharhMostanadat).Text("شرح مستندات").Flex(8).Wrap(true),
+                                    Html.X().Column().DataIndex(Model, m => m.fldPasvand).Text("فایل").Flex(2).Wrap(true)
+                    )
+             )
+        )
+)
+
+<script type="text/javascript">
+    var fldTimeStampVersionM = 0; var NatijeID = 0;
+    var FileId_VersionM = 0;
+
+    var GotoServerVersionM = false;
+    var EndUploadVersionM = false;
+    var DeleteFileVer = false;
+    var CheckVersionM = setInterval(CheckEndVersionM, 500);
+
+    function CheckEndVersionM() {
+        if (EndUploadVersionM == true) {
+            GotoServerVersionM = false;
+            Ext.MessageBox.hide();
+            Ext.Msg.alert('عملیات موفق', 'فایل با موفقیت آپلود شد.');
+            clearInterval(CheckEndVersionM);
+            EndUploadVersionM = false;
+        }
+    }
+    var showFileVersionM = function (fb, v) {
+        var id = fb.fileInputEl.dom.id;
+        var el = Ext.get('fi-button-msg-Ver');
+        if (v) {
+            showProgressBarVersionM();
+            if (v.split('.').pop().toLowerCase() == "xls" || v.split('.').pop().toLowerCase() == "xlsx" || v.split('.').pop().toLowerCase() == "pdf" ||
+                v.split('.').pop().toLowerCase() == "doc" || v.split('.').pop().toLowerCase() == "docx") {
+                if (document.getElementById(id).files[0].size <= 31457280) {
+                    GotoServerVersionM = true;
+                    el.update('<b>فایل انتخاب شده: ' + v + '</b>' + "&nbsp;&nbsp;" + '<img id="DeleteActionFileimg6" title="حذف فایل" src="/Content/cancel.png" style="width:15px;height:15px;margin-bottom: -4px;" onclick="javascript:DeleteFileVersionM()" />');
+                }
+                else {
+                    clearInterval(CheckEndVersionM);
+                    el.update('<b>فایل انتخاب شده:</b> ');
+                    Ext.MessageBox.show({
+                        title: "خطا",
+                        msg: "حجم فایل انتخاب شده غیرمجاز است.",
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK
+                    });
+                }
+
+                if (!el.isVisible()) {
+                    el.slideIn('t', {
+                        duration: .2,
+                        easing: 'easeIn',
+                        callback: function () {
+                            el.highlight();
+                        }
+                    });
+                } else {
+                    el.highlight();
+                }
+            }
+            else {
+                clearInterval(CheckEndVersionM);
+                el.update('<b>فایل انتخاب شده:</b> ');
+                Ext.MessageBox.show({
+                    title: "خطا",
+                    msg: "فایل انتخاب شده غیرمجاز است.",
+                    icon: Ext.MessageBox.ERROR,
+                    buttons: Ext.MessageBox.OK
+                });
+            }
+        }
+    };
+
+    function DeleteFileVersionM() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Version/DeleteSessionFile',
+            success: function (data) {
+                DeleteFileVer = true;
+                Ext.get('fi-button-msg-Ver').update('<b>فایل انتخاب شده:</b>');
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+    var hideprogressVersionM = function (Responsdtxt, ResponseObj) {
+        if (ResponseObj.IsValid == true) {
+            EndUploadVersionM = true;
+        }
+        else {
+            var el = Ext.get('fi-button-msg-Ver');
+            GotoServerVersionM = false;
+            clearInterval(CheckEndVersionM);
+            EndUploadVersionM = false;
+            el.update('<b>فایل انتخاب شده:</b> ');
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: ResponseObj.Message,
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    };
+
+    function showProgressBarVersionM() {
+        Ext.MessageBox.show({
+            msg: 'لطفاً منتظر باشید',
+            progressText: 'در حال آپلود فایل...',
+            width: 300,
+            wait: true,
+            waitConfig:
+            {
+                interval: 200,
+                text: 'در حال آپلود فایل...',
+                scope: this
+            }
+        });
+    }
+
+
+    function SaveVersionMostanadat() {
+        var Id = App.VersionMostanadat.queryById('fldId');
+        var txtSharhMostanad = App.VersionMostanadat.queryById('txtSharhMostanad');
+
+        var er = false;
+        if (txtSharhMostanad.validate() == false) {
+            er = true;
+        }
+        if (er == true)
+            return;
+
+        App.VersionMostanadat.body.mask("در حال ذخیره سازی");
+        Ext.net.DirectMethod.request({
+            url: '/Version/SaveVersionMostanadat',
+            params: {
+                fldId: Id.getValue(),
+                fldSharhMostanadat: txtSharhMostanad.getValue(),
+                fldVersionId: '@ViewBag.VersionId',
+                fldTimeStamp: fldTimeStampVersionM,
+                fldFileId:FileId_VersionM,
+                __RequestVerificationToken: App.VersionMostanadat.queryById('antiForgeryToken').getValue()
+            },
+            success: function (data) {
+                chat.server.reloadLog();
+                if (data.Er == 1 && data.Change == 1) {/*vaghti TimeStamp==0*/
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: Ext.MessageBox.WARNING,
+                        buttons: Ext.MessageBox.OK,
+                        fn: function (btn) {
+                            if (btn == 'ok') {
+                                LoadNatije(NatijeID);
+                            }
+                        }
+                    });
+                }
+                else if (data.Er == 1 && data.Change == 2) {/*vaghti TimeStamp==2*/
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK,
+                        fn: function (btn) {
+                            if (btn == 'ok') {
+                                ClearVersionMostanadat();
+                            }
+                        }
+                    });
+                }
+                else if (data.Er == 1) {
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK,
+                    });
+                }
+                else {
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: Ext.MessageBox.INFO,
+                        buttons: Ext.MessageBox.OK,
+                    });
+                }
+                App.VersionMostanadat.queryById('GridVersionMostanadat').store.load();
+                App.Version.queryById('GridVersion').store.load();
+                if (data.Er != 1)
+                    ClearVersionMostanadat();
+                App.VersionMostanadat.body.mask().hide();
+            }
+        });
+    }
+    function LoadNatije(Id) {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Version/DetailsVersionMostanadat',
+            params: {
+                Id: Id,
+                __RequestVerificationToken: App.VersionMostanadat.queryById('antiForgeryToken').getValue()
+            },
+            success: function (data) {
+
+                var Id = App.VersionMostanadat.queryById('fldId');
+                Id.setValue(data.fldId);
+
+                var txtSharhMostanad = App.VersionMostanadat.queryById('txtSharhMostanad');
+                txtSharhMostanad.setValue(data.fldSharhMostanadat);
+
+
+                fldTimeStampVersionM = data.fldTimeStamp;
+
+                Ext.get('fi-button-msg-Ver').update('<b>فایل انتخاب شده: ' + data.fldFileName + '</b>' + "&nbsp;&nbsp;" + '<img id="DeleteActionFileimg6" title="حذف فایل" src="/Content/cancel.png" style="width:15px;height:15px;margin-bottom: -4px;" onclick="javascript:DeleteFileVersionM()" />');
+                FileId_VersionM = data.fldFileId;
+                Ext.net.Mask.hide();
+            }
+        });
+
+    }
+    function EditVersionMostanadat() {
+        var SelectedRow = App.VersionMostanadat.queryById('GridVersionMostanadat').selModel.getLastSelected();
+        if (SelectedRow != null) {
+            NatijeID = SelectedRow.data.fldId;
+            App.VersionMostanadat.body.mask("در حال بارگذاری...");
+            Ext.net.DirectMethod.request({
+                url: '/Version/DetailsVersionMostanadat',
+                params: {
+                    Id: SelectedRow.data.fldId,
+                    __RequestVerificationToken: App.VersionMostanadat.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+                    var Id = App.VersionMostanadat.queryById('fldId');
+                    Id.setValue(data.fldId);
+
+                    var txtSharhMostanad = App.VersionMostanadat.queryById('txtSharhMostanad');
+                    txtSharhMostanad.setValue(data.fldSharhMostanadat);
+
+
+                    fldTimeStampVersionM = data.fldTimeStamp;
+
+                    Ext.get('fi-button-msg-Ver').update('<b>فایل انتخاب شده: ' + data.fldFileName + '</b>' + "&nbsp;&nbsp;" + '<img id="DeleteActionFileimg6" title="حذف فایل" src="/Content/cancel.png" style="width:15px;height:15px;margin-bottom: -4px;" onclick="javascript:DeleteFileVersionM()" />');
+                    FileId_VersionM = data.fldFileId;
+                    App.VersionMostanadat.body.mask().hide();
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+
+    function DeleteVersionMostanadat() {
+        var SelectedRow = App.VersionMostanadat.queryById('GridVersionMostanadat').selModel.getLastSelected();
+        if (SelectedRow != null) {
+            Ext.MessageBox.show({
+                title: "هشدار",
+                msg: "آیا برای حذف مطمئن هستید؟",
+                icon: Ext.MessageBox.WARNING,
+                buttons: Ext.MessageBox.YESNO,
+                fn: function (btn) {
+                    if (btn == 'yes') {
+                        App.VersionMostanadat.body.mask("در حال انجام عملیات...");
+                        Ext.net.DirectMethod.request({
+                            url: '/Version/DeleteVersionMostanadat',
+                            params: {
+                                id: SelectedRow.data.fldId,
+                                TimeStamp: SelectedRow.data.fldTimestamp,
+                                __RequestVerificationToken: App.VersionMostanadat.queryById('antiForgeryToken').getValue()
+                            },
+                            success: function (data) {
+                                chat.server.reloadLog();
+                                if (data.Er == 1 && data.Change == 1) {/*vaghti TimeStamp==0*/
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.WARNING,
+                                        buttons: Ext.MessageBox.OK,
+                                        fn: function (btn) {
+                                            if (btn == 'ok') {
+                                                App.VersionMostanadat.queryById('GridVersionMostanadat').store.load();
+                                                App.Version.queryById('GridVersion').store.load();
+                                            }
+                                        }
+                                    });
+                                }
+                                else if (data.Er == 1 && data.Change == 2) {/*vaghti TimeStamp==2*/
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.ERROR,
+                                        buttons: Ext.MessageBox.OK,
+                                        fn: function (btn) {
+                                            if (btn == 'ok') {
+                                                App.VersionMostanadat.queryById('GridVersionMostanadat').store.load();
+                                                App.Version.queryById('GridVersion').store.load();
+                                            }
+                                        }
+                                    });
+                                }
+                                else if (data.Er == 1) {
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.ERROR,
+                                        buttons: Ext.MessageBox.OK
+                                    });
+                                }
+                                else {
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.INFO,
+                                        buttons: Ext.MessageBox.OK
+                                    });
+                                    App.VersionMostanadat.queryById('GridVersionMostanadat').store.load();
+                                    App.Version.queryById('GridVersion').store.load();
+                                }
+                                App.VersionMostanadat.body.mask().hide();
+                            }
+                        });
+                    }
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+
+    function ClearVersionMostanadat() {
+        fldTimeStampVersionM = 0;
+        App.VersionMostanadat.queryById("fldId").setValue(0);
+        App.VersionMostanadat.queryById('txtSharhMostanad').setValue("");
+        FileId_VersionM = 0;
+        Ext.get('fi-button-msg-Ver').update('<b>فایل انتخاب شده:</b> ');
+    }
+
+    var addKeyMapVersionMostanadat = function (cmp) {
+        this.keyMap = new Ext.util.KeyMap({
+            target: cmp.getEl(),
+            binding: [{
+                key: [13, 9], /*Ext.EventObject.ENTER,*/
+                fn: function (key, e) {
+                    if (e.getKey() == 9) {
+                        e.stopEvent();
+                    }
+                    var keyfield = App.VersionMostanadat.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+                    var nextfld;
+                    if (keyfield.itemId == "txtSharhMostanad") {
+                        SaveVersionMostanadat();
+                        return;
+                    }
+                    else {
+                        nextfld = keyfield.nextSibling().nextSibling();
+                    }
+                    nextfld.focus();
+                    nextfld.selectText();
+                }
+            }]
+        });
+    }
+</script>

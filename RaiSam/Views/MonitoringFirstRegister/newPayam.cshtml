@@ -1,0 +1,84 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+
+
+@(Html.X().Window().Modal(true).Listeners(li => li.AfterRender.Handler = "LoadnewPayam();")
+.Width(530)//.Height(300)
+    .Title("ارسال پیامک جدید")
+         .ID("NewnewPayam")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Items(
+        X.FormPanel().Border(false)
+        .Border(false).ButtonAlign(Ext.Net.Alignment.Center)
+            .Margin(10)
+            .DefaultButton("btn")
+        .TitleAlign(Ext.Net.TitleAlign.Center)
+               .Buttons(X.Button().Text("ارسال").Icon(Ext.Net.Icon.Disk).ToolTip("کلید میانبر F8").Margin(10)
+                           .Listeners(l =>
+                           {
+                               l.Click.Handler = "SavenewPayam();";
+
+                           })
+                           .ItemID("btnSave")
+                            ,
+                            X.Button().Text("خروج").Icon(Ext.Net.Icon.DoorOut).ToolTip("کلید میانبر Esc")
+                                   .OnClientClick("App.NewnewPayam.destroy()"))
+
+                .Items(
+                X.Panel().Border(false)
+
+            .Items(
+                X.FieldSet().Border(false)
+                .Center()
+                .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 4 })
+                .Defaults(new { Margin = 2 })
+                .Items(
+                    X.Label("متن:"),
+                    X.TextArea()
+                    .ItemID("txtDesc")
+
+                    .Width(400)
+                        )
+
+                )
+                    .Layout(Ext.Net.LayoutType.VBox)
+                    .LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Center })
+            )
+        )
+)
+
+<script type="text/javascript">
+    function LoadnewPayam() {
+        var Matn = "";
+        var txtDesc = App.NewnewPayam.queryById('txtDesc');
+        txtDesc.setValue(Matn);
+    }
+    function SavenewPayam() {
+        var txtDesc = App.NewnewPayam.queryById('txtDesc');
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/faces/MonitoringFirstRegister/ersalnewPayam',
+                params: {
+                    Desc: txtDesc.getValue()
+                },
+                success: function (data) {
+                    Ext.net.Mask.hide();
+                    var ic = Ext.MessageBox.INFO;
+                    if (data.Err == 1)
+                        ic = Ext.MessageBox.ERROR;
+                    Ext.MessageBox.show({
+                        Name: data.MsgName,
+                        msg: data.Msg,
+                        icon: ic,
+                        buttons: Ext.MessageBox.OK
+                    });
+                }
+
+            });
+        }
+</script>

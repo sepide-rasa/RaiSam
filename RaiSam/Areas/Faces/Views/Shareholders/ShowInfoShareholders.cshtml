@@ -1,0 +1,636 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@using Ext.Net.Utilities;
+
+@{
+    var X = Html.X();
+}
+<style>
+    .titlebold {
+        font-weight: bold;
+        font-size: 12px;
+        color: ThreeDDarkShadow;
+    }
+
+    .wrap-lable {
+        word-wrap: break-word;
+    }
+</style>
+
+@(Html.X().Window()
+    .Modal(true)
+    .Listeners(li => li.AfterRender.Handler = "LoadDetailShareholders();")
+    .Width(800)
+        //.Height(500)
+    .AutoScroll(true)
+    .Resizable(false)
+    .Title("نمایش اطلاعات سهامدار")
+    .ID("ShowInfo_Shareholders")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .ButtonAlign(Ext.Net.Alignment.Center)
+    .Buttons(
+        ////    X.Button()
+        ////        .Text("راهنما")
+        ////        .Icon(Ext.Net.Icon.Help)
+        //////.Listeners(l =>l.Click.Handler = "SaveShareholders();")
+        ////        .ItemID("btnSaveShareholders"),
+                 X.SplitButton()
+                        .Text("بررسی")
+                        .Icon(Ext.Net.Icon.UserComment)
+                            .Listeners(l => l.Click.Handler = "GotoTaeedWin();")
+                    .Hidden(@ViewBag.HaveTaeed == false)
+                                        .Menu(X.Menu()
+                                        .Items(
+                                        X.MenuItem()
+                                            .Text("سوابق بررسی")
+                                            .Icon(Ext.Net.Icon.Report)
+                                                .Listeners(l => l.Click.Handler = "GotoHistoryTaeedWin()")
+
+                                    )
+                                    )
+                ,
+        X.Button()
+            .Text("خروج")
+            .Icon(Ext.Net.Icon.BulletCross)
+            .OnClientClick("App.ShowInfo_Shareholders.destroy();")
+            .RTL(true)
+        )
+    .Items(
+        X.FormPanel()
+            .Border(false)
+            .MarginSpec("10px 0 10px 0")
+            .Layout(LayoutType.VBox)
+            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+                .Items(
+                 X.AntiForgeryField().ItemID("AntiForgeryField"),
+                X.FieldSet()
+                    .Hidden(true)
+                    .ItemID("fieldCompanyPersonal")
+                    .Listeners(l => l.Render.Handler = "ShowFieldset(1);")
+                    .Border(true)
+                    .Title("مشخصات فردی")
+                    .Width(750)
+                    .Padding(5)
+                    .Center()
+                    .Layout(LayoutType.VBox)
+                    .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Right })
+                    .Items(
+                        X.FieldSet()
+                            .Layout(LayoutType.HBox)
+                            .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                            .Width(730)
+                            .Border(false)
+                            .Items(
+                                X.Label()
+                                    .Text("نام:")
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(280)
+                                    .ItemID("Name")
+                                    .Text("")
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Height(32)
+                                    .Cls("wrap-lable"),
+                                X.Label()
+                                    .Text("نام خانوادگی:")
+                                    .PaddingSpec("0 0 0 30px")
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(300)
+                                    .Height(32)
+                                    .ItemID("LastName")
+                                    .Text("")
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Cls("wrap-lable")),
+                        X.FieldSet()
+                            .Layout(LayoutType.HBox)
+                            .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                            .Width(730)
+                            .Border(false)
+                            .Items(
+                                X.Label()
+                                    .Text("کد ملی:")
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(255)
+                                    .Text("")
+                                    .ItemID("CodeMelli")
+                                    .Height(32)
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Cls("wrap-lable"),
+                                X.Label()
+                                    .Text("تعداد سهام:")
+                                    .PaddingSpec("0 0 0 30px")
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(320)
+                                    .Text("")
+                                    .Height(32)
+                                    .ItemID("Count")
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Cls("wrap-lable")),
+                        X.FieldSet()
+                            .Layout(LayoutType.HBox)
+                            .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                            .Width(730)
+                            .Border(false)
+                            .Items(
+                                X.Label()
+                                    .Text("درصد سهم از کل سهام:")
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(175)
+                                    .Text("")
+                                    .Height(17)
+                                    .ItemID("Sahm")
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Cls("wrap-lable"),
+                                X.Label()
+                                    .Text("تاریخ سهام دار شدن:")
+                                    .PaddingSpec("0 0 0 30px")
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(200)
+                                    .Text("")
+                                    .ItemID("Date")
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Cls("wrap-lable"))
+                            ),
+                X.FieldSet()
+                    .Border(true)
+                    .ItemID("fieldCompany")
+                    .Listeners(l => l.Render.Handler = "ShowFieldset(2);")
+                    .Hidden(true)
+                    .Title("مشخصات فردی نماینده")
+                    .Width(750)
+                    .Padding(5)
+                    .Center()
+                    .Layout(LayoutType.VBox)
+                    .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Right })
+                    .Items(
+                        X.FieldSet()
+                            .Layout(LayoutType.HBox)
+                            .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                            .Width(730)
+                            .Border(false)
+                            .Items(
+                                X.Label()
+                                    .Text("نام:")
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(280)
+                                    .ItemID("Name2")
+                                    .Text("")
+                                    .Height(32)
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Cls("wrap-lable"),
+                                X.Label()
+                                    .Text("نام خانوادگی:")
+                                    .PaddingSpec("0 0 0 80px")
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(271)
+                                    .Height(32)
+                                    .ItemID("LastName2")
+                                    .Text("")
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Cls("wrap-lable")),
+                        X.FieldSet()
+                            .Layout(LayoutType.HBox)
+                            .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                            .Width(730)
+                            .Border(false)
+                            .Items(
+                                X.Label()
+                                    .Text("کد ملی:")
+                                    .Height(17)
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(250)
+                                    .Text("")
+                                    .ItemID("CodeMelli2")
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Cls("wrap-lable"))),
+                X.FieldSet()
+                    .Border(true)
+                    .ItemID("fieldCompany2")
+                    .Listeners(l => l.Render.Handler = "ShowFieldset(2);")
+                    .Hidden(true)
+                    .Title("مشخصات سهامدار حقوقی")
+                    .Width(750)
+                    .Padding(5)
+                    .Center()
+                    .Layout(LayoutType.VBox)
+                    .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Right })
+                    .Items(
+                        X.FieldSet()
+                            .Layout(LayoutType.HBox)
+                            .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                            .Width(730)
+                            .Border(false)
+                            .Items(
+                                X.Label()
+                                    .Text("نام سهامدار:")
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(280)
+                                    .Height(32)
+                                    .ItemID("NameSahamdar")
+                                    .Text("")
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Cls("wrap-lable"),
+                                X.Label()
+                                    .Text("شماره شناسایی ملی:")
+                                    .PaddingSpec("0 0 0 30px")
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(223)
+                                    .Height(32)
+                                    .ItemID("Sh_shenasaei")
+                                    .Text("")
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Cls("wrap-lable")),
+                        X.FieldSet()
+                            .Layout(LayoutType.HBox)
+                            .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                            .Width(730)
+                            .Border(false)
+                            .Items(
+                                X.Label()
+                                    .Text("شماره ثبت شرکت:")
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(300)
+                                    .Height(17)
+                                    .Text("")
+                                    .ItemID("sh_sabt")
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Cls("wrap-lable"))),
+                X.FieldSet()
+                    .Hidden(true)
+                    .Border(true)
+                    .Title("مشخصات سهام")
+                    .ItemID("fieldCompany3")
+                    .Listeners(l => l.Render.Handler = "ShowFieldset(2);")
+                    .Layout(LayoutType.VBox)
+                        .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Stretch })
+                    .Width(750)
+                    .Items(
+                    X.FieldSet()
+                    .Layout(LayoutType.HBox)
+                    .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                    .Width(730)
+                    .Border(false)
+                    .Items(
+                        X.Label()
+                                .Text("تعداد سهام سهامدار:")
+                                .Cls("titlebold"),
+                            X.Label()
+                                .Width(240)
+                                .Height(32)
+                                .ItemID("count2")
+                                .Text("")
+                                .PaddingSpec("0 0 0 5px")
+                                .Cls("wrap-lable"),
+                            X.Label()
+                                .Text("درصد سهم از کل سهام:")
+                                .PaddingSpec("0 0 0 30px")
+                                .Cls("titlebold"),
+                            X.Label()
+                                .Width(240)
+                                .Height(32)
+                                .ItemID("Sahm2")
+                                .Text("")
+                                .PaddingSpec("0 0 0 5px")
+                                .Cls("wrap-lable")
+                    )
+                    , X.FieldSet()
+                    .ItemID("fieldCompany4")
+                    .Listeners(l => l.Render.Handler = "ShowFieldset(2);")
+                    .Hidden(true)
+                    .Layout(LayoutType.HBox)
+                    .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                    .Width(750)
+                    .Border(false)
+                    .Items(
+                        X.Label()
+                            .Text("تاریخ سهام دار شدن:")
+                            .Cls("titlebold"),
+                        X.Label()
+                            .Width(280)
+                            .ItemID("Date2")
+                            .Text("")
+        //.Height(32)
+                            .PaddingSpec("0 0 0 5px")
+                            .Cls("wrap-lable"))
+                            ),
+
+                X.FieldSet()
+                    .Border(true)
+                    .Hidden(true)
+                    .ItemID("fieldOrgan")
+                    .Listeners(l => l.Render.Handler = "ShowFieldset(3);")
+                    .Title("مشخصات فردی نماینده")
+                    .Width(750)
+                    .Padding(5)
+                    .Center()
+                    .Layout(LayoutType.VBox)
+                    .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Right })
+                    .Items(
+                        X.FieldSet()
+                            .Layout(LayoutType.HBox)
+                            .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                            .Width(730)
+                            .Border(false)
+                            .Items(
+                                X.Label()
+                                    .Text("نام:")
+                                    .Height(32)
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(280)
+                                    .ItemID("Name3")
+                                    .Text("")
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Cls("wrap-lable"),
+                                X.Label()
+                                    .Text("نام خانوادگی:")
+                                    .PaddingSpec("0 0 0 30px")
+                                    .Height(32)
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(300)
+                                    .ItemID("LastName3")
+                                    .Text("")
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Cls("wrap-lable")),
+                        X.FieldSet()
+                            .Layout(LayoutType.HBox)
+                            .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                            .Width(730)
+                            .Border(false)
+                            .Items(
+                                X.Label()
+                                    .Text("کد ملی:")
+                                    .Height(17)
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(250)
+                                    .Text("")
+                                    .ItemID("CodeMelli3")
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Cls("wrap-lable"))),
+                X.FieldSet()
+                    .Border(true)
+                    .ItemID("fieldOrgan2")
+                    .Hidden(true)
+                    .Listeners(l => l.Render.Handler = "ShowFieldset(3);")
+                    .Title("مشخصات سهامدار حقوقی")
+                    .Width(750)
+                    .Padding(5)
+                    .Center()
+                    .Layout(LayoutType.VBox)
+                    .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Right })
+                    .Items(
+                        X.FieldSet()
+                            .Layout(LayoutType.HBox)
+                            .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                            .Width(730)
+                            .Border(false)
+                            .Items(
+                                X.Label()
+                                    .Text("نام سازمان:")
+        //.Height(32)
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(700)
+                                    .ItemID("NameOrgan")
+                                    .Text("")
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Cls("wrap-lable"))),
+                X.FieldSet()
+                    .Layout(LayoutType.VBox)
+                            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Stretch })
+                    .ItemID("fieldOrgan3")
+                    .Listeners(l => l.Render.Handler = "ShowFieldset(3);")
+                    .Hidden(true)
+                    .Width(750)
+                        .Padding(5)
+                    .Border(true)
+                    .Title("مشخصات سهام")
+                    .Items(
+                    X.FieldSet()
+                    .Layout(LayoutType.HBox)
+                    .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                    .Width(730)
+                    .Border(false)
+                    .Items(
+                    X.Label()
+                            .Text("تعداد سهام سهامدار:")
+                            .Height(32)
+                            .Cls("titlebold"),
+                        X.Label()
+                            .Width(190)
+                            .ItemID("count3")
+                            .Text("")
+                            .PaddingSpec("0 0 0 5px")
+                            .Cls("wrap-lable"),
+                        X.Label()
+                            .Text("درصد سهم از کل سهام:")
+                            .PaddingSpec("0 0 0 30px")
+                            .Height(32)
+                            .Cls("titlebold"),
+                        X.Label()
+                            .Width(300)
+                            .ItemID("Sahm3")
+                            .Text("")
+                            .PaddingSpec("0 0 0 5px")
+                            .Cls("wrap-lable")
+                    )
+                , X.FieldSet()
+                    .Layout(LayoutType.HBox)
+                    .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                    .Width(730)
+                    .Border(false)
+                    .ItemID("fieldOrgan4")
+                    .Listeners(l => l.Render.Handler = "ShowFieldset(3);")
+                    .Items(
+                        X.Label()
+                            .Text("تاریخ سهام دار شدن:")
+                            .Height(17)
+                            .Cls("titlebold"),
+                        X.Label()
+                            .Width(300)
+                            .ItemID("Date3")
+                            .Text("")
+                            .PaddingSpec("0 0 0 5px")
+                            .Cls("wrap-lable"))
+                    )
+        //X.FieldSet()
+        //    .Layout(LayoutType.HBox)
+        //    .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+        //    .ItemID("fieldOrgan4")
+        //    .Listeners(l => l.Render.Handler = "ShowFieldset(3);")
+        //    .Hidden(true)
+        //    .Width(750)
+        //    .Border(false)
+        //    .Items(
+        //        X.Label()
+        //            .Text("تاریخ سهام دار شدن:")
+        //            //.Height(17)
+        //            .Cls("titlebold"),
+        //        X.Label()
+        //            .Width(280)
+        //            .ItemID("Date3")
+        //            .Text("")
+        //            .PaddingSpec("0 0 0 5px")
+        //            .Cls("wrap-lable"))
+                                )
+            )
+)
+
+<script type="text/javascript">
+
+    function ShowFieldset(state) {
+        if (state==1&&'@ViewBag.CompanyPersonalId' != 0 && '@ViewBag.CompanyId' == 0 && '@ViewBag.OrganId' == 0) {
+            App.ShowInfo_Shareholders.queryById('fieldCompanyPersonal').show();
+           
+        }
+        else if (state==2&&'@ViewBag.CompanyPersonalId' != 0 && '@ViewBag.CompanyId' != 0 && '@ViewBag.OrganId' == 0) {
+            /*App.ShowInfo_Shareholders.queryById('fieldCompanyPersonal').hide();*/
+            App.ShowInfo_Shareholders.queryById('fieldCompany').show();
+            App.ShowInfo_Shareholders.queryById('fieldCompany2').show();
+            App.ShowInfo_Shareholders.queryById('fieldCompany3').show();
+            App.ShowInfo_Shareholders.queryById('fieldCompany4').show();
+        }
+        else if (state==3&&'@ViewBag.CompanyPersonalId' != 0 && '@ViewBag.CompanyId' == 0 && '@ViewBag.OrganId' != 0) {
+          
+            App.ShowInfo_Shareholders.queryById('fieldOrgan').show();
+            App.ShowInfo_Shareholders.queryById('fieldOrgan2').show();
+            App.ShowInfo_Shareholders.queryById('fieldOrgan3').show();
+            App.ShowInfo_Shareholders.queryById('fieldOrgan4').show();
+        }
+    }
+
+
+    function LoadDetailShareholders() {
+        /*Ext.EventManager.onWindowResize(function (w, h) {
+            App.skdj.doComponentLayout();
+        });*/
+        /*Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });*/
+        Ext.net.DirectMethod.request({
+            url: '/Shareholders/Details',
+            params: {
+                Id: '@ViewBag.Id',
+                __RequestVerificationToken: App.ShowInfo_Shareholders.queryById('AntiForgeryField').getValue()
+            },
+            success: function (result) {
+                if ('@ViewBag.CompanyPersonalId' != 0 && '@ViewBag.CompanyId' == 0 && '@ViewBag.OrganId' == 0) {
+                    App.ShowInfo_Shareholders.queryById("Name").setText(result.fldNamePersonal);
+                    App.ShowInfo_Shareholders.queryById("LastName").setText(result.fldFamilyPersonal);
+                    App.ShowInfo_Shareholders.queryById("CodeMelli").setText(result.fldCodeMeli);
+                    App.ShowInfo_Shareholders.queryById("Count").setText(result.fldTedadSaham);
+                    App.ShowInfo_Shareholders.queryById("Date").setText(result.fldTarikhSaham);
+                    CalculatePercent(result.fldTedadSaham);
+                }
+                else if ('@ViewBag.CompanyPersonalId' != 0 && '@ViewBag.CompanyId' != 0 && '@ViewBag.OrganId' == 0) {
+                    App.ShowInfo_Shareholders.queryById("Name2").setText(result.fldNamePersonal);
+                    App.ShowInfo_Shareholders.queryById("LastName2").setText(result.fldFamilyPersonal);
+                    App.ShowInfo_Shareholders.queryById("CodeMelli2").setText(result.fldCodeMeli);
+                    App.ShowInfo_Shareholders.queryById("NameSahamdar").setText(result.fldOrgan_Company);
+                    App.ShowInfo_Shareholders.queryById("Sh_shenasaei").setText(result.ShenaseMeli);
+                    App.ShowInfo_Shareholders.queryById("sh_sabt").setText(result.ShomareSabat);
+                    App.ShowInfo_Shareholders.queryById("count2").setText(result.fldTedadSaham);
+                    App.ShowInfo_Shareholders.queryById("Date2").setText(result.fldTarikhSaham);
+                    CalculatePercent(result.fldTedadSaham);
+                }
+                else if ( '@ViewBag.CompanyPersonalId' != 0 && '@ViewBag.CompanyId' == 0 && '@ViewBag.OrganId' != 0) {
+                    App.ShowInfo_Shareholders.queryById("Name3").setText(result.fldNamePersonal);
+                    App.ShowInfo_Shareholders.queryById("LastName3").setText(result.fldFamilyPersonal);
+                    App.ShowInfo_Shareholders.queryById("CodeMelli3").setText(result.fldCodeMeli);
+                    App.ShowInfo_Shareholders.queryById("NameOrgan").setText(result.fldOrgan_Company);
+                    App.ShowInfo_Shareholders.queryById("count3").setText(result.fldTedadSaham);
+                    App.ShowInfo_Shareholders.queryById("Date3").setText(result.fldTarikhSaham);
+                    CalculatePercent(result.fldTedadSaham);
+                }
+            }
+        });
+    }
+
+    function CalculatePercent(count) {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        var Percenttxt = App.ShowInfo_Shareholders.queryById("Sahm");
+        var Percenttxt2 = App.ShowInfo_Shareholders.queryById("Sahm2");
+        var Percenttxt3 = App.ShowInfo_Shareholders.queryById("Sahm3");
+        Ext.net.DirectMethod.request({
+            url: '/Faces/Shareholders/DarsadSaham',
+            params: {
+                TedadSaham: count,
+                contractId: '@ViewBag.contractId',
+                FirstId: '@ViewBag.FirstId',
+                __RequestVerificationToken: App.ShowInfo_Shareholders.queryById('AntiForgeryField').getValue()
+            },
+            success: function (data) {
+                if ('@ViewBag.CompanyPersonalId' != 0 && '@ViewBag.CompanyId' == 0 && '@ViewBag.OrganId' == 0) {
+                    if (String(data.DarsadSaham).includes('.') == true) {
+                        var darsad = data.DarsadSaham;
+                        Percenttxt.setText(darsad.toFixed(2));
+                    }
+                    else
+                        Percenttxt.setText(data.DarsadSaham);
+                    Ext.net.Mask.hide();
+                }
+                else if ('@ViewBag.CompanyPersonalId' != 0 && '@ViewBag.CompanyId' != 0 && '@ViewBag.OrganId' == 0) {
+                    if (String(data.DarsadSaham).includes('.') == true) {
+                        var darsad = data.DarsadSaham;
+                        Percenttxt2.setText(darsad.toFixed(2));
+                    }
+                    else
+                        Percenttxt2.setText(data.DarsadSaham);
+                    Ext.net.Mask.hide();
+                }
+                else if ('@ViewBag.CompanyPersonalId' != 0 && '@ViewBag.CompanyId' == 0 && '@ViewBag.OrganId' != 0) {
+                    if (String(data.DarsadSaham).includes('.') == true) {
+                        var darsad = data.DarsadSaham;
+                        Percenttxt3.setText(darsad.toFixed(2));
+                    }
+                    else
+                        Percenttxt3.setText(data.DarsadSaham);
+                    Ext.net.Mask.hide();
+                }
+            }
+        });
+    }
+    function GotoTaeedWin() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/GeneralKartabl/TaeedWin',
+            params: {
+                App_ClientId: 10,
+                TableId: '@ViewBag.Id',
+                ContractId:'@ViewBag.contractId'
+            },
+            success: function () {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+    function GotoHistoryTaeedWin() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/GeneralKartabl/HistoryTaeedWin',
+            params: {
+                App_ClientId: 10,
+                TableId: '@ViewBag.Id',
+                ContractId: '@ViewBag.contractId'
+            },
+            success: function () {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+   
+
+</script>

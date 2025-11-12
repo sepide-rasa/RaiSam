@@ -1,0 +1,141 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+<script src="~/Scripts/jquery-ajax-native.js"></script>
+<style>
+    .styleforlbl {
+        height: auto;
+        text-align: justify;
+        word-wrap: break-word;
+    }
+</style>
+@(Html.X().Window()
+    .Modal(true)
+    .Listeners(li => li.AfterRender.Handler = "LoadInfoPage();")
+    .Resizable(false)
+    .Width(540)
+    .Title("جزئیات اطلاعیه")
+    .Layout(LayoutType.Fit)
+    .ID("NewInfoPage")
+    .Closable(true)
+    .ButtonAlign(Ext.Net.Alignment.Center)
+        .Listeners(l =>
+        {
+            l.Destroy.Handler = "SaveobservedAnnoncemnet()";
+            l.BeforeDestroy.Handler = "IsChecked=App.NewInfoPage.queryById('ChkShow').checked";
+        })
+    .Buttons(
+        X.Button()
+            .Text("خروج")
+            .Icon(Ext.Net.Icon.DoorOut)
+            .OnClientClick("App.NewInfoPage.destroy();"))
+            .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Items(
+        X.FormPanel()
+            .Border(false)
+            .Height(300)
+        //.Layout(LayoutType.Fit)
+            .AutoScroll(true)
+            .Items(
+                X.AntiForgeryField()
+                    .ItemID("antiForgeryToken")
+                    .Hidden(true),
+                X.Panel()
+                    .Border(false)
+        //.Layout(LayoutType.Fit)
+                    .PaddingSpec("15px 0 0 0")
+                    .Items(
+                        X.FieldSet()
+                            .Width(530)
+                            .Layout(Ext.Net.LayoutType.VBox)
+                            .LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Right })
+                            .Defaults(new { Margin = 2 })
+                            .Border(false)
+                            .Items(
+                                X.Label().ItemID("LblTarikh"),
+                                X.Label().ItemID("LblSubject").Width(500),
+                                X.Container().Content(@<div style="width:500px;" id="LblInfo"></div>).Cls("styleforlbl"),
+                                /*X.Label().ItemID("LblInfo").Width(500).Cls("styleforlbl"),*/
+                                /*X.Label("فایل ضمیمه:").ItemID("z"),*/
+                                X.Container().ItemID("zPic").Height(30).Content(@<center><div id="ZamimePic" style="display:inline; width:350px;height:60px;text-align:right;"></div></center>)
+                            ),
+                            X.FieldSet()
+                            .Width(530)
+                            .Layout(Ext.Net.LayoutType.HBox)
+                            //.LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Right })
+                            .Defaults(new { Margin = 2 })
+                            .Border(false)
+                            .Items(X.Checkbox().Checked(true).ItemID("ChkShow"),
+                            X.Label("عدم نمایش در دفعات آتی"))
+                )
+            )
+        )
+)
+
+<script type="text/javascript">
+    var IsChecked;
+    function LoadInfoPage() {
+        App.NewInfoPage.body.mask("در حال بارگذاری...");
+        Ext.net.DirectMethod.request({
+            url: '/Home/DetailsInfoPage',
+            params: {
+                Id: '@ViewBag.ID'
+            },
+            success: function (data) {
+                /*var LblInfo = App.NewInfoPage.queryById('LblInfo');
+                LblInfo.setText("متن: " + data.fldMatn);*/
+                var LblInfo = document.getElementById("LblInfo");
+                LblInfo.innerHTML = "متن: " + data.fldMatn;
+                var LblTarikh = App.NewInfoPage.queryById('LblTarikh');
+                LblTarikh.setText("تاریخ: " + data.fldTarikh);
+                /*var LblSubject = App.NewInfoPage.queryById('LblSubject');
+                LblSubject.setText("عنوان: " + data.fldTitle);*/
+                if (data.fldAttachmentId != 0) {
+                    var attachemnst = "فایل ضمیمه: " + '<a href=javascript:DownloadAttach("' + '@ViewBag.ID' + '") "><img src="@Url.Content("/Content/1379792081_attachment.png")" style="width:25px;" /></a>';
+                    var el = Ext.get('ZamimePic');
+                    el.update(attachemnst);
+                }
+                else {
+                    App.NewInfoPage.queryById('zPic').hide();
+                }
+                App.NewInfoPage.body.mask().hide();
+            }
+        });
+    }
+
+    function DownloadAttach(id) {
+        $.ajax({
+            type: "POST",
+            dataType: 'native',
+            url: "/Announcement/Download",
+            xhrFields: {
+                responseType: 'blob'
+            },
+            data: {
+                fldIDAnnouncement: id,
+                __RequestVerificationToken: App.NewInfoPage.queryById('antiForgeryToken').getValue()
+            },
+            success: function (blob, status, xhr) {
+                var link = document.createElement('a');
+                link.href = window.URL.createObjectURL(blob);
+                link.download = "DownloadFile";
+                link.click();
+            }
+        });
+    }
+    function SaveobservedAnnoncemnet() {
+        Ext.net.DirectMethod.request({
+            url: '/Home/SaveobservedAnnoncemnet',
+            params: {
+                AnnoncemnetId: '@ViewBag.ID',
+                Check: IsChecked
+            },
+            success: function () {
+            }
+        });
+    }
+
+</script>

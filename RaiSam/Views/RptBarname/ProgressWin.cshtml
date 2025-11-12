@@ -1,0 +1,78 @@
+﻿@model IEnumerable<RaiSam.Models.prs_tblProgressSelect>
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+@(Html.X()
+    .Window()
+    .Modal(true)
+    .Width(500)
+        .Title("Progress")
+    .ID("Progress")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Layout(LayoutType.Fit)
+    .Resizable(false)
+
+    .Items(
+        X.Panel()
+            .Border(false)
+            .Layout(LayoutType.VBox)
+            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+            .Padding(5)
+                .Items(
+               
+        X.GridPanel()
+            .AutoScroll(true)
+                .ItemID("GridProgress")
+            .Width(476)
+            .Height(330)
+        //.Listeners(l => l.AfterRender.Handler = "App.Progress.queryById('GridParvandeInfo').setHeight(App.AccountingWin.getHeight() - 310)")
+
+           // .BottomBar(X.PagingToolbar())
+            .Store(
+                X.StoreForModel().AutoLoad(false)
+                    .Proxy(Html.X().AjaxProxy()
+                                .Url(Url.Action("ReadProgress"))
+                            .Reader(Html.X().JsonReader().Root("data"))
+                                              //  .ExtraParams(l => l.Add(new { CodingAcc = ViewBag.CodingAcc }))
+                        )
+                    .PageSize(200000)
+                    .RemoteFilter(false)
+                        .RemotePaging(false)
+
+            )
+        //.View(
+        //    Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+        //)
+                .ViewConfig(X.GridView().LoadingText("در حال بارگذاری...").RTL(true))
+
+            .Plugins(X.FilterHeader().Remote(true))
+            .ColumnModel(
+                      //  Html.X().RowNumbererColumn(),
+                                    Html.X().Column().DataIndex(Model, m => m.id).Text("کد").Hidden(true).Flex(1),
+                                                Html.X().Column().DataIndex(Model, m => m.darsad).Text("Percentage").Hidden(true).Flex(4).ID("colProg2"),
+                                            Html.X().Column().DataIndex(Model, m => m.Title).Text("عنوان").Flex(4),
+                          Html.X().ComponentColumn().Flex(5).Filterable(false).ID("colProg")
+                .Component(Html.X().ProgressBar().Text("Progress"))
+                    .Listeners(ls => ls.Bind.Handler = "cmp.updateProgress(record.get('darsad'));")
+            )
+            .SelectionModel(
+                Html.X().RowSelectionModel()
+                    .Mode(Ext.Net.SelectionMode.Single)
+            )
+        )
+    )
+)
+<script type="text/javascript">
+    var s;
+    function LoadGridProgress(Title, Darsad, Id) {
+        s = Title;
+        var RowId = App.Progress.queryById('GridProgress').getStore().findExact("id", Id);
+        App.colProg.getComponent(RowId).updateProgress(Darsad);
+  
+        /* App.Progress.queryById('GridProgress').store.load();*/
+    }
+</script>

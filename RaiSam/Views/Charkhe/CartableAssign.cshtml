@@ -1,0 +1,286 @@
+﻿@model IEnumerable<RaiSam.Models.prs_tblEkhtesasActions_CartableSelect>
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+<script>
+    Ext.net.FilterHeader.behaviour.string[0].match = function (recordValue, matchValue) {
+        return (Ext.net.FilterHeader.behaviour.getStrValue(recordValue) || "").indexOf(matchValue) > -1;
+    };
+
+    Ext.net.FilterHeader.behaviour.string[0].getStrValue = function (value) {
+        return value.toString();
+    };
+
+    Ext.net.FilterHeader.behaviour.string[0].serialize = function (value) {
+        return {
+            type: "string",
+            op: "*",
+            value: value
+        };
+    };
+</script>
+<style>
+    .wrap-lable {
+        word-wrap: break-word;
+    }
+</style>
+@(Html.X().Window()
+    .Closable(true)
+    .CloseAction(CloseAction.Destroy)
+    .Layout(LayoutType.Fit)
+    .Modal(true)
+    .ID("CartableAssign")
+    .Listeners(l => l.AfterRender.Handler = "setSizeCartableAssign();")
+    .Title("کارتابل")
+    .ButtonAlign(Alignment.Center)
+    .Buttons(
+        Html.X().Button()
+            .Text("ذخیره")
+            .Icon(Ext.Net.Icon.Disk)
+            .Listeners(l => l.Click.Handler = "SaveCartableAssign()"),
+        Html.X().Button()
+            .Text("خروج")
+            .Icon(Ext.Net.Icon.DoorOut)
+            .Listeners(l => l.Click.Handler = "App.CartableAssign.hide()")
+    )
+    .Items(
+             X.AntiForgeryField()
+                .ItemID("antiForgeryToken")
+                .Hidden(true),
+        X.Panel()
+            .Border(false)
+            .Layout(LayoutType.VBox)
+            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+            .Items(
+                X.Panel()
+                    .Border(false)
+                    .Layout(LayoutType.HBox)
+                    .LayoutConfig(new HBoxLayoutConfig { DefaultMargins = "5px" })
+                    .Items(
+                        X.Label("نام کارتابل:"),
+                        X.ComboBox()
+                            .ItemID("CboCartable")
+                            .TypeAhead(true)
+                            .AutoFocus(true)
+                            .AllowBlank(false)
+                            .ForceSelection(true)
+                            .Editable(false)
+                            .BlankText("لطفا کارتابل را انتخاب کنید.")
+                            .QueryMode(DataLoadMode.Local)
+                            .TriggerAction(TriggerAction.All)
+                            .Listeners(l => l.Change.Handler = "loadGridEkhtesasActions_Cartable()")
+                            .DisplayField("fldName")
+                            .ValueField("fldId")
+                            .Store(X.Store()
+                                .Listeners(l => l.Load.Handler = "SetDefalutCboCartable_Assign()")
+                                .Model(X.Model()
+                                    .IDProperty("fldId")
+                                    .Fields(
+                                        new ModelField("fldId", ModelFieldType.String) { Mapping = "fldId" },
+                                        new ModelField("fldName", ModelFieldType.String) { Mapping = "fldName" }
+                                        )
+                                    )
+                                .Listeners(l => l.BeforeLoad.Handler = "App.CartableAssign.queryById('CboCartable').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.CartableAssign.queryById('antiForgeryToken').getValue());")
+                                .Proxy(Html.X().AjaxProxy()
+                                    .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                    .Url(Url.Action("GetCartable"))
+                                    .Reader(X.JsonReader().Root("data"))
+                                    )
+                            ),
+                        X.Label("نام اقدام: " + @ViewBag.CharkheEghdamName).Width(180).Height(50).Cls("wrap-lable"),
+                        X.Button().Text("افزودن").Icon(Icon.Add).Listeners(l => l.Click.Handler = "AddtoEkhetesasCartable()")
+                    ),
+                X.GridPanel()
+                    .ColSpan(3)
+                    .AutoScroll(true)
+                    .Title("لیست اقدامات")
+                    .Frame(true)
+                    .TitleAlign(TitleAlign.Right)
+                    .ItemID("GridEkhtesasActions_Cartable")
+                    .Store(
+                        X.StoreForModel()
+                            .AutoLoad(false)
+                                .Listeners(l => l.BeforeLoad.Handler = "App.CartableAssign.queryById('GridEkhtesasActions_Cartable').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.CartableAssign.queryById('antiForgeryToken').getValue());")
+                                    .Proxy(Html.X().AjaxProxy()
+                                        .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                .Url(Url.Action("ReadEkhtesasActions_Cartable"))
+                                .Reader(Html.X().JsonReader().Root("data"))
+                            )
+                        .PageSize(100)
+                        .RemoteFilter(false)
+                        .RemotePaging(false)
+                    )
+                    .View(
+                        Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                    )
+                    .Plugins(X.FilterHeader().Remote(false))
+                    .ColumnModel(
+                        Html.X().Column().DataIndex(Model, m => m.fldId).Text("کد جدول").Hidden(true).Flex(1),
+                        Html.X().Column().DataIndex(Model, m => m.fldActionsId).Text("کد اقدام").Hidden(true).Flex(1),
+
+                        Html.X().Column().DataIndex(Model, m => m.fldCharkheId).Text("کد چرخه").Hidden(true).Flex(1),
+
+                        Html.X().Column().DataIndex(Model, m => m.fldCharkhe_EghdamId).Text("کد چرخه_اقدام").Hidden(true).Flex(1),
+                        Html.X().ImageCommandColumn().Align(Ext.Net.Alignment.Center).Sortable(false).Listeners(l => l.Command.Fn = "SetOrder_CartableAssign").PrepareCommand("showhideorder_CartableAssign").Flex(1).Commands(
+                            Html.X().ImageCommand().CommandName("RowDown").Icon(Ext.Net.Icon.ArrowDown),
+                            Html.X().ImageCommand().CommandName("RowUp").Icon(Ext.Net.Icon.ArrowUp)),
+                        Html.X().Column().DataIndex(Model, m => m.fldNameCharkhe).Text("نام چرخه").Flex(3),
+                        Html.X().Column().DataIndex(Model, m => m.fldName_Actions).Text("نام اقدام").Flex(3)
+                    )
+                    .SelectionModel(
+                        Html.X().RowSelectionModel()
+                        .Mode(Ext.Net.SelectionMode.Single)
+                    )
+            )
+     )
+)
+
+<script type="text/javascript">
+    function SetDefalutCboCartable_Assign() {
+        if('@ViewBag.CartablId'!='0'){
+            App.CartableAssign.queryById('CboCartable').setValue('@ViewBag.CartablId');
+        }
+        else{
+            App.CartableAssign.queryById('CboCartable').select(App.CartableAssign.queryById('CboCartable').store.getAt(0));
+        }
+    }
+
+    function loadGridEkhtesasActions_Cartable() {
+        App.CartableAssign.queryById('GridEkhtesasActions_Cartable').getStore().getProxy().setExtraParam("CartablId", App.CartableAssign.queryById('CboCartable').getValue());
+        App.CartableAssign.queryById('GridEkhtesasActions_Cartable').store.load();
+    }
+
+    var SetOrder_CartableAssign = function (grid, command, record, rowIndex) {
+        var grid = App.CartableAssign.queryById("GridEkhtesasActions_Cartable");
+        if (command == 'RowDown') {
+            grid.getStore().remove(record);
+            grid.getStore().insert(rowIndex + 1, record);
+            grid.getView().refresh();
+        }
+        else {
+            grid.getStore().remove(record);
+            grid.getStore().insert(rowIndex - 1, record);
+            grid.getView().refresh();
+        }
+    };
+
+    var showhideorder_CartableAssign = function (grid, command, record, rowIndex) {
+        if (command.command == 'RowDown') {
+            if (rowIndex == App.CartableAssign.queryById("GridEkhtesasActions_Cartable").store.count() - 1) {
+                command.disabled = true;
+            }
+            else {
+                command.disabled = false;
+            }
+        }
+        else {
+            if (rowIndex == 0) {
+                command.disabled = true;
+            }
+            else {
+                command.disabled = false;
+            }
+        }
+    };
+
+    function setSizeCartableAssign() {
+        var Width = Ext.getBody().getViewSize().width - 700;
+        var Height = Ext.getBody().getViewSize().height - 300;
+        App.CartableAssign.setSize(Width, Height);
+        App.CartableAssign.queryById('GridEkhtesasActions_Cartable').setSize(Width-20, Height-20);
+    }
+
+    function SaveCartableAssign() {
+        var CboCartable = App.CartableAssign.queryById('CboCartable');
+        var Grid = App.CartableAssign.queryById('GridEkhtesasActions_Cartable');
+        var Edit = 0;
+        var Actions = new Array();
+        var er = false;
+        if (CboCartable.validate() == false) {
+            er = true;
+        }
+        if (Grid.store.count() == 0) {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا اطلاعات مورد نظر خود را وارد نمایید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+            er = true;
+        }
+        if (er == true) {
+            return;
+        }
+        else {
+            if ('@ViewBag.CartablId' != '0') {
+                Edit = 1;
+            }
+            for (var i = 0; i < Grid.store.count() ; i++) {
+                var item = Grid.store.data.items[i];
+                Actions.push({
+                    "fldId": item.data.fldId,
+                    "fldCharkhe_EghdamId": item.data.fldCharkhe_EghdamId,
+                    "fldNameCharkhe": item.data.fldNameCharkhe,
+                    "fldName_Actions": item.data.fldName_Actions,
+                    "fldCartableId": CboCartable.getValue(),
+                    "fldName_Kartabl":CboCartable.getDisplayValue(),
+                    "fldOrder": Grid.store.indexOf(item) + 1
+                });
+            }
+            var data = {
+                Actions1: JSON.stringify(Actions),
+                Edit: Edit,
+                __RequestVerificationToken: App.CartableAssign.queryById('antiForgeryToken').getValue()
+            };
+            App.CartableAssign.body.mask("در حال ذخیره سازی");
+            $.ajax({
+                type: "POST",
+                url: '/Charkhe/SaveCartableAssign',
+               /* datatype: "json",*/
+                data: data,
+                /*contentType: 'application/json',*/
+                success: function (result) {
+                    chat.server.reloadLog();
+                     var ic = Ext.MessageBox.INFO;
+                    if (result.Er == 1) {
+                        ic = Ext.MessageBox.ERROR;
+                    }
+                    Ext.MessageBox.show({
+                        title: result.MsgTitle,
+                        msg: result.Msg,
+                        icon: ic,
+                        buttons: Ext.MessageBox.OK,
+                        fn: function (btn) {
+                            if (result.Er != 1) {
+                                loadGridCharkheDetail();
+                                App.CartableAssign.destroy();
+                            }
+                        }
+                    });
+                    App.CartableAssign.body.mask().hide();
+                },
+                failure: function (data) {
+                    alert(data.data);
+                }
+            });
+        }
+    }
+
+    var AddtoEkhetesasCartable = function (selectionModell, rec, index) {
+        if (App.CartableAssign.queryById('GridEkhtesasActions_Cartable').store.findExact("fldCharkhe_EghdamId", parseInt('@ViewBag.CharkheEghdamId'))==-1) {
+            var index = App.CartableAssign.queryById('GridEkhtesasActions_Cartable').getStore().count();
+            App.CartableAssign.queryById('GridEkhtesasActions_Cartable').store.insert(index, {
+                fldId: 0, fldCharkhe_EghdamId: parseInt('@ViewBag.CharkheEghdamId'), fldName_Actions:'@ViewBag.EghdamName',  fldNameCharkhe: '@ViewBag.CharkheName'
+            });
+        }
+    };
+
+
+
+
+
+
+</script>

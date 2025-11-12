@@ -1,0 +1,308 @@
+﻿@model IEnumerable<RaiSam.Models.prs_tblAnnouncementManagerSelect>
+<script src="~/Scripts/jquery-ajax-native.js"></script>
+@using Ext.Net.MVC
+@using Ext.Net
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+
+@{
+    var X = Html.X();
+}
+<style>
+    .x-infopanel-danger .x-infopanel-body {
+        background: #f2dede !important;
+        color: #a94442 !important;
+    }
+
+    .x-infopanel-success .x-infopanel-body {
+        background: #dff0d8 !important;
+        color: #3c763d !important;
+    }
+</style>
+@(X.Panel()
+    .Title("اطلاعیه های مهم")
+    .Border(false)
+    .ID("Announcement")
+    .Closable(true)
+    .AutoScroll(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Listeners(li => li.AfterRender.Handler = "setHeightAnnouncement();")
+    .Items(
+            X.AntiForgeryField()
+                .ItemID("antiForgeryToken")
+                .Hidden(true),
+        X.Panel()
+            .Border(false)
+            .AutoScroll(true)
+            .Layout(Ext.Net.LayoutType.VBox)
+            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Stretch })
+            .Items(
+                X.GridPanel()
+                    .AutoScroll(true)
+                    .ItemID("GridAnnouncement")
+                    .BottomBar(X.PagingToolbar())
+                    .TopBar(
+                        Html.X().Toolbar()
+                            .Items(
+                                //X.Button()
+                                //    .Text("جدید")
+                                //    .Icon(Ext.Net.Icon.Add)
+                                //    .Listeners(li => li.Click.Handler = "NewAnnouncement();"),
+                                                X.SplitButton()
+                                        .Text("جدید")
+                                        .Icon(Ext.Net.Icon.Add)
+                                                    .Menu(X.Menu()
+                                                    .Items(
+                                                    X.MenuItem()
+                                                                .Text("اطلاعیه شرکت ها")
+                                                                                .Listeners(l => l.Click.Handler = "NewAnnouncement(1)"),
+                                                        X.MenuItem()
+                                                                .Text("اطلاعیه کاربران")
+                                                                                .Listeners(l => l.Click.Handler = "NewAnnouncement(2)")
+                                            )
+                                                ),
+                                X.Button()
+                                    .Text("ویرایش")
+                                    .Icon(Ext.Net.Icon.Pencil)
+                                    .Listeners(li => li.Click.Handler = "EditAnnouncement();"),
+                                X.Button()
+                                    .Text("حذف")
+                                    .Icon(Ext.Net.Icon.Delete)
+                                    .Listeners(li => li.Click.Handler = "DeleteAnnouncement();"),
+                                    X.SplitButton()
+                                    .Text("راهنما")
+                                    .Icon(Ext.Net.Icon.Help)
+                                    .Menu(X.Menu()
+                                    .Items(
+                                    X.MenuItem()
+                                                .Text("راهنما متنی")
+                                                .Icon(Ext.Net.Icon.TextPaddingTop)
+                                                        .Listeners(l => l.Click.Handler = "HelpAnnouncement()"),
+                                        X.MenuItem()
+                                                .Text("راهنما تصویری")
+                                                .Icon(Ext.Net.Icon.PlayBlue)
+                                                    .Listeners(l => l.Click.Handler = "showHelp_VideoAnnouncement()")
+
+                                )
+                            )
+                        )
+                    )
+                    .Store(
+                        X.StoreForModel()
+                                        .Listeners(l => l.BeforeLoad.Handler = "App.Announcement.queryById('GridAnnouncement').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.Announcement.queryById('antiForgeryToken').getValue());")
+                            .Listeners(l => l.DataChanged.Handler = "App.Announcement.queryById('GridAnnouncement').selModel.refresh();")
+                            .Proxy(Html.X().AjaxProxy()
+                                .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                .Url(Url.Action("Read"))
+                                    .Reader(Html.X().JsonReader().Root("data"))
+                                            .ExtraParams(x => x.Add(new { State = @ViewBag.State }))
+                        )
+                            .PageSize(20)
+                            .RemoteFilter(true)
+                            .RemotePaging(true)
+                                .Listeners(l => l.DataChanged.Handler = "App.Announcement.queryById('GridAnnouncement').selModel.refresh();")
+                    )
+                    .View(
+                        Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                    )
+                    .Plugins(X.FilterHeader().Remote(true))
+                    .ColumnModel(
+                        Html.X().RowNumbererColumn(),
+                        Html.X().Column().DataIndex(Model, m => m.fldID).Text("کد").Hidden(true).Flex(1),
+                        Html.X().Column().DataIndex(Model, m => m.fldTitle).Text("عنوان").Flex(3).Wrap(true),
+                        Html.X().Column().DataIndex(Model, m => m.fldMatn).Text("متن").Flex(8).Wrap(true),
+                        Html.X().Column().DataIndex(Model, m => m.fldTarikhShamsi).Text("تاریخ").Flex(2).Wrap(true),
+                            Html.X().Column().DataIndex(Model, m => m.fldTree_Hadaf).Text("نمایش برای").Flex(2).Wrap(true),
+                        Html.X().Column().DataIndex(Model, m => m.fldStatusName).Text("وضعیت").Flex(1),
+                        Html.X().ComponentColumn().ItemID("buttonDownloadAnnouncement").Listeners(l => l.Bind.Fn = "CheckEnable").Text("دانلود").Filterable(false)
+                            .Component(Html.X().Button().ItemID("btnbindAnnouncement").Text("دانلود فایل").Listeners(l => l.Click.Handler = "DownloadAnnouncementFile()")),
+                        Html.X().ComponentColumn().ItemID("buttonDeleteAnnouncement").Listeners(l => l.Bind.Fn = "CheckEnable").Text("حذف").Filterable(false)
+                            .Component(Html.X().Button().ItemID("btnDeleteAnnouncement").Text("حذف فایل").Listeners(l => l.Click.Handler = "DeleteAnnouncementFile()"))
+                    )
+                    .SelectionModel(
+                        Html.X().RowSelectionModel()
+                            .Mode(Ext.Net.SelectionMode.Single)
+                    )
+                )
+            )
+)
+
+<script type="text/javascript">
+    function showHelp_VideoAnnouncement() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Announcement/VideoWinAnnouncement',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+
+    }
+    function HelpAnnouncement() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Announcement/Help',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+    var CheckEnable = function (columnn, component, record, rowIndex) {
+        if (record.data.fldAttachmentId == 0) {
+            component.disable();
+        }
+    };
+
+    function DownloadAnnouncementFile() {
+        var fldIDAnnouncement = App.Announcement.queryById("buttonDownloadAnnouncement").activeRecord.record.data.fldID;
+        $.ajax({
+            type: "POST",
+            dataType: 'native',
+            url: "/Announcement/Download",
+            xhrFields: {
+                responseType: 'blob'
+            },
+            data: {
+                fldIDAnnouncement: fldIDAnnouncement,
+                __RequestVerificationToken: App.Announcement.queryById('antiForgeryToken').getValue()
+            },
+            success: function (blob) {
+                var link = document.createElement('a');
+                link.href = window.URL.createObjectURL(blob);
+                link.download = "DownloadFile";
+                link.click();
+            }
+        });
+        @*window.location.href = '@Url.Content("/Announcement/Download?fldIDAnnouncement=")' + fldIDAnnouncement;*@
+    }
+
+    function DeleteAnnouncementFile() {
+        Ext.MessageBox.show({
+            title: "هشدار",
+            msg: "آیا برای حذف فایل مطمئن هستید؟",
+            icon: Ext.MessageBox.WARNING,
+            buttons: Ext.MessageBox.YESNO,
+            fn: function (btn) {
+                if (btn == 'yes') {
+                    Ext.net.Mask.show({ msg: 'در حال انجام عملیات...' });
+                    var fldAttachmentId = App.Announcement.queryById("buttonDeleteAnnouncement").activeRecord.record.data.fldAttachmentId;
+
+                    Ext.net.DirectMethod.request({
+                        url: '/Announcement/DeleteFile',
+                        params: {
+                            fldAttachmentId: fldAttachmentId,
+                            __RequestVerificationToken: App.Announcement.queryById('antiForgeryToken').getValue()
+                        },
+                        success: function (data) {
+                            chat.server.reloadLog();
+                            var ic = Ext.MessageBox.INFO;
+                            if (data.Er == 1) {
+                                ic = Ext.MessageBox.ERROR;
+                            }
+                            Ext.MessageBox.show({
+                                title: data.MsgTitle,
+                                msg: data.Msg,
+                                icon: ic,
+                                buttons: Ext.MessageBox.OK
+                            });
+                            App.Announcement.queryById('GridAnnouncement').store.load();
+                            Ext.net.Mask.hide();
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+    function setHeightAnnouncement() {
+        App.Announcement.queryById('GridAnnouncement').setHeight(App.BasicInfWin.getHeight() - 83);
+        Ext.net.Mask.hide();
+        InsertToLog("ثبت اطلاعیه",2, true);
+    }
+
+    function EditAnnouncement() {
+        var SelectedRow = App.Announcement.queryById('GridAnnouncement').selModel.getLastSelected();
+        if (SelectedRow != null) {
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/Announcement/New',
+                params: {
+                    Id: SelectedRow.data.fldID,
+                        state: 0
+                },
+                success: function () {
+                    Ext.net.Mask.hide();
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+
+    function NewAnnouncement(st) {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Announcement/New',
+            params: {
+                Id: 0,
+                state: st
+            },
+            success: function () {
+                /*Ext.net.Mask.hide();*/
+            }
+        });
+    }
+
+    function DeleteAnnouncement() {
+        var SelectedRow = App.Announcement.queryById('GridAnnouncement').selModel.getLastSelected();
+        if (SelectedRow != null) {
+            Ext.MessageBox.show({
+                title: "هشدار",
+                msg: "آیا برای حذف مطمئن هستید؟",
+                icon: Ext.MessageBox.WARNING,
+                buttons: Ext.MessageBox.YESNO,
+                fn: function (btn) {
+                    if (btn == 'yes') {
+                        Ext.net.Mask.show({ msg: 'در حال انجام عملیات...' });
+                        Ext.net.DirectMethod.request({
+                            url: '/Announcement/Delete',
+                            params: {
+                                Id: SelectedRow.data.fldID,
+                                __RequestVerificationToken: App.Announcement.queryById('antiForgeryToken').getValue()
+                            },
+                            success: function (data) {
+                                var ic = Ext.MessageBox.INFO;
+                                if (data.Er == 1) {
+                                    ic = Ext.MessageBox.ERROR;
+                                }
+                                Ext.MessageBox.show({
+                                    title: data.MsgTitle,
+                                    msg: data.Msg,
+                                    icon: ic,
+                                    buttons: Ext.MessageBox.OK
+                                });
+                                App.Announcement.queryById('GridAnnouncement').store.load();
+                                Ext.net.Mask.hide();
+                            }
+                        });
+                    }
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+</script>

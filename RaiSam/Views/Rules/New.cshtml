@@ -1,0 +1,247 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+
+@(Html.X()
+    .Window()
+    .Modal(true)
+    .Listeners(li =>
+    {
+        li.Render.Fn = "addKeyMapRulesHeader";
+        //li.AfterRender.Handler = "LoadRulesHeader()";
+    })
+    .Width(460)
+    .Title("ثبت تاریخ اجرای قوانین")
+    .ID("NewRules")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Layout(LayoutType.Fit)
+    .ButtonAlign(Ext.Net.Alignment.Center)
+    .Buttons(
+        X.Button()
+            .Text("ذخیره")
+            .Icon(Ext.Net.Icon.Disk)
+            .Listeners(l => l.Click.Handler = "SaveRulesHeader();"),
+        X.Button()
+            .Text("خروج")
+            .Icon(Ext.Net.Icon.DoorOut)
+            .ToolTip("کلید میانبر Esc")
+            .OnClientClick("App.NewRules.destroy();"))
+    .Items(
+        X.AntiForgeryField()
+            .ItemID("antiForgeryToken")
+            .Hidden(true),
+        X.Panel()
+            .Border(false)
+            .Layout(LayoutType.VBox)
+            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+            .Items(
+                X.FieldSet()
+                    .Title("مشخصات قوانین")
+                    .Border(true)
+                    .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 4 })
+                    .Defaults(new { Margin = 2 })
+                    .Items(
+                        X.Hidden().ItemID("fldId"),
+                        X.Label("تاریخ اجرا:"),
+                        X.PDateField()
+                            .ItemID("txtExecDate")
+                            .AutoFocus(true)
+                            .AllowBlank(false)
+                            .BlankText("لطفا تاریخ اجرای قوانین را وارد کنید.")
+                            .Editable(true)
+                            .MaskRe("/[0-9 /]/")
+                            .MaxLength(10)
+                            .EnforceMaxLength(true),
+                        X.Label("چرخه:"),
+                        X.ComboBox()
+                            .ItemID("CboCharkhe")
+                            .TypeAhead(true)
+                            .Editable(false)
+                            .ForceSelection(true)
+                            .QueryMode(DataLoadMode.Local)
+                            .TriggerAction(TriggerAction.All)
+                            .AllowBlank(false)
+                            .BlankText("لطفا وضعیت را انتخاب کنید.")
+                            .DisplayField("fldName")
+                            .ValueField("fldId")
+                            .EmptyText("چرخه...")
+                            .Store(X.Store()
+                                .Listeners(l => l.Load.Handler = "setDefaultCboCharkhe();LoadRulesHeader()")
+                                .Listeners(l => l.BeforeLoad.Handler = "App.NewRules.queryById('CboCharkhe').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.NewRules.queryById('antiForgeryToken').getValue());")
+                                .Model(X.Model()
+                                    .IDProperty("fldId")
+                                    .Fields(
+                                        new ModelField("fldId", ModelFieldType.Int) { Mapping = "fldId" },
+                                        new ModelField("fldName", ModelFieldType.String) { Mapping = "fldName" }
+                                        )
+                                )
+                                .Proxy(X.AjaxProxy()
+                                    .ActionMethods(l => l.Read = HttpMethod.POST)
+                                    .Timeout(200000000)
+                                    .Url(Url.Action("GetCharkhe"))
+                                    .Reader(X.JsonReader().Root("data"))
+                                )
+                        ),
+                        X.Label("توضیحات:"),
+                        X.TextField()
+                            .ItemID("txtDesc")
+                            .ColSpan(4)
+                            .Width(331)
+                     )
+                )
+        )
+)
+<script type="text/javascript">
+
+    function setDefaultCboCharkhe() {
+        if ('@ViewBag.HeaderId' == "0") {
+            App.NewRules.queryById('CboCharkhe').select(App.NewRules.queryById('CboCharkhe').store.getAt(0));
+        }
+    }
+
+    var fldTimeStamp = 0;
+    function LoadRulesHeader() {
+        if ('@ViewBag.HeaderId' != "0") {
+            App.NewRules.body.mask("در حال بارگذاری...");
+            Ext.net.DirectMethod.request({
+                url: '/Rules/Details',
+                params: {
+                    Id: '@ViewBag.HeaderId',
+                    __RequestVerificationToken: App.NewRules.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+                    var fldId = App.NewRules.queryById('fldId');
+                    fldId.setValue(data.fldId);
+
+                    var txtExecDate = App.NewRules.queryById('txtExecDate');
+                    txtExecDate.setRawValue(data.fldTarikhEjra);
+
+                    var CboCharkhe = App.NewRules.queryById('CboCharkhe');
+                    CboCharkhe.setValue(data.fldCharkheId);
+
+                    var txtDesc = App.NewRules.queryById('txtDesc');
+                    txtDesc.setValue(data.fldDesc);
+                    fldTimeStamp = data.fldTimeStamp;
+
+                    App.NewRules.body.mask().hide();
+                }
+            });
+        }
+        else {
+            App.NewRules.queryById('txtExecDate').setRawValue('@ViewBag.CurrentDate');
+            App.NewRules.queryById('txtExecDate').validate();
+            App.NewRules.queryById('CboCharkhe').validate();
+            Ext.net.Mask.hide();
+        }
+    }
+
+    function SaveRulesHeader() {
+        var fldId = App.NewRules.queryById('fldId');
+        var txtExecDate = App.NewRules.queryById('txtExecDate');
+        var txtDesc = App.NewRules.queryById('txtDesc');
+        var CboCharkhe = App.NewRules.queryById('CboCharkhe');
+
+        var er = false;
+
+        if (txtExecDate.validate() == false) {
+            er = true;
+        }
+        if (CboCharkhe.validate() == false) {
+            er = true;
+        }
+        if (er == true)
+            return;
+
+        App.NewRules.body.mask("در حال ذخیره سازی");
+        Ext.net.DirectMethod.request({
+            url: '/Rules/Save',
+            params: {
+                fldId: fldId.getValue(),
+                fldTarikhEjra: txtExecDate.getRawValue(),
+                fldDesc: txtDesc.getValue(),
+                fldCharkheId: CboCharkhe.getValue(),
+                fldNameCharkhe: CboCharkhe.getDisplayValue(),
+                fldTimeStamp: fldTimeStamp,
+                __RequestVerificationToken: App.NewRules.queryById('antiForgeryToken').getValue()
+            },
+            success: function (data) {
+                chat.server.reloadLog();
+                if (data.Er == 1 && data.Change == 1) {/*vaghti TimeStamp==0*/
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: Ext.MessageBox.WARNING,
+                        buttons: Ext.MessageBox.OK,
+                        fn: function (btn) {
+                            if (btn == 'ok') {
+                                LoadRulesHeader();
+                            }
+                        }
+                    });
+                }
+                else if (data.Er == 1 && data.Change == 2) {/*vaghti TimeStamp==2*/
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK,
+                        fn: function (btn) {
+                            if (btn == 'ok') {
+                                App.NewRules.destroy();
+                            }
+                        }
+                    });
+
+                }
+                else if (data.Er == 1) {
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK,
+                    });
+                }
+                else {
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: Ext.MessageBox.INFO,
+                        buttons: Ext.MessageBox.OK,
+                    });
+                }
+
+                App.Rules.queryById('GridRulesHeader').store.load();
+                App.NewRules.body.mask().hide();
+            }
+        });
+    }
+
+    var addKeyMapRulesHeader = function (cmp) {
+        this.keyMap = new Ext.util.KeyMap({
+            target: cmp.getEl(),
+            binding: [{
+                key: [13, 9], /*Ext.EventObject.ENTER,*/
+                fn: function (key, e) {
+                    if (e.getKey() == 9) {
+                        e.stopEvent();
+                    }
+                    var keyfield = App.NewRules.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+                    var nextfld;
+                    if (keyfield.itemId == "txtDesc") {
+                        SaveRulesHeader();
+                        return;
+                    }
+                    else {
+                        nextfld = keyfield.nextSibling().nextSibling();
+                    }
+                    nextfld.focus();
+                    nextfld.selectText();
+                }
+            }]
+        });
+    };
+</script>

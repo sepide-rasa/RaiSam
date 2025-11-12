@@ -1,0 +1,304 @@
+﻿@model IEnumerable<RaiSam.Models.prs_tblErjaSelect>
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+
+    var X = Html.X();
+}
+
+<script src="~/Scripts/jquery-ajax-native.js"></script>
+@(X.Panel().Border(false).Listeners(li => { li.AfterRender.Handler = "ErjaSetSize();"; })
+.Title("ارجاع")
+                .ID("Erja")
+            .Closable(true)
+            .AutoScroll(true)
+            .CloseAction(Ext.Net.CloseAction.Destroy)
+            .Items(
+                X.AntiForgeryField()
+            .ItemID("antiForgeryToken")
+            .Hidden(true),
+                    X.Panel().Border(false)
+                .AutoScroll(true)
+                .Layout(Ext.Net.LayoutType.VBox)
+                .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Stretch })
+                .Items(
+                    X.GridPanel().AutoScroll(true)
+                        .TopBar(
+                        Html.X().Toolbar()
+                            .Items(
+                            X.Button().Text("جدید").Icon(Ext.Net.Icon.Add)
+                                 .Listeners(li => li.Click.Handler = "NewErja();"),
+                            X.Button().Text("ویرایش").Icon(Ext.Net.Icon.Pencil)
+                                 .Listeners(Li => Li.Click.Handler = "EditErja();"),
+                            X.Button().Text("حذف").Icon(Ext.Net.Icon.Delete)
+                                .Listeners(de =>
+                                {
+                                    de.Click.Handler = "DeleteErja();";
+                                }),
+                                        X.Button().Text("نتیجه ارجاع").IconCls("NatijeErja").Hidden(!RaiSam.Models.Permission.haveAccess(75,"","0"))
+                                    .Listeners(de =>
+                                    {
+                                        de.Click.Handler = "NatijeErja();";
+                                    }),
+                            X.SplitButton()
+                                    .Text("راهنما")
+                                    .Icon(Ext.Net.Icon.Help)
+                                    .Menu(X.Menu()
+                                    .Items(
+                                    X.MenuItem()
+                                                .Text("راهنما متنی")
+                                                .Icon(Ext.Net.Icon.TextPaddingTop)
+                                                            .Listeners(l => l.Click.Handler = "HelpErja()"),
+                                        X.MenuItem()
+                                                .Text("راهنما تصویری")
+                                                .Icon(Ext.Net.Icon.PlayBlue)
+                                                    .Listeners(l => l.Click.Handler = "showHelp_VideoErja()")
+
+                                )
+                            )
+                        )
+                    )
+                    .ItemID("GridErja").Flex(2)
+                    .BottomBar(X.PagingToolbar())
+                    .Store(
+                        X.StoreForModel()
+                            .Listeners(l => l.BeforeLoad.Handler = "App.Erja.queryById('GridErja').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.Erja.queryById('antiForgeryToken').getValue());")
+                            .Proxy(Html.X().AjaxProxy()
+                            .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                            .Url(Url.Action("Read"))
+                            .Reader(Html.X().JsonReader().Root("data"))
+
+                        )
+                        .PageSize(20)
+                        .RemoteFilter(true)
+                        .RemotePaging(true)
+                           .Listeners(l => l.DataChanged.Handler = "App.Erja.queryById('GridErja').selModel.refresh();")
+                    )
+                    .View(
+                        Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                    )
+                    .Plugins(X.FilterHeader().Remote(true))
+
+                    .ColumnModel(
+                            Html.X().RowNumbererColumn(),
+                            Html.X().Column().DataIndex(Model, m => m.fldTimeStamp).Text("").Hidden(true).Flex(1),
+                            Html.X().Column().DataIndex(Model, m => m.fldId).Text("کد").Hidden(true).Flex(1),
+                            Html.X().Column().DataIndex(Model, m => m.fldNameErjadahande).Text("ارجاع دهنده").Flex(5).Wrap(true),
+                            Html.X().Column().DataIndex(Model, m => m.fldCodeEnhesari).Text("کدانحصاری").Flex(3).Wrap(true),
+                            Html.X().Column().DataIndex(Model, m => m.fldCodeMeli).Text("کد ملی").Flex(3).Wrap(true),
+                            Html.X().Column().DataIndex(Model, m => m.fldTarikhErja).Text("تاریخ ارجاع").Flex(6).Wrap(true),
+                            Html.X().Column().DataIndex(Model, m => m.fldTypeErjaName).Text("نوع ارجاع").Flex(3).Wrap(true),
+                            Html.X().Column().DataIndex(Model, m => m.fldSharh).Text("شرح ارجاع").Flex(8).Wrap(true),
+                            Html.X().Column().DataIndex(Model, m => m.fldPasvand).Text("فایل").Flex(1).Wrap(true),
+                            Html.X().ComponentColumn().ItemID("buttonDownloadErja").Listeners(l => l.Bind.Fn = "CheckEnableDownloadErja").Text("دانلود").Filterable(false)
+                            .Component(Html.X().Button().ItemID("btnDownloadErja").Text("دانلود فایل").Listeners(l => l.Click.Handler = "DownloadErja()"))
+                    )
+                    .SelectionModel(
+                        Html.X().RowSelectionModel()
+                            .Mode(Ext.Net.SelectionMode.Single)
+                    )
+            )
+        )
+)
+
+<script type="text/javascript">
+    var CheckEnableDownloadErja = function (columnn, component, record, rowIndex) {
+        if (record.data.fldFileId == 0) {
+            component.disable();
+        }
+    };
+    function DownloadErja() {
+        var fldFileId = App.Erja.queryById("buttonDownloadErja").activeRecord.record.data.fldFileId;
+        $.ajax({
+            type: "POST",
+            dataType: 'native',
+            url: "/Erja/DownloadErja",
+            xhrFields: {
+                responseType: 'blob'
+            },
+            data: {
+                FileIdErja: fldFileId,
+                __RequestVerificationToken: App.Erja.queryById('antiForgeryToken').getValue()
+            },
+            success: function (blob) {
+                var link = document.createElement('a');
+                link.href = window.URL.createObjectURL(blob);
+                link.download = "DownloadFile";
+                link.click();
+            }
+        });
+    }
+    function NatijeErja() {
+        var SelectedRow = App.Erja.queryById('GridErja').selModel.getLastSelected();
+
+        if (SelectedRow != null) {
+            App.crmWin.body.mask("در حال بارگذاری...");
+            Ext.net.DirectMethod.request({
+                url: '/Erja/NatijeErja',
+                params: {
+                    ErjaId: SelectedRow.data.fldId,
+                    NameErjadahande: SelectedRow.data.fldNameErjadahande,
+                },
+                success: function () {
+                    App.crmWin.body.mask().hide();
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+    function showHelp_VideoErja() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Erja/VideoWinErja',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+
+    }
+
+    function ErjaSetSize() {
+        App.Erja.setWidth(App.crmWin.getWidth());
+        var grid = App.Erja.queryById('GridErja');
+        grid.setHeight(App.crmWin.getHeight() - 83);
+        InsertToLog("ارجاع",2, true);
+    }
+    function NewErja() {
+        App.crmWin.body.mask("در حال بارگذاری...");
+        Ext.net.DirectMethod.request({
+            url: '/Erja/new',
+            params: {
+                id: 0
+            },
+            success: function () {
+                App.crmWin.body.mask().hide();
+            }
+        });
+    }
+    function EditErja() {
+        var SelectedRow = App.Erja.queryById('GridErja').selModel.getLastSelected();
+
+        if (SelectedRow != null) {
+            App.crmWin.body.mask("در حال بارگذاری...");
+            Ext.net.DirectMethod.request({
+                url: '/Erja/new',
+                params: {
+                    id: SelectedRow.data.fldId
+                },
+                success: function () {
+                    App.crmWin.body.mask().hide();
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+
+    function DeleteErja() {
+        var SelectedHeaderRow = App.Erja.queryById('GridErja').selModel.getLastSelected();
+        if (SelectedHeaderRow != null) {
+            Ext.MessageBox.show({
+                title: "هشدار",
+                msg: "آیا برای حذف مطمئن هستید؟",
+                icon: Ext.MessageBox.WARNING,
+                buttons: Ext.MessageBox.YESNO,
+                fn: function (btn) {
+                    if (btn == 'yes') {
+                        App.crmWin.body.mask("در حال انجام عملیات...");
+                        Ext.net.DirectMethod.request({
+                            url: '/Erja/Delete',
+                            params: {
+                                id: SelectedHeaderRow.data.fldId,
+                                TimeStamp: SelectedHeaderRow.data.fldTimeStamp,
+                                __RequestVerificationToken: App.Erja.queryById('antiForgeryToken').getValue()
+                            },
+                            success: function (data) {
+                                chat.server.reloadLog();
+                                if (data.Er == 1 && data.Change == 1) {/*vaghti TimeStamp==0*/
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.WARNING,
+                                        buttons: Ext.MessageBox.OK,
+                                        fn: function (btn) {
+                                            if (btn == 'ok') {
+                                                App.Erja.queryById('GridErja').store.load();
+                                            }
+                                        }
+                                    });
+                                }
+                                else if (data.Er == 1 && data.Change == 2) {/*vaghti TimeStamp==2*/
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.ERROR,
+                                        buttons: Ext.MessageBox.OK,
+                                        fn: function (btn) {
+                                            if (btn == 'ok') {
+                                                App.Erja.queryById('GridErja').store.load();
+                                            }
+                                        }
+                                    });
+                                }
+                                else if (data.Er == 1) {
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.ERROR,
+                                        buttons: Ext.MessageBox.OK
+                                    });
+                                }
+                                else {
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.INFO,
+                                        buttons: Ext.MessageBox.OK
+                                    });
+                                    App.Erja.queryById('GridErja').store.load();
+                                }
+
+
+                                App.crmWin.body.mask().hide();
+                            }
+                        });
+                    }
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+
+    function HelpErja() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Erja/HelpErja',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+</script>
+

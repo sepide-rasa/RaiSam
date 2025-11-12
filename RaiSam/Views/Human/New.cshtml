@@ -1,0 +1,832 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+<style>
+    #fieldsetfile legend {
+        text-align: right;
+        font-family: Tahoma !important;
+    }
+
+    #DeleteActionFileimg6:hover {
+        cursor: pointer;
+    }
+
+    .custom-icon-city {
+        margin-right: 124px !important;
+    }
+
+    .infoPanelSuccess {
+        border: solid 1px #d6e9c6 !important;
+        background: #dff0d8 !important;
+        border-radius: 4px !important;
+        box-shadow: 0 0 10px #ccc !important;
+    }
+
+    .infoPanelError {
+        border: solid 1px #ebccd1 !important;
+        background: #f2dede !important;
+        border-radius: 4px !important;
+        box-shadow: 0 0 10px #ccc !important;
+    }
+
+    .x-infopanel-danger .x-infopanel-body {
+        background: #f2dede !important;
+        color: #a94442 !important;
+    }
+
+    .x-infopanel-success .x-infopanel-body {
+        background: #dff0d8 !important;
+        color: #3c763d !important;
+    }
+</style>
+
+@(Html.X()
+    .Window()
+    .Modal(true)
+    .Listeners(li =>
+    {
+        li.Render.Fn = "addKeyMapNewHuman";
+        li.AfterRender.Handler = "LoadHuman();";
+    })
+    .Width(520)
+    .Title("ثبت شخص جدید")
+    .ID("NewHuman")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Layout(LayoutType.Fit)
+    .ButtonAlign(Ext.Net.Alignment.Center)
+    .Buttons(
+        X.Button()
+            .Text("ذخیره")
+            .Icon(Ext.Net.Icon.Disk)
+            .Listeners(l => l.Click.Handler = "SaveHuman();"),
+        X.Button()
+            .Text("خروج")
+            .Icon(Ext.Net.Icon.DoorOut)
+                .OnClientClick("App.NewHuman.destroy();"))
+    .Items(
+        X.AntiForgeryField()
+        .ItemID("antiForgeryToken").Hidden(true),
+        X.Panel()
+        //.Padding(5)
+            .Border(false)
+            .Layout(LayoutType.VBox)
+            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+            .Items(
+                X.FieldSet()
+                    .Border(true)
+                    .Title("مشخصات شخص")
+                    .Defaults(new { Margin = 2 })
+                    .Layout(LayoutType.Table)
+                    .LayoutConfig(new TableLayoutConfig { Columns = 4 })
+                    .Items(
+                        X.Hidden().ItemID("fldId"),
+                        X.Hidden().ItemID("fldFileId"),
+                        X.Hidden().ItemID("fldCodeMahalTavalod"),
+                         X.Hidden().ItemID("fldCodeMahalSodoor"),
+                        X.Label("کد ملی:"),
+                        X.TextField()
+                            .ItemID("txtCodeMeli")
+        //.Listeners(l => l.Blur.Handler = "Estelam()")
+                            .MaskRe("/[0-9]/")
+                            .AutoFocus(true)
+                            .AllowBlank(false)
+                            .BlankText("لطفا کد ملی شخص را وارد کنید.")
+                            .MinLength(10)
+                            .MaxLength(10)
+                            .EnforceMaxLength(true),
+                        X.Label("تاریخ تولد:"),
+                        X.FieldSet()
+                            .Padding(0)
+                            .Border(false)
+                            .Layout(LayoutType.HBox)
+                            .Items(
+                                X.PDateField()
+                                    .ItemID("txtBirthDate")
+        //.Listeners(l => l.Change.Handler = "Estelam()")
+                                    .AllowBlank(true)
+                                    .BlankText("لطفا تاریخ تولد شخص را وارد کنید.")
+                                    .Editable(true)
+                                    .MaskRe("/[0-9/]/")
+                                    .MaxLength(10)
+                                    .MinLength(10)
+                                    .EnforceMaxLength(true),
+                                X.Button()
+                                    .Icon(Icon.ArrowRefresh)
+                                    .MarginSpec("0 0 0 3px")
+                                    .Listeners(l => l.Click.Handler = "Estelam()")
+                                    .ToolTip("استعلام از ثبت احوال")
+                                ),
+                        X.Label("نام:"),
+                        X.TextField()
+                            .ItemID("txtName")
+                            .AllowBlank(false)
+                            .MaskRe("[أ-ئ,ا-ی, ,آ]")
+                            .BlankText("لطفا نام شخص را وارد کنید.")
+                            .MaxLength(100)
+                            .EnforceMaxLength(true),
+                        X.Label("نام خانوادگی:"),
+                        X.TextField()
+                            .ItemID("txtFamily")
+                            .AllowBlank(false)
+                            .MaskRe("[أ-ئ,ا-ی, ,آ]")
+                            .BlankText("لطفا نام خانوادگی شخص را وارد کنید.")
+                            .MaxLength(150)
+                            .EnforceMaxLength(true),
+                        X.Label("نام پدر:"),
+                        X.TextField()
+                            .ItemID("txtFatherName")
+                            .AllowBlank(false)
+                            .MaskRe("[أ-ئ,ا-ی, ]")
+                            .BlankText("لطفا نام پدر را وارد کنید.")
+                            .MaxLength(100)
+                            .EnforceMaxLength(true),
+                        X.Label("شماره شناسنامه:"),
+                        X.TextField()
+                            .ItemID("txtSh_Shenasnameh")
+                            .AllowBlank(true)
+                                .EnableKeyEvents(true)
+                            .Listeners(l => l.KeyUp.Fn = "onInitializeToEnSh_Shenasnameh")
+                            .EnforceMaxLength(true)
+                            .MaxLength(10)
+                            .MaskRe("/[0-9]/")
+                            .BlankText("لطفا شماره شناسنامه را وارد کنید."),
+                        X.Label("محل تولد:"),
+                        X.TextField()
+                            .ItemID("txtMahalTavalod")
+                            .AllowBlank(true)
+                            .ReadOnly(true)
+                            .FieldStyle("padding-right:6px;")
+                            .Icon(Icon.Building)
+                            .BlankText("لطفا محل تولد را انتخاب کنید.")
+                            .Listeners(l =>
+                            {
+                                l.SpecialKey.Handler = "SelectCity(e.getKey(),1);";
+                                l.IconClick.Handler = "GotoCityList(1);";
+                                l.AfterRender.Handler = "App.NewHuman.queryById('txtMahalTavalod').icon.dom.classList.add('custom-icon-city');";
+                            }),
+                        X.Label("محل صدور:"),
+                        X.TextField()
+                            .ItemID("txtMahalSoddor")
+                            .AllowBlank(true)
+                            .ReadOnly(true)
+                            .FieldStyle("padding-right:6px;")
+                            .Icon(Icon.Building)
+                            .BlankText("لطفا محل صدور را انتخاب کنید.")
+                            .Listeners(l =>
+                            {
+                                l.SpecialKey.Handler = "SelectCity(e.getKey(),2);";
+                                l.IconClick.Handler = "GotoCityList(2);";
+                                l.AfterRender.Handler = "App.NewHuman.queryById('txtMahalSoddor').icon.dom.classList.add('custom-icon-city');";
+                            }),
+                        X.Label("موبایل:"),
+                        X.TextField()
+                            .ItemID("txtMobile")
+                            .AllowBlank(true)
+                            .EnableKeyEvents(true)
+                            .Listeners(l => l.KeyUp.Fn = "onInitializeToEnMobile")
+                            .EnforceMaxLength(true)
+                            .MaxLength(11)
+                            .MinLength(11)
+                            .MaskRe("/[0-9]/")
+                            .Regex(@"^[0][9]")
+                            .BlankText("لطفا شماره موبایل را وارد کنید."),
+                        X.Label("ایمیل:"),
+                        X.TextField()
+                            .ItemID("txtMail")
+                            .EnableKeyEvents(true)
+                            .Listeners(l => l.KeyUp.Fn = "onInitializeToEnMail")
+                            .EnforceMaxLength(true)
+                            .MaxLength(100)
+                            .AllowBlank(true)
+                            .BlankText("لطفا ایمیل را وارد نمایید."),
+                        X.Label("جنسیت:"),
+                        X.ComboBox()
+                            .ItemID("CboGender")
+                            .Editable(false)
+                            .TypeAhead(true)
+                            .BlankText("لطفا جنسیت را انتخاب کنید.")
+                            .QueryMode(DataLoadMode.Local)
+                            .TriggerAction(TriggerAction.All)
+                            .Listeners(l => l.AfterRender.Handler = "setDefaultCboGender();")
+                            .AllowBlank(false)
+                            .EmptyText("وضعیت...")
+                            .Items(
+                                new ListItem("مرد", "1"),
+                                new ListItem("زن", "0")
+                                ),
+                        X.Label("توضیحات:"),
+                        X.TextField()
+                            .ItemID("txtDesc"),
+                        X.FieldSet()
+                            .Border(true)
+                            .AutoScroll(true)
+                            .Height(150)
+                            .ColSpan(4)
+                            .Title("انتخاب فایل(حداکثر حجم مجاز: 1MB)")
+                            .ID("fieldsetfile")
+                            .Layout(LayoutType.HBox)
+                            .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Middle })
+                            .Items(
+                                X.FormPanel()
+                                    .Border(false)
+                                    .Layout(LayoutType.VBox)
+                                    .ItemID("fieldsetShowFile")
+                                    .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Right })
+                                    .Width(346)
+        //.Listeners(l => l.AfterRender.Handler = "App.NewHuman.queryById('fieldsetShowFile').setWidth(App.BasicInfWin.getWidth() - 1050)")
+                                    .Items(
+                                        X.FileUploadField()
+                                            .MarginSpec("0 10px 10px 0")
+                                            .Icon(Ext.Net.Icon.DiskUpload)
+                                            .ButtonOnly(true)
+                                            .ButtonText("انتخاب فایل")
+                                            .DirectEvents(l =>
+                                            {
+                                                l.Change.Action = "Upload";
+                                                l.Change.Delay = 1000;
+                                                l.Change.Before = "if(GotoServerHuman==false){return false;}";
+                                                l.Change.Success = "hideprogressHuman";
+                                            })
+                                            .Listeners(l => l.Change.Fn = "showFileHuman"),
+                                        X.Container()
+                                            .Content(@<div id="fi-button-msg" class="Wrap-label" style="width:336px;height:auto; text-align:right;"><b>فایل انتخاب شده:</b></div>)
+                                        ),
+                                X.Panel()
+                                    .Border(false)
+                                    .Layout(LayoutType.VBox)
+                                    .LayoutConfig(new VBoxLayoutConfig { Align=VBoxAlign.Center})
+                                    .Items(
+                                        X.Label("پیش نمایش"),
+                                        X.Panel()
+                                            .Frame(true)
+                                            .MarginSpec("3px 0 0 0")
+                                            .Layout(LayoutType.Fit)
+                                            .Items(
+                                        X.Image()
+                                            .ItemID("ImageHuman")
+                                            .Flex(1)
+                                            .ImageUrl("/Content/icon/Blank.jpg")
+                                            .Width(80)
+                                            .Height(80)
+                                            .Border(true)
+                                            .Frame(true)))
+                            )
+                    )
+                        )
+
+                )
+)
+<script type="text/javascript">
+    var fldTimeStamp = 0;
+    var onInitializeToEnMail = function () {
+        var tt = App.NewHuman.queryById('txtMail');
+        changeLagToEn(tt);
+    };
+    var onInitializeToEnSh_Shenasnameh = function () {
+        var tt = App.NewHuman.queryById('txtSh_Shenasnameh');
+        changeLagToEn(tt);
+    };
+    var onInitializeToEnMobile = function () {
+        var tt = App.NewHuman.queryById('txtMobile');
+        changeLagToEn(tt);
+    };
+
+    var IsEstelam = false;
+
+    function setDefaultCboGender() {
+        if ('@ViewBag.Id' == '0') {
+            App.NewHuman.queryById('CboGender').setValue("1");
+        }
+    }
+    var PersonPic = null;
+    function Estelam() {
+        var txtCodeMeli = App.NewHuman.queryById('txtCodeMeli');
+        var txtBirthDate = App.NewHuman.queryById('txtBirthDate');
+
+        if (txtBirthDate.getRawValue() != "" && txtCodeMeli.validate() && txtBirthDate.validate() ) {
+            App.NewHuman.body.mask('در حال استعلام از ثبت احوال...');
+            Ext.net.DirectMethod.request({
+                url: '/CompanyProfile/EstelamSitaad',
+                params: {
+                    BirthDate: txtBirthDate.getRawValue(),
+                    NationalCode: txtCodeMeli.getValue(),
+                    __RequestVerificationToken: App.NewHuman.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+
+                    if (data.Er != 0) {
+                        IsEstelam = false;
+                        App.NewHuman.queryById('txtName').setValue("").setReadOnly(false);
+                        App.NewHuman.queryById('CboGender').setValue("1").setReadOnly(false);
+                        App.NewHuman.queryById('txtFamily').setValue("").setReadOnly(false);
+                        App.NewHuman.queryById('txtFatherName').setValue("").setReadOnly(false);
+                        App.NewHuman.queryById('txtSh_Shenasnameh').setValue("").setReadOnly(false);
+                        if (data.Er == 3) {
+                            txtCodeMeli.setValue("");
+                            txtBirthDate.setRawValue("");
+                        }
+
+                        Ext.MessageBox.show({
+                            title: "خطا",
+                            msg: data.Message,
+                            icon: Ext.MessageBox.ERROR,
+                            buttons: Ext.MessageBox.OK,
+                            fn: function (btn) {
+                                if (btn == "ok") {
+                                    txtCodeMeli.focus().selectText();
+                                }
+                            }
+                        });
+                    }
+                    else {
+                        IsEstelam = true;
+                        var txtName = App.NewHuman.queryById('txtName');
+                        txtName.setValue(data.Name).setReadOnly(true);
+
+                        var CboGender = App.NewHuman.queryById('CboGender');
+                        CboGender.setValue(data.Gender).setReadOnly(true);
+
+                        var txtFamily = App.NewHuman.queryById('txtFamily');
+                        txtFamily.setValue(data.Family).setReadOnly(true);
+
+                        var txtFatherName = App.NewHuman.queryById('txtFatherName');
+                        txtFatherName.setValue(data.FatherName).setReadOnly(true);
+
+                        var txtSh_Shenasnameh = App.NewHuman.queryById('txtSh_Shenasnameh');
+                        txtSh_Shenasnameh.setValue(data.ShenasnameNo).setReadOnly(true);
+                        App.NewHuman.queryById('txtMahalTavalod').focus().selectText();
+                        /* if (data.Pic != "") {
+                            PersonPic=data.Pic;
+                            var fldfile = "data:image/gif;base64," + data.Pic;
+                            App.NewHuman.queryById('ImageHuman').setImageUrl(fldfile);
+                        }
+
+                        var txtMahalSoddor = App.NewHuman.queryById('txtMahalSoddor');
+                        txtMahalSoddor.setValue(data.mahalSodur);
+
+                        var fldCodeMahalSodoor = App.NewHuman.queryById('fldCodeMahalSodoor');
+                        fldCodeMahalSodoor.setValue(data.mahalSodurId);
+
+                        var txtMahalTavalod = App.NewHuman.queryById('txtMahalTavalod');
+                        txtMahalTavalod.setValue(data.mahalTavalod);
+
+                        var fldCodeMahalTavalod = App.NewHuman.queryById('fldCodeMahalTavalod');
+                        fldCodeMahalTavalod.setValue(data.mahalTavalodId);*/
+                    }
+                    App.NewHuman.body.mask().hide();
+                }
+            });
+        }
+    }
+
+    function GotoCityList(state) {
+        App.NewHuman.body.mask("در حال بارگذاری");
+        Ext.net.DirectMethod.request({
+            url: '/SearchCity/Index',
+            params: {
+                State: state,
+            },
+            success: function () {
+                App.NewHuman.body.mask().hide();
+            }
+        });
+    }
+
+    function SelectCity(Code, state) {
+        if (Code == 45) {
+            App.NewHuman.body.mask("در حال بارگذاری");
+            Ext.net.DirectMethod.request({
+                url: '/SearchCity/Index',
+                params: {
+                    State: state,
+                },
+                success: function () {
+                    App.NewHuman.body.mask().hide();
+                }
+            });
+        }
+    }
+
+    var GotoServerHuman = false;
+    var EndUploadHuman = false;
+
+    var CheckHuman = setInterval(CheckEndHuman, 500);
+
+    function CheckEndHuman() {
+        if (EndUploadHuman == true) {
+            Ext.net.DirectMethod.request({
+                url: '/Human/ShowPic',
+                params: {
+                    __RequestVerificationToken: App.NewHuman.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+                    value = "data:image/gif;base64," + data.image;
+                    App.NewHuman.queryById('ImageHuman').setImageUrl(value);
+                }
+            });
+            GotoServerHuman = false;
+            Ext.MessageBox.hide();
+            Ext.Msg.alert('عملیات موفق', 'فایل با موفقیت آپلود شد.');
+            clearInterval(CheckEndHuman);
+            EndUploadHuman = false;
+        }
+    }
+    var showFileHuman = function (fb, v) {
+        var id = fb.fileInputEl.dom.id;
+        var el = Ext.get('fi-button-msg');
+        if (v) {
+            showProgressBarHuman();
+            if (v.split('.').pop().toLowerCase() == "jpg" || v.split('.').pop().toLowerCase() == "png" || v.split('.').pop().toLowerCase() == "jpeg"
+                || v.split('.').pop().toLowerCase() == "tif" || v.split('.').pop().toLowerCase() == "tiff" || v.split('.').pop().toLowerCase() == "gif"
+                || v.split('.').pop().toLowerCase() == "bmp") {
+                if (document.getElementById(id).files[0].size <= 1024000) {
+                    GotoServerHuman = true;
+                    el.update('<b>فایل انتخاب شده: ' + v + '</b>' + "&nbsp;&nbsp;" + '<img id="DeleteActionFileimg6" title="حذف فایل" src="/Content/cancel.png" style="width:15px;height:15px;margin-bottom: -4px;" onclick="javascript:DeleteFileHuman()" />');
+                }
+                else {
+                    clearInterval(CheckEndHuman);
+                    el.update('<b>فایل انتخاب شده:</b> ');
+                    App.NewHuman.queryById('ImageHuman').setImageUrl("/Content/icon/Blank.jpg");
+                    Ext.MessageBox.show({
+                        title: "خطا",
+                        msg: "حجم فایل انتخاب شده غیرمجاز است.",
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK
+                    });
+                }
+
+                if (!el.isVisible()) {
+                    el.slideIn('t', {
+                        duration: .2,
+                        easing: 'easeIn',
+                        callback: function () {
+                            el.highlight();
+                        }
+                    });
+                } else {
+                    el.highlight();
+                }
+            }
+            else {
+                clearInterval(CheckEndHuman);
+                el.update('<b>فایل انتخاب شده:</b> ');
+                App.NewHuman.queryById('ImageHuman').setImageUrl("/Content/icon/Blank.jpg");
+                Ext.MessageBox.show({
+                    title: "خطا",
+                    msg: "فایل انتخاب شده غیرمجاز است.",
+                    icon: Ext.MessageBox.ERROR,
+                    buttons: Ext.MessageBox.OK
+                });
+            }
+        }
+    };
+
+    var DeleteFileHu = false;
+    function DeleteFileHuman() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Human/DeleteSessionFile',
+            success: function (data) {
+                DeleteFileHu = true;
+                App.NewHuman.queryById('ImageHuman').setImageUrl("/Content/icon/Blank.jpg");
+                Ext.get('fi-button-msg').update('<b>فایل انتخاب شده:</b>');
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+    var hideprogressHuman = function (Responsdtxt, ResponseObj) {
+        if (ResponseObj.IsValid == true) {
+            EndUploadHuman = true;
+        }
+        else {
+            var el = Ext.get('fi-button-msg');
+            GotoServerHuman = false;
+            clearInterval(CheckEndHuman);
+            EndUploadHuman = false;
+            el.update('<b>فایل انتخاب شده:</b> ');
+            App.NewHuman.queryById('ImageHuman').setImageUrl("/Content/icon/Blank.jpg");
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: ResponseObj.Message,
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    };
+
+    function showProgressBarHuman() {
+        Ext.MessageBox.show({
+            msg: 'لطفاً منتظر باشید',
+            progressText: 'در حال آپلود فایل...',
+            width: 300,
+            wait: true,
+            waitConfig:
+            {
+                interval: 200,
+                text: 'در حال آپلود فایل...',
+                scope: this
+            }
+        });
+    }
+
+    function LoadHuman() {
+        /*App.NewHuman.setWidth(App.BasicInfWin.getWidth() - 881);*/
+        /*App.NewHuman.queryById("txtDesc").setWidth(App.BasicInfWin.getWidth() - 996);
+        Ext.get('fi-button-msg').setWidth(App.BasicInfWin.getWidth() - 1050);*/
+        if ('@ViewBag.Id' != '0') {
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/Human/Details',
+                params: {
+                    Id: '@ViewBag.Id',
+                    __RequestVerificationToken: App.NewHuman.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+                    var txtName = App.NewHuman.queryById('txtName');
+                    txtName.setValue(data.fldName);
+
+                    var CboGender = App.NewHuman.queryById('CboGender');
+                    CboGender.setValue(data.fldJensiyat);
+
+                    var txtFamily = App.NewHuman.queryById('txtFamily');
+                    txtFamily.setValue(data.fldFamily);
+
+                    var txtFatherName = App.NewHuman.queryById('txtFatherName');
+                    txtFatherName.setValue(data.fldFatherName);
+
+                    var txtSh_Shenasnameh = App.NewHuman.queryById('txtSh_Shenasnameh');
+                    txtSh_Shenasnameh.setValue(data.fldSh_Shenasname);
+
+                    IsEstelam = data.fldEstelam;
+                    if (data.fldEstelam == true) {
+                        txtName.setReadOnly(true);
+                        txtFamily.setReadOnly(true);
+                        txtFatherName.setReadOnly(true);
+                        txtSh_Shenasnameh.setReadOnly(true);
+                        CboGender.setReadOnly(true);
+                    }
+                    var txtBirthDate = App.NewHuman.queryById('txtBirthDate');
+                    txtBirthDate.setRawValue(data.fldTarikhTavalod);
+
+                    var txtCodeMeli = App.NewHuman.queryById('txtCodeMeli');
+                    txtCodeMeli.setValue(data.fldCodeMeli);
+
+                    var txtDesc = App.NewHuman.queryById('txtDesc');
+                    txtDesc.setValue(data.fldDesc);
+
+                    var Id = App.NewHuman.queryById('fldId');
+                    Id.setValue(data.fldId);
+
+                    var txtMobile = App.NewHuman.queryById('txtMobile');
+                    txtMobile.setValue(data.fldMobile);
+
+                    var txtMail = App.NewHuman.queryById('txtMail');
+                    txtMail.setValue(data.fldEmail);
+
+                    var txtMahalSoddor = App.NewHuman.queryById('txtMahalSoddor');
+                    txtMahalSoddor.setValue(data.fldMahaleSodoor);
+
+                    var fldCodeMahalSodoor = App.NewHuman.queryById('fldCodeMahalSodoor');
+                    fldCodeMahalSodoor.setValue(data.fldCodeMahalSodoor);
+
+                    var txtMahalTavalod = App.NewHuman.queryById('txtMahalTavalod');
+                    txtMahalTavalod.setValue(data.fldMahalTavalod);
+
+                    var fldCodeMahalTavalod = App.NewHuman.queryById('fldCodeMahalTavalod');
+                    fldCodeMahalTavalod.setValue(data.fldCodeMahalTavalod);
+
+                    var fldFileId = App.NewHuman.queryById('fldFileId');
+                    fldFileId.setValue(data.fldFileId);
+
+                    if (data.NameFile != "") {
+                        PersonPic = data.pic;
+                        var fldfile = "data:image/gif;base64," + data.pic;
+                        App.NewHuman.queryById('ImageHuman').setImageUrl(fldfile);
+                        Ext.get('fi-button-msg').update('<b>فایل انتخاب شده: ' + data.NameFile + '</b>' + "&nbsp;&nbsp;" + '<img id="DeleteActionFileimg6" title="حذف فایل" src="/Content/cancel.png" style="width:15px;height:15px;margin-bottom: -4px;" onclick="javascript:DeleteFileHuman()" />');
+                    }
+                    else {
+                        App.NewHuman.queryById('ImageHuman').setImageUrl("/Content/icon/Blank.jpg");
+                        Ext.get('fi-button-msg').update('<b>فایل انتخاب شده:</b>');
+                    }
+                    fldTimeStamp = data.fldTimeStamp;
+                    Ext.net.Mask.hide();
+                }
+            });
+        }
+        else {
+            App.NewHuman.queryById('txtName').validate();
+            App.NewHuman.queryById('txtFamily').validate();
+            App.NewHuman.queryById('txtFatherName').validate();
+            App.NewHuman.queryById('txtCodeMeli').validate();
+            App.NewHuman.queryById('txtMobile').validate();
+            App.NewHuman.queryById('txtMail').validate();
+            Ext.net.Mask.hide();
+        }
+    }
+
+    function SaveHuman() {
+        var txtName = App.NewHuman.queryById('txtName');
+        var CboGender = App.NewHuman.queryById('CboGender');
+        var txtFamily = App.NewHuman.queryById('txtFamily');
+        var txtFatherName = App.NewHuman.queryById('txtFatherName');
+        var fldCodeMahalSodoor = App.NewHuman.queryById('fldCodeMahalSodoor');
+        var fldCodeMahalTavalod = App.NewHuman.queryById('fldCodeMahalTavalod');
+        var txtSh_Shenasnameh = App.NewHuman.queryById('txtSh_Shenasnameh');
+        var txtCodeMeli = App.NewHuman.queryById('txtCodeMeli');
+        var txtBirthDate = App.NewHuman.queryById('txtBirthDate');
+        var txtMobile = App.NewHuman.queryById('txtMobile');
+        var txtMail = App.NewHuman.queryById('txtMail');
+        var txtDesc = App.NewHuman.queryById('txtDesc');
+        var Id = App.NewHuman.queryById('fldId');
+        var fldFileId = App.NewHuman.queryById('fldFileId');
+
+        var er = false;
+
+        if (txtName.validate() == false) {
+            er = true;
+        }
+        if (CboGender.validate() == false) {
+            er = true;
+        }
+        if (txtFamily.validate() == false) {
+            er = true;
+        }
+        if (txtFatherName.validate() == false) {
+            er = true;
+        }
+        if (txtCodeMeli.validate() == false) {
+            er = true;
+        }
+        if (txtMobile.validate() == false) {
+            er = true;
+        }
+        if (txtMail.validate() == false) {
+            er = true;
+        }
+        if (er == true)
+            return;
+        var jenseyat = null;
+        if (CboGender.getValue() == "1")
+            jenseyat = true;
+        else if (CboGender.getValue() == "0")
+            jenseyat = false;
+
+        var CodeMahalTavalod = null;
+        var CodeMahalSodoor = null;
+        if (fldCodeMahalTavalod.getValue() != "" && fldCodeMahalTavalod.getValue() != "0")
+            CodeMahalTavalod = fldCodeMahalTavalod.getValue();
+        if (fldCodeMahalSodoor.getValue() != "" && fldCodeMahalSodoor.getValue() != "0")
+            CodeMahalSodoor = fldCodeMahalSodoor.getValue();
+
+        App.NewHuman.body.mask("در حال ذخیره سازی");
+        Ext.net.DirectMethod.request({
+            url: '/Human/Save',
+            params: {
+                DeleteFileHu: DeleteFileHu,
+                fldId: Id.getValue(),
+                fldName: txtName.getValue(),
+                fldFamily: txtFamily.getValue(),
+                fldCodeMeli: txtCodeMeli.getValue(),
+                fldEmail: txtMail.getValue(),
+                fldMobile: txtMobile.getValue(),
+                fldFatherName: txtFatherName.getValue(),
+                fldFileId: fldFileId.getValue(),
+                fldTarikhTavalod: txtBirthDate.getRawValue(),
+                fldEstelam:IsEstelam,
+                fldDesc: txtDesc.getValue(),
+                fldCodeMahalTavalod: CodeMahalTavalod,
+                fldCodeMahalSodoor: CodeMahalSodoor,
+                fldSh_Shenasname: txtSh_Shenasnameh.getValue(),
+                fldJensiyat: jenseyat,
+                fldTimeStamp: fldTimeStamp,
+                NameJensiyat: CboGender.getDisplayValue(),
+                PersonPic: PersonPic,
+                __RequestVerificationToken: App.NewHuman.queryById('antiForgeryToken').getValue()
+            },
+            success: function (data) {
+                chat.server.reloadLog();
+
+                if (data.Er == 1 && data.Change == 1) {/*vaghti TimeStamp==0*/
+                   Ext.MessageBox.show({
+                       title: data.MsgTitle,
+                       msg: data.Msg,
+                       icon: Ext.MessageBox.WARNING,
+                       buttons: Ext.MessageBox.OK,
+                       fn: function (btn) {
+                           if (btn == 'ok') {
+                               LoadHuman();
+                           }
+                       }
+                   });
+               }
+               else if (data.Er == 1 && data.Change == 2) {/*vaghti TimeStamp==2*/
+                   Ext.MessageBox.show({
+                       title: data.MsgTitle,
+                       msg: data.Msg,
+                       icon: Ext.MessageBox.ERROR,
+                       buttons: Ext.MessageBox.OK,
+                       fn: function (btn) {
+                           if (btn == 'ok') {
+                               App.NewHuman.destroy();
+                           }
+                       }
+                   });
+
+               }
+               else if (data.Er == 1) {
+                   Ext.MessageBox.show({
+                       title: data.MsgTitle,
+                       msg: data.Msg,
+                       icon: Ext.MessageBox.ERROR,
+                       buttons: Ext.MessageBox.OK,
+                   });
+               }
+               else {
+                   Ext.MessageBox.show({
+                       title: data.MsgTitle,
+                       msg: data.Msg,
+                       icon: Ext.MessageBox.INFO,
+                       buttons: Ext.MessageBox.OK,
+                   });
+               }
+
+                if (data.Er != 1) {
+                    ClearHuman();
+                }
+                else {
+                    Ext.get('fi-button-msg').update('<b>فایل انتخاب شده:</b> ');
+                    App.NewHuman.queryById('ImageHuman').setImageUrl("/Content/icon/Blank.jpg");
+                }
+                App.Human.queryById('GridHuman').getStore().load();
+                App.NewHuman.body.mask().hide();
+            }
+        });
+    }
+
+    function ClearHuman() {
+        App.NewHuman.queryById('txtName').setValue("");
+        App.NewHuman.queryById('CboGender').setValue("1");
+        App.NewHuman.queryById('txtFamily').setValue("");
+        App.NewHuman.queryById('txtFatherName').setValue("");
+        App.NewHuman.queryById('txtSh_Shenasnameh').setValue("");
+        App.NewHuman.queryById('txtCodeMeli').setValue("");
+        App.NewHuman.queryById('txtMobile').setValue("");
+        App.NewHuman.queryById('txtMail').setValue("");
+        App.NewHuman.queryById('txtDesc').setValue("");
+        App.NewHuman.queryById('fldId').setValue(0);
+        App.NewHuman.queryById('fldCodeMahalTavalod').setValue(null);
+        App.NewHuman.queryById('fldCodeMahalSodoor').setValue(null);
+        App.NewHuman.queryById("txtBirthDate").setRawValue("");
+        App.NewHuman.queryById('fldFileId').setValue(0);
+        Ext.get('fi-button-msg').update('<b>فایل انتخاب شده:</b> ');
+        App.NewHuman.queryById('ImageHuman').setImageUrl("/Content/icon/Blank.jpg");
+    }
+
+    var addKeyMapNewHuman = function (cmp) {
+        this.keyMap = new Ext.util.KeyMap({
+            target: cmp.getEl(),
+            binding: [{
+                key: [13, 9], /*Ext.EventObject.ENTER,*/
+                fn: function (key, e) {
+                    if (e.getKey() == 9) {
+                        e.stopEvent();
+                    }
+                    var keyfield = App.NewHuman.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+                    var nextfld;
+                    if (keyfield.itemId == "txtDesc") {
+                        return;
+                    }
+                    else if (keyfield.itemId == "txtCodeMeli") {
+                        nextfld = App.NewHuman.queryById("txtBirthDate");
+                    }
+                    else if (keyfield.itemId == "txtBirthDate") {
+                        nextfld = App.NewHuman.queryById("txtName");
+                    }
+                    /*else if (keyfield.itemId == "txtBirthDate") {
+                        if (App.NewHuman.queryById("txtBirthDate").getRawValue() != "") {
+                            Estelam();
+                            return;
+                        }
+                        else {
+                            IsEstelam = false;
+                            App.NewHuman.queryById('txtName').setValue("").setReadOnly(false);
+                            App.NewHuman.queryById('txtFamily').setValue("").setReadOnly(false);
+                            App.NewHuman.queryById('txtFatherName').setValue("").setReadOnly(false);
+                            nextfld = keyfield.nextSibling().nextSibling();
+                        }
+                    }*/
+                    else {
+                        nextfld = keyfield.nextSibling().nextSibling();
+                    }
+                    nextfld.focus();
+                    nextfld.selectText();
+                }
+            }]
+        });
+    }
+</script>

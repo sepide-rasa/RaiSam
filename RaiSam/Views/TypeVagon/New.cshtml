@@ -1,0 +1,238 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+
+<style>
+    #fieldsetfileAc legend {
+        text-align: right;
+        font-family: Tahoma !important;
+    }
+
+    #DeleteActionFileimg:hover {
+        cursor: pointer;
+    }
+</style>
+@(Html.X().Window().Modal(true).Listeners(li => { li.Render.Fn = "addKeyMapTypeVagon"; li.AfterRender.Handler = "LoadTypeVagon()"; })
+.Width(350)//.Height(300)
+    .Title("انواع واگن")
+        .ID("NewTypeVagon")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+        .ButtonAlign(Ext.Net.Alignment.Center)
+        .Buttons(X.Button().Text("ذخیره").Icon(Ext.Net.Icon.Disk)
+            .Listeners(l =>
+            {
+                l.Click.Handler = "SaveTypeVagon();";
+
+            })
+            .ItemID("btnSaveTypeVagon"),
+            X.Button().Text("خروج").Icon(Ext.Net.Icon.DoorOut).ToolTip("کلید میانبر Esc")
+                  .OnClientClick("App.NewTypeVagon.destroy();"))
+    .Items(
+        X.AntiForgeryField()
+                .ItemID("antiForgeryToken").Hidden(true),
+                X.FormPanel().Border(false)
+                    .Layout(Ext.Net.LayoutType.VBox)
+                        .LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Center })
+
+            .Items(
+                X.FieldSet().Border(false)
+                .Center()
+                .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 2 })
+                .Defaults(new { Margin = 2 })
+                .Items(
+                    X.Hidden().ItemID("fldId"),
+                      X.Label("عنوان:"),
+                         X.TextField()
+                     .ItemID("txtTitle")
+                    .MaxLength(250).MaskRe("[ ,),(,ا-ی-آ-ئ-ء]")
+                    .EnforceMaxLength(true)
+                    .Width(200)
+                    .AllowBlank(false)
+                    .BlankText("لطفا عنوان را وارد کنید.")
+                    .AutoFocus(true)
+                    ,
+                         X.Label("محور:"),
+                             X.TextField()
+                         .ItemID("txtMehvar")
+                        .MaxLength(250).MaskRe("[0-9]")
+                        .EnforceMaxLength(true)
+                        .Width(200)
+                        .AllowBlank(false)
+                        .BlankText("لطفا تعداد محور را وارد کنید.")
+                            ,
+                             X.Label("نوع:"),
+                             X.ComboBox()
+                                .ItemID("cboNoe")
+                                .LabelAlign(Ext.Net.LabelAlign.Top)
+                                .Editable(false)
+                                .TypeAhead(true)
+                                .QueryMode(DataLoadMode.Local)
+                                .TriggerAction(TriggerAction.All)
+                                            .SelectedItems(new { Value = "1" })
+                                    .Items(
+                                        new ListItem("واگن ها", "1"),
+                                        new ListItem("لکوموتیو", "2")
+                                        )
+                            )
+                )
+        )
+)
+
+<script type="text/javascript">
+
+
+    var fldTimeStamp = 0;
+    function LoadTypeVagon() {
+        ReplaceArabic();
+        if ('@ViewBag.Id' != '0') {
+            App.NewTypeVagon.body.mask("در حال بارگذاری...");
+            Ext.net.DirectMethod.request({
+                url: '/TypeVagon/Details',
+                params: {
+                    Id: '@ViewBag.Id',
+                    __RequestVerificationToken: App.NewTypeVagon.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+                    
+                    var txtTitle = App.NewTypeVagon.queryById('txtTitle');
+                    txtTitle.setValue(data.fldTypeVagon);
+                    var txtMehvar = App.NewTypeVagon.queryById('txtMehvar');
+                    txtMehvar.setValue(data.fldMehvar);
+                    var cboNoe = App.NewTypeVagon.queryById('cboNoe');
+                    cboNoe.setValue(data.fldNoe);
+                    var fldId = App.NewTypeVagon.queryById('fldId');
+                    fldId.setValue(data.fldId);
+                    fldTimeStamp = data.fldTimeStamp;
+                    App.NewTypeVagon.body.mask().hide();
+                }
+            });
+        }
+        else {
+            App.NewTypeVagon.queryById('txtTitle').validate();
+            App.NewTypeVagon.queryById('txtMehvar').validate();
+        }
+
+    }
+
+    function SaveTypeVagon() {
+        var txtTitle = App.NewTypeVagon.queryById('txtTitle');
+        var txtMehvar = App.NewTypeVagon.queryById('txtMehvar');
+        var cboNoe = App.NewTypeVagon.queryById('cboNoe');
+        var Id = App.NewTypeVagon.queryById('fldId');
+            var er = false;
+            if (txtTitle.validate() == false) {
+                er = true;
+            }
+            if (txtMehvar.validate() == false) {
+                er = true;
+            }
+            if (cboNoe.validate() == false) {
+                er = true;
+            }
+
+
+            if (er == true)
+                return;
+            App.NewTypeVagon.body.mask("در حال ذخیره سازی");
+            Ext.net.DirectMethod.request({
+                url: '/TypeVagon/Save',
+                params: {
+                    fldId: Id.getValue(),
+                    fldTypeVagon: txtTitle.getValue(),
+                    fldMehvar: txtMehvar.getValue(),
+                    fldNoe: cboNoe.getValue(),
+                    fldTimeStamp: fldTimeStamp,
+                    __RequestVerificationToken: App.NewTypeVagon.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+                    chat.server.reloadLog();
+                    if (data.Er == 1 && data.Change == 1) {/*vaghti TimeStamp==0*/
+                        Ext.MessageBox.show({
+                            title: data.MsgTitle,
+                            msg: data.Msg,
+                            icon: Ext.MessageBox.WARNING,
+                            buttons: Ext.MessageBox.OK,
+                            fn: function (btn) {
+                                if (btn == 'ok') {
+                                    LoadTypeVagon();
+                                }
+                            }
+                        });
+                    }
+                    else if (data.Er == 1 && data.Change == 2) {/*vaghti TimeStamp==2*/
+                        Ext.MessageBox.show({
+                            title: data.MsgTitle,
+                            msg: data.Msg,
+                            icon: Ext.MessageBox.ERROR,
+                            buttons: Ext.MessageBox.OK,
+                            fn: function (btn) {
+                                if (btn == 'ok') {
+                                    App.NewTypeVagon.destroy();
+                                }
+                            }
+                        });
+
+                    }
+                    else if (data.Er == 1) {
+                        Ext.MessageBox.show({
+                            title: data.MsgTitle,
+                            msg: data.Msg,
+                            icon: Ext.MessageBox.ERROR,
+                            buttons: Ext.MessageBox.OK,
+                        });
+                    }
+                    else {
+                        Ext.MessageBox.show({
+                            title: data.MsgTitle,
+                            msg: data.Msg,
+                            icon: Ext.MessageBox.INFO,
+                            buttons: Ext.MessageBox.OK,
+                        });
+                    }
+
+                    App.TypeVagon.queryById('GridTypeVagon').store.load();
+
+                    if (data.Er != 1)
+                        ClearTypeVagon();
+                    App.NewTypeVagon.body.mask().hide();
+                }
+
+            });
+        }
+    function ClearTypeVagon() {
+        App.NewTypeVagon.queryById('txtTitle').setValue("");
+        App.NewTypeVagon.queryById('txtMehvar').setValue("");
+        App.NewTypeVagon.queryById('fldId').setValue(0);
+
+    }
+    var addKeyMapTypeVagon = function (cmp) {
+        this.keyMap = new Ext.util.KeyMap({
+            target: cmp.getEl(),
+            binding: [{
+                key: [13, 9], /*Ext.EventObject.ENTER,*/
+                fn: function (key, e) {
+                    if (e.getKey() == 9) {
+                        e.stopEvent();
+                    }
+                    var keyfield = App.NewTypeVagon.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+                    var nextfld;
+                    if (keyfield.itemId == "txtMehvar") {
+                        nextfld = App.NewTypeVagon.queryById('btnSaveTypeVagon');
+                        SaveTypeVagon();
+                        return;
+                    }
+                    else {
+                        nextfld = keyfield.nextSibling().nextSibling();
+                        nextfld.selectText();
+                    }
+                    nextfld.focus();
+                    nextfld.selectText();
+                }
+            }]
+        });
+    }
+</script>

@@ -1,0 +1,28 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+
+@using Ext.Net.MVC;
+
+@(
+ Html.X().Window().Listeners(l => l.BeforeClose.Handler = "CloseVideoPageHtml()")
+             .Height(565)
+         .Width(1000)
+                    .ID("Videov")
+        .Closable(true)
+            .Title("راهنمای تصویری صفحات Html")
+        .AutoScroll(true)
+        .Closable(true)
+            .Maximizable(true)
+        .Content(@<video width="100%;" id="AmozeshVideoPageHtml" controls="true" autoplay="true" controls><source src='@Url.Action("DownloadFileVideoPageHtml", "PageHtml")' t type="video/mp4"></video>)
+
+)
+<script type="text/javascript">
+    function CloseVideoPageHtml() {
+        $('#AmozeshVideoPageHtml')[0].pause();
+    }
+
+</script>

@@ -1,0 +1,315 @@
+﻿@model IEnumerable<RaiSam.Models.prs_tblRequestRankingSelect>
+@using Ext.Net.MVC;
+@{
+
+    var X = Html.X();
+    //var HaveMomayez = servic.GetMomayezi_HeaderWithFilter("FirstRegisterId", Session["FristRegisterId"].ToString(), 0, out Err).Any();
+}
+<style>
+    .row-imagecommand {
+        margin: 1px 1px 0 10px !important;
+    }
+</style>
+<script>
+    var ShowStatus = function (value, record) {
+        var template = '<img src={0} alt="" title={1} />';
+        if (value == 1 ) {
+            var Pic = "@Url.Content("~/Content/state1.png")";
+            var ToolTip = "درحال"+'&nbsp;'+"تکمیل";
+            return Ext.String.format(template, Pic, ToolTip);
+        }
+        else if (value == 2) {
+            var Pic = "@Url.Content("~/Content/state2.png")";
+            var ToolTip = "درحال"+'&nbsp;'+"بررسی";
+            return Ext.String.format(template, Pic, ToolTip);
+        }
+        else if(value==3){
+            var Pic = "@Url.Content("~/Content/state3.png")";
+            var ToolTip = "درمرحله"+'&nbsp;'+"اعتراض";
+            return Ext.String.format(template, Pic, ToolTip);
+        }
+        else if(value==4){
+            var Pic = "@Url.Content("~/Content/state4.png")";
+            var ToolTip = "غیرقطعی" + '&nbsp;' + "اعتراض" + '&nbsp;' + "شده";
+            return Ext.String.format(template, Pic, ToolTip);
+        }
+        else if (value == 5 || value == 23) {
+            var Pic = "@Url.Content("~/Content/state5.png")";
+            var ToolTip = "قطعی";
+            return Ext.String.format(template, Pic, ToolTip);
+        }
+        else if(value==6){
+            var Pic = "@Url.Content("~/Content/state6.png")";
+            var ToolTip = "ارجاع" + '&nbsp;' + "داده" + '&nbsp;' + "شده";
+            return Ext.String.format(template, Pic, ToolTip);
+        }
+        else if(value==7){
+            var Pic = "@Url.Content("~/Content/state7.png")";
+            var ToolTip = "ارجاع" + '&nbsp;' + "از" + '&nbsp;' + "کمیته" + '&nbsp;' + "داوری";
+            return Ext.String.format(template, Pic, ToolTip);
+        }
+        else if(value==11){
+            var Pic = "@Url.Content("~/Content/state11.png")";
+            var ToolTip = "ارسال" + '&nbsp;' + "به" + '&nbsp;' + "گروه" + '&nbsp;' + "ارزیاب";
+            return Ext.String.format(template, Pic, ToolTip);
+        }
+        else if(value==12){
+            var Pic = "@Url.Content("~/Content/state12.png")";
+            var ToolTip = "ارجاع" + '&nbsp;' + "از" + '&nbsp;' + "گروه" + '&nbsp;' + "ارزیاب";
+            return Ext.String.format(template, Pic, ToolTip);
+        }
+        else if(value==22){
+            var Pic = "@Url.Content("~/Content/state22.png")";
+            var ToolTip = "ناظر" + '&nbsp;' + "تعیین" + '&nbsp;' + "شده" ;
+            return Ext.String.format(template, Pic, ToolTip);
+        }
+    };
+</script>
+@(X.Window()
+        //.Listeners(l=>l.AfterRender.Handler="LoadFormMomayez(1)")
+    .Height(400)
+    .Width(700)
+    .Modal(true)
+    .ID("RequestRankingWin")
+    .Title("فهرست تقاضاها")
+    .Icon(Ext.Net.Icon.FolderTable)
+    .Closable(true)
+    .Border(false)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Layout(Ext.Net.LayoutType.Fit)
+    .ButtonAlign(Ext.Net.Alignment.Center)
+            .Items(
+                 X.AntiForgeryField().ItemID("AntiForgeryField"),
+            X.Panel()
+                .ItemID("PnlRequestRanking")
+                .Border(false)
+                .Layout(Ext.Net.LayoutType.Fit)
+                .Items(
+                    X.GridPanel()
+                        .AutoScroll(true)
+                        .ItemID("GridRequestRanking")
+                        .TopBar(
+                            Html.X().Toolbar()
+                                .Items(
+                                    Html.X().Button()
+                                        .Text("جدید")
+                                        .Icon(Ext.Net.Icon.Add)
+                                            .Listeners(l => l.Click.Handler = "NewRequestRanking();")
+                                //            ,
+                                //                        X.SplitButton()
+                                //    .Text("راهنما")
+                                //    .Icon(Ext.Net.Icon.Help)
+                                //    .Menu(X.Menu()
+                                //    .Items(
+                                //    X.MenuItem()
+                                //                .Text("راهنما متنی")
+                                //                .Icon(Ext.Net.Icon.TextPaddingTop)
+                                //                .Listeners(l => l.Click.Handler = "showHelpRequestRanking()")
+                                //                .ItemID("btnshowHelpRequestRanking"),
+                                //        X.MenuItem()
+                                //                .Text("راهنما تصویری")
+                                //                .Icon(Ext.Net.Icon.PlayBlue)
+                                //                    .Listeners(l => l.Click.Handler = "showHelp_VideoRequestRanking()")
+
+                                //)
+                                //)
+               
+                                            ,
+                                                 Html.X().Button()
+                                                        .Text("موارد درخواستی")
+                                                        .Icon(Ext.Net.Icon.ApplicationViewList)
+                                                            .Listeners(l => l.Click.Handler = "ShowStakeholders();")
+
+                                )
+                        )
+                        .Store(
+                            X.StoreForModel()
+                               // .Listeners(l => l.Load.Handler = "LoadFormMomayez(1)")
+                                .IsPagingStore(false)
+                                .Parameters(new { GroupNameId = @ViewBag.GroupNameId })
+                                                .Listeners(l => l.BeforeLoad.Handler = "App.RequestRankingWin.queryById('GridRequestRanking').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.RequestRankingWin.queryById('AntiForgeryField').getValue());")
+                                    .Proxy(Html.X().AjaxProxy()
+                                    .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                    .Url(Url.Action("Read"))
+                                    .Reader(Html.X().JsonReader().Root("data"))
+            )
+                        .RemoteFilter(true)
+                        .RemotePaging(true)
+        )
+                        .SelectionModel(
+                            Html.X().RowSelectionModel()
+                                .Mode(Ext.Net.SelectionMode.Single))
+                        .ColumnModel(
+                            Html.X().RowNumbererColumn(),
+                            Html.X().Column().DataIndex(Model, m => m.fldId).Text("کد").Flex(1).Hidden(true),
+                            Html.X().Column().DataIndex(Model, m => m.fldFirstRegisterId).Text("firstکد").Flex(1).Hidden(true),
+                            Html.X().Column().DataIndex(Model, m => m.fldHadafIdAllowed).Text("کد عنوان ذینفع").Flex(5).Hidden(true).Flex(1),
+                            Html.X().Column().DataIndex(Model, m => m.fldNameHadaf).Text("عنوان").Flex(5).Wrap(true),
+                                Html.X().Column().DataIndex(Model, m => m.fldHadafId).Text("کد ذینفع").Flex(3).Hidden(true).Hideable(false),
+                                            Html.X().Column().DataIndex(Model, m => m.fldNameContract).Text("پروژه").Flex(5).Wrap(true),
+                            Html.X().Column().DataIndex(Model, m => m.fldTarikhDarkhast).Text("تاریخ درخواست").Flex(2),
+        /// Html.X().Column().DataIndex(Model, m => m.fldEetebareGavahiname).Text("تاریخ اعتبار").Flex(1).Hidden(true),
+                                 //   Html.X().Column().DataIndex(Model, m => m.fldRequestTypeName).Text("نوع درخواست").Flex(3).Wrap(true),
+                                        Html.X().Column().DataIndex(Model, m => m.fldNameKartabl).Text("کارتابل جاری").Flex(3).Wrap(true),
+                                    Html.X().Column().DataIndex(Model, m => m.fldActionName).Text("اقدام جاری").Flex(3).Wrap(true),
+                           // Html.X().Column().DataIndex(Model, m => m.fldStatusRequest).Text("وضعیت").Flex(3).Wrap(true),
+                          //  Html.X().Column().DataIndex(Model, m => m.fldStatusId).Flex(1).Renderer("ShowStatus").Filterable(false),
+                            Html.X().ImageCommandColumn().Listeners(l => l.Command.Handler = "ShowHideDesktopIcon(record);")
+                                .Flex(1).Commands(Html.X().ImageCommand().Icon(Ext.Net.Icon.ArrowOutLonger).CommandName("InfoShareholder"))
+        )
+    ))
+)
+
+<script>
+   /* function LoadFormMomayez(state) {
+        if (state==2||'ViewBag.haveMomayezi' == 'True') {
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/Momayezi/Index',
+                params: {
+                    state: state
+                },
+                success: function () {
+                    Ext.net.Mask.hide();
+                }
+            });
+        }
+    }*/
+    function showHelp_VideoRequestRanking() {
+        /*window.location.href = 'Url.Content("~/RequestRanking/DownloadV")' ;
+        App.NewDL.destroy();
+        Ext.net.Mask.hide();*/
+        var nameVideo = "RequestRanking.mp4";
+        window = Ext.widget('window', {
+            renderTo: Ext.getBody(),
+            width: 710,
+            height: 420,
+            html: '<video width="700" controls><source src="/Uploaded/Help/' + nameVideo + '" type="video/mp4"><source src="/Uploaded/Help/' + nameVideo + '" type="video/ogg"></video>'
+        }).show();
+    }
+    var k = "";
+    function ShowHideDesktopIcon(record) {
+        App.RequestRankingWin.destroy();
+        var Id = record.data.fldId;
+        var HadafId = record.data.fldHadafId;
+        var ModuleIds = "";
+        App.lblLocation.setText(record.data.fldNameHadaf);
+        for (var i = 3; i < App.Desktop1.getModules().length - 1; i++) {
+            ModuleIds = ModuleIds + App.Desktop1.getModules()[i].id + ";";
+        }
+
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: "/Faces/RequestRanking/ShowHideDesktopIcons",
+            params: {
+                HadafId: HadafId,
+                Id: Id,
+                ModuleIds: ModuleIds
+            },
+            success: function () {
+                App.Desktop1.desktop.queryById("MenuItem_Ticket").hide();
+                Ext.net.DirectMethod.request({
+                    url: "/Faces/RequestRanking/CheckHideStartIcons",
+                    params: {
+                        HadafId: HadafId,
+                        ModuleIds: ModuleIds,
+                        Id: Id
+                    },
+                    success: function (data) {
+                        Ext.net.Desktop.modules[1].run();
+                        CheckEtelaie(data.EtelaieTitleAll, data.EtelaieIDAll);
+                        k = data;
+                        var Menu = data.MenuItems.split(";");
+
+                        for (var i = 0; i < Menu.length-1 ; i++) {
+                            var id = Menu[i].split("|");
+                            if (id[1] == "1")
+                                App.Desktop1.desktop.queryById("MenuItem"+id[0]).show();
+                                else
+                                App.Desktop1.desktop.queryById("MenuItem" + id[0]).hide();
+
+                            }
+                        
+                        
+                        /* App.Desktop1.desktop.queryById("MenuItemKH").show();*/
+
+                    }
+                });
+
+
+                App.Desktop1.desktop.queryById("MenuItemDemandConsortium").hide();
+                App.Desktop1.desktop.queryById("MenuItem_PrintCompanyProfile").hide();
+                /*App.Desktop1.desktop.queryById("MenuItem_Ticket").hide();*/
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+    function NewRequestRanking() {
+        var s = true;
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        /*var SelectedRow = App.RequestRankingWin.queryById('GridRequestRanking');
+          for (var i = 0; i < SelectedRow.selModel.store.count() ; i++) {
+            row = SelectedRow.selModel.store.data.items[i];
+            fldStatusId = row.data.fldStatusId;
+            if (fldStatusId == 1) {
+                s = false;
+                break;
+            }
+        }
+        if (s) {*/
+        Ext.net.DirectMethod.request({
+            url: "/Faces/RequestRanking/New",
+            success: function () {
+                Ext.net.Mask.hide();
+            }
+        });
+        /*     }
+       else {
+           Ext.net.Mask.hide();
+           Ext.MessageBox.show({
+               title: "خطا",
+               msg: "شما درحال حاضر یک درخواست تکمیل نشده دارید.",
+               icon: Ext.MessageBox.ERROR,
+               buttons: Ext.MessageBox.OK
+           });
+       }*/
+    }
+    function ShowStakeholders() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Faces/RequestRanking/ShowRelativeStakeholders',
+            success: function () {
+                /*Ext.net.Mask.hide();*/
+            }
+        });
+    }
+    function showHelpRequestRanking() {
+        Ext.net.DirectMethod.request({
+            url: '/Faces/Home/HelpHtml',
+            params: {
+                TableId: 30
+            },
+            success: function (result) {
+                var mybr = document.createElement('br');
+
+                Ext.net.Notification.show({
+                    alignToCfg: {
+                        offset: [150, -30],
+                        position: 'bl-bl',
+                    },
+                    pinned: true,
+                    showPin: true,
+                    modal: true,
+                    bringToFront: true,
+                    pinEvent: 'click',
+                    height: 520,
+                    width: 700,
+                    html: result.HelpHtml,
+                    autoScroll: true,
+                    title: 'راهنمای ثبت درخواست'
+                });
+            }
+        });
+    }
+</script>

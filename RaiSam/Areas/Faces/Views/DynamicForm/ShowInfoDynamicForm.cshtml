@@ -1,0 +1,334 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+<script src="~/Scripts/jquery-ajax-native.js"></script>
+@{
+    var X = Html.X();
+}
+
+@(Html.X().Window()
+    .Listeners(l => l.Render.Handler = "AddItems()")
+    .Border(false)
+    .Modal(true)
+    .ID("NewDynamicForm")
+    .Width(605)
+    .Closable(true)
+    .ButtonAlign(Alignment.Center)
+    .CloseAction(CloseAction.Destroy)
+    .Resizable(false)
+    .Layout(LayoutType.VBox)
+    .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Stretch })
+    .Buttons(
+        //X.Button()
+        //    .Text("ذخیره")
+        //    .Icon(Icon.Disk)
+        //    .ItemID("btnSaveDynamic")
+        //    .Listeners(l => l.Click.Handler = "SaveDynamicForm()"),
+               X.SplitButton()
+                        .Text("بررسی")
+                        .Icon(Ext.Net.Icon.UserComment)
+                            .Listeners(l => l.Click.Handler = "GotoTaeedWin();")
+                    .Hidden(@ViewBag.HaveTaeed == false)
+                                        .Menu(X.Menu()
+                                        .Items(
+                                        X.MenuItem()
+                                            .Text("سوابق بررسی")
+                                            .Icon(Ext.Net.Icon.Report)
+                                                .Listeners(l => l.Click.Handler = "GotoHistoryTaeedWin()")
+
+                                    )
+                                    )
+                    ,
+        X.Button()
+            .Text("خروج")
+            .Icon(Icon.BulletCross)
+            .OnClientClick("App.NewDynamicForm.destroy()")
+    )
+    .Items(
+        X.FormPanel()
+            .Border(false)
+            .MarginSpec("10px 12px 0 12px")
+            .Layout(LayoutType.Fit)
+                .Items(
+                     X.AntiForgeryField().ItemID("AntiForgeryField"),
+                X.FieldSet()
+                    .Height(55)
+                    .Border(true)
+                    .Title("فایل مستندات (فرمت pdf)")
+                    .Defaults(new { margin = 5 })
+                    .Layout(LayoutType.HBox)
+                    .Items(
+                       
+                        X.Button()
+                            .Text("دانلود فایل")
+                            .ItemID("btnDownloadM")
+                            .Disabled(true)
+                            .Icon(Ext.Net.Icon.DiskDownload)
+                            .Listeners(l => l.Click.Handler = "DownloadMostanad();"),
+                        X.Container()
+                            .Content(@<div id="fi-button-fileDy" style="display:none; "></div>))),
+        X.Hidden().ItemID("fldId"),
+        X.PDateField().Hidden(true),
+        X.Panel()
+            .Defaults(new { Margin = 4 })
+            .Border(false)
+            .MarginSpec("10px 0 10px 10px")
+            .ID("BasePanel")
+            .Layout(LayoutType.Table)
+            .LayoutConfig(new TableLayoutConfig { Columns = 4 })
+
+          )
+)
+
+<script type="text/javascript">
+    var added = 0;
+    var Mojaz = 0;
+    var sizee = 0;
+    var EndUpload = false;
+    var FileIdM = 0;
+    var CodeFileId = "";
+    var HaveEmzaha = false;
+
+
+
+
+    function AddItems() {
+        /*Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });*/
+
+
+        App.NewDynamicForm.queryById("fldId").setValue('@ViewBag.fldItemsDynamicRatingIdd');
+        App.NewDynamicForm.setTitle("مشاهده " + '@ViewBag.TitleDynamic');
+        NameKhasiyat_FaItems = '@ViewBag.TitleItems'.split(';');
+        JenseKhasiyatItems = '@ViewBag.types'.split(';');
+        ItemPropertiesId = '@ViewBag.ItemPropertiesIds'.split(';');
+        NoeKhasiyat = '@ViewBag.NoeKhasiyatha'.split(';');
+
+        /*if (JenseKhasiyatItems.length > 6) {
+            App.BasePanel.getLayout().columns = 6;
+            App.BasePanel.doLayout();
+        }*/
+
+        for (var i = 0; i < JenseKhasiyatItems.length - 1; i++) {
+
+            var label = Ext.create('Ext.form.Label', {
+                text: NameKhasiyat_FaItems[i] + ":"
+            });
+            var label2 = Ext.create('Ext.form.Label', {
+                itemId: ItemPropertiesId[i],
+                margin:"4px 60px 4px 4px"
+            });
+
+
+            App.BasePanel.add(label);
+            App.BasePanel.add(label2);
+            added = added + 1;
+
+
+        }
+
+
+
+
+        if (added == JenseKhasiyatItems.length - 1 && '@ViewBag.fldIdDynamic_Client'!='0') {
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/Faces/DynamicForm/Detail',
+                params: {
+                    Id: '@ViewBag.fldIdDynamic_Client',
+                    __RequestVerificationToken: App.NewDynamicForm.queryById('AntiForgeryField').getValue()
+                },
+                success: function (data) {
+                    HaveEmzaha = data.HaveEmzaha;
+                    var ic = Ext.MessageBox.INFO;
+                    if (data.Er == 1) {
+                        ic = Ext.MessageBox.ERROR;
+                        Ext.MessageBox.show({
+                            title: data.MsgTitle,
+                            msg: data.Msg,
+                            icon: ic,
+                            buttons: Ext.MessageBox.OK
+                        });
+                    }
+                    else {
+
+                        for (var i = 1; i < App.BasePanel.items.length; i = i + 2) {
+                            for (var j = 0; j < data.itemPropertyId.length;j++){
+                                if (App.BasePanel.items.items[i].itemId == data.itemPropertyId[j]) {
+                                    if (App.BasePanel.items.items[i].xtype == "checkbox") {
+                                        if (data.value[j] != "")
+                                            App.BasePanel.items.items[i].setValue(true);
+                                        else
+                                            App.BasePanel.items.items[i].setValue(false);
+                                    }
+                                    else {
+                                        App.BasePanel.items.items[i].setText(data.value[j]);
+                                    }
+                                }
+                            }
+                        }
+                        App.NewDynamicForm.queryById('btnDownloadM').setDisabled(false);
+                        FileIdM = data.FileId;
+                        CodeFileId = data.CodeFileId;
+                    }
+                    Ext.net.Mask.hide();
+                }
+            });
+        }
+       /* Ext.net.Mask.hide();*/
+    }
+
+
+
+    function clearValueD() {
+        for (var i = 1; i < App.BasePanel.items.length; i = i + 2) {
+            App.BasePanel.items.items[i].setValue("");
+        }
+    }
+
+    var CheckM = setInterval(CheckEndM, 500);
+
+    function CheckEndM() {
+        if (EndUpload == true) {
+            Ext.MessageBox.hide();
+            Ext.Msg.alert('عملیات موفق', 'فایل با موفقیت آپلود شد.');
+            clearInterval(CheckEndM);
+            EndUpload = false;
+        }
+    }
+
+    function DownloadMostanad() {
+        var url = "/Faces/DynamicForm/Download";
+        if (HaveEmzaha == true)
+            url = "/Faces/DynamicForm/DownloadSigned";
+
+        if (FileIdM != 0) {
+            /*window.location.href = 'Url.Content("~/DynamicForm/Download?FileId=")' + CodeFileId;*/
+            $.ajax({
+                type: "POST",
+                dataType: 'native',
+                url: url,
+                xhrFields: {
+                    responseType: 'blob'
+                },
+                data: {
+                    FileId: CodeFileId,
+                    ItemDynamic_ClientId: '@ViewBag.fldIdDynamic_Client'
+                },
+                success: function (blob) {
+                    x = blob;
+                    var link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = "DownloadFile";
+                    link.click();
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "فایل مورد نظر انتخاب نشده است.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+
+    var showFileMostanad = function (fb, v) {
+        var id = fb.fileInputEl.dom.id;
+        var el = Ext.get('fi-button-fileDy');
+        if (v) {
+            showProgressBarM();
+            if (v.split('.').pop().toLowerCase() == "pdf") {
+                Mojaz = 1;
+                if (document.getElementById(id).files[0].size <= 10240000) {
+                    sizee = 1;
+                }
+                if (sizee == 1) {
+                    el.update('<b>فایل انتخاب شده:</b> ' + v);
+                }
+                else {
+                    el.update("");
+                }
+
+                if (!el.isVisible()) {
+                    el.slideIn('t', {
+                        duration: .2,
+                        easing: 'easeIn',
+                        callback: function () {
+                            el.highlight();
+                        }
+                    });
+                } else {
+                    el.highlight();
+                }
+            }
+            else {
+                el.update("");
+            }
+        }
+    };
+
+    function hideprogressMostanad() {
+        if (Mojaz == 1 && sizee == 1) {
+            EndUpload = true;
+        }
+        Mojaz = 0;
+        sizee = 0;
+    }
+
+    function showProgressBarM() {
+        Ext.MessageBox.show({
+            msg: 'لطفاً منتظر باشید',
+            progressText: 'در حال آپلود فایل...',
+            width: 300,
+            wait: true,
+            waitConfig:
+            {
+                interval: 200,
+                text: 'در حال آپلود فایل...',
+                scope: this
+            }
+        });
+    }
+    function GotoTaeedWin() {
+        var appp=13;
+        if ('@ViewBag.State' == '1') 
+            appp=5;
+        else if ('@ViewBag.State' == '2') 
+            appp=6;
+
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/GeneralKartabl/TaeedWin',
+            params: {
+                App_ClientId: appp,
+                TableId: '@ViewBag.fldIdDynamic_Client',
+                ContractId: '@ViewBag.contractId',
+                CodeFileId: CodeFileId
+                },
+                success: function () {
+                    Ext.net.Mask.hide();
+                }
+            });
+        }
+        function GotoHistoryTaeedWin() {
+            var appp=13;
+            if ('@ViewBag.State' == '1') 
+                appp=5;
+            else if ('@ViewBag.State' == '2') 
+                appp=6;
+
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/GeneralKartabl/HistoryTaeedWin',
+                params: {
+                    App_ClientId: appp,
+                    TableId: '@ViewBag.fldIdDynamic_Client',
+                    ContractId: '@ViewBag.contractId'
+                },
+                success: function () {
+                    Ext.net.Mask.hide();
+                }
+            });
+        }
+</script>

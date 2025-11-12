@@ -1,0 +1,1214 @@
+﻿@model IEnumerable<RaiSam.Models.ContractCycle>
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@using Ext.Net.Utilities
+@{
+    var X = Html.X();
+}
+<script src="~/Scripts/jquery-ajax-native.js"></script>
+<script>
+    $().Ribbon2({ theme: 'windows7' }, '2');
+    Ext.net.FilterHeader.behaviour.string[0].match = function (recordValue, matchValue) {
+        return (Ext.net.FilterHeader.behaviour.getStrValue(recordValue) || "").indexOf(matchValue) > -1;
+    };
+
+    Ext.net.FilterHeader.behaviour.string[0].getStrValue = function (value) {
+        return value.toString();
+    };
+
+    Ext.net.FilterHeader.behaviour.string[0].serialize = function (value) {
+        return {
+            type: "string",
+            op: "*",
+            value: value
+        };
+    };
+    var IsErja = function (value, record) {
+        if (value == 1) {
+            var template = "<img src='/Content/icon/mini/اقدام اولین بار.png' title='عدم ارجاع' style='width:17px;height:17px;' />";
+            return template;
+        }
+        else {
+            var template = "<img src='/Content/icon/mini/اقدام برگشت خورده.png' title='ارجاع' style='width:17px;height:17px;' />";
+            return template;
+        }
+    };
+    var ShowHyperLink = function (value, record) {
+        if (record.record.data.DefaultOperationId == 0) {
+            return value;
+        }
+        else {
+            return "<a  href='javascript:GotoDefaultOperationInfo(" + record.record.data.DefaultOperationId + "," + record.record.data.fldIdVorood + ");'>" + value + "<a/>";
+        }
+    };
+</script>
+<style>
+    .borderrGK {
+        border-radius: 20px;
+        border-width: 3px;
+    }
+
+    .disable {
+        pointer-events: none;
+        opacity: 0.4;
+    }
+
+    .Treenode_Bold {
+        font-weight: bold !important;
+    }
+
+    .ColorrRow .x-grid-cell, .x-grid-rowwrap-div {
+        background-color: #D5F5E3 !important;
+    }
+</style>
+
+@(Html.X().Panel()
+    .Listeners(l => l.AfterRender.Handler = "SetSize()")
+    .Border(false)
+    .Layout(LayoutType.Fit)
+    .ID("SpecificKartabl")
+    .Items(
+            X.AntiForgeryField().ItemID("antiForgeryToken").Hidden(true),
+        X.FieldSet()
+            .Border(false)
+            .AutoScroll(true)
+            .PaddingSpec("7px 7px 7px 7px")
+            .Margin(0)
+            .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 2 })
+            .Items(
+                X.Panel()
+                    .Layout(LayoutType.Accordion)
+                    .LayoutConfig(new Ext.Net.AccordionLayoutConfig { OriginalHeader = true, Animate = true, ActiveOnTop = true })
+                    .MarginSpec("0 7px 0 0")
+                    .Border(true)
+                    .Frame(true)
+                    .Shadow(false)
+                    .ID("MenuPanel1")
+                    .TitleAlign(TitleAlign.Right)
+                    .AutoScroll(true),
+                X.Panel()
+                    .ID("MenuPanel2")
+                    .Border(false)
+                    .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Stretch })
+                    .AutoScroll(true)
+                    .Items(
+                        X.Panel()
+                            .ID("ActionnPanell")
+                            .Frame(true)
+                            .MarginSpec("0 0 7px 0")
+                            .Listeners(l =>
+                            {
+                                l.Collapse.Handler = "CollapseSize();";
+                                l.BeforeExpand.Handler = "ExpandSize();";
+                            })
+                            .Title("اکشن های تعریف شده")
+                            .TitleAlign(TitleAlign.Right)
+                            .Collapsible(true)
+                            .AnimCollapse(true)
+                            .Height(120)
+                            .Content(@<div id="main">
+                                <div class="maincontainer2">
+                                    <ul class="ribbon2">
+                                        <li>
+                                            <ul class="menu2" style="left: 0px;float: right;direction: rtl;">
+                                                <li id="LiActions">
+                                                    <a href="#home" accesskey="2"></a>
+                                                    <ul id="ulActions">
+                                                        <li id="EffectiveActions" style="display:none;">
+                                                        </li>
+                                                        <li id="NonEffectiveActions" style="display:none;">
+                                                        </li>
+                                                        <li id="GeneralOP">
+                                                            <h2>
+                                                                <span>
+                                                                    امکانات عمومی
+                                                                </span>
+                                                            </h2>
+                                                            <div id="PrintLoc">
+                                                                <img src="~/content/icon/mini/pdf.png" style="width: 33px;" alt="چاپ گزارش" />
+                                                                چاپ گزارش
+                                                            </div>
+                                                            <div id="ExcelLoc">
+                                                                <img src="~/content/icon/mini/excel.png" style="width: 33px;" alt="خروجی Excel" />
+                                                                خروجی Excel
+                                                            </div>
+                                                            @*<div id="HelpEghdam">
+                                                                    <img src="~/content/QUESTION.png" style="width: 33px;" alt="راهنما" />
+                                                                    راهنما
+                                                                </div>*@
+                                                        </li>
+                                                        @*<li id="Help_Sli">
+                                                                <h2>
+                                                                    <span>راهنما</span>
+                                                                </h2>
+                                                                <div id="HelpMatni_S">
+                                                                    <img src="~/content/icon/mini/راهنمای متنی.png" style="width: 33px;" alt="راهنما متنی" />
+                                                                    راهنما متنی
+                                                                </div>
+                                                                <div id="HelpVideo_S">
+                                                                    <img src="~/content/icon/mini/راهنمای تصویری.png" style="width: 33px;" alt="راهنما تصویری" />
+                                                                    راهنما تصویری
+                                                                </div>
+                                                            </li>*@
+                                                    </ul>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>),
+                                X.Panel()
+                                    .Title("فیلتر جستجو")
+                                    .ItemID("pnlSearch")
+                                    .Collapsed(true)
+                                    .Collapsible(true)
+                                    .AnimCollapse(true)
+                                    .Frame(true)
+                                    .MarginSpec("0 0 7px 0")
+                                    .TitleAlign(TitleAlign.Right)
+                                    .Listeners(l =>
+                                    {
+                                        l.Collapse.Handler = "CollapseSize2()";
+                                        l.Expand.Handler = "ExpandSize2()";
+                                    })
+                                    .Layout(LayoutType.VBox)
+                                    .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+                                    .Items(
+                                        X.FieldSet()
+                                            .Layout(LayoutType.Table)
+                                            .Border(false)
+                                            .LayoutConfig(new TableLayoutConfig { Columns = 13 })
+                                            .Padding(5)
+                                            .Defaults(new { Margin = 2 })
+                                            .Items(
+                                                X.Hidden().ItemID("RptNahi"),
+                                                X.Hidden().ItemID("RptNahiName"),
+                                                X.Hidden().ItemID("RptPost").Value("0"),
+                                                X.Hidden().ItemID("RptPostName").Value("همه موارد"),
+                                                X.Hidden().ItemID("RptDepo"),
+                                                X.Hidden().ItemID("RptTypeEstekhdam").Value("0"),
+                                                X.Hidden().ItemID("RptTypeEstekhdamName").Value("همه موارد"),
+                                                X.Hidden().ItemID("RptTypeParvande").Value("1"),
+                                                X.Hidden().ItemID("RptTypeParvandeName").Value("جاری"),
+                                                X.Hidden().ItemID("RptPaye").Value("0"),
+                                                X.Hidden().ItemID("RptPayeName").Value("همه موارد"),
+                                                X.Label("نوع واگن:"),
+                                               
+                                                X.Button()
+                                                    .ToolTip("جستجو")
+                                                    .Icon(Ext.Net.Icon.Magnifier)
+                                                    .Listeners(li => li.Click.Handler = "SearchSK();ReloadCountTree2();")
+                                                )
+                                    ),
+                        X.Panel()
+                            .Border(false)
+                            .ItemID("pnlGrid")
+                            .Layout(LayoutType.Fit)
+                            .Items(
+                               
+                                        X.GridPanel()
+                                        .ID("GridLocParvande")
+                                        .BottomBar(X.PagingToolbar().HideRefresh(true))
+                                        .Icon(Icon.Table)
+                                        .Frame(true)
+                                        .AutoScroll(true)
+                                        .Title("لیست پرونده ها")
+                                        .TitleAlign(TitleAlign.Right)
+                                        .Store(
+                                            X.StoreForModel()
+                                                .PageSize(20)
+                                                .RemoteFilter(false)
+                                                .RemotePaging(false)
+                                                .Listeners(l => l.DataChanged.Handler = "App.SpecificKartabl.queryById('GridLocParvande').selModel.refresh();")
+                                        )
+                                        .Plugins(X.FilterHeader().Remote(false))
+                                        .ViewConfig(
+                                            X.GridView()
+                                                .PreserveScrollOnRefresh(true)
+                                                .GetRowClass(l => l.Fn = "getRowClassGridLocParvande")
+                                                .LoadingText("در حال بارگذاری...").RTL(true)
+                                        )
+                                        .SelectionModel(
+                                            Html.X().CheckboxSelectionModel().PruneRemoved(false).CheckOnly(true).Listeners(l => l.SelectionChange.Handler = "CheckDisableAction()")
+                                                .Mode(SelectionMode.Multi))
+                                        .ColumnModel(
+                                            Html.X().Column().DataIndex(Model, m => m.fldIdVorood).Text("کد ورود به چرخه").Flex(1).Hidden(true),
+                                            Html.X().Column().DataIndex(Model, m => m.DefaultOperationId).Text("کد اکشن پیش فرض").Flex(1).Hidden(true),
+                                                Html.X().Column().DataIndex(Model, m => m.fldContractId).Text("کد پروژه").Flex(1).Hidden(true),
+                                            Html.X().Column().DataIndex(Model, m => m.fldCharkheId).Text("کد چرخه").Flex(1).Hidden(true),
+                                            Html.X().Column().DataIndex(Model, m => m.fldActionId).Text("کد اقدام جاری").Flex(1).Hidden(true),
+                                            Html.X().Column().DataIndex(Model, m => m.fldCount).Filterable(false).Width(30).Renderer("IsErja").Align(Ext.Net.Alignment.Center),
+                                                //Html.X().ImageCommandColumn().Align(Ext.Net.Alignment.Center).Width(30).Align(Alignment.Right).Listeners(l => l.Command.Fn = "GotoAllCycleParvande")
+                                                //.Commands(
+                                                //    Html.X().ImageCommand().CommandName("ShowCyclesCmd").IconCls("Cycles").ToolTip(tt => tt.Text = "مشاهده چرخه ها")
+                                                //),
+                                            Html.X().ImageCommandColumn().Align(Ext.Net.Alignment.Center).Width(30).Align(Alignment.Right).Listeners(l => l.Command.Fn = "GotoTimeline")
+                                                .Commands(
+                                                    Html.X().ImageCommand().CommandName("ShowTimeLineCmd").Icon(Icon.TimelineMarker).ToolTip(tt => tt.Text = "TimeLine")
+                                                ),
+                                            Html.X().ImageCommandColumn().PrepareCommand("CheckExistOP").Align(Ext.Net.Alignment.Center).Width(30).Align(Alignment.Right).Listeners(l => l.Command.Fn = "GotoDefaultOperation_Eghdam")
+                                                .Commands(
+                                                    Html.X().ImageCommand().CommandName("ShowDefaultOP").Icon(Icon.Information).ToolTip(tt => tt.Text = "مشاهده اکشن پیش فرض")
+                                                ),
+                                            //Html.X().ImageCommandColumn().Align(Ext.Net.Alignment.Center).Width(30).Align(Alignment.Right).Listeners(l => l.Command.Fn = "GotoLastOperation")
+                                            //    .Commands(
+                                            //        Html.X().ImageCommand().CommandName("ShowInfEghdam").Icon(Ext.Net.Icon.Information).ToolTip(tt => tt.Text = "مشخصات آخرین اکشن")
+                                            //    ),
+                                                Html.X().Column().DataIndex(Model, m => m.fldFullName).Text("نام شرکت").Flex(3).Wrap(true),
+                                            Html.X().Column().DataIndex(Model, m => m.fldNameCharkhe).Text("عنوان چرخه").Flex(3).Wrap(true).Renderer("ShowHyperLink"),
+                                            Html.X().Column().DataIndex(Model, m => m.fldTarikhVorood).Text("زمان آخرین ورود").Flex(3).Wrap(true),
+                                                        Html.X().Column().DataIndex(Model, m => m.fldTitleContract).Text("عنوان").Flex(5).Wrap(true)
+                                        )
+
+                            )
+                    )
+            )
+    )
+)
+
+<script type="text/javascript">
+    var h = 0;
+    var IdOfKartablll = null;
+    var SelEghdammm = null;
+    var titleOfKartablll = "";
+    var IsParvande = 0;
+   /* function DisableEnableCboCompany() {
+        if (App.SpecificKartabl.queryById('CboTypeEstekhdam').getValue() != "2") {
+            App.SpecificKartabl.queryById('CboCompanyName').clearValue();
+            App.SpecificKartabl.queryById('CboCompanyName').disable();
+        }
+        else {
+            App.SpecificKartabl.queryById('CboCompanyName').store.load();
+            App.SpecificKartabl.queryById('CboCompanyName').enable();
+        }
+    }*/
+    /*function AddAllCompanyGK() {
+        if (App.SpecificKartabl.queryById('CboCompanyName').store.count() > 1) {
+            App.SpecificKartabl.queryById('CboCompanyName').store.add({ 'fldId': '0', 'fldName': 'همه موارد' });
+            App.SpecificKartabl.queryById('CboCompanyName').setValue('0');
+        }
+        else {
+            App.SpecificKartabl.queryById('CboCompanyName').setValue(App.SpecificKartabl.queryById('CboCompanyName').store.getAt(0));
+        }
+    }*/
+
+   /* function DisableCboGrade() {
+        App.SpecificKartabl.queryById('CboGrade').store.load();
+        if (App.SpecificKartabl.queryById('CboPost').getValue() == "1" || App.SpecificKartabl.queryById('CboPost').getValue() == "2") {
+            App.SpecificKartabl.queryById('CboGrade').enable();
+        }
+        else {
+            App.SpecificKartabl.queryById('CboGrade').clearValue();
+            App.SpecificKartabl.queryById('CboGrade').disable();
+        }
+    }*/
+
+   
+    var getRowClassGridLocParvande = function (record, rowIndex, rowParams, store) {
+        if (record.data.IsArchive == 1) {
+            return "ColorrRow";
+        }
+    };
+
+    var showhiderefresh = function (grid, command, record, rowIndex) {
+        if (command.command == 'ReloadFromServerSK') {
+            if (record.data.fldCodeEnhesari == "") {
+                command.hidden = true;
+                command.hideMode = 'visibility';
+            }
+            else {
+                command.hidden = false;
+                command.hideMode = 'visibility';
+            }
+        }
+    };
+
+    /*function ReloadPesonSK(grid, command, record, row) {
+        if (command == 'ReloadFromServerSK') {
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/PersonalInfo/GetOnePersonelInfo',
+                params: {
+                    CodeEnhesari: record.data.fldCodeEnhesari
+                },
+                success: function (data) {
+                    Ext.MessageBox.show({
+                        Name: data.MsgName,
+                        msg: data.Msg,
+                        icon: Ext.MessageBox.INFO,
+                        buttons: Ext.MessageBox.OK
+                    });
+                    SearchSK();
+                    Ext.net.Mask.hide();
+                }
+            });
+        }
+    }*/
+
+    function GotoAllCycle(grid, command, record, row) {
+        if (command == 'ShowCyclesCmd') {
+            App.SpecificKartabl.body.mask("در حال بارگذاری...");
+            Ext.net.DirectMethod.request({
+                url: '/GeneralKartabl/ShowAllCycle',
+                params: {
+                    Id: record.data.fldAshkhasId,
+                    NameFamily: record.data.fldName + " " + record.data.fldFamily,
+                    state:1
+                },
+                success: function () {
+                    App.SpecificKartabl.body.mask().hide();
+                }
+            });
+        }
+    }
+    function GotoAllCycleParvande(grid, command, record, row) {
+        if (command == 'ShowCyclesCmd') {
+            App.SpecificKartabl.body.mask("در حال بارگذاری...");
+            Ext.net.DirectMethod.request({
+                url: '/GeneralKartabl/ShowAllCycle',
+                params: {
+                    Id: record.data.idparvande,
+                    NameFamily: record.data.fldDescParvande,
+                    state: 2
+
+                },
+                success: function () {
+                    App.SpecificKartabl.body.mask().hide();
+                }
+            });
+        }
+    }
+
+    function GotoDefaultOperationInfo(OperationId, EnterCycleId) {
+        App.SpecificKartabl.body.mask("در حال بارگذاری...");
+        Ext.net.DirectMethod.request({
+            url: '/GeneralKartabl/GotoLastOperation',
+            params: {
+                Operation_ActionId: OperationId,/*در واقع کد جدول operation_Action*/
+                EntertoCycleId: EnterCycleId,
+                __RequestVerificationToken: App.SpecificKartabl.queryById('antiForgeryToken').getValue()
+            },
+            success: function () {
+                App.SpecificKartabl.body.mask().hide();
+            }
+        });
+    }
+
+    function GotoDefaultOperation_Eghdam(grid, command, record, rowIndex) {
+        App.SpecificKartabl.body.mask("در حال بارگذاری...");
+        Ext.net.DirectMethod.request({
+            url: '/GeneralKartabl/GotoLastOperation',
+            params: {
+                Operation_ActionId: record.data.DefaultOperation_CharkheEghdam,
+                EntertoCycleId: record.data.fldIdVorood,
+                __RequestVerificationToken: App.SpecificKartabl.queryById('antiForgeryToken').getValue()
+            },
+            success: function () {
+                App.SpecificKartabl.body.mask().hide();
+            }
+        });
+    }
+
+    var CheckExistOP = function (grid, command, record, rowIndex) {
+        if (command.command == 'ShowDefaultOP') {
+            if (record.data.DefaultOperation_CharkheEghdam == 0) {
+                command.disabled = true;
+            }
+            else {
+                command.disabled = false;
+            }
+        }
+    };
+
+    function GotoTimeline(grid, command, record, row) {;
+        if (command == 'ShowTimeLineCmd') {
+            App.SpecificKartabl.body.mask("در حال بارگذاری...");
+            Ext.net.DirectMethod.request({
+                url: '/GeneralKartabl/TimeLine',
+                params: {
+                    Id: record.data.fldIdVorood/*,
+                    State: 1*/
+                },
+                success: function () {
+                    App.SpecificKartabl.body.mask().hide();
+                }
+            });
+        }
+    }
+
+    function GotoLastOperation(grid, command, record, row) {;
+        if (command == 'ShowInfEghdam') {
+            App.SpecificKartabl.body.mask("در حال بارگذاری...");
+            Ext.net.DirectMethod.request({
+                url: '/GeneralKartabl/GotoLastOperation',
+                params: {
+                    EntertoCycleId: record.data.fldIdVorood,
+                    __RequestVerificationToken: App.SpecificKartabl.queryById('antiForgeryToken').getValue()
+                },
+                success: function () {
+                    App.SpecificKartabl.body.mask().hide();
+                }
+            });
+        }
+    }
+
+    @*function GotoInfParam(grid, command, record, row) {;
+        if (command == 'ShowInfParam') {
+            App.SpecificKartabl.body.mask("در حال بارگذاری...");
+            Ext.net.DirectMethod.request({
+                url: '/SpecializedKartabl/GotoInfParam',
+                params: {
+                    AshkhasId: record.data.fldAshkhasId,
+                    CharkheId: record.data.fldCharkheId,
+                    CharkheName: record.data.fldNameCharkhe
+                },
+                success: function () {
+                    App.SpecificKartabl.body.mask().hide();
+                }
+            });
+        }
+    }*@
+
+    function CheckDisableAction() {
+        if (App.SpecificKartabl.queryById("RptTypeParvande").getValue() == "1") {
+            var IdOfKartabl = IdOfKartablll;
+            var SelEghdam = SelEghdammm;
+            if (SelEghdam != null) {
+                   var Selection = App.SpecificKartabl.queryById('GridLocParvande').getSelectionModel().getSelection();
+                if (Selection.length > 0) {
+                    var CharkheIds = "";
+                    for (var i = 0; i < Selection.length; i++) {
+                        CharkheIds = CharkheIds + Selection[i].data.fldCharkheId + ";";
+                    }
+                    Ext.net.DirectMethod.request({
+                        url: '/GeneralKartabl/GetShareOperation',
+                        params: {
+                            CartableId: IdOfKartabl,
+                            ActionId: SelEghdam.raw.itemId,
+                            CharkheIds: CharkheIds,
+                            __RequestVerificationToken: App.SpecificKartabl.queryById('antiForgeryToken').getValue(),
+                        },
+                        success: function (data) {
+                            $('*[id*=OPrasa]').each(function (index, element) {
+                                document.getElementById(element.id).classList.add("disable");
+                                for (var tt = 0; tt < data.OPId.length; tt++) {
+                                    if (element.id.substring(6) == data.OPId[tt]) {
+                                        document.getElementById(element.id).classList.remove("disable");
+                                    }
+                                }
+                            });
+                        }
+                    });
+                }
+                else {
+                    $('*[id*=OPrasa]').each(function (index, element) {
+                        document.getElementById(element.id).classList.remove("disable");
+                    });
+                }
+            }
+        }
+    }
+
+  /*  function AddAllPostSK() {
+        if (App.SpecificKartabl.queryById('CboPost').store.count() > 1) {
+            App.SpecificKartabl.queryById('CboPost').store.add({ 'ID': '0', 'Name': 'همه موارد' });
+            App.SpecificKartabl.queryById('CboPost').setValue('0');
+        }
+        else {
+            App.SpecificKartabl.queryById('CboPost').select(App.SpecificKartabl.queryById('CboPost').store.getAt(0));
+        }
+    }*/
+
+  
+    var FirstLoadSK = 0;
+    /*function AddAllStationSK() {
+        if (App.SpecificKartabl.queryById('CboDepo').store.count() > 1) {
+            App.SpecificKartabl.queryById('CboDepo').store.add({ 'ID': '0', 'Name': 'همه موارد' });
+            App.SpecificKartabl.queryById('CboDepo').setValue('0');
+            var StationId = "";
+            App.SpecificKartabl.queryById("CboDepo").store.each(function (el) {
+                if (el.data.ID != "0") { StationId = StationId + el.data.ID + ";" }
+            });
+            App.SpecificKartabl.queryById('RptDepo').setValue(StationId);
+            if (FirstLoadSK == 0) {
+                FirstLoadSK = 1;
+                GetAllKartabl();
+            }
+        }
+        else {
+            App.SpecificKartabl.queryById('CboDepo').setValue(App.SpecificKartabl.queryById('CboDepo').store.getAt(0));
+            App.SpecificKartabl.queryById('RptDepo').setValue(App.SpecificKartabl.queryById('CboDepo').store.getAt(0).data.ID);
+            if (FirstLoadSK == 0) {
+                FirstLoadSK = 1;
+                GetAllKartabl();
+            }
+        }
+    }*/
+
+    /*function AddAllGradeSK() {
+        if (App.SpecificKartabl.queryById('CboGrade').store.count() > 1) {
+            App.SpecificKartabl.queryById('CboGrade').store.add({ 'fldId': '0', 'fldName': 'همه موارد' });
+            App.SpecificKartabl.queryById('CboGrade').setValue('0');
+        }
+        else {
+            App.SpecificKartabl.queryById('CboGrade').setValue(App.SpecificKartabl.queryById('CboGrade').store.getAt(0));
+        }
+    }*/
+
+    function SearchSK(){
+       var IdOfKartabl = IdOfKartablll;
+            var SelEghdam = SelEghdammm;
+            if (SelEghdam != null) {
+                var EghdamId = SelEghdam.raw.itemId;
+                
+                var CompanyId = 0;
+                App.SpecificKartabl.body.mask("در حال بارگذاری...");
+                Ext.net.DirectMethod.request({
+                    url: '/GeneralKartabl/GetCycleLoc',
+                    params: {
+                        EghdamId: EghdamId,
+                        CartableId: IdOfKartabl,
+                        CompanyId:CompanyId,
+                        __RequestVerificationToken: App.SpecificKartabl.queryById('antiForgeryToken').getValue()
+                    },
+                    success: function (data) {
+                        if (data.Er == 0) {
+                            /*if (App.SpecificKartabl.queryById("CboTypeParvande").getValue() == "0") {*/
+                                $('*[id*=OPrasa]').each(function (index, element) {
+                                    if (element.parentElement.id == "EffectiveActions") {/*اکشن های موثر*/
+                                        document.getElementById(element.id).classList.add("disable");
+                                    }
+                                    else {
+                                        document.getElementById(element.id).classList.remove("disable");
+                                    }
+                                });
+                           /* }
+                            else {
+                                $('*[id*=OPrasa]').each(function (index, element) {
+                                    document.getElementById(element.id).classList.remove("disable");
+                                });
+                            }*/
+                            /*App.SpecificKartabl.queryById("RptNahi").setValue(App.SpecificKartabl.queryById("CboNahi").getValue());
+                            App.SpecificKartabl.queryById("RptNahiName").setValue(App.SpecificKartabl.queryById("CboNahi").getDisplayValue());
+                            App.SpecificKartabl.queryById("RptPost").setValue(App.SpecificKartabl.queryById("CboPost").getValue());
+                            App.SpecificKartabl.queryById("RptPostName").setValue(App.SpecificKartabl.queryById("CboPost").getDisplayValue());
+                            App.SpecificKartabl.queryById("RptDepo").setValue(StationId);
+                            App.SpecificKartabl.queryById("RptPaye").setValue(PayeId);
+                            App.SpecificKartabl.queryById("RptPayeName").setValue(App.SpecificKartabl.queryById("CboGrade").getDisplayValue());
+                            App.SpecificKartabl.queryById("RptTypeEstekhdam").setValue(App.SpecificKartabl.queryById("CboTypeEstekhdam").getValue());
+                            App.SpecificKartabl.queryById("RptTypeEstekhdamName").setValue(App.SpecificKartabl.queryById("CboTypeEstekhdam").getDisplayValue());
+                            App.SpecificKartabl.queryById("RptTypeParvande").setValue(App.SpecificKartabl.queryById("CboTypeParvande").getValue());
+                            App.SpecificKartabl.queryById("RptTypeParvandeName").setValue(App.SpecificKartabl.queryById("CboTypeParvande").getDisplayValue());*/
+                            /*if (data.NoeGhabelCharkhesh == 1) {*/
+                                App.SpecificKartabl.queryById('GridLocParvande').store.loadData(data.ListLoc);
+                                App.SpecificKartabl.queryById('GridLocParvande').getSelectionModel().deselectAll();
+                                IsParvande = 1;
+                           /* }*/
+                        }
+                        else {
+                            Ext.MessageBox.show({
+                                title: data.MsgTitle,
+                                msg: data.Msg,
+                                icon: Ext.MessageBox.ERROR,
+                                buttons: Ext.MessageBox.OK
+                            });
+                        }
+                        App.SpecificKartabl.body.mask().hide();
+                    },
+                    timeout: 7200000
+                });
+            }
+            else {
+                Ext.MessageBox.show({
+                    title: "خطا",
+                    msg: "لطفا ابتدا یک اقدام را انتخاب نمایید تا پرونده های مربوط به آن اقدام لیست شوند.",
+                    icon: Ext.MessageBox.ERROR,
+                    buttons: Ext.MessageBox.OK
+                });
+            }
+        
+    }
+
+    $('#PrintLoc').click(function () {
+        /*Ext.MessageBox.show({
+            title: "خطا",
+            msg: "این  عملیات در حال حاضر امکان پذیر نمی باشد.",
+            icon: Ext.MessageBox.ERROR,
+            buttons: Ext.MessageBox.OK
+        });*/
+      
+        if ( (IsParvande != 0 && App.SpecificKartabl.queryById('GridLocParvande').store.count() == 0)) {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "اطلاعاتی جهت گزارش وجود ندارد.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+        else {
+            var IdOfKartabl = IdOfKartablll;
+            var SelEghdam = SelEghdammm;
+            var CompanyId = "0";
+            
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/GeneralKartabl/PrintRptGeneralKartabl',
+                params: {
+                    EghdamId: SelEghdam.raw.itemId,
+                    CartableId: IdOfKartabl,
+                    CompanyId: CompanyId
+                },
+                success: function () {
+                    Ext.net.Mask.hide();
+                }
+            });
+        }
+        
+
+    });
+
+    $('#HelpMatni_S').click(function () {
+        App.SpecificKartabl.body.mask("در حال بارگذاری...");
+        Ext.net.DirectMethod.request({
+            url: '/SpecializedKartabl/Help',
+            success: function (data) {
+                App.SpecificKartabl.body.mask().hide();
+            },
+        });
+    });
+
+    $('#HelpVideo_S').click(function () {
+        App.SpecificKartabl.body.mask("در حال بارگذاری...");
+        Ext.net.DirectMethod.request({
+            url: '/SpecializedKartabl/VideoWinSpecializedKartabl',
+            success: function (data) {
+                App.SpecificKartabl.body.mask().hide();
+            },
+        });
+    });
+
+    $('#ExcelLoc').click(function () {
+        /* Ext.MessageBox.show({
+            title: "خطا",
+            msg: "این  عملیات در حال حاضر امکان پذیر نمی باشد.",
+            icon: Ext.MessageBox.ERROR,
+            buttons: Ext.MessageBox.OK
+        });*/
+        
+        if ( (IsParvande != 0 && App.SpecificKartabl.queryById('GridLocParvande').store.count() == 0)) {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "اطلاعاتی جهت گزارش وجود ندارد.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+        else {
+
+            App.SpecificKartabl.body.mask("در حال بارگذاری...");
+            var CompanyId = "0";
+           
+            var IdOfKartabl = IdOfKartablll;
+            var SelEghdam = SelEghdammm;
+
+            $.ajax({
+                type: "POST",
+                dataType: 'native',
+                url: "/GeneralKartabl/GenerateExcelRptGeneralKartabl",
+                xhrFields: {
+                    responseType: 'blob'
+                },
+                data: {
+                    EghdamId: SelEghdam.raw.itemId,
+                    CartableId: IdOfKartabl,
+                    CompanyId: CompanyId,
+                    __RequestVerificationToken: App.SpecificKartabl.queryById('antiForgeryToken').getValue()
+                },
+                success: function (blob, status, xhr) {
+                    App.SpecificKartabl.body.mask().hide();
+                    var link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = "گزارش کارتابل";
+                    link.click();
+                }
+            });
+
+         }
+       
+    });
+
+    $('#HelpEghdam').click(function () {
+        var EghdammIdd = SelEghdammm.raw.itemId;
+    });
+
+    function CollapseSize() {
+        if (App.SpecificKartabl.queryById("pnlSearch").collapsed == false) {
+            App.SpecificKartabl.queryById("GridLocParvande").setHeight(Ext.getBody().getViewSize().height - 194);
+        }
+        else {
+            App.SpecificKartabl.queryById("GridLocParvande").setHeight(Ext.getBody().getViewSize().height - 139);
+        }
+    }
+
+    function ExpandSize() {
+        if (App.SpecificKartabl.queryById("pnlSearch").collapsed == false) {
+            App.SpecificKartabl.queryById("GridLocParvande").setHeight(Ext.getBody().getViewSize().height - 288);
+        }
+        else {
+            App.SpecificKartabl.queryById("GridLocParvande").setHeight(Ext.getBody().getViewSize().height - 233);
+        }
+    }
+
+    function CollapseSize2() {
+        if (App.ActionnPanell.collapsed == false) {
+            App.SpecificKartabl.queryById("GridLocParvande").setHeight(Ext.getBody().getViewSize().height - 233);
+        }
+        else {
+            App.SpecificKartabl.queryById("GridLocParvande").setHeight(Ext.getBody().getViewSize().height - 139);
+        }
+    }
+
+    function ExpandSize2() {
+        if (App.ActionnPanell.collapsed == false) {
+            App.SpecificKartabl.queryById("GridLocParvande").setHeight(Ext.getBody().getViewSize().height - 288);
+        }
+        else {
+            App.SpecificKartabl.queryById("GridLocParvande").setHeight(Ext.getBody().getViewSize().height - 194);
+        }
+    }
+
+    function SetSize() {
+        InsertToLog("پنجره کارتابل تخصصی", 2, true);
+        var splitWidth = (Ext.getBody().getViewSize().width - 31) / 4;
+        var Height = Ext.getBody().getViewSize().height - 73;
+        App.MenuPanel1.setSize(splitWidth * 0.85, Height);
+        App.MenuPanel2.setSize(splitWidth * 3.15, Height);
+        App.SpecificKartabl.queryById("GridLocParvande").setHeight(Ext.getBody().getViewSize().height - 288);
+        Ext.net.Mask.hide();
+        $('<link href="/Content/bootstrap.css" rel="stylesheet" />').appendTo("ulActions");
+        GetAllKartabl();
+        /* App.SpecificKartabl.queryById("pnlSearch").collapse();*/
+        CollapseSize2();
+    }
+
+    function GetAllKartabl() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/GeneralKartabl/GetKartabl',
+            params: {
+                __RequestVerificationToken: App.SpecificKartabl.queryById('antiForgeryToken').getValue()
+            },
+            success: function (data) {
+                if (data.Er != 1) {
+                    LoadTree(data);
+                }
+                else {
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK
+                    });
+                }
+            }
+        });
+    }
+
+    function LoadTree(data) {
+        /*var StationId = App.SpecificKartabl.queryById("CboDepo").getValue();
+        if (App.SpecificKartabl.queryById('CboNahi').getValue() == "0") {
+            StationId = "0";
+        }
+        else if (StationId == "0") {
+            StationId = "";
+            App.SpecificKartabl.queryById("CboDepo").store.each(function (el) {
+                if (el.data.ID != "0") { StationId = StationId + el.data.ID + ";" }
+            });
+        }*/
+
+        if (h < data.KartablId.length) {
+            Ext.net.DirectMethod.request({
+                url: '/GeneralKartabl/GetEghdam',
+                params: {
+                    KartablId: data.KartablId[h],
+                    __RequestVerificationToken: App.SpecificKartabl.queryById('antiForgeryToken').getValue()
+                },
+                success: function (result) {
+                    if (result.MsgTitle == "") {
+                        var store = Ext.create('Ext.data.TreeStore', {
+                            root: {
+                                text: "",
+                                children: []
+                            }
+                        });
+                        var stylestringK = ".Pic" + String(h) + "{background-image:url(data:image/gif;base64," + data.KartablIcon[h] + ") !important;background-size:contain;}";
+                        Ext.util.CSS.createStyleSheet(stylestringK);
+                        var CSSNameK = "Pic" + String(h);
+                        var tree = Ext.create('Ext.tree.Panel', {
+                            width: 400,
+                            height: 400,
+                            useArrows: true,
+                            rootVisible: false,
+                            iconCls: CSSNameK,
+                            titleAlign: "right",
+                            store: store,
+                            title: data.KartablName[h],
+                            tooltip: data.KartablName[h],
+                            id: String(data.KartablId[h]),
+                            listeners: {
+                                itemclick: function () {
+                                    var IdOfKartabl = Ext.getCmp("MenuPanel1").child("[collapsed=false]").id;
+                                    IdOfKartablll = IdOfKartabl;
+                                    titleOfKartablll = Ext.getCmp("MenuPanel1").child("[collapsed=false]").title;
+                                    for (var mm = 0; mm < App.MenuPanel1.items.length; mm++) {
+                                        if (App.MenuPanel1.items.items[mm].id != IdOfKartabl) {
+                                            App.MenuPanel1.items.items[mm].getSelectionModel().deselectAll();
+                                        }
+                                    }
+                                    var SelEghdam = Ext.getCmp(IdOfKartabl).getSelectionModel().getLastSelected();
+                                    SelEghdammm = SelEghdam;
+                                    var EghdamId = SelEghdam.raw.itemId;
+                                    /*لود کردن اکشن ها*/
+                                    Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+                                    Ext.net.DirectMethod.request({
+                                        url: '/GeneralKartabl/GetAction',
+                                        params: {
+                                            IdEghdam: EghdamId,
+                                            CartableId: IdOfKartabl,
+                                            __RequestVerificationToken: App.SpecificKartabl.queryById('antiForgeryToken').getValue()
+                                        },
+                                        success: function (data) {
+                                            if (data.Er != 1) {
+                                                SearchSK();
+                                                ReloadCountTree2();
+                                                while (document.getElementById("EffectiveActions").hasChildNodes()) {
+                                                    document.getElementById("EffectiveActions").removeChild(document.getElementById("EffectiveActions").lastChild);
+                                                }
+                                                while (document.getElementById("NonEffectiveActions").hasChildNodes()) {
+                                                    document.getElementById("NonEffectiveActions").removeChild(document.getElementById("NonEffectiveActions").lastChild);
+                                                }
+
+                                                var h2El = document.createElement('h2');
+                                                var spanEl = document.createElement('span');
+                                                spanEl.innerHTML = "غیرمؤثر";
+                                                h2El.appendChild(spanEl);
+
+                                                var h2ElM = document.createElement('h2');
+                                                var spanElM = document.createElement('span');
+                                                spanElM.innerHTML = "مؤثر";
+                                                h2ElM.appendChild(spanElM);
+
+                                                document.getElementById("EffectiveActions").style.display = "none";
+                                                document.getElementById("NonEffectiveActions").style.display = "none";
+                                                for (var p = 0; p < data.OperationId.length; p++) {
+                                                    /*تگ div*/
+                                                    var divEl = document.createElement('div');
+                                                    divEl.setAttribute('id', 'OPrasa' + data.OperationId[p]);
+                                                    /*divEl.setAttribute('data-toggle', 'tooltip');
+                                                    divEl.setAttribute('title', data.OperationDesc[p]);*/
+                                                    /*if (data.OperationDesc[p] != "") {
+                                                        divEl.setAttribute('title', data.OperationDesc[p]);
+                                                    }*/
+
+                                                    /*if (data.OperationGroup[p] == true) {
+                                                        divEl.className = "GroupAction";
+                                                    }*/
+                                                    /*تگ image*/
+                                                    var imgEl = document.createElement('img');
+                                                    if (data.OperationIcon[p] != "") {
+                                                        imgEl.src = "data:image/png;base64," + data.OperationIcon[p];
+                                                    }
+                                                    else {
+                                                        imgEl.src = "/content/icon/Blank.jpg";
+                                                    }
+                                                    imgEl.setAttribute('width', '33px');
+                                                    imgEl.setAttribute('alt', data.OperationName[p]);
+                                                    divEl.appendChild(imgEl);
+                                                    divEl.insertAdjacentHTML('beforeend', data.OperationName[p]);
+
+                                                    if (data.OperationEffect[p] == true) {
+                                                        document.getElementById("EffectiveActions").style.display = "inline";
+                                                        document.getElementById("EffectiveActions").appendChild(h2ElM);
+                                                        document.getElementById("EffectiveActions").appendChild(divEl);
+                                                        /*if (data.OperationDesc[p] != "") {
+                                                            $("#" + divEl.id).tooltip({ content: data.OperationDesc[p], placement: 'bottom', html: true, container: 'body' });
+                                                        }*/
+                                                        CreateEventSpecific(data.OperationGroup[p], data.OperationMethodName[p],divEl.id);
+                                                    }
+                                                    else {
+                                                        document.getElementById("NonEffectiveActions").style.display = "inline";
+                                                        document.getElementById("NonEffectiveActions").appendChild(h2El);
+                                                        document.getElementById("NonEffectiveActions").appendChild(divEl);
+                                                        /*if (data.OperationDesc[i] != "") {
+                                                            $("#" + divEl.id).tooltip({ content: data.OperationDesc[p], placement: 'bottom', html: true, container: 'body' });
+                                                        }*/
+                                                        CreateEventSpecific(data.OperationGroup[p], data.OperationMethodName[p], divEl.id);
+                                                    }
+                                                }
+                                            }
+                                            else {
+                                                Ext.MessageBox.show({
+                                                    title: data.MsgTitle,
+                                                    msg: data.Msg,
+                                                    icon: Ext.MessageBox.ERROR,
+                                                    buttons: Ext.MessageBox.OK
+                                                });
+                                            }
+                                            Ext.net.Mask.hide();
+                                        }
+                                    });
+                                },
+                                expand: function () {
+                                    ReloadCountTree();
+                                }
+                            }
+                        });
+                        var root = tree.getRootNode();
+                        for (var g = 0; g < result.EghdamId.length; g++) {
+                            var Eghdam = root.appendChild(
+                                {
+                                    text: result.EghdamName[g],
+                                    itemId: result.EghdamId[g],
+                                    leaf: true,
+                                    qtip: result.EghdamName[g]
+                                });
+                            var stylestring = ".Pic" + String(h) + String(g) + "{background-image:url(data:image/gif;base64," + result.EghdamIcon[g] + ") !important;background-size:contain;}";
+                            Ext.util.CSS.createStyleSheet(stylestring);
+                            CSSName = "Pic" + String(h) + String(g);
+                            Eghdam.set('iconCls', CSSName);
+                            if (result.EghdamName[g].includes(")")) {
+                                Eghdam.set("cls", "Treenode_Bold");
+                            }
+                            else {
+                                Eghdam.set("cls", "");
+                            }
+                        }
+                        if (result.EghdamId.length > 0) {
+                            App.MenuPanel1.add(tree);
+                            tree.expandAll();
+                        }
+                        h++;
+                        LoadTree(data);
+                        if (h == data.KartablId.length) {
+                            Ext.net.Mask.hide();
+                        }
+                    }
+                    else {
+                        Ext.MessageBox.show({
+                            title: data.MsgTitle,
+                            msg: data.Msg,
+                            icon: Ext.MessageBox.ERROR,
+                            buttons: Ext.MessageBox.OK
+                        });
+                    }
+                }
+            });
+        }
+        else {
+            Ext.net.Mask.hide();
+        }
+    }
+
+    function ReloadCountTree() {
+        var NewActionNameArray = new Array();
+        var AllEghdam = "";
+        var IdOfKartabl = Ext.getCmp("MenuPanel1").child("[collapsed=false]").id;
+        var Childs = Ext.getCmp(IdOfKartabl).getRootNode().childNodes;
+        for (var i = 0; i < Childs.length; i++) {
+            AllEghdam = AllEghdam + Childs[i].raw.itemId + ";";
+        }
+        Ext.net.DirectMethod.request({
+            url: '/GeneralKartabl/ReloadCountTree',
+            params: {
+                CartablId: IdOfKartabl,
+                EghdamIds: AllEghdam,
+                __RequestVerificationToken: App.SpecificKartabl.queryById('antiForgeryToken').getValue()
+            },
+            success: function (data) {
+                if (data.Er == 1) {
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK
+                    });
+                }
+                else {
+                    NewActionNameArray = data.NewActionName.split(";");
+                    for (var i = 0; i < NewActionNameArray.length - 1; i++) {
+                        Childs[i].set("text", NewActionNameArray[i]);
+                        Childs[i].set("qtip", NewActionNameArray[i]);
+                        if (NewActionNameArray[i].includes(")")) {
+                            Childs[i].set("cls", "Treenode_Bold");
+                        }
+                        else {
+                            Childs[i].set("cls", "");
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function ReloadCountTree2() {
+        if (SelEghdammm != null) {
+            var NewActionNameArray = new Array();
+            var AllEghdam = "";
+           /* var StationId = App.SpecificKartabl.queryById("CboDepo").getValue();
+            if (App.SpecificKartabl.queryById('CboNahi').getValue() == "0") {
+                StationId = "0";
+            }
+            else if (StationId == "0") {
+                StationId = "";
+                App.SpecificKartabl.queryById("CboDepo").store.each(function (el) {
+                    if (el.data.ID != "0") { StationId = StationId + el.data.ID + ";" }
+                });
+            }*/
+
+            var IdOfKartabl = Ext.getCmp("MenuPanel1").child("[collapsed=false]").id;
+            var Childs = Ext.getCmp(IdOfKartabl).getRootNode().childNodes;
+            for (var i = 0; i < Childs.length; i++) {
+                AllEghdam = AllEghdam + Childs[i].raw.itemId + ";";
+            }
+            Ext.net.DirectMethod.request({
+                url: '/GeneralKartabl/ReloadCountTree',
+                params: {
+                    CartablId: IdOfKartabl,
+                    EghdamIds: AllEghdam,
+                    __RequestVerificationToken: App.SpecificKartabl.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+                    if (data.Er == 1) {
+                        Ext.MessageBox.show({
+                            title: data.MsgTitle,
+                            msg: data.Msg,
+                            icon: Ext.MessageBox.ERROR,
+                            buttons: Ext.MessageBox.OK
+                        });
+                    }
+                    else {
+                        NewActionNameArray = data.NewActionName.split(";");
+                        for (var i = 0; i < NewActionNameArray.length - 1; i++) {
+                            Childs[i].set("text", NewActionNameArray[i]);
+                            Childs[i].set("qtip", NewActionNameArray[i]);
+                            if (NewActionNameArray[i].includes(")")) {
+                                Childs[i].set("cls", "Treenode_Bold");
+                            }
+                            else {
+                                Childs[i].set("cls", "");
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    function CreateEventSpecific(Group, methodName, id) {
+        $('#' + id).click(function () {
+               var Selection = App.SpecificKartabl.queryById('GridLocParvande').getSelectionModel().getSelection();
+               var Selection1 = App.SpecificKartabl.queryById('GridLocParvande');
+            
+
+            var cartableId = IdOfKartablll;
+            var cartableTitle = titleOfKartablll;
+            var EghdammIdd = SelEghdammm.raw.itemId;
+           
+            var uurl = '/GeneralKartabl/' + methodName;
+            if (methodName.indexOf('/') >= 0)
+                uurl = methodName;
+
+                if (Selection1.store.data.items.length == 1) {
+
+                    var GRID = Selection1.store.data.items;
+                    Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+                    Ext.net.DirectMethod.request({
+                        url: uurl,
+                        params: {
+                            EnterSicleIds: GRID[0].data.fldIdVorood,
+                            EghdamId: EghdammIdd,
+                            NameCharkhe: GRID[0].data.fldNameCharkhe,
+                            cartableTitle: cartableTitle,
+                            IsGroup: false,
+                            cartableId: cartableId,
+                            State: 1,
+                            IsParvande: IsParvande
+                        },
+                        success: function () {
+                            Ext.net.Mask.hide();
+                        }
+                    });
+                }
+                else if (Selection.length > 0) {
+                    if (Group == true) {/*گروهی*/
+                        var IdVoroods = "";
+                        for (var i = 0; i < Selection.length; i++) {
+                            IdVoroods = IdVoroods + Selection[i].data.fldIdVorood + ";";
+                        }
+                        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+                        Ext.net.DirectMethod.request({
+                            url: uurl,
+                            params: {
+                                EnterSicleIds: IdVoroods,
+                                EghdamId: EghdammIdd,
+                                NameCharkhe: "",
+                                cartableTitle: cartableTitle,
+                                IsGroup: true,
+                                cartableId: cartableId,
+                                State: 1,
+                                IsParvande: IsParvande
+                            },
+                            success: function () {
+                                Ext.net.Mask.hide();
+                            }
+                        });
+                    }
+                    else if (Selection.length == 1) {/*انتخاب فقط یک نفر برای اکشن انفرادی*/
+                        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+                        Ext.net.DirectMethod.request({
+                            url: uurl,
+                            params: {
+                                EnterSicleIds: Selection[0].data.fldIdVorood,
+                                EghdamId: EghdammIdd,
+                                NameCharkhe: Selection[0].data.fldNameCharkhe,
+                                cartableTitle: cartableTitle,
+                                IsGroup: false,
+                                cartableId: cartableId,
+                                State: 1,
+                                IsParvande: IsParvande
+                            },
+                            success: function () {
+                                Ext.net.Mask.hide();
+                            }
+                        });
+                    }
+                    else {
+                        var mmsg = "اکشن انتخاب شده انفرادی است. لطفا تنها یک پرسنل را انتخاب کنید.";
+                        if (IsParvande == 1)
+                            mmsg = "برای اکشن انتخاب شده باید تنها یک پرونده را انتخاب کنید.";
+                        Ext.MessageBox.show({
+                            title: "خطا",
+                            msg: mmsg,
+                            icon: Ext.MessageBox.ERROR,
+                            buttons: Ext.MessageBox.OK
+                        });
+                    }
+                }
+
+                else {
+                    var mmsg = "لطفا پرسنل مورد نظر را انتخاب کنید.";
+                    if (IsParvande == 1)
+                        mmsg = "لطفا پرونده مورد نظر را انتخاب کنید.";
+                    Ext.MessageBox.show({
+                        title: "خطا",
+                        msg: mmsg,
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK
+                    });
+                }
+            
+
+        });
+    }
+</script>

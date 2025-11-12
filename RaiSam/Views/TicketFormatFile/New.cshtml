@@ -1,0 +1,483 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+<style>
+    #fieldsetfileFormat legend {
+        text-align: right;
+        font-family: Tahoma !important;
+    }
+
+    #DeleteActionFileimg3:hover {
+        cursor: pointer;
+    }
+
+    .color {
+        color: red;
+    }
+</style>
+
+@(Html.X().Window().Modal(true).Listeners(li => { li.AfterRender.Handler = "LoadFormat();"; li.Render.Fn = "addKeyMapFormat"; })
+.Width(500)//.Height(300)
+        .Title("ثبت فرمت های مجاز")
+         .ID("NewFormat")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+        .ButtonAlign(Ext.Net.Alignment.Center)
+                   .Buttons(X.Button().Text("ذخیره").Icon(Ext.Net.Icon.Disk)
+                               .Listeners(l =>
+                               {
+                                   l.Click.Handler = "SaveFormat();";
+
+                               })
+                                   .ItemID("btnSaveFormat")
+                                ,
+                                X.Button().Text("خروج").Icon(Ext.Net.Icon.DoorOut).ToolTip("کلید میانبر Esc")
+                                       .OnClientClick("App.NewFormat.destroy()"))
+    .Items(
+        X.AntiForgeryField()
+                .ItemID("antiForgeryToken")
+                .Hidden(true),
+                X.Panel().Border(false)
+                    .Layout(Ext.Net.LayoutType.VBox)
+                        .LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Center })
+            .Items(
+                //X.Label("نکته: حداکثر حجم مجاز وارد شده می بایست بصورت مگا بایت باشد.").Cls("color"),
+                X.FieldSet()
+                            .Title("فرمت فایل")
+                            .Height(180)
+                            .Border(true)
+                            .Defaults(new { Margin = 2 })
+                            .Layout(LayoutType.Table)
+                            .LayoutConfig(new TableLayoutConfig { Columns = 4 })
+                            .Items(
+                                X.Hidden()
+                                    .ItemID("fldId"),
+                                X.Label("نام فرمت:"),
+                                X.TextField()
+                                    .ItemID("txtTitle")
+                                    .AllowBlank(false)
+                                    .BlankText("لطفا نام فرمت را وارد کنید.")
+                                    .MaxLength(50)
+                                    .EnforceMaxLength(true)
+                                        .Listeners(l => l.AfterRender.Handler = "App.NewFormat.queryById('txtTitle').validate()")
+                                    .AutoFocus(true),
+                                X.Label("پسوندهای مجاز:"),
+                                X.TextField()
+                                    .ItemID("txtPassvand")
+                                        .Listeners(l => l.AfterRender.Handler = "App.NewFormat.queryById('txtPassvand').validate()")
+                                    .AllowBlank(false)
+                                    .BlankText("لطفا پسوندهای مجاز را وارد کنید.")
+                                    .MaxLength(100)
+                                    .EnforceMaxLength(true)
+                                    .EmptyText("مثال: jpg, png, jpeg")
+                                    .MaskRe("[a-z,,]")
+                                    //,
+                                    // X.Label("حداکثر حجم:")
+        //             ,
+        //X.TextField()
+        //    .ItemID("txtSize")
+        //            .Listeners(l => { /*l.AfterRender.Handler = "App.FormatFiles.queryById('txtSize').validate();";*/ l.Blur.Handler = "CheckSize();"; })
+        //    .AllowBlank(false)
+        //    .BlankText("لطفا پسوندهای مجاز را وارد کنید.")
+        //    .MaxLength(100)
+        //    .EnforceMaxLength(true)
+
+                        //    .MaskRe("[0-9]"),
+        //        X.Label("توضیحات:"),
+        //        X.TextField()
+        //            .ItemID("txtDesc")
+
+                                   ,
+                                    X.FieldSet()
+                            .Border(true)
+                            .AutoScroll(true)
+                            .ColSpan(4)
+                            .Title("انتخاب فایل(حداکثر حجم مجاز: 300KB)")
+                            .ID("fieldsetfileFormat")
+                            .Layout(LayoutType.HBox)
+                            .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Middle })
+                            .Items(
+                                X.FormPanel()
+                                    .Border(false)
+                                    .Layout(LayoutType.HBox)
+                                    .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Middle })
+                                    .Width(360)
+                                    .Items(
+                                        X.FileUploadField()
+                                            .MarginSpec("0 10px 10px 0")
+                                            .Icon(Ext.Net.Icon.DiskUpload)
+                                            .ButtonOnly(true)
+                                            .ButtonText("انتخاب فایل")
+                                            .DirectEvents(l =>
+                                            {
+                                                l.Change.Action = "Upload";
+                                                l.Change.Delay = 1000;
+                                                l.Change.Before = "if(GotoServerFormat==false){return false;}";
+                                                l.Change.Success = "hideprogressFormat";
+                                            })
+                                            .Listeners(l => l.Change.Fn = "showFileFormat"),
+                                        X.Container()
+                                            .Content(@<div id="fi-button-msgFormat" class="Wrap-label" style="width:260px;height:auto;text-align:right;"><b>فایل انتخاب شده:</b></div>)
+                                        ),
+                                X.Panel()
+                                    .Border(false)
+                                    .Layout(LayoutType.VBox)
+                                    .LayoutConfig(new VBoxLayoutConfig { Align=VBoxAlign.Center})
+                                    .Items(
+                                        X.Label("پیش نمایش"),
+                                        X.Panel()
+                                            .Frame(true)
+                                            .MarginSpec("3px 0 0 0")
+                                            .Layout(LayoutType.Fit)
+                                            .Items(
+                                                X.Image()
+                                                    .ItemID("Image")
+                                                    .MarginSpec("3px 0 0 0")
+                                                    .Flex(1)
+                                                    .ImageUrl("/Content/icon/Blank.jpg")
+                                                    .Width(40)
+                                                    .Height(40)
+                                                    .Border(true)
+                                                    .Frame(true)
+                                            )
+                                        )
+                            )
+                            @*X.FormPanel()
+                                        .Border(false)
+                                        .ColSpan(4)
+                                        .Layout(LayoutType.Table)
+                                        .LayoutConfig(new TableLayoutConfig { Columns = 2 })
+                                        .Items(
+                                        X.FieldSet().Border(false).Height(90).Width(300)
+                                    .Defaults(new { Margin = 3 })
+                                        .Layout(Ext.Net.LayoutType.VBox)
+                                .LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Right })
+                                .Items(
+                                            X.FileUploadField()
+                                                .MarginSpec("10px 10px 10px 0")
+                                                .Icon(Ext.Net.Icon.DiskUpload)
+                                                .ButtonOnly(true)
+                                                .ButtonText("انتخاب آیکون فایل")
+                                                .DirectEvents(l =>
+                                                {
+                                                    l.Change.Action = "Upload";
+                                                    l.Change.Success = "hideprogressFormat();";
+                                                })
+                                                .Listeners(l => l.Change.Fn = "showFileFormat"),
+                                                X.Button().Text("حذف عکس").Listeners(l => l.Click.Handler = "DeleteFileFormat()").Icon(Ext.Net.Icon.Delete),
+                                             X.Container()
+                                                .Content(@<div id="fi-button-msgFormat" style="width:250px;text-align:right;"><b>فایل انتخاب شده:</b></div>)
+                                    )
+                                    , X.FieldSet().Border(false).Width(100)
+                                    .Layout(Ext.Net.LayoutType.VBox)
+                                .LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Left })
+                                        .Defaults(new { Margin = 3 })
+                                    .Items(X.Image().ItemID("Image").ImageUrl("~/Content/Blank.jpg").Width(80).Height(90).Border(true))
+                                            )*@
+)
+                            )
+                    )
+)
+<script type="text/javascript">
+
+    var GotoServerFormat = false;
+    var EndUploadFormat = false;
+    var Id = 0;
+
+    var DeleteFileF = false;
+    function DeleteFileFormat() {
+        Ext.net.DirectMethod.request({
+            url: '/TicketFormatFile/DeltePic',
+            success: function () {
+                DeleteFileF = true;
+                App.NewFormat.queryById('Image').setImageUrl("/Content/icon/Blank.jpg");
+                Ext.get('fi-button-msgFormat').update('<b>فایل انتخاب شده:</b>');
+            }
+        });
+    }
+    var CheckFormat = setInterval(CheckEndFormat, 500);
+    function CheckEndFormat() {
+        if (EndUploadFormat == true) {
+            Ext.net.DirectMethod.request({
+                url: '/TicketFormatFile/ShowPicUpload',
+                success: function (data) {
+                    value = "data:image/gif;base64," + data.image;
+                    App.NewFormat.queryById('Image').setImageUrl(value);
+                }
+            });
+            Ext.MessageBox.hide();
+            GotoServerFormat = false;
+            Ext.Msg.alert('عملیات موفق', 'فایل با موفقیت آپلود شد.');
+            clearInterval(CheckEndFormat);
+            EndUploadFormat = false;
+        }
+    }
+    var showFileFormat = function (fb, v) {
+        var id = fb.fileInputEl.dom.id;
+        var el = Ext.get('fi-button-msgFormat');
+        if (v) {
+            showProgressBarFormat();
+            if (v.split('.').pop().toLowerCase() == "jpg" || v.split('.').pop().toLowerCase() == "png" || v.split('.').pop().toLowerCase() == "jpeg" || v.split('.').pop().toLowerCase() == "tif"
+                 || v.split('.').pop().toLowerCase() == "tiff" || v.split('.').pop().toLowerCase() == "gif" || v.split('.').pop().toLowerCase() == "bmp")  {
+                if (document.getElementById(id).files[0].size <= 307200) {
+                    GotoServerFormat = true;
+                    el.update('<b>فایل انتخاب شده: ' + v + '</b>' + "&nbsp;&nbsp;" + '<img id="DeleteActionFileimg3" title="حذف فایل" src="/Content/cancel.png" style="width:15px;height:15px;margin-bottom: -4px;" onclick="javascript:DeleteFileFormat()" />');
+                }
+                else {
+                    clearInterval(CheckEndFormat);
+                    el.update('<b>فایل انتخاب شده:</b>');
+                    App.NewFormat.queryById('Image').setImageUrl("/Content/icon/Blank.jpg");
+                    Ext.MessageBox.show({
+                        title: "خطا",
+                        msg: "حجم فایل انتخاب شده غیرمجاز است.",
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK
+                    });
+                }
+
+                if (!el.isVisible()) {
+                    el.slideIn('t', {
+                        duration: .2,
+                        easing: 'easeIn',
+                        callback: function () {
+                            el.highlight();
+                        }
+                    });
+                } else {
+                    el.highlight();
+                }
+            }
+            else {
+                clearInterval(CheckEndFormat);
+                el.update('<b>فایل انتخاب شده:</b>');
+                App.NewFormat.queryById('Image').setImageUrl("/Content/icon/Blank.jpg");
+                Ext.MessageBox.show({
+                    title: "خطا",
+                    msg: "فایل انتخاب شده غیرمجاز است.",
+                    icon: Ext.MessageBox.ERROR,
+                    buttons: Ext.MessageBox.OK
+                });
+            }
+        }
+    };
+    var hideprogressFormat = function (Responsdtxt, ResponseObj) {
+        if (ResponseObj.IsValid == true) {
+            EndUploadFormat = true;
+        }
+        else {
+            var el = Ext.get('fi-button-msgFormat');
+            GotoServerFormat = false;
+            clearInterval(CheckEndFormat);
+            EndUploadFormat = false;
+            el.update('<b>فایل انتخاب شده:</b> ');
+            App.NewFormat.queryById('Image').setImageUrl("/Content/icon/Blank.jpg");
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: ResponseObj.Message,
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    };
+
+    function showProgressBarFormat() {
+        Ext.MessageBox.show({
+            msg: 'لطفاً منتظر باشید',
+            progressText: 'در حال آپلود فایل...',
+            width: 300,
+            wait: true,
+            waitConfig:
+            {
+                interval: 200,
+                text: 'در حال آپلود فایل...',
+                scope: this
+            }
+        });
+    }
+
+    var fldTimeStamp = 0;
+    function LoadFormat() {
+        if ('@ViewBag.Id' != '0') {
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/TicketFormatFile/Details',
+                params: {
+                    Id: '@ViewBag.Id',
+                    __RequestVerificationToken: App.NewFormat.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+                    Id = data.fldId;
+                    var txtTitle = App.NewFormat.queryById('txtTitle');
+                    txtTitle.setValue(data.fldTitle);
+                    var txtPassvand = App.NewFormat.queryById('txtPassvand');
+                    txtPassvand.setValue(data.fldPassvand);
+                    /*var txtDesc = App.NewFormat.queryById('txtDesc');
+                    txtDesc.setValue(data.fldDesc);
+                    var txtSize = App.NewFormat.queryById('txtSize');
+                    txtSize.setValue(data.fldSize);*/
+                    var fldId = App.NewFormat.queryById('fldId');
+                    fldId.setValue(data.fldId);
+                    fldTimeStamp = data.fldTimeStamp;
+
+                    if (data.NameFile != "") {
+                        var fldfile = "data:image/gif;base64," + data.fldIcon;
+                        App.NewFormat.queryById('Image').setImageUrl(fldfile);
+                        Ext.get('fi-button-msgFormat').update('<b>فایل انتخاب شده: ' + data.NameFile + '</b>' + "&nbsp;&nbsp;" + '<img id="DeleteActionFileimg3"  title="حذف فایل" src="/Content/cancel.png" style="width:15px;height:15px;margin-bottom: -4px;" onclick="javascript:DeleteFileFormat()" />');
+                    }
+                    else {
+                        App.NewFormat.queryById('Image').setImageUrl("/Content/icon/Blank.jpg");
+                        Ext.get('fi-button-msgFormat').update('<b>فایل انتخاب شده:</b>');
+                    }
+                    Ext.net.Mask.hide();
+                }
+            });
+        }
+    }
+
+    function SaveFormat() {
+        var txtTitle = App.NewFormat.queryById('txtTitle');
+        var txtPassvand = App.NewFormat.queryById('txtPassvand');
+        /*var txtSize = App.NewFormat.queryById('txtSize');
+        var txtDesc = App.NewFormat.queryById('txtDesc');*/
+        var fldId = App.NewFormat.queryById('fldId');
+        var er = false;
+
+        if (txtTitle.validate() == false) {
+            er = true;
+        }
+        if (txtPassvand.validate() == false) {
+            er = true;
+        }
+        /*if (txtSize.validate() == false) {
+            er = true;
+        }*/
+
+        if (er == true)
+            return;
+
+        App.NewFormat.body.mask("در حال ذخیره سازی");
+        Ext.net.DirectMethod.request({
+            url: '/TicketFormatFile/Save',
+            params: {
+                DeleteFileF:DeleteFileF,
+                fldId: fldId.getValue(),
+                fldName: txtTitle.getValue(),
+                fldPassvand: txtPassvand.getValue(),
+               /* fldSize: txtSize.getValue(),
+                fldDesc: txtDesc.getValue(),*/
+                fldTimeStamp: fldTimeStamp,
+                __RequestVerificationToken: App.NewFormat.queryById('antiForgeryToken').getValue()
+            },
+            success: function (data) {
+                chat.server.reloadLog();
+                if (data.Er == 1 && data.Change == 1) {/*vaghti TimeStamp==0*/
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: Ext.MessageBox.WARNING,
+                        buttons: Ext.MessageBox.OK,
+                        fn: function (btn) {
+                            if (btn == 'ok') {
+                                LoadFormat();
+                            }
+                        }
+                    });
+                }
+                else if (data.Er == 1 && data.Change == 2) {/*vaghti TimeStamp==2*/
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK,
+                        fn: function (btn) {
+                            if (btn == 'ok') {
+                                App.NewFormat.destroy();
+                            }
+                        }
+                    });
+
+                }
+                else if (data.Er == 1) {
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK,
+                    });
+                }
+                else {
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: Ext.MessageBox.INFO,
+                        buttons: Ext.MessageBox.OK,
+                    });
+                }
+
+                    if (App.Format) {
+                        App.Format.queryById('GridFormat').store.load();
+                    }
+                    if (App.Archive_Tree) {
+                        App.Archive_Tree.queryById("CboFormat").store.load();
+                    }
+                if (data.Er != 1)
+                    ClearFormat();
+                App.NewFormat.body.mask().hide();
+            }
+
+        });
+    }
+
+    function ClearFormat() {
+        App.NewFormat.queryById('fldId').setValue(0);
+        App.NewFormat.queryById('txtTitle').setValue("");
+        App.NewFormat.queryById('txtPassvand').setValue("");
+       /* App.NewFormat.queryById('txtSize').setValue("");
+        App.NewFormat.queryById('txtDesc').setValue("");*/
+        App.NewFormat.queryById('Image').setImageUrl("/Content/icon/Blank.jpg");
+        Ext.get('fi-button-msgFormat').update("");
+    }
+
+    function HelpFormatFiles() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/TicketFormatFile/Help',
+            success: function () {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+    var addKeyMapFormat = function (cmp) {
+        this.keyMap = new Ext.util.KeyMap({
+            target: cmp.getEl(),
+            binding: [{
+                key: [13, 9], /*Ext.EventObject.ENTER,*/
+                fn: function (key, e) {
+                    if (e.getKey() == 9) {
+                        e.stopEvent();
+                    }
+                    if (Ext.Element.getActiveElement().name == "") {
+                        SaveFormatFiles();
+                        return;
+                    }
+                    var keyfield = App.NewFormat.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+                    var nextfld;
+                    if (keyfield.itemId == "txtPassvand") {
+                        nextfld = App.NewFormat.queryById("btnSave");
+                        nextfld.focus();
+                        return;
+                    }
+                    else {
+                        nextfld = keyfield.nextSibling().nextSibling();
+                    }
+                    nextfld.focus();
+                    nextfld.selectText();
+                }
+            }]
+        });
+    }
+</script>

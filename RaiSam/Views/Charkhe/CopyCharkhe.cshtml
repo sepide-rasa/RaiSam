@@ -1,0 +1,149 @@
+﻿@model  IEnumerable<RaiSam.Models.prs_tblCharkheSelect>
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+<script>
+    Ext.net.FilterHeader.behaviour.string[0].match = function (recordValue, matchValue) {
+        return (Ext.net.FilterHeader.behaviour.getStrValue(recordValue) || "").indexOf(matchValue) > -1;
+    };
+
+    Ext.net.FilterHeader.behaviour.string[0].getStrValue = function (value) {
+        return value.toString();
+    };
+
+    Ext.net.FilterHeader.behaviour.string[0].serialize = function (value) {
+        return {
+            type: "string",
+            op: "*",
+            value: value
+        };
+    };
+    var ShowIcon_Charkhe_Copy = function (value, record) {
+        if (value == null) {
+            return "";
+        }
+        else {
+            pic = "data:image/png;base64," + value;
+            var template = "<img src=" + pic + " style='width:17px;height:17px;' />";
+            return template;
+        }
+    };
+</script>
+@(Html.X()
+    .Window()
+    .Modal(true)
+    .Width(700)
+    .Height(500)
+    .Title("کپی از چرخه")
+    .ID("CopyCharkhe")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Layout(LayoutType.Fit)
+    .ButtonAlign(Ext.Net.Alignment.Center)
+    .Buttons(
+        X.Button()
+            .Text("کپی")
+            .Icon(Ext.Net.Icon.Disk)
+            .Listeners(l => l.Click.Handler = "SaveCharkhe_Copy();"),
+        X.Button()
+            .Text("خروج")
+            .Icon(Ext.Net.Icon.DoorOut)
+            .OnClientClick("App.CopyCharkhe.destroy()")
+    )
+    .Items(
+            X.AntiForgeryField()
+            .ItemID("antiForgeryToken")
+            .Hidden(true),
+        X.Panel()
+            .Border(false)
+            .Layout(LayoutType.Fit)
+            .Items(
+                X.GridPanel()
+                    .AutoScroll(true)
+                    .ItemID("GridCharkheha")
+                    .Border(false)
+                    .Plugins(X.FilterHeader().Remote(false))
+                    .Store(
+                        X.StoreForModel()
+                                 .Listeners(l => l.BeforeLoad.Handler = "App.CopyCharkhe.queryById('GridCharkheha').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.CopyCharkhe.queryById('antiForgeryToken').getValue());")
+                                .Proxy(Html.X().AjaxProxy()
+                                    .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                .Url(Url.Action("ReadAllCharkhe"))
+                                .Reader(Html.X().JsonReader().Root("data"))
+                                .ExtraParams(p => p.Add(new { CharkheId = @ViewBag.EmptyCharkheId }))
+                                .ExtraParams(p => p.Add(new { NoeGhebelCharkheshId = @ViewBag.NoeGhebelCharkheshId }))
+                            )
+                            .PageSize(20000)
+                            .RemoteFilter(false)
+                            .RemotePaging(false)
+                    )
+                    .View(
+                        Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                    )
+                    .ColumnModel(
+                        Html.X().RowNumbererColumn(),
+                        Html.X().Column().DataIndex(Model, m => m.fldId).Text("کد").Flex(1).Hidden(true),
+                        Html.X().Column().DataIndex(Model, m => m.fldFile).Text("").Filterable(false).Renderer("ShowIcon_Charkhe_Copy").Align(Ext.Net.Alignment.Center).Flex(1),
+                        Html.X().Column().DataIndex(Model, m => m.fldName).Text("عنوان چرخه").Flex(5).Wrap(true),
+                        Html.X().Column().DataIndex(Model, m => m.fldStatusName).Text("وضعیت چرخه").Flex(2)
+                    )
+                    .SelectionModel(
+                        Html.X().RowSelectionModel()
+                            .Mode(Ext.Net.SelectionMode.Single)
+                    )
+        )
+    )
+)
+<script type="text/javascript">
+    function SaveCharkhe_Copy() {
+        var SelectedRow = App.CopyCharkhe.queryById("GridCharkheha").getSelectionModel().getLastSelected();
+        var SelectedHeaderRow = App.Charkhe.queryById('GridCharkhe').getSelectionModel().getLastSelected();
+
+        if (SelectedRow != null) {
+            App.CopyCharkhe.body.mask("در حال ذخیره سازی");
+            Ext.net.DirectMethod.request({
+                url: '/Charkhe/SaveCharkhe_Copy',
+                params: {
+                    OldCharkheId: SelectedRow.data.fldId,
+                    NewCharkheId: '@ViewBag.EmptyCharkheId',
+                    __RequestVerificationToken: App.CopyCharkhe.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+                    chat.server.reloadLog();
+                    var ic = Ext.MessageBox.INFO;
+                    if (data.Er == 1)
+                        ic = Ext.MessageBox.ERROR;
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: ic,
+                        buttons: Ext.MessageBox.OK,
+                        fn: function (btn) {
+                            if (btn == "ok" && data.Er != 1) {
+                                App.CopyCharkhe.destroy();
+                            }
+                        }
+                    });
+                    App.Charkhe.queryById('GridCharkheDetail').getStore().getProxy().setExtraParam("CharkheId", SelectedHeaderRow.data.fldId);
+                    App.Charkhe.queryById('GridCharkheDetail').store.load();
+
+                    App.Charkhe.queryById('GridCharkheDetail_Order').getStore().getProxy().setExtraParam("CharkheId", SelectedHeaderRow.data.fldId);
+                    App.Charkhe.queryById('GridCharkheDetail_Order').store.load();
+                    App.CopyCharkhe.body.mask().hide();
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا چرخه مورد نظر را انتخاب کنید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+</script>
+

@@ -1,0 +1,618 @@
+﻿@model IEnumerable<RaiSam.Models.prs_SelectUserByUserId>
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@using Ext.Net.Utilities
+@{
+    var X = Html.X();
+}
+
+@*<script>
+        var SetTypeUser = function (value, record) {
+            if (value == 0) {
+                return "کاربر آزاد";
+            }
+            else {
+                return "کاربر راه آهن";
+            }
+        };
+    </script>*@
+<style>
+    .borderrUser {
+        border-radius: 20px;
+        border-width: 3px;
+    }
+</style>
+@(X.Panel()
+    .Title("تعریف کاربر")
+    .Border(false)
+    .ID("Users")
+    .Closable(true)
+    .AutoScroll(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+        .Listeners(l => l.AfterRender.Handler = "SetSizeUserWin();")
+    .Layout(LayoutType.Fit)
+    .Border(false)
+    .Items(
+        X.AntiForgeryField()
+                        .ItemID("antiForgeryToken")
+                        .Hidden(true),
+    X.TabPanel().ID("UsersTab")
+        .Border(false)
+    .AutoScroll(true).Items(
+
+        X.Panel().Title("کاربران")
+            .Border(false)
+            .Layout(LayoutType.Fit)
+            .Height(270)
+            .AutoScroll(true)
+            .ButtonAlign(Ext.Net.Alignment.Center)
+            .Items(
+                X.GridPanel()
+                    .TopBar(
+                        Html.X().Toolbar()
+                        .Items(
+                            X.ComboBox()
+                                    .ItemID("CboNoeKarbar")
+                                .Width(160)
+                                .Editable(false)
+                                .TypeAhead(true)
+                                .BlankText("لطفا نوع کاربر را انتخاب کنید.")
+                                .QueryMode(DataLoadMode.Local)
+                                .TriggerAction(TriggerAction.All)
+                                .AllowBlank(false)
+                                .EmptyText("نوع کاربر...")
+                                    .Listeners(l => { l.Select.Handler = "ReloadGridUser()"; })
+                                .Items(
+                                    new ListItem("خارجی", "1"),
+                                    new ListItem("داخلی", "0")
+                                    ),
+                                //.SelectedItems(new { Value = "0" }),
+                            X.Button()
+                                .Text("جدید")
+                                .Icon(Ext.Net.Icon.Add)
+                                .Listeners(li => li.Click.Handler = "NewUser();"),
+                            X.Button()
+                                .Text("ویرایش")
+                                .Icon(Ext.Net.Icon.Pencil)
+                                .Listeners(Li => Li.Click.Handler = "EditUser();"),
+                            //    X.Button()
+                            //        .Text("دسترسی بایگانی دیجیتال")
+                            //        .Icon(Ext.Net.Icon.LockOpen)
+                            //        .Hidden(!MedicalExaminations.Models.Permission.haveAccess(109))
+                            //        .Listeners(Li => Li.Click.Handler = "PermissionArchive();"),
+                                X.Button()
+                                    .Text("دسترسی کارتابل تخصصی")
+                                    .Icon(Ext.Net.Icon.LockOpen)
+                                        .Hidden(!RaiSam.Models.Permission.haveAccess(162, "", "0"))
+                                    .Listeners(Li => Li.Click.Handler = "PermissionSpecific();"),
+                            X.Button()
+                                .Text("دسترسی خاص")
+                                .Icon(Ext.Net.Icon.LockOpen)
+                                .Hidden(!RaiSam.Models.Permission.haveAccess(12,"","0"))
+                                .Listeners(Li => Li.Click.Handler = "PermissionUser();"),
+                            X.Button()
+                                .Text("اعمال محدودیت")
+                                .Icon(Icon.UserCross)
+                                    .Hidden(!RaiSam.Models.Permission.haveAccess(65,"","0"))
+                                .Listeners(Li => Li.Click.Handler = "GotoLimitation();"),
+                            X.Button()
+                                .Text("ریست پسورد")
+                                    .Hidden(!RaiSam.Models.Permission.haveAccess(16,"","0"))
+                                .Icon(Ext.Net.Icon.Pencil)
+                                .Listeners(Li => Li.Click.Handler = "ResetPass();"),
+                            //X.Button()
+                            //    .Text("ریست پسورد مأمورین موظف")
+                            //    .Icon(Ext.Net.Icon.Pencil)
+                            //            .Hidden(!RaiSam.Models.Permission.haveAccess(16, "", "0"))
+                            //    .Listeners(Li => Li.Click.Handler = "ResetPassMamoorin();"),
+                            X.Button()
+                                .Text("ساختار درختی کاربران")
+                                .Icon(Ext.Net.Icon.ApplicationSideTree)
+                                        .Hidden(!RaiSam.Models.Permission.haveAccess(15, "", "0"))
+                                .Listeners(Li => Li.Click.Handler = "TreeUser();"),
+                                X.SplitButton()
+                                    .Text("راهنما")
+                                    .Icon(Ext.Net.Icon.Help)
+                                    .Menu(X.Menu()
+                                    .Items(
+                                    X.MenuItem()
+                                                .Text("راهنما متنی")
+                                                .Icon(Ext.Net.Icon.TextPaddingTop)
+                                                    .Listeners(l => l.Click.Handler = "HelpUser()")
+                                                .ItemID("btnshowHelpDirectorate"),
+                                        X.MenuItem()
+                                                .Text("راهنما تصویری")
+                                                .Icon(Ext.Net.Icon.PlayBlue)
+                                                        .Listeners(l => l.Click.Handler = "showHelp_VideoUser()")
+
+                                )
+                            )
+                        )
+                    )
+                    .ItemID("GridUsers")
+                    .BottomBar(X.PagingToolbar())
+        //.Height(600)
+                    .Store(
+                        X.StoreForModel()
+                        .AutoLoad(false)
+                                    .Listeners(l => l.BeforeLoad.Handler = "App.Users.queryById('GridUsers').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.Users.queryById('antiForgeryToken').getValue());")
+                                .Proxy(Html.X().AjaxProxy()
+                                    .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+
+                                .Url(Url.Action("Read"))
+                                .Reader(Html.X().JsonReader().Root("data"))
+                        )
+                        .PageSize(20)
+                        .RemoteFilter(true)
+                        .RemotePaging(true)
+                             .Listeners(l => l.DataChanged.Handler = "App.Users.queryById('GridUsers').selModel.refresh();")
+                    )
+                    .ViewConfig(
+                        X.GridView()
+                            .Listeners(l => l.AfterRender.Fn = "createTooltipUser")
+                            .LoadingText("در حال بارگذاری...").RTL(true)
+                        )
+                    .View(
+                        Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                    )
+                    .Plugins(X.FilterHeader().Remote(true))
+                    .ColumnModel(
+                        Html.X().RowNumbererColumn(),
+                        Html.X().Column().DataIndex(Model, m => m.fldId).Text("کد").Flex(1).Hidden(true),
+                        Html.X().Column().DataIndex(Model, m => m.fldUserType).Text("نوع کاربر")/*.Renderer("SetTypeUser")*/.Flex(1).Hidden(true),
+                            Html.X().Column().DataIndex(Model, m => m.fldUserType_Name).Text("نوع کاربر").Flex(2).Wrap(true),
+                                Html.X().Column().DataIndex(Model, m => m.fldFamily).Text("نام خانوادگی").Flex(2).Wrap(true),
+                                Html.X().Column().DataIndex(Model, m => m.fldName).Text("نام").Flex(2).Wrap(true),
+
+                        Html.X().Column().DataIndex(Model, m => m.fldFatherName).Text("نام پدر/نام شرکت").Flex(2).Wrap(true),
+                        Html.X().Column().DataIndex(Model, m => m.fldCodeMeli).Text("کد ملی/شناسه ملی").Flex(2),
+        Html.X().Column().DataIndex(Model, m => m.fldCodeEnhesari).Text("کد انحصاری").Flex(2),
+                        Html.X().Column().DataIndex(Model, m => m.fldActive_DeactiveName).Text("وضعیت دسترسی").Flex(2),/*فیلدی که برای جلوگیری از ورود به سامانه استفاده می شود.*/
+                        Html.X().Column().DataIndex(Model, m => m.fldTypeName).Text("وضعیت فعالیت").Flex(2),
+                        Html.X().Column().DataIndex(Model, m => m.fldLimitationType).Text("نوع محدودیت").Flex(3).Wrap(true),
+                        Html.X().Column().DataIndex(Model, m => m.fldLimitationUser).Text("محدودیت ها").Flex(3).Wrap(true),
+                        Html.X().Column().DataIndex(Model, m => m.fldUserName).Text("نام کاربری").Flex(2),
+
+
+                        Html.X().ImageCommandColumn().Align(Ext.Net.Alignment.Center)
+                                        .Listeners(l => l.Command.Fn = "VoroodUserSecond")
+                                    .Width(30).Commands(
+                                            Html.X().ImageCommand().CommandName("GotoVoroodUserSecond").Icon(Ext.Net.Icon.ArrowOut).ToolTip(tt => tt.Text = "ورود کاربر")
+                                ),
+                        Html.X().ComponentColumn().Flex(2).ItemID("btnHistoryLogin")
+                            .Component(Html.X().Button().Text("تاریخچه ورودها").Listeners(l => l.Click.Handler = "HistoryLoginUser()")).Filterable(false)
+        //Html.X().Column().DataIndex(Model, m => m.fldNameOrgan).Text("نام ارگان").Flex(4).Wrap(true).Filterable(false)
+                    )
+                    .SelectionModel(
+                        Html.X().RowSelectionModel()
+                            .Mode(Ext.Net.SelectionMode.Single)
+                    )
+                    )
+                    )
+        )
+)
+
+<script type="text/javascript">
+    function ReloadGridUser() {
+        var NoeKarbar=App.Users.queryById("CboNoeKarbar").getValue();
+       /* if (NoeKarbar=="1")
+            App.Users.queryById("GridUsers").columns[14].hide();
+        else
+            App.Users.queryById("GridUsers").columns[14].show();*/
+
+        App.Users.queryById("GridUsers").getStore().getProxy().setExtraParam("NoeKarbar", NoeKarbar);
+        App.Users.queryById("GridUsers").getStore().load();
+    }
+    function SetSizeUserWin() {
+        App.Users.setHeight(App.UserWin.getHeight() - 83);
+        InsertToLog("تعریف کاربر", 2, true);
+        App.Users.queryById("CboNoeKarbar").setValue("0");
+        ReloadGridUser();
+    }
+    function VoroodUserSecond(grid, command, record, row) {
+        if (command == 'GotoVoroodUserSecond') {
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/User/SetUserSecond',
+                params: {
+                    UserSecondId: record.data.fldId,
+                    NameUserSecond: record.data.fldName + " " + record.data.fldFamily
+                },
+                success: function (data) {
+                    if (data.Msg != undefined) {
+                        Ext.MessageBox.show({
+                            Name: data.MsgTitle,
+                            msg: data.Msg,
+                            icon: Ext.MessageBox.ERROR,
+                            buttons: Ext.MessageBox.OK
+                        });
+                    }
+
+                    Ext.net.Mask.hide();
+                }
+            });
+        }
+    }
+    function HistoryLoginUser() {
+        var IdUser = App.Users.queryById("btnHistoryLogin").activeRecord.record.data.fldId;
+        App.Users.body.mask('در حال بارگذاری...');
+        Ext.net.DirectMethod.request({
+            url: '/Home/HistoryLogin',
+            params: {
+                IdUser: IdUser
+            },
+            success: function () {
+                App.Users.body.mask().hide();
+            }
+        });
+    }
+    function showHelp_VideoUser() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/User/VideoWinUser',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+
+    }
+    function ResetPassMamoorin() {
+        App.UserWin.body.mask("در حال بارگذاری...");
+        Ext.net.DirectMethod.request({
+            url: '/User/ResetPassWindow',
+            success: function () {
+                App.UserWin.body.mask().hide();
+            }
+        });
+        /*var win = Ext.create('Ext.window.Window', {
+            title: 'ریست پسورد',
+            buttonAlign: 'center',
+            width: 300,
+            height: 100,
+            id: "ResetPassWindow",
+            closable: true,
+            resizable: false,
+            layout: {
+                type: 'vbox',
+                align: 'center'
+            },
+            modal: true,
+            items: [{
+                xtype: 'textfield',
+                fieldLabel: 'کد انحصاری:',
+                itemId: 'CodeEn',
+                minLength: 8,
+                maxLength: 8,
+                enforceMaxLength:true,
+                margin: "10px",
+                allowBlank: false,
+                blankText: "لطفاً کد انحصاری را وارد نمایید."
+            },
+            {
+                xtype: 'button',
+                text: 'ریست پسورد',
+                width: 100,
+                listeners: {
+                    click: function (button) {
+                        if (win.queryById('CodeEn').validate() == false) { return; }
+                        App.UserWin.body.mask("در حال انجام عملیات...");
+                        $.ajax({
+                            url: '/User/UpdatePassPersonal',
+                            data: {
+                                CodeEn: win.queryById('CodeEn').getValue()
+                            },
+                            success: function (data) {
+                                var ic = Ext.MessageBox.INFO;
+                                if (data.Er == 1) {
+                                    ic = Ext.MessageBox.ERROR;
+                                }
+                                Ext.MessageBox.show({
+                                    title: data.MsgTitle,
+                                    msg: data.Msg,
+                                    icon: ic,
+                                    buttons: Ext.MessageBox.OK
+                                });
+                                App.UserWin.body.mask().hide();
+                            }
+                        });
+                    }
+                }
+            }]
+        });
+        win.show();*/
+    }
+
+    var createTooltipUser = function (view) {
+        view.tip = Ext.create('Ext.tip.ToolTip', {
+            target: view.el,
+            delegate: view.itemSelector,
+            trackMouse: true,
+            renderTo: Ext.getBody(),
+            /*anchorToTarget: true,*/
+            anchorOffset: 25,
+            anchorSize: {
+                width: 58,
+                height: 20
+            },
+            dismissDelay: 1000000,
+            autohide: false,
+            /*baseCls:"test",*/
+            anchor: 'top',
+            shadow: true,
+            listeners: {
+                beforeshow: function (tip) {
+                    Ext.net.DirectMethod.request({
+                        url: '/User/getToolsData',
+                        params: {
+                            Id: view.getRecord(tip.triggerElement).get('fldId'),
+                            __RequestVerificationToken: App.Users.queryById('antiForgeryToken').getValue(),
+                        },
+                        success: function (data) {
+                            if (App.Users.queryById("CboNoeKarbar").getValue() == "0")
+                            {
+                                if (data.fldCodeEnhesari != "") {
+                                    if (view.getRecord(tip.triggerElement) != undefined) {
+                                        tip.update("<div style=' display: flex;'><div style='margin-top:25px;margin-left:20px;'><img class='borderrUser' style='width:120px;height:150px;' src='data:image/jpeg;base64," + data.image + "'/></div><div><p><strong>نام و نام خانوادگی: " +
+                                            data.fldName + "</strong></p><p><strong>نام پدر: " + data.fldFatherName +
+                                            "</strong></p>" + "<p><strong>کد انحصاری: " + data.fldCodeEnhesari + "</strong></p><p><strong>کد ملی: " + data.fldCodeMeli +
+                                            "</strong></p><p><strong>شماره موبایل: " + data.fldMobile + "</strong></p><p><strong>پایه: " + data.fldPayeName +
+                                            "</strong></p><p><strong>شرح پست: " + data.fldDescPost +
+                                            "</strong></p><p><strong>محل خدمت: " + data.fldTitle + "(" + data.fldStationName + ")" +
+                                            "</strong></p></div></div>");
+                                    }
+                                }
+                                else {
+                                    if (view.getRecord(tip.triggerElement) != undefined) {
+                                        tip.update("<div style=' display: flex;'><div style='margin-top:8px;margin-left:20px;'><img class='borderrUser' style='width:80px;height:95px;' src='data:image/jpeg;base64," + data.image + "'/></div><div><p><strong>نام و نام خانوادگی: " +
+                                            data.fldName + "</strong></p><p><strong>نام پدر: " + data.fldFatherName +
+                                            "</strong></p>" + "<p><strong>کد ملی: " + data.fldCodeMeli +
+                                            "</strong></p><p><strong>شماره موبایل: " + data.fldMobile + "</strong></p></div></div>");
+                                    }
+                                }
+                            }
+                            else {
+                                if (view.getRecord(tip.triggerElement) != undefined) {
+                                    tip.update("<div style=' display: flex;'><div style='margin-top:8px;margin-left:20px;'><img class='borderrUser' style='width:80px;height:95px;' src='data:image/jpeg;base64," + data.image + "'/></div><div><p><strong>نام و نام خانوادگی: " +
+                                        data.fldName + "</strong></p><p><strong>نام شرکت: " + data.fldFatherName +
+                                        "</strong></p>" + "<p><strong>شناسه ملی: " + data.fldCodeMeli +
+                                        "</strong></p><p><strong>شماره ثبت: " + data.Sh_Sabt + "</strong></p></div></div>");
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+        });
+        Ext.QuickTips.init();
+    };
+
+    function NewUser() {
+        CboNoeKarbar = App.Users.queryById("CboNoeKarbar");
+        if (CboNoeKarbar.getValue() == "0") {
+            App.UserWin.body.mask("در حال بارگذاری...");
+            Ext.net.DirectMethod.request({
+                url: '/User/New',
+                params: {
+                    id: 0,
+                    UserId: 0
+                },
+                success: function () {
+                    App.UserWin.body.mask().hide();
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "مجاز به تعریف کاربر نمی باشید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+        
+    }
+
+    function TreeUser() {
+        App.UserWin.body.mask("در حال بارگذاری...");
+        Ext.net.DirectMethod.request({
+            url: '/User/TreeUser',
+            params:{
+                State:1
+            },
+            success: function () {
+                App.UserWin.body.mask().hide();
+            }
+        });
+    }
+
+    function GotoLimitation() {
+        var SelectedRow = App.Users.queryById('GridUsers').selModel.getLastSelected();
+        if (SelectedRow != null) {
+            App.UserWin.body.mask("در حال بارگذاری...");
+            Ext.net.DirectMethod.request({
+                url: '/Limitation/New',
+                params: {
+                    UserId: SelectedRow.data.fldId,
+                    UserName: SelectedRow.data.fldNamePersonal
+                },
+                success: function (data) {
+                    App.UserWin.body.mask().hide();
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+
+    function EditUser() {
+        CboNoeKarbar = App.Users.queryById("CboNoeKarbar");
+        if (CboNoeKarbar.getValue() == "0") {
+            var SelectedRow = App.Users.queryById('GridUsers').selModel.getLastSelected();
+            if (SelectedRow != null) {
+                App.UserWin.body.mask("در حال بارگذاری...");
+                Ext.net.DirectMethod.request({
+                    url: '/User/New',
+                    params: {
+                        id: SelectedRow.data.fldId,
+                        UserId: SelectedRow.data.fldUserId
+                    },
+                    success: function (data) {
+                        App.UserWin.body.mask().hide();
+                    }
+                });
+            }
+            else {
+                Ext.MessageBox.show({
+                    title: "خطا",
+                    msg: "لطفا یک سطر را انتخاب کنید.",
+                    icon: Ext.MessageBox.ERROR,
+                    buttons: Ext.MessageBox.OK
+                });
+            }
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "کاربر مورد نظر قابل ویرایش نمی باشد.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+
+    function PermissionSpecific() {
+        var SelectedRow = App.Users.queryById('GridUsers').selModel.getLastSelected();
+        if (SelectedRow != null) {
+            App.UserWin.body.mask("در حال بارگذاری...");
+            Ext.net.DirectMethod.request({
+                url: '/User/SpecificKartablPer',
+                params: {
+                    UserId: SelectedRow.data.fldId
+                },
+                success: function (data) {
+                    App.UserWin.body.mask().hide();
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک کاربر را انتخاب کنید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+
+    function PermissionArchive() {
+        var SelectedRow = App.Users.queryById('GridUsers').selModel.getLastSelected();
+        if (SelectedRow != null) {
+            App.UserWin.body.mask("در حال بارگذاری...");
+            Ext.net.DirectMethod.request({
+                url: '/User/DigitablArchivePer',
+                params: {
+                    UserId: SelectedRow.data.fldId
+                },
+                success: function (data) {
+                    App.UserWin.body.mask().hide();
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک کاربر را انتخاب کنید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+
+    function PermissionUser() {
+        var SelectedRow = App.Users.queryById('GridUsers').selModel.getLastSelected();
+        if (SelectedRow != null) {
+            App.UserWin.body.mask("در حال بارگذاری...");
+            Ext.net.DirectMethod.request({
+                url: '/Permission/PermissionUser',
+                params: {
+                    id: SelectedRow.data.fldId,
+                    containerId: "UsersTab"
+                },
+                success: function (data) {
+                    App.UserWin.body.mask().hide();
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک کاربر را انتخاب کنید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+
+    function ResetPass() {
+        var SelectedRow = App.Users.queryById('GridUsers').selModel.getLastSelected();
+        if (SelectedRow != null) {
+            App.UserWin.body.mask("در حال انجام عملیات...");
+            Ext.MessageBox.show({
+                title: "هشدار",
+                msg: "آیا برای انجام عملیات مطمئن هستید؟",
+                icon: Ext.MessageBox.WARNING,
+                buttons: Ext.MessageBox.YESNO,
+                fn: function (btn) {
+                    if (btn == 'yes') {
+                        Ext.net.DirectMethod.request({
+                            url: '/User/SaveResetPass',
+                            params: {
+                                fldId: SelectedRow.data.fldId,
+                                __RequestVerificationToken: App.Users.queryById('antiForgeryToken').getValue()
+                            },
+                            success: function (data) {
+                                var ic = Ext.MessageBox.INFO;
+                                if (data.Er == 1) {
+                                    ic = Ext.MessageBox.ERROR;
+                                }
+                                Ext.MessageBox.show({
+                                    title: data.MsgTitle,
+                                    msg: data.Msg,
+                                    icon: ic,
+                                    buttons: Ext.MessageBox.OK
+                                });
+                                App.UserWin.body.mask().hide();
+                            }
+                        });
+                    }
+                }
+            });
+
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+
+    function HelpUser() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/User/Help',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+</script>

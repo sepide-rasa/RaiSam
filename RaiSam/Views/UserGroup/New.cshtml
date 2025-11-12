@@ -1,0 +1,250 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+
+
+@(Html.X().Window().Modal(true).Listeners(li => { li.Render.Fn = "addKeyMapUserGroup"; })
+.Width(450)//.Height(300)
+    .Title("تعریف گروه کاربری")
+         .ID("NewUserGroup")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+        .ButtonAlign(Ext.Net.Alignment.Center)
+                   .Buttons(X.Button().Text("ذخیره").Icon(Ext.Net.Icon.Disk)
+                               .Listeners(l =>
+                               {
+                                   l.Click.Handler = "SaveUserGroup();";
+
+                               })
+                                   .ItemID("btnSaveUserGroup")
+                                ,
+                                X.Button().Text("خروج").Icon(Ext.Net.Icon.DoorOut).ToolTip("کلید میانبر Esc")
+                                       .OnClientClick("App.NewUserGroup.hide();"))
+    .Items(
+        X.AntiForgeryField()
+                .ItemID("antiForgeryToken")
+                .Hidden(true),
+                X.Panel().Border(false)
+            .Items(
+                X.FieldSet().Border(true).Title("گروه کاربری")
+                .Center()
+                .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 2 })
+                .Defaults(new { Margin = 2 })
+                .Items(
+                X.Hidden().ItemID("fldId"),
+                X.Label("نوع گروه کاربری:"),
+                X.ComboBox()
+                .ItemID("CboTypeGroup")
+                .Editable(false)
+                .PaddingSpec("0 0 0 100px")
+                .TypeAhead(true)
+                .AllowBlank(false)
+                .ForceSelection(true)
+                .BlankText("لطفا نوع گروه کاربری را انتخاب کنید.")
+        //.Listeners(l => l.Select.Handler = "ClearPersonn()")
+                .QueryMode(DataLoadMode.Local)
+        //.Listeners(l => l.AfterRender.Handler = "")
+                .TriggerAction(TriggerAction.All)
+                .DisplayField("fldName")
+                .ValueField("Id")
+                .EmptyText("نوع گروه کاربری...")
+                    .Store(X.Store()
+                            .Listeners(l => { l.Load.Handler = "LoadUserGroup();"; })
+                    .Model(X.Model()
+                    .IDProperty("Id")
+                    .Fields(
+                        new ModelField("Id", ModelFieldType.String) { Mapping = "Id" },
+                        new ModelField("fldName", ModelFieldType.String) { Mapping = "fldName" }
+                        )
+                        )
+                        .Listeners(l => l.BeforeLoad.Handler = "App.NewUserGroup.queryById('CboTypeGroup').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.NewUserGroup.queryById('antiForgeryToken').getValue());")
+                                .Proxy(Html.X().AjaxProxy()
+                                    .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                    .Url(Url.Action("GetUserType"))
+                    .Reader(X.JsonReader().Root("data"))
+                        )
+                        ),
+        /*.Items(
+            new ListItem("سامانه", "1"),
+            new ListItem("وب سرویس", "2"),
+            new ListItem("همه موارد", "3")
+            ),*/
+                     X.Label("عنوان:"),
+                     X.TextField()
+                     .Width(300)
+                     .ItemID("txtTitle")
+                         .MaxLength(100)
+                        .EnforceMaxLength(true)
+                        .AllowBlank(false).MaskRe("[1-9 ,),(,ا-ی-آ-ئ-ء]")
+                    .BlankText("لطفا عنوان گروه کاربری را وارد کنید.")
+                    .AutoFocus(true)
+                    , X.Label("توضیحات:"),
+                        X.TextField().Width(300)
+                    .ItemID("txtDesc")
+                        )
+
+                )
+                    .Layout(Ext.Net.LayoutType.VBox)
+                    .LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Center })
+        )
+)
+<script type="text/javascript">
+    var fldTimeStamp = 0;
+    function LoadUserGroup() {
+        ReplaceArabic();
+        if ('@ViewBag.Id' != '0') {
+            App.NewUserGroup.body.mask("در حال بارگذاری...");
+            Ext.net.DirectMethod.request({
+                url: '/UserGroup/Details',
+                params: {
+                    Id: '@ViewBag.Id',
+                    __RequestVerificationToken: App.NewUserGroup.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+                    var txtTitle = App.NewUserGroup.queryById('txtTitle');
+                    txtTitle.setValue(data.fldTitle);
+                    var txtTitle = App.NewUserGroup.queryById('CboTypeGroup');
+                    txtTitle.setValue(data.fldUserType);
+                    var txtDesc = App.NewUserGroup.queryById('txtDesc');
+                    txtDesc.setValue(data.fldDesc);
+                    var Id = App.NewUserGroup.queryById('fldId');
+                    Id.setValue(data.fldId);
+                    fldTimeStamp = data.fldTimeStamp;
+                    App.NewUserGroup.body.mask().hide();
+                }
+            });
+        }
+        else {
+            App.NewUserGroup.queryById('CboTypeGroup').setValue(App.NewUserGroup.queryById('CboTypeGroup').store.getAt(0));
+            App.NewUserGroup.queryById('txtTitle').validate();
+        }
+
+    }
+
+    function SaveUserGroup() {
+        var txtTitle = App.NewUserGroup.queryById('txtTitle');
+        var CboTypeGroup = App.NewUserGroup.queryById('CboTypeGroup');
+        var txtDesc = App.NewUserGroup.queryById('txtDesc');
+        var Id = App.NewUserGroup.queryById('fldId');
+            var er = false;
+            if (txtTitle.getValue().length < 2) {
+                Ext.MessageBox.show({
+                    Name: "خطا",
+                    msg: "تعداد کاراکتر عنوان گروه کاربری وارد شده کمتر از حد مجاز میباشد.",
+                    icon: Ext.MessageBox.ERROR,
+                    buttons: Ext.MessageBox.OK
+                });
+                er = true;
+            }
+            if (txtTitle.validate() == false) {
+                er = true;
+            }
+            if (er == true)
+                return;
+            App.NewUserGroup.body.mask("در حال ذخیره سازی");
+            Ext.net.DirectMethod.request({
+                url: '/UserGroup/Save',
+                params: {
+                    fldId: Id.getValue(),
+                    fldTitle: txtTitle.getValue(),
+                    fldUserType: CboTypeGroup.getValue(),
+                    fldUserType_Name: CboTypeGroup.getDisplayValue(),
+                    fldDesc: txtDesc.getValue(),
+                    fldTimeStamp: fldTimeStamp,
+                    __RequestVerificationToken: App.NewUserGroup.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+                    chat.server.reloadLog();
+                    if (data.Er == 1 && data.Change == 1) {/*vaghti TimeStamp==0*/
+                        Ext.MessageBox.show({
+                            title: data.MsgTitle,
+                            msg: data.Msg,
+                            icon: Ext.MessageBox.WARNING,
+                            buttons: Ext.MessageBox.OK,
+                            fn: function (btn) {
+                                if (btn == 'ok') {
+                                    LoadUserGroup();
+                                }
+                            }
+                        });
+                    }
+                    else if (data.Er == 1 && data.Change == 2) {/*vaghti TimeStamp==2*/
+                        Ext.MessageBox.show({
+                            title: data.MsgTitle,
+                            msg: data.Msg,
+                            icon: Ext.MessageBox.ERROR,
+                            buttons: Ext.MessageBox.OK,
+                            fn: function (btn) {
+                                if (btn == 'ok') {
+                                    App.NewUserGroup.destroy();
+                                }
+                            }
+                        });
+
+                    }
+                    else if (data.Er == 1) {
+                        Ext.MessageBox.show({
+                            title: data.MsgTitle,
+                            msg: data.Msg,
+                            icon: Ext.MessageBox.ERROR,
+                            buttons: Ext.MessageBox.OK,
+                        });
+                    }
+                    else {
+                        Ext.MessageBox.show({
+                            title: data.MsgTitle,
+                            msg: data.Msg,
+                            icon: Ext.MessageBox.INFO,
+                            buttons: Ext.MessageBox.OK,
+                        });
+                    }
+                    if (App.UserGroup) {
+                        App.UserGroup.queryById('GridUserGroup').store.load();
+                    }
+                    if (App.TreeGroup) {
+                        App.TreeGroup.store.load();
+                    }
+                    if (App.Permission) {
+                        App.Permission.queryById('CboGrohKarbari').store.load();
+                    }
+                    if (data.Er != 1)
+                        ClearUserGroup();
+                    App.NewUserGroup.body.mask().hide();
+                }
+
+            });
+        }
+    function ClearUserGroup() {
+        App.NewUserGroup.queryById('txtTitle').setValue("");
+        App.NewUserGroup.queryById('txtDesc').setValue("");
+        App.NewUserGroup.queryById('fldId').setValue(0);
+    }
+    var addKeyMapUserGroup = function (cmp) {
+        this.keyMap = new Ext.util.KeyMap({
+            target: cmp.getEl(),
+            binding: [{
+                key: [13, 9], /*Ext.EventObject.ENTER,*/
+                fn: function (key, e) {
+                    if (e.getKey() == 9) {
+                        e.stopEvent();
+                    }
+                    var keyfield = App.NewUserGroup.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+                    var nextfld;
+                    if (keyfield.itemId == "txtDesc") {
+                        nextfld = App.NewUserGroup.queryById('btnSaveUserGroup');
+                        SaveUserGroup();
+                        return;
+                    }
+                    else {
+                        nextfld = keyfield.nextSibling().nextSibling();
+                    }
+                    nextfld.focus();
+                    nextfld.selectText();
+                }
+            }]
+        });
+    }
+</script>

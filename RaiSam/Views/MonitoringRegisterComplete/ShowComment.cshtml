@@ -1,0 +1,87 @@
+﻿<script src="~/Scripts/jquery-ajax-native.js"></script>
+@model IEnumerable<RaiSam.Models.prs_tblCommentSentSelect>
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@using Ext.Net.Utilities;
+
+@{
+    var X = Html.X();
+}
+
+
+@(Html.X().Window()
+    .Modal(true)
+    .Width(600)
+    .Height(400)
+    .AutoScroll(true)
+    .Resizable(false)
+    .Title("نمایش نظرات ثبت نام کننده")
+    .ID("ShowComment")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .ButtonAlign(Ext.Net.Alignment.Center)
+    .Buttons(
+        X.Button()
+            .Text("خروج")
+            .Icon(Ext.Net.Icon.DoorOut)
+                .OnClientClick("Ext.net.Mask.hide();App.ShowComment.destroy();")
+            .RTL(true)
+        )
+        .Items(
+                    X.GridPanel()
+                        .AutoScroll(true)
+                       .Height(337)
+                        .ItemID("GridCommentSent")
+                        .BottomBar(X.PagingToolbar())
+                        .Store(
+                            X.StoreForModel()
+                                .Proxy(Html.X().AjaxProxy()
+                                        .Url(Url.Action("ReadCommentSent"))
+                                    .Reader(Html.X().JsonReader().Root("data"))
+                                            .ExtraParams(p => p.Add(new { FirstRegisterId = @ViewBag.FirstRegisterId }))
+                            )
+                            .PageSize(25)
+                            .RemoteFilter(true)
+                            .RemotePaging(true)
+                        )
+                        .View(
+                            Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                        )
+                        .Plugins(X.FilterHeader().Remote(true))
+                            .ColumnModel(
+                            Html.X().RowNumbererColumn().Flex(1),
+                                Html.X().Column().DataIndex(Model, m => m.fldId).Text("کد").Hidden(true).Flex(1),
+                                Html.X().Column().DataIndex(Model, m => m.fldFileId).Text("کد فایل").Flex(1).Hidden(true).Hideable(false),
+                                Html.X().Column().DataIndex(Model, m => m.fldTitle).Text("عنوان").Wrap(true).Flex(10),
+                            Html.X().ComponentColumn().ItemID("buttoncolumn").Text("دانلود فایل").Component(Html.X().Button().ItemID("btnbind").Text("دانلود فایل").Listeners(l => l.Click.Handler = "GotoDownload();")).Filterable(false)
+                            )
+                    )
+)
+
+<script type="text/javascript">
+
+    function GotoDownload() {
+        var RowId = App.ShowComment.queryById("buttoncolumn").activeRecord.record.data.fldFileId;
+       /* window.location.href = 'Url.Content("/faces/MonitoringRegisterComplete/Download?FileId=")' + RowId;*/
+        $.ajax({
+            type: "POST",
+            dataType: 'native',
+            url: "/MonitoringRegisterComplete/Download",
+            xhrFields: {
+                responseType: 'blob'
+            },
+            data: {
+                FileId: RowId
+            },
+            success: function (blob) {
+                x = blob;
+                var link = document.createElement('a');
+                link.href = window.URL.createObjectURL(blob);
+                link.download = "DownloadFile";
+                link.click();
+            }
+        });
+    }
+
+</script>

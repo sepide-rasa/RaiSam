@@ -1,0 +1,396 @@
+﻿@font-face
+{
+	font-family: 'IRANSansWeb';
+	src: url('ISS.eot?#iefix') format('embedded-opentype'), url('ISS.woff') format('woff'), url('ISS.ttf') format('truetype');
+    
+}
+* {
+    font-family:IRANSansWeb;
+}
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+    .x-grid3-cell, /* Normal grid cell */
+    .x-grid3-gcell { /* Grouped grid cell (esp. in head)*/
+        box-sizing: border-box;
+    }
+}
+.shortcut-DynamicForm1{
+    background-image:url("/Content/icon/Desktop/مدارک عمومی پروژه.png");
+    background-size:cover!important;
+} 
+.shortcut-DynamicForm11{
+    background-image:url("/Content/icon/Desktop/مدارک خصوصی پروژه.png");
+    background-size:cover!important;
+} 
+.shortcut-DemandConsortium{
+   background-image:url("/Content/icon/Desktop/تقاضای تشکیل کنسرسیوم.png");
+    background-size:cover!important;
+}
+.shortcut-ListofRequest{
+   background-image:url("/Content/icon/Desktop/فهرست تقاضاها.png");
+    background-size:cover!important;
+}
+.eyeNotSee{
+     background-image:url("/Content/not see.png");
+     background-size:contain!important;
+}
+.eyeSee{
+    background-image:url("/Content/see.png");
+    background-size:contain!important;
+}
+.SherkatMoshavere{
+   background-image:url("/Content/new-logo.png");
+    background-size:cover!important;
+} 
+.Bakhsh1{
+   background-image:url("/Content/icon/mini/11.png");
+    background-size:cover!important;
+} 
+.Bakhsh2{
+   background-image:url("/Content/icon/mini/22.png");
+    background-size:cover!important;
+} 
+.Bakhsh3{
+   background-image:url("/Content/icon/mini/33.png");
+    background-size:cover!important;
+} 
+.Bakhsh4{
+   background-image:url("/Content/icon/mini/44.png");
+    background-size:cover!important;
+} 
+.Bakhsh5{
+   background-image:url("/Content/icon/mini/55.png");
+    background-size:cover!important;
+} 
+.Bakhsh6{
+   background-image:url("/Content/icon/mini/66.png");
+    background-size:cover!important;
+} 
+.FilterIco{
+   background-image:url("/Content/icon/mini/فیلتر1.png");
+    background-size:cover!important;
+} 
+.shortcut-MojavezTolid{
+    background-image:url("/Content/icon/Desktop/درخواست مجوز تولید.png");
+    background-size:cover!important;
+} 
+.shortcut-Ticket{
+    background-image:url("/Content/icon/Desktop/گفتگو.png");
+    background-size:cover!important;
+} 
+.shortcut-Gharardad{
+   background-image:url("/Content/icon/Desktop/ثبت قرارداد.png");
+    background-size:cover!important;
+} 
+.shortcut-KhodEzhari{
+   background-image:url("/Content/icon/Desktop/خود اظهاری.png");
+    background-size:cover!important;
+} 
+.shortcut-ProfessionalPotency{
+   background-image:url("/Content/icon/Desktop/توان تخصصی.png");
+    background-size:cover!important;
+} 
+.shortcut-PreviousProjects{
+   background-image:url("/Content/icon/Desktop/کیفیت انجام کارهای قبلی.png");
+    background-size:cover!important;
+} 
+.icon-information{
+    background-image:url("/Content/info.png");
+    background-size:cover!important;
+}
+.shortcut-CheckProfile{
+    background-image:url("/Content/icon/Desktop/اطلاعات پایه شرکت.png");
+    background-size:cover!important;
+} 
+.shortcut-FinalCheck{
+    background-image:url("/Content/icon/Desktop/کنترل نهایی و ارسال .png");
+    background-size:cover!important;
+} 
+.shortcut-DynamicForm{
+    background-image:url("/Content/icon/Desktop/آیتم های مدیریتی.png");
+    background-size:cover!important;
+} 
+.shortcut-DynamicFormM{
+    background-image:url("/Content/icon/Desktop/آیتم های مهندسی.png");
+    background-size:cover!important;
+} 
+.shortcut-StakeholderSensitiveSegment_Client{
+    background-image:url("/Content/icon/Desktop/قطعات حساس.png");
+    background-size:cover!important;
+} 
+.shortcut-TarikhcheTaghaza{
+    background-image:url("/Content/icon/Desktop/تاریخچه تقاضا.png");
+    background-size:cover!important;
+}
+.shortcut-Navaghes{
+    background-image:url("/Content/icon/Desktop/نواقص.png");
+    background-size:cover!important;
+}
+.shortcut-CommentSent{
+    background-image:url("/Content/icon/Desktop/ثبت نظر.png");
+    background-size:cover!important;
+}
+
+.shortcut-StakeholderManagementSystem{
+    background-image:url("/Content/icon/Desktop/سیستم های مدیریتی.png");
+    background-size:cover!important;
+}
+.MiniStakeholderManagementSystem{
+    background-image:url("/Content/icon/Desktop/سیستم های مدیریتی.png");
+    background-size:cover!important;
+}
+.shortcut-StakeholderTechnicalEquipment{
+    background-image:url("/Content/icon/Desktop/تجهیزات فنی ذینفعان.png");
+}
+.shortcut-StakeholderAccessArea{
+    background-image:url("/Content/icon/Desktop/مناطق دردسترس ذینفع.png");
+    background-size:cover!important;
+}
+.MiniStakeholderTechnicalEquipment{
+    background-image:url("/Content/icon/Desktop/تجهیزات فنی ذینفعان.png");
+    background-size:cover!important;
+}
+.shortcut-PrintCompanyProfile{
+    background-image:url("/Content/icon/Desktop/چاپ گزارش.png");
+    background-size:cover!important;
+}
+.MiniPrintCompanyProfile{
+    background-image:url("/Content/icon/Desktop/چاپ گزارش.png");
+    background-size:cover!important;
+}
+.shortcut-Directorate{
+    background-image:url("/Content/icon/Desktop/هیات مدیره.png");
+    background-size:cover!important;
+}
+.MiniDirectorate{
+    background-image:url("/Content/icon/Desktop/هیات مدیره.png");
+    background-size:cover!important;
+}
+
+.shortcut-SayerDocuments{
+     background-image:url("/Content/icon/Desktop/سایر پیوستها.png");
+     background-size:cover!important;
+}
+.shortcut-SahamdarDocuments{
+     background-image:url("/Content/icon/Desktop/پیوستهای سهامداران.png");
+     background-size:cover!important;
+}
+.MiniSahamdarDocuments{
+     background-image:url("/Content/icon/Desktop/پیوستهای سهامداران.png");
+     background-size:cover!important;
+}
+.shortcut-SherkatDocuments{
+     background-image:url("/Content/icon/Desktop/پیوستهای شرکت.png");
+     background-size:cover!important;
+}
+.MiniSherkatDocuments{
+     background-image:url("/Content/icon/Desktop/پیوستهای شرکت.png");
+     background-size:cover!important;
+}
+
+.shortcut-Shareholders{
+    background-image:url("/Content/icon/Desktop/سهامداران.png");
+    background-size:cover!important;
+}
+.MiniShareholders{
+    background-image:url("/Content/icon/Desktop/سهامداران.png");
+    background-size:cover!important;
+}
+.shortcut-PersonelDocuments{
+     background-image:url("/Content/icon/Desktop/پیوستهای عمومی اشخاص.png");
+     background-size:cover!important;
+}
+.MiniPersonalDocuments{
+     background-image:url("/Content/icon/Desktop/پیوستهای عمومی اشخاص.png");
+     background-size:cover!important;
+}
+
+.shortcut-Emtiaz{
+     background-image:url("/Content/icon/Desktop/پیوستهایامتیاز آور.png");
+     background-size:cover!important;
+}
+.MiniEmtiaz{
+     background-image:url("/Content/icon/Desktop/پیوستهایامتیاز آور.png");
+     background-size:cover!important;
+}
+
+.shortcut-HeyatDocuments{
+     background-image:url("/Content/icon/Desktop/پیوستهای هیئت مدیره.png");
+     background-size:cover!important;
+}
+.MiniHeyatDocuments{
+     background-image:url("/Content/icon/Desktop/پیوستهای هیئت مدیره.png");
+     background-size:cover!important;
+}
+
+
+.shortcut-StakeholderRepairWorkshop{
+     background-image:url("/Content/icon/Desktop/کارگاههای تعمیراتی ذینفعان.png");
+     background-size:cover!important;
+}
+.MiniStakeholderRepairWorkshop{
+     background-image:url("/Content/icon/Desktop/کارگاههای تعمیراتی ذینفعان.png");
+     background-size:cover!important;
+}
+
+.shortcut-PreviousExperience{
+     background-image:url("/Content/icon/Desktop/تجارت قبلی.png");
+     background-size:cover!important;
+}
+.MiniPreviousExperience{
+     background-image:url("/Content/icon/Desktop/ تجارب قبلی.png");
+     background-size:cover!important;
+}
+.shortcut-AffordabilityRating{
+     background-image:url("/Content/icon/Desktop/امتیاز توان مالی.png");
+     background-size:cover!important;
+}
+.MiniAffordabilityRating{
+     background-image:url("/Content/icon/Desktop/ امتیاز توان مالی.png");
+     background-size:cover!important;
+}
+.shortcut-CompanyProfile{
+     background-image:url("/Content/icon/Desktop/تکمیل ثبت نام.png");
+     background-size:cover!important;
+}
+.MiniCompanyProfile{
+     background-image:url("/Content/icon/Desktop/تکمیل ثبت نام.png");
+     background-size:cover!important;
+}
+.shortcut-RatingPerson{
+background-image:url("/Content/icon/Desktop/ثبت افراد امتیاز آور.png");
+background-size:cover!important;
+}
+.MiniRatingPerson{
+    background-image:url("/Content/icon/Desktop/ثبت افراد امتیاز آور.png");
+     background-size:cover!important;
+}
+.shortcut-CompanyPersonale{
+    background-image:url("/Content/icon/Desktop/ثبت کارکنان.png");
+    background-size:cover!important;
+}
+.MiniCompanyPersonal{
+    background-image:url("/Content/icon/Desktop/ثبت کارکنان.png");
+    background-size:cover!important;
+}
+
+.bullet_green
+{
+     background-image:url("/Content/bullet_green.png")
+}
+
+.menuCheck
+{
+	width: 100%;
+}
+.x-btn-default-large-icon-text-top .x-btn-icon-el
+{
+	height: 52px;
+}
+.x-btn-default-large-icon-text-top .x-btn-inner
+{
+	padding-top: 44px;
+}
+.x-datepicker-month .x-btn-inner {
+    color: #00001e;
+}
+.x-fieldset-header-text {
+    color: #38158b;
+    padding: 1px 0;
+    font-family: tahoma;
+    font-weight: bold;
+}
+.x-datepicker-header {
+    padding: 3px 6px;
+    text-align: center;
+    background-image: -webkit-linear-gradient(top,#dfe8f6,#cad9ee);
+    background-image: -moz-linear-gradient(top,#264888,#1f3a6c);
+    background-image: -o-linear-gradient(top,#264888,#1f3a6c);
+    background-image: linear-gradient(top,#264888,#1f3a6c);
+    color:black;
+}
+.x-menu
+{
+	background:#FFFFFF;
+}
+.x-panel-body {
+background-color:#dfe8f6;
+}
+
+.x-rtl.x-message-box-info, .x-rtl.x-message-box-warning, .x-rtl.x-message-box-question, .x-rtl.x-message-box-error
+{
+	right: -15px;
+	top: 10px;
+}
+
+.x-message-box-error {
+background-image: url("/content/Error.png");
+right: -15px;
+	top: 10px;
+}
+
+.x-message-box-info {
+background-image: url("/content/Info.png");
+right: -15px;
+	top: 10px;
+} 
+.x-message-box-warning {
+background-image: url("/content/warning.png");
+right: -15px;
+	top: 10px;
+}
+.x-message-box-question {
+background-image: url("/content/question.png");
+right: -15px;
+	top: 10px;
+}
+.field-validation-error{
+    color: #ff0000;
+}
+.ux-start-button-icon {
+    background-image: url("/content/small-rasa-red.png") !important;
+    background-color: transparent;
+}
+.msg-wrap {
+    word-wrap: break-word !important;
+}
+.rotation90{
+transform: rotate(90deg);
+}
+.mylabel {
+font-weight: bold;
+font-size:11px;
+}
+
+.ux-desktop-shortcut-text {
+ color:black;
+
+}
+.ux-desktop-shortcut-wrap {
+
+}
+.ux-desktop-shortcut-bg{
+    height:auto;
+    width:auto;
+   top:8px;
+  
+   margin:auto;
+}
+.ux-desktop-shortcut-text{
+    height:auto;
+   
+}
+.ux-desktop-shortcut{
+    padding:20px;
+    margin:20px;
+}
+.lblInfo{
+        display:block;
+        height:auto;
+        text-align:justify;
+    }
+.x-clear-button{
+    right:auto !important;
+    left:2px !important;
+} 
+
+

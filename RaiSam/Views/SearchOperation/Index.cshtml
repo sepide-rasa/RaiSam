@@ -1,0 +1,181 @@
+﻿@model IEnumerable<RaiSam.Models.prs_tblOperationSelect>
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+<script>
+    var ShowIcon_OperationSs = function (value, record) {
+        if (value == null) {
+            return "";
+        }
+        else {
+            pic = "data:image/png;base64," + value;
+            var template = "<img src=" + pic + " style='width:17px;height:17px;' />";
+            return template;
+        }
+    };
+</script>
+@(Html.X().Window()
+    .Modal(true)
+    .Width(740)
+    .Height(450)
+    .Title("لیست اکشن ها")
+    .ID("SearchOpration")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Layout(LayoutType.Fit)
+    .ButtonAlign(Ext.Net.Alignment.Center)
+    .Buttons(
+        X.Button()
+            .Text("ذخیره")
+            .Icon(Ext.Net.Icon.Disk)
+            .Listeners(l => l.Click.Handler = "SaveOpration_Action();"),
+        X.Button()
+            .Text("خروج")
+            .Icon(Ext.Net.Icon.DoorOut)
+            .ToolTip("کلید میانبر Esc")
+            .OnClientClick("App.SearchOpration.hide();"))
+    .Items(
+            X.AntiForgeryField()
+                .ItemID("antiForgeryToken")
+                .Hidden(true),
+        X.Panel()
+            .Border(false)
+            .AutoScroll(true)
+            .Layout(LayoutType.Fit)
+            .Items(
+                X.GridPanel()
+                    .AutoScroll(true)
+                    .Border(false)
+                    .ItemID("GridSearchOpration")
+                    .Store(
+                        X.StoreForModel()
+                                        .Listeners(l => l.BeforeLoad.Handler = "App.SearchOpration.queryById('GridSearchOpration').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.SearchOpration.queryById('antiForgeryToken').getValue());")
+                            .Listeners(l => l.Load.Handler = "LoadOpration()")
+                            .Proxy(Html.X().AjaxProxy()
+                                .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                .Url(Url.Action("Read"))
+                                .Reader(Html.X().JsonReader().Root("data"))
+                                .ExtraParams(P => P.Add(new { NoeGhebelCharkheshId = @ViewBag.NoeGhebelCharkheshId }))
+                        )
+                        .PageSize(1000000)
+                        .RemoteFilter(false)
+                        .RemotePaging(false)
+                    )
+                    .View(
+                        Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                    )
+                    .Plugins(X.FilterHeader().Remote(false))
+                    .ColumnModel(
+                        Html.X().RowNumbererColumn(),
+                        Html.X().Column().DataIndex(Model, m => m.fldFile).Filterable(false).Flex(1).Renderer("ShowIcon_OperationSs").Align(Ext.Net.Alignment.Center),
+                        Html.X().Column().DataIndex(Model, m => m.fldId).Text("کد").Hidden(true).Flex(1),
+                        Html.X().Column().DataIndex(Model, m => m.fldName).Text("عنوان اکشن").Flex(4).Wrap(true),
+                        Html.X().ComponentColumn().ID("ColActive_OperaionAction").Flex(1).Listeners(l => l.Bind.Fn = "setValueCboTypeActive_Ac").Editor(false).Text("وضعیت")
+                            .Component(
+                                X.ComboBox()
+                                    .ItemID("CboTypeActive")
+                                    .Editable(false)
+                                    .TypeAhead(true)
+                                    .BlankText("لطفا وضعیت اقدام را در چرخه مورد نظر انتخاب کنید.")
+                                    .QueryMode(DataLoadMode.Local)
+                                    .TriggerAction(TriggerAction.All)
+                                    .AllowBlank(false)
+                                    .EmptyText("وضعیت...")
+                                    .Items(
+                                        new ListItem("فعال", 1),
+                                        new ListItem("غیرفعال", 0)
+                                    )
+                                    .SelectedItems(new { Value = 1 })
+                            ),
+                        Html.X().Column().DataIndex(Model, m => m.fldEffectiveName).Text("نوع اکشن").Flex(1).Wrap(true),
+                        Html.X().Column().DataIndex(Model, m => m.fldNameDataType).Text("نوع خروجی").Flex(1).Wrap(true),
+                        Html.X().Column().DataIndex(Model, m => m.fldGroupName).Text("وضعیت اعمال").Flex(1).Wrap(true)
+                    )
+                    .Listeners(a => a.CellDblClick.Handler = "NextSearchOpration();")
+                    .SelectionModel(
+                        Html.X().CheckboxSelectionModel().PruneRemoved(false)
+                            .Mode(SelectionMode.Multi).CheckOnly(true))
+                )
+        )
+)
+
+<script type="text/javascript">
+    var state = '@ViewBag.state';
+    var CheckedArray_OPAC = '@ViewBag.checkId'.split(";");
+    var CheckedStatusArray_OPAC = '@ViewBag.checkId_Status'.split(";");
+
+    function setValueCboTypeActive_Ac(columnn, component, record, rowIndex) {
+        var index = CheckedArray_OPAC.indexOf(String(record.data.fldId));
+        if (index != -1) {
+            component.setValue(parseInt(CheckedStatusArray_OPAC[index]));
+        }
+    }
+
+    function LoadOpration() {
+        var arrayy = '@ViewBag.checkId'.split(";");
+        for (var j = 0; j < arrayy.length-1; j++) {
+            var index2 = App.SearchOpration.queryById("GridSearchOpration").getStore().findExact("fldId", parseInt(arrayy[j]));
+            App.SearchOpration.queryById("GridSearchOpration").getSelectionModel().select(index2, true);
+        }
+    }
+
+    function SaveOpration_Action() {
+        var GridRow = App.SearchOpration.queryById("GridSearchOpration").getSelectionModel().getSelection();
+        var OprationArray = new Array();
+
+        if (GridRow.length == 0) {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا حداقل یک  اکشن را انتخاب نمایید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+            return;
+        }
+
+        for (var i = 0; i < GridRow.length ; i++) {
+            var indexxx = App.SearchOpration.queryById("GridSearchOpration").store.indexOf(GridRow[i]);
+            OprationArray.push({
+                "fldOpertionId": GridRow[i].data.fldId,
+                "fldCharkhe_EghdamId": '@ViewBag.Charkhe_EghdamId',
+                "fldfaal": App.ColActive_OperaionAction.getComponent(indexxx).getValue()
+            });
+        }
+        OprationArray = JSON.stringify(OprationArray);
+
+        App.SearchOpration.body.mask("در حال ذخیره سازی");
+        $.ajax({
+            type: "POST",
+            url: '/SearchOperation/SaveOpration_Action',
+            datatype: "json",
+            data : {
+                OprationArray1: OprationArray,
+                Charkhe_EghdamId: '@ViewBag.Charkhe_EghdamId',
+                __RequestVerificationToken: App.SearchOpration.queryById('antiForgeryToken').getValue()
+            },
+            /*contentType: 'application/json',*/
+            success: function (result) {
+                chat.server.reloadLog();
+                var ic = Ext.MessageBox.INFO;
+                if (result.Er == 1)
+                    ic = Ext.MessageBox.ERROR;
+                Ext.MessageBox.show({
+                    title: result.MsgTitle,
+                    msg: result.Msg,
+                    icon: ic,
+                    buttons: Ext.MessageBox.OK
+                });
+                App.Charkhe.queryById('GridCharkheDetail').getStore().getProxy().setExtraParam("CharkheId", '@ViewBag.CharkheId');
+                App.Charkhe.queryById('GridCharkheDetail').store.load();
+                App.Charkhe.queryById('GridCharkheDetail_Order').getStore().getProxy().setExtraParam("CharkheId", '@ViewBag.CharkheId');
+                App.Charkhe.queryById('GridCharkheDetail_Order').store.load();
+                App.SearchOpration.body.mask().hide();
+            },
+            failure: function () {
+            }
+        });
+    }
+</script>

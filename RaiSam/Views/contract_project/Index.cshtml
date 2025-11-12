@@ -1,0 +1,435 @@
+﻿@model RaiSam.Models.Contract_Project
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+
+    var X = Html.X();
+}
+
+@(X.Panel().Border(false).Listeners(li => { li.AfterRender.Handler = "contract_projectSetSize();"; })
+.Title("پروژه ها و قراردادها")
+            .ID("contract_project")
+            .Closable(true)
+            .AutoScroll(true)
+            .CloseAction(Ext.Net.CloseAction.Destroy)
+            .Items(
+                     X.AntiForgeryField()
+                .ItemID("antiForgeryToken")
+                .Hidden(true),
+                X.Panel().Border(false)
+                .Border(false)
+                .AutoScroll(true)
+                .Items(
+                    X.GridPanel().AutoScroll(true)
+                        .TopBar(
+                        Html.X().Toolbar()
+                        .Items(
+                              X.Button().Text("جدید").Icon(Ext.Net.Icon.Add)
+                         .Listeners(li => li.Click.Handler = "Newcontract_project();"),
+                 X.Button().Text("ویرایش").Icon(Ext.Net.Icon.Pencil)
+                             .Listeners(Li => Li.Click.Handler = "Editcontract_project();"),
+             X.Button().Text("حذف").Icon(Ext.Net.Icon.Delete)
+                 .Listeners(de =>
+                 {
+                     de.Click.Handler = "Deletecontract_project();";
+                 }), 
+                        X.Button().Text("لیست واگن/دیزل/ایستگاه").Icon(Ext.Net.Icon.ApplicationSideList)
+                                        .Listeners(li => li.Click.Handler = "VagonContract_project();"),
+                 
+                        X.Button().Text("بارگذاری از اکسل").Icon(Ext.Net.Icon.Add)
+                                        .Listeners(li => li.Click.Handler = "Excelcontract_project();"),
+       
+                                X.SplitButton()
+                                    .Text("راهنما")
+                                    .Icon(Ext.Net.Icon.Help)
+                                    .Menu(X.Menu()
+                                    .Items(
+                                    X.MenuItem()
+                                                .Text("راهنما متنی")
+                                                .Icon(Ext.Net.Icon.TextPaddingTop)
+                                                        .Listeners(l => l.Click.Handler = "Helpcontract_project()")
+                                                .ItemID("btnshowHelpDirectorate"),
+                                        X.MenuItem()
+                                                .Text("راهنما تصویری")
+                                                .Icon(Ext.Net.Icon.PlayBlue)
+                                                    .Listeners(l => l.Click.Handler = "showHelp_Videocontract_project()")
+
+                                )
+                            )
+                        )
+                    )
+                    .ItemID("Gridcontract_project")
+                    .BottomBar(X.PagingToolbar())
+                    .Store(
+                            X.StoreFor(Model.Project)
+                            .Listeners(l => l.BeforeLoad.Handler = "App.contract_project.queryById('Gridcontract_project').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.contract_project.queryById('antiForgeryToken').getValue());")
+                        .Proxy(Html.X().AjaxProxy()
+                            .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                            .Url(Url.Action("Read"))
+                            .Reader(Html.X().JsonReader().Root("data"))
+
+                        )
+                        .PageSize(20)
+                        .RemoteFilter(true)
+                        .RemotePaging(true)
+                        .Listeners(l => l.DataChanged.Handler = "App.contract_project.queryById('Gridcontract_project').selModel.refresh();")
+                    )
+                    .View(
+                        Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                    )
+                    .Plugins(X.FilterHeader().Remote(true))
+                        .Plugins(
+                                                        X.RowExpander()
+                                                                    .Listeners(l => l.BeforeExpand.Fn = "loadGridVagons")
+                                                            .Component(
+                                                                X.GridPanel()
+                                                                    .AutoScroll(true)
+                                                                    .ForceFit(true)
+                                                                    .Border(true)
+                                                                    .Height(100)
+                                                                                    .ItemID("GridVagons")
+        //.Listeners(l => l.ItemMouseEnter.Fn = "createTooltipMasirInDetailsKilometrazh2")
+                                                                    .Store(
+                                                                                X.StoreFor(Model.Detail)
+                                                                            .AutoLoad(false)
+                                                                            .Proxy(Html.X().AjaxProxy()
+                                                                                        .Url(Url.Action("ReadVagons"))
+                                                                                .Reader(Html.X().JsonReader().Root("data"))
+                                                                        )
+                                                                        .PageSize(10)
+                                                                        .RemoteFilter(true)
+                                                                        .RemotePaging(true)
+                                                                    )
+                                                                        .ViewConfig(
+                                                                            X.GridView()
+                                                                                .LoadingText("در حال بارگذاری...").RTL(true)
+                                                                        )
+                                                                    .ColumnModel(
+                                                                         Html.X().RowNumbererColumn(),
+                                                                                                Html.X().Column().DataIndex(Model.Detail, m => m.fldHeaderId).Text("fldHeaderId").Hidden(true).Flex(1),
+                                                                                                     // Html.X().Column().DataIndex(Model.Detail, m => m.fldNameCompany).Text("نام شرکت").Wrap(true).Flex(7),
+                                                                                            Html.X().Column().DataIndex(Model.Detail, m => m.fldShomareVagon).Text("شماره واگن/دیزل/ایستگاه").Wrap(true).Flex(3),
+                                    Html.X().Column().DataIndex(Model.Detail, m => m.fldVaznKhali).Text("ظرفیت").Wrap(true).Flex(3),
+                                    Html.X().Column().DataIndex(Model.Detail, m => m.fldTypeVagon).Text("نوع").Wrap(true).Flex(3),
+                                    Html.X().Column().DataIndex(Model.Detail, m => m.fldTarikhBahreBardari).Text("آغاز بهره برداری").Wrap(true).Flex(3)/*,
+                                     Html.X().ImageCommandColumn()
+                                                                                                    .Listeners(l => l.Command.Fn = "GotoEdit")
+                                                                                            .Flex(2).Commands(
+                                                                                                    //Html.X().ImageCommand().CommandName("Editvagon").Icon(Ext.Net.Icon.Pencil).ToolTip(tt => tt.Text = "ویرایش")
+                                                                                                    Html.X().ImageCommand().CommandName("Delvagon").Icon(Ext.Net.Icon.Delete).ToolTip(tt => tt.Text = "حذف")
+                                                                                             )*/
+                                                                    )
+                                                                    .SelectionModel(
+                                                                        Html.X().RowSelectionModel()
+                                                                            .Mode(Ext.Net.SelectionMode.Single)
+                                                                    )
+                                                            )
+                                                    )
+                         .Listeners(l =>
+                         {
+                             l.AfterRender.Handler = "var grid = App.contract_project.queryById('Gridcontract_project');grid.setHeight(App.BasicInfWin.getHeight() - 83); ";
+
+                         })
+                    .ColumnModel(
+                        Html.X().RowNumbererColumn(),
+        //  Html.X().Column().DataIndex(Model, m => m.fldTimeStamp).Text("").Hidden(true).Flex(1),
+                            Html.X().Column().DataIndex(Model.Project, m => m.fldId).Text("کد").Hidden(true).Flex(1),
+                            Html.X().Column().DataIndex(Model.Project, m => m.fldTitle).Text("عنوان").Wrap(true).Flex(7),
+                            Html.X().Column().DataIndex(Model.Project, m => m.fldNameCompany).Text("نام شرکت").Wrap(true).Flex(5),
+                            Html.X().Column().DataIndex(Model.Project, m => m.fldShomareContract).Text("شماره قرارداد").Wrap(true).Flex(5),
+                            Html.X().Column().DataIndex(Model.Project, m => m.fldTarikhContract).Text("تاریخ قرارداد").Wrap(true).Flex(5),
+                            Html.X().Column().DataIndex(Model.Project, m => m.fldShomareMovafeghat).Text("شماره موافقتنامه").Wrap(true).Flex(5),
+                            Html.X().Column().DataIndex(Model.Project, m => m.fldTarikhMovafeghat).Text("تاریخ موافقتنامه").Wrap(true).Flex(5),
+                            Html.X().Column().DataIndex(Model.Project, m => m.fldTypecontractName).Text("نوع قرارداد").Wrap(true).Flex(2)
+                        //Html.X().Column().DataIndex(Model, m => m.fldShomareVagon).Text("شماره واگن").Wrap(true).Flex(3),
+                        //Html.X().Column().DataIndex(Model, m => m.fldVaznKhali).Text("ظرفیت واگن").Wrap(true).Flex(3),
+                        //Html.X().Column().DataIndex(Model, m => m.fldTypeVagon).Text("نوع واگن").Wrap(true).Flex(3)
+
+                    )
+                    .SelectionModel(
+                        Html.X().RowSelectionModel()
+                            .Mode(Ext.Net.SelectionMode.Single)
+                    )
+            )
+        )
+)
+
+<script type="text/javascript">
+    function VagonContract_project() {
+       
+        var SelectedRow = App.contract_project.queryById('Gridcontract_project').selModel.getLastSelected();
+        
+        if (SelectedRow != null) {
+            if (SelectedRow.data.fldTypeContract == 2) {
+                App.contract_project.body.mask('در حال بارگذاری...');
+                Ext.net.DirectMethod.request({
+                    url: '/SearchDizel/IndexChecked',
+                    params: {
+                        State: 1,
+                        Malek: SelectedRow.data.fldMalekId,
+                        Pro: SelectedRow.data.fldId,
+                        Dizels: SelectedRow.data.fldDizelId,
+                        headerId: SelectedRow.data.fldId
+                    },
+                    success: function () {
+                        App.contract_project.body.mask().hide();
+                    }
+                });
+            }
+            else if (SelectedRow.data.fldTypeContract == 4) {
+                App.contract_project.body.mask('در حال بارگذاری...');
+                Ext.net.DirectMethod.request({
+                    url: '/SearchStation/IndexChecked',
+                    params: {
+                        State: 1,
+                        Stations: SelectedRow.data.fldStationId,
+                        headerId: SelectedRow.data.fldId
+                    },
+                    success: function () {
+                        App.contract_project.body.mask().hide();
+                    }
+                });
+            }
+            else {
+                App.contract_project.body.mask('در حال بارگذاری...');
+                Ext.net.DirectMethod.request({
+                    url: '/SearchVagon/IndexChecked',
+                    params: {
+                        State: 1,
+                        Malek: SelectedRow.data.fldMalekId,
+                        Pro: SelectedRow.data.fldId,
+                        Vagons: SelectedRow.data.fldVagonId,
+                        headerId: SelectedRow.data.fldId
+                    },
+                    success: function () {
+                        App.contract_project.body.mask().hide();
+                    }
+                });
+            }
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک قرارداد را انتخاب کنید",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+    function showHelp_Videocontract_project() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/contract_project/VideoWinAction',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+
+    }
+    var loadGridVagons = function (rowExpanderr, record) {
+        rowExpanderr.component.getStore().getProxy().setExtraParam("fldHeaderId", record.data.fldId);
+        rowExpanderr.component.getStore().load();
+    };
+    function contract_projectSetSize() {
+        App.contract_project.setWidth(App.BasicInfWin.getWidth());
+        var grid = App.contract_project.queryById('Gridcontract_project');
+        grid.setHeight(App.BasicInfWin.getHeight() - 83);
+        InsertToLog("پروژه ها و قراردادها", 2, true);
+    }
+    function Newcontract_project() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/contract_project/NewIndex',
+            params: {
+                id: 0
+            },
+            success: function () {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+    function Excelcontract_project() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/contract_project/UploadFileContract_Project',
+            success: function () {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+    function Editcontract_project() {
+      
+        var SelectedRow = App.contract_project.queryById('Gridcontract_project').selModel.getLastSelected();
+
+            if (SelectedRow != null) {
+                Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+                Ext.net.DirectMethod.request({
+                    url: '/contract_project/NewIndex',  /*url: '/contract_project/NewHeader',*/
+                    params: {
+                        id: SelectedRow.data.fldId
+                    },
+                    success: function () {
+                        Ext.net.Mask.hide();
+                    }
+                });
+            }
+            else {
+                Ext.MessageBox.show({
+                    title: "خطا",
+                    msg: "لطفا یک قرارداد را انتخاب کنید",
+                    icon: Ext.MessageBox.ERROR,
+                    buttons: Ext.MessageBox.OK
+                });
+            }
+    }
+    function GotoEdit(grid, command, record, row) {
+        if (command == 'Editvagon') {
+            App.contract_project.body.mask("در حال بارگذاری...");
+            Ext.net.DirectMethod.request({
+                url: '/contract_project/NewIndex',
+                params: {
+                    id: record.data.fldId
+                },
+                success: function () {
+                    App.contract_project.body.mask().hide();
+                }
+            });
+           
+        }
+        if (command == 'Delvagon') {
+            Ext.MessageBox.show({
+                title: "هشدار",
+                msg: "آیا برای حذف مطمئن هستید؟",
+                icon: Ext.MessageBox.WARNING,
+                buttons: Ext.MessageBox.YESNO,
+                fn: function (btn) {
+                    if (btn == 'yes') {
+                        Ext.net.Mask.show({ msg: 'در حال انجام عملیات...' });
+                        Ext.net.DirectMethod.request({
+                            url: '/contract_project/DeleteVagon',
+                            params: {
+                                id:record.data.fldId,
+                                __RequestVerificationToken: App.contract_project.queryById('antiForgeryToken').getValue()
+                            },
+                            success: function (data) {
+                               
+                                
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.INFO,
+                                        buttons: Ext.MessageBox.OK
+                                    });
+                                    App.contract_project.queryById('Gridcontract_project').store.load();
+                                
+                                Ext.net.Mask.hide();
+                            }
+                        });
+                    }
+                }
+            });
+          
+
+        }
+        
+    }
+    function Deletecontract_project() {
+        var SelectedHeaderRow = App.contract_project.queryById('Gridcontract_project').selModel.getLastSelected();
+        if (SelectedHeaderRow != null) {
+            Ext.MessageBox.show({
+                title: "هشدار",
+                msg: "آیا برای حذف مطمئن هستید؟",
+                icon: Ext.MessageBox.WARNING,
+                buttons: Ext.MessageBox.YESNO,
+                fn: function (btn) {
+                    if (btn == 'yes') {
+                        Ext.net.Mask.show({ msg: 'در حال انجام عملیات...' });
+                        Ext.net.DirectMethod.request({
+                            url: '/contract_project/Delete',
+                            params: {
+                                id: SelectedHeaderRow.data.fldId,
+                                TimeStamp: SelectedHeaderRow.data.fldTimeStamp,
+                                __RequestVerificationToken: App.contract_project.queryById('antiForgeryToken').getValue()
+                            },
+                            success: function (data) {
+                                chat.server.reloadLog();
+                                if (data.Er == 1 && data.Change == 1) {/*vaghti TimeStamp==0*/
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.WARNING,
+                                        buttons: Ext.MessageBox.OK,
+                                        fn: function (btn) {
+                                            if (btn == 'ok') {
+                                                App.contract_project.queryById('Gridcontract_project').store.load();
+                                            }
+                                        }
+                                    });
+                                }
+                                else if (data.Er == 1 && data.Change == 2) {/*vaghti TimeStamp==2*/
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.ERROR,
+                                        buttons: Ext.MessageBox.OK,
+                                        fn: function (btn) {
+                                            if (btn == 'ok') {
+                                                App.contract_project.queryById('Gridcontract_project').store.load();
+                                            }
+                                        }
+                                    });
+                                }
+                                else if (data.Er == 1) {
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.ERROR,
+                                        buttons: Ext.MessageBox.OK
+                                    });
+                                }
+                                else {
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.INFO,
+                                        buttons: Ext.MessageBox.OK
+                                    });
+                                    App.contract_project.queryById('Gridcontract_project').store.load();
+                                }
+                                Ext.net.Mask.hide();
+                            }
+                        });
+                    }
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+    function Helpcontract_project() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/contract_project/Help',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+    function showHelp_Videocontract_project() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/contract_project/VideoWincontract_project',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+
+    }
+</script>

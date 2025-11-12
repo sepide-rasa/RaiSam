@@ -1,0 +1,257 @@
+﻿@model IEnumerable<RaiSam.Models.prs_tblFinancialValue_DetailSelect>
+
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+
+<script src="~/Scripts/accounting.js"></script>
+@(Html.X().Window().Modal(true).Listeners(li => li.AfterRender.Handler = "LoadFinancialValue();")
+.Width(500)//.Height(300)
+    .Title("ثبت ارزش مالی سرمایه گذاری")
+                     .ID("NewFinancialValue")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Items(
+        X.FormPanel().Border(false)
+        .Border(false).ButtonAlign(Ext.Net.Alignment.Center)
+            .Margin(10)
+            .DefaultButton("btn")
+        .TitleAlign(Ext.Net.TitleAlign.Center)
+               .Buttons(X.Button().Text("ذخیره").Icon(Ext.Net.Icon.Disk).ToolTip("کلید میانبر F8").Margin(10)
+                           .Listeners(l =>
+                           {
+                               l.Click.Handler = "SaveFinancialValue();";
+
+                           })
+                           .ItemID("btnSave")
+                            ,
+                            X.Button().Text("خروج").Icon(Ext.Net.Icon.DoorOut).ToolTip("کلید میانبر Esc")
+                                               .OnClientClick("App.NewFinancialValue.destroy()"))
+
+                .Items(
+                X.Panel().Border(false)
+
+            .Items(
+                X.FieldSet().Border(false)
+                .Center()
+                .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 4 })
+                .Defaults(new { Margin = 2 })
+                .Items(
+                X.Hidden().ItemID("fldId")
+                    , X.Hidden().ItemID("fldToolID")
+                    , X.FieldSet().Border(false)
+                        .Layout(Ext.Net.LayoutType.HBox)
+                    .Items(
+                       X.Label("تاریخ")
+                               , X.PDateField()
+              .Width(100)
+                                    .ItemID("txtTarikh")
+                                    .AllowBlank(false)
+                                    .MaskRe("[0-9,/]")
+                                    .BlankText("لطفا تاریخ را وارد کنید.")
+                                    .PaddingSpec("0 0 0 10px")
+                                        .Listeners(l =>
+                                        {
+                                            l.Select.Handler = "ChangeTarikh()";
+                                        })
+                                        .Editable(true)
+                            ).ColSpan(4)
+                            , X.FieldSet().Border(false)
+                            .Items(
+                                 Html.X().GridPanel()
+                                .ID("GridDynamicRating")
+                    .Icon(Icon.Table)
+                    .Frame(true)
+                    .Title("انواع واگن")
+                    .Height(350)
+                    .Width(400)
+                    .Store(
+                        Html.X().StoreForModel().Control(s =>
+                        {
+                            // s.AutoSync = true;
+                        })
+
+                                   //.Listeners(li => li.BeforeLoad.Handler = "ReloadTajhizat()")
+                    )
+                       .ColumnModel(
+                                             Html.X().Column().DataIndex(Model, m => m.fldHeaderId).Text("کد").Flex(1).Hidden(true),
+                                             Html.X().Column().DataIndex(Model, m => m.fldId).Text("کد").Flex(1).Hidden(true),
+                                             Html.X().Column().DataIndex(Model, m => m.fldTypeVagon).Text("عناوین امتیاز").Flex(2),
+                                                          Html.X().Column().DataIndex(Model, m => m.fldMablaghReyali).ItemID("MablaghReyali").Text("مبلغ ریالی").Flex(2).Editor(X.NumberField().AllowDecimals(false).DecimalPrecision(4).DecimalPrecision(4)/*.Listeners(l => l.Change.Handler = "CheckMablaghReyali()")*/),
+                                                              Html.X().Column().DataIndex(Model, m => m.fldMablaghArzi).ItemID("MablaghArzi").Text("مبلغ ارزی").Flex(2).Editor(X.NumberField().AllowDecimals(false).DecimalPrecision(4).DecimalPrecision(4)/*.Listeners(l => l.Change.Handler = "CheckMablaghArzi()")*/)
+
+                        )
+
+                    //.TopBar(
+                    //    Html.X().Toolbar()
+                    //        .Items(
+                    //            Html.X().Button()
+                    //            .Text("اضافه")
+                    //            .Icon(Icon.Add)
+                    //                    .Handler("insertDynamicRating")
+                    //      , Html.X().Button()
+                    //                            .ItemID("RemoveDynamicRating")
+                    //                .Text("حذف")
+                    //                .Icon(Icon.Exclamation)
+                    //                    .Listeners(li => li.Click.Handler = "if (App.NewFinancialValue.queryById('GridDynamicRating').selModel.getLastSelected() == null) {Ext.MessageBox.show({ title: 'خطا', msg: 'لطفا یک سطر را انتخاب کنید',icon: Ext.MessageBox.ERROR,buttons: Ext.MessageBox.OK});return false;}else ItemsDynamicDelete();")
+                    //        )
+                    //)
+                        .Plugins(
+                                Html.X().CellEditing()
+
+                        )
+                        )
+                        )
+
+                )
+                    .Layout(Ext.Net.LayoutType.VBox)
+                    .LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Center })
+            )
+        )
+)
+@(Html.X().KeyMap()
+                             .ID("NewFinancialValueMap")
+                             .Target("={App.NewFinancialValue.getTargetEl()}")
+            .Binding(b =>
+            {
+                b.Add(Html.X().KeyBinding()
+                .KeysString(((int)Ext.Net.KeyCode.F8).ToString())
+                .Handler("SaveFinancialValue(); ")
+                );
+
+            }))
+<script type="text/javascript">
+    var ItemDynamicRatingID = 0; var TreeId = 0;
+    var DynamicRatingId = ""; var ToolName = "";
+    
+    
+    function ReloadDynamicRating(Tarikh) {
+        var Id = 0;
+
+        Ext.net.DirectMethod.request({
+            url: '/FinancialValue/ReloadDetail',
+            params: {
+                Tarikh: Tarikh
+            },
+            success: function (data) {
+                App.NewFinancialValue.queryById('GridDynamicRating').getStore().loadData(data);
+            }
+        });
+
+    }
+
+
+   
+
+
+    function ChangeTarikh() {
+        ReloadDynamicRating(App.NewFinancialValue.queryById("txtTarikh").rawValue);
+    }
+    function LoadFinancialValue() {
+        ReplaceArabic();
+        if ('@ViewBag.id' != '0') {
+            Ext.net.DirectMethod.request({
+                url: '/FinancialValue/Details',
+                params: {
+                    Id: '@ViewBag.id'
+                },
+                success: function (data) {
+                    var fldId = App.NewFinancialValue.queryById('fldId');
+                    fldId.setValue(data.fldId);
+                    var txtTarikh = App.NewFinancialValue.queryById('txtTarikh');
+                    txtTarikh.setValue(data.fldTarikh);
+                    ReloadDynamicRating(data.fldTarikh);
+
+                }
+            });
+        }
+        else {
+                    ReloadDynamicRating("");
+              
+        }
+
+
+    }
+
+    function SaveFinancialValue() {
+
+        var fldId = App.NewFinancialValue.queryById('fldId');
+        var txtTarikh = App.NewFinancialValue.queryById('txtTarikh');
+            var er = false;
+
+            if (txtTarikh.validate() == false) {
+                er = true;
+            }
+
+            if (er == true)
+                return;
+            var DynamicRating = new Array();
+            var fldTypeVagonId;
+            var fldMablaghReyali; var fldMablaghArzi;
+            var SelectedRow = App.NewFinancialValue.queryById('GridDynamicRating');
+            for (var i = 0; i < SelectedRow.selModel.store.count() ; i++) {
+                row = SelectedRow.selModel.store.data.items[i];
+                fldTypeVagonId = row.data.fldTypeVagonId;
+                fldMablaghReyali = row.data.fldMablaghReyali;
+                fldMablaghArzi = row.data.fldMablaghArzi;
+               
+                if (fldMablaghReyali != 0 ) {
+                    DynamicRating.push({
+                        'fldTypeVagonId': fldTypeVagonId,
+                        'fldMablaghReyali': fldMablaghReyali,
+                        'fldMablaghArzi': fldMablaghArzi,
+                        'fldId': row.data.fldId
+                    });
+                }
+               /* else if (fldRateItem == "") {
+                    alert("لطفا امتیاز هر آیتم را وارد کنید.");
+                    return;
+                }
+                else if (fldMaxRate == "") {
+                    alert("لطفا حداکثر امتیاز را وارد کنید.");
+                    return;
+                }*/
+                else if (DynamicRating == null) {
+                    alert("لطفا جدول ارزش مالی را تکمیل کنید.");
+                    return;
+                }
+            }
+            var data1 = {
+                ItemDetail: DynamicRating,
+                Tarikh: txtTarikh.rawValue
+            };
+            $.ajax({
+                type: "POST",
+                url: '/FinancialValue/Save',
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify(data1),
+                datatype: "json",
+                success: function (data) {
+                    var ic = Ext.MessageBox.INFO;
+                    if (data.Err == 1)
+                        ic = Ext.MessageBox.ERROR;
+                    Ext.MessageBox.show({
+                        Name: data.MsgName,
+                        msg: data.Msg,
+                        icon: ic,
+                        buttons: Ext.MessageBox.OK
+                    });
+                    App.FinancialValue.queryById('GridFinancialValue').store.load();
+                 
+                },
+                failure: function (data) {
+                    alert(data.data);
+                }
+            });
+        }
+ 
+        function EnterNext() {
+            var keyfield = App.NewFinancialValue.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+            var nextfld = keyfield.nextSibling();
+            nextfld.focus();
+            nextfld.selectText();
+        }
+</script>

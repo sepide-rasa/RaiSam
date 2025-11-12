@@ -1,0 +1,28 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+
+@using Ext.Net.MVC;
+
+@(
+ Html.X().Window().Listeners(l => l.BeforeClose.Handler = "CloseVideoUserGroup()")
+             .Height(565)
+         .Width(1000)
+                    .ID("VideoUserGroup")
+        .Closable(true)
+            .Title("راهنمای تصویری گروه کاربری")
+        .AutoScroll(true)
+        .Closable(true)
+            .Maximizable(true)
+        .Content(@<video width="100%;" id="AmozeshVideoUserGroup" controls="true" autoplay="true" controls><source src='@Url.Action("DownloadFileVideoUserGroup", "UserGroup")' type="video/mp4"></video>)
+
+)
+<script type="text/javascript">
+    function CloseVideoUserGroup() {
+        $('#AmozeshVideoUserGroup')[0].pause();
+    }
+
+</script>

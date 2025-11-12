@@ -1,0 +1,53 @@
+﻿@using Ext.Net.MVC;
+@{
+
+    var X = Html.X();
+}
+<style>
+    .wrapmessage {
+        word-wrap: break-word;
+        text-justify: auto;
+    }
+</style>
+@(X.Window()
+    .Height(300)
+    .Width(500)
+    .Modal(true)
+    .ID("MsgDi")
+    .Title("نمایش پیام")
+    .Closable(true)
+    .Resizable(false)
+    .Border(false)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Layout(Ext.Net.LayoutType.VBox)
+    .LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Right })
+    .ButtonAlign(Ext.Net.Alignment.Center)
+    .Buttons(
+        Html.X().Button()
+            .Text("خروج")
+            .Icon(Ext.Net.Icon.BulletCross)
+            .OnClientClick("App.MsgDi.destroy();")
+    )
+    .Items(
+        X.Panel()
+            .Border(false)
+            .AutoScroll(true)
+            .ItemID("panelMsgDi2")
+            .Layout(Ext.Net.LayoutType.Fit)
+            .Items(
+                X.Label()
+                    .AutoScroll(true)
+                    .MarginSpec("5px 5px 5px 5px")
+                    .Cls("wrapmessage")
+                    .ItemID("lableMsgDi")
+                    .Listeners(l => l.Render.Handler = "FillMsgDi();"))
+    )
+)
+
+<script>
+    function FillMsgDi() {
+            App.MsgDi.queryById('panelMsgDi2').setSize(App.MsgDi.getWidth() - 10, App.MsgDi.getHeight() - 59);
+        App.MsgDi.queryById("lableMsgDi").setText('@ViewBag.Message');
+    }
+
+</script>

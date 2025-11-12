@@ -1,0 +1,647 @@
+﻿@model IEnumerable<RaiSam.Models.ApplicationPart>
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+<style>
+    .custom-EditUserGroup {
+        margin-right: 240px !important;
+    }
+
+    .indicatormargin {
+        margin-left: -5px;
+    }
+</style>
+
+@(X.Panel()
+    .Border(false)
+    .ID("Permission")
+    .Title("تعیین دسترسی")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Listeners(l => l.AfterRender.Handler = "PermissionSetSize()")
+    .Layout(LayoutType.Fit)
+    .Items(
+        X.AntiForgeryField()
+                .ItemID("antiForgeryToken")
+                .Hidden(true),
+        X.Panel()
+            .Layout(LayoutType.VBox)
+            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Right })
+            .TopBar(
+                Html.X().Toolbar()
+                    .Items(
+                        X.Button()
+                            .Text("ذخیره")
+                            .Icon(Ext.Net.Icon.Add)
+                            .Listeners(li => li.Click.Handler = "SavePermission();"),
+                        X.SplitButton()
+                            .Text("راهنما")
+                            .Icon(Ext.Net.Icon.Help)
+                            .Menu(
+                                X.Menu()
+                                    .Items(
+                                        X.MenuItem()
+                                            .Text("راهنما متنی")
+                                            .Icon(Ext.Net.Icon.TextPaddingTop)
+                                            .Listeners(l => l.Click.Handler = "HelpPermission()")
+                                            .ItemID("btnshowHelpDirectorate"),
+                                        X.MenuItem()
+                                                .Text("راهنما تصویری")
+                                                .Icon(Ext.Net.Icon.PlayBlue)
+                                                .Listeners(l => l.Click.Handler = "showHelp_VideoPermission()")
+                                    )
+                            )
+                    )
+            )
+            .Items(
+                X.Panel()
+                    .ItemID("Panel")
+                    .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 2 })
+                    .Defaults(new { Margin = 10 })
+                    .Height(50)
+                    .Items(
+                        X.Label("گروه کاربری:"),
+                        X.ComboBox()
+                            .LabelAlign(Ext.Net.LabelAlign.Top)
+                            .ItemID("CboGrohKarbari")
+                            .Width(300)
+                            .TypeAhead(true)
+                            .Editable(false)
+                            .Icon(Icon.Pencil)
+                            .IndicatorIcon(Icon.Add)
+                            .IndicatorCls("indicatormargin")
+                            .IndicatorTip("جدید")
+                            .QueryMode(DataLoadMode.Local)
+                            .TriggerAction(TriggerAction.All)
+                            .DisplayField("Name")
+                            .ValueField("ID")
+                            .FieldStyle("padding-right:5px;")
+                            .Listeners(a =>
+                            {
+                                a.Change.Handler = "ChangePermission()";
+                                a.AfterRender.Handler = "App.Permission.queryById('CboGrohKarbari').icon.dom.classList.add('custom-EditUserGroup');";
+                                a.IndicatorIconClick.Handler = "GotoUserGroup_Per(0)";
+                                a.IconClick.Handler = "GotoUserGroup_Per(1)";
+                            })
+                            .Store(
+                                X.Store()
+                                    .Model(
+                                        X.Model()
+                                            .IDProperty("fldId")
+                                            .Fields(
+                                                new ModelField("ID", ModelFieldType.String) { Mapping = "ID" },
+                                                new ModelField("Name", ModelFieldType.String) { Mapping = "Name" }
+                                            )
+                                        )
+                                        .Listeners(l => l.BeforeLoad.Handler = "App.Permission.queryById('CboGrohKarbari').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.Permission.queryById('antiForgeryToken').getValue());LoadUserGroup();")
+                                    .Proxy(Html.X().AjaxProxy()
+                                    .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                        .Url(Url.Action("GetUserGroup"))
+                                        .Reader(X.JsonReader().Root("data"))
+                                     )
+        //.Listeners(li => li.BeforeLoad.Handler = "LoadUserGroup();")
+                             )
+                    ),
+                X.Panel()
+                    .Border(false)
+                    .ItemID("PnlForTree")
+                    .AutoScroll(true)
+                    .Layout(LayoutType.Fit)
+                    .Items(
+                        X.TreePanel()
+                            .ID("TreePermission")
+                            .ColSpan(2)
+                            .Expand(true)
+                            .UseArrows(true)
+                            .Border(false)
+                            .Store(
+                                X.TreeStore()
+                                    .Model(
+                                        Html.X().Model()
+                                            .Fields(
+                                                    X.ModelField().Name(Model, m => m.fldID).Type(ModelFieldType.String),
+                                                X.ModelField().Name(Model, m => m.fldTitle).Type(ModelFieldType.String),
+                                                X.ModelField().Name(Model, m => m.fldTimeLimit).Type(ModelFieldType.Boolean),
+                                                    X.ModelField().Name(Model, m => m.fldTime).Type(ModelFieldType.String),
+                                                X.ModelField().Name(Model, m => m.fldMinute).Type(ModelFieldType.Int),
+                                                X.ModelField().Name(Model, m => m.fldIsLimit).Type(ModelFieldType.Boolean)
+                                            )
+                                    )
+                            )
+                            .Listeners(a =>
+                            {
+                                a.BeforeLoad.Fn = "nodeLoadTreePermission";
+                                a.CheckChange.Fn = "GetGroupIdPermission";
+                            })
+                            .ColumnModel(
+                                X.TreeColumn().Text("عنوان").Flex(5).DataIndex("fldTitle").Wrap(true),
+                                X.ComponentColumn().Text("محدودیت زمانی").DataIndex("fldIsLimit").ID("colCheck").Align(Alignment.Center).Editor(true).Flex(1)
+                                    .Listeners(l =>
+                                    {
+                                        l.Edit.Fn = "GetTimeLimit";
+                                        l.Bind.Fn = "hideCheckBox";
+                                    })
+                                    .Component(X.Checkbox()),
+                                Html.X().Column().DataIndex("fldTime").Text("زمان").Flex(7)
+                            )
+                            .Root(
+                                Html.X().Node()
+                                    .NodeID("0")
+                                    .Text("تعیین دسترسی")
+                                    .Checked(null)
+                                    .AttributesObject(new { fldID = "0", fldTitle = "تعیین دسترسی", fldTimeLimit = false, fldTime = "", fldMinute = 0, fldIsLimit = false })
+                            )
+                    )
+            )
+    )
+)
+<script type="text/javascript">
+    var CheckdBeforeChange2 = new Array();
+    function showHelp_VideoPermission() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Permission/VideoWinPermission',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+
+    }
+
+    var GetTimeLimit = function (column, opt) {
+        if (column.activeRecord.record.data.checked == false) {
+            App.colCheck.getComponent(column.activeRecord.rowIndex).setValue(false);
+        }
+        else {
+            if (opt.record.data.fldIsLimit) {
+                createFloatingTextFiled(column.activeRecord.rowIndex, opt);
+            }
+            else {
+                opt.record.set("fldTime", "نامحدود");
+                opt.record.set("fldIsLimit", false);
+                opt.record.set("fldMinute", 0);
+            }
+        }
+    };
+
+    function createFloatingTextFiled(rowIndex, opt) {
+        var TypeTime = Ext.create('Ext.data.Store', {
+            fields: ['Id', 'Name'],
+            data: [
+                { "Id": "1", "Name": "دقیقه" },
+                { "Id": "2", "Name": "ساعت" },
+                { "Id": "3", "Name": "روز" }
+            ]
+        });
+        var FloatPanel=Ext.create('Ext.form.Panel', {
+            width: 238,
+            layout:'hbox',
+            bodyPadding: 2,
+            id:"floatingPanel",
+            floating: true,
+            buttonAlign: 'center',
+            modal: true,
+            renderTo:Ext.getBody(),
+            items: [{
+                xtype: 'textfield',
+                maxLength: 3,
+                maskRe:/[0-9]/,
+                enforceMaxLength:true,
+                autoFocus: true,
+                fieldStyle: "direction:ltr;",
+                itemId: "txtTime",
+                enableKeyEvents: true,
+                blankText: "لطفا زمان مورد نظر را وارد نمایید.",
+                width: 160,
+                allowBlank: false,
+                listeners: {
+                    afterRender: function () {
+                        App.floatingPanel.queryById("txtTime").validate();
+                    },
+                    keyDown: function (m, key) {
+                        if (key.getKey() == 13) {
+                            if (App.floatingPanel.queryById("txtTime").validate()) {
+                                var TypeTimeVal = App.floatingPanel.queryById("cboTypeTime").getValue();
+                                var txtTimeVal = App.floatingPanel.queryById("txtTime").getValue();
+                                var Timeee = "";
+                                var Minute = 0;
+
+                                if (TypeTimeVal == "1")/*دقیقه*/ {
+                                    if (txtTimeVal >= 60) {
+                                        if (txtTimeVal % 60 != 0) {
+                                            Timeee = Math.floor(txtTimeVal / 60) + " ساعت و " + txtTimeVal % 60 + " دقیقه";
+                                        }
+                                        else {
+                                            Timeee = Math.floor(txtTimeVal / 60) + " ساعت";
+                                        }
+                                    }
+                                    else {
+                                        Timeee = txtTimeVal + " دقیقه";
+                                    }
+                                    Minute = txtTimeVal;
+                                }
+                                else if (TypeTimeVal == "2")/*ساعت*/ {
+                                    if (txtTimeVal >= 24) {
+                                        if (txtTimeVal % 24 == 0) {
+                                            Timeee = Math.floor(txtTimeVal / 24) + " روز";
+                                        }
+                                        else {
+                                            Timeee = Math.floor(txtTimeVal / 24) + " روز و " + txtTimeVal % 24 + " ساعت";
+                                        }
+                                    }
+                                    else {
+                                        Timeee = txtTimeVal + " ساعت";
+                                    }
+                                    Minute = txtTimeVal * 60;
+                                }
+                                else /*روز*/ {
+                                    Timeee = txtTimeVal + " روز";
+                                    Minute = txtTimeVal * 24 * 60;
+                                }
+                                opt.record.set("fldTime", Timeee);
+                                opt.record.set("fldIsLimit", true);
+                                opt.record.set("fldMinute", Minute);
+                                FloatPanel.destroy();
+                            }
+                        }
+                    },
+                }
+            },
+            {
+                xtype: 'combobox',
+                store: TypeTime,
+                queryMode: 'local',
+                displayField: 'Name',
+                valueField: 'Id',
+                itemId: "cboTypeTime",
+                value:'1',
+                width: 70,
+                allowBlank: false
+            }],
+            buttons: [{
+                type: 'button',
+                text: "Ok",
+                listeners: {
+                    click: function () {
+                        if (App.floatingPanel.queryById("txtTime").validate()) {
+                            var TypeTimeVal = App.floatingPanel.queryById("cboTypeTime").getValue();
+                            var txtTimeVal = App.floatingPanel.queryById("txtTime").getValue();
+                            var Timeee = "";
+                            var Minute = 0;
+
+                            if (TypeTimeVal == "1")/*دقیقه*/ {
+                                if (txtTimeVal >= 60) {
+                                    if (txtTimeVal % 60 != 0) {
+                                        Timeee = Math.floor(txtTimeVal / 60) + " ساعت و " + txtTimeVal % 60 +" دقیقه";
+                                    }
+                                    else {
+                                        Timeee = Math.floor(txtTimeVal / 60) + " ساعت";
+                                    }
+                                }
+                                else {
+                                    Timeee = txtTimeVal + " دقیقه";
+                                }
+                                Minute = txtTimeVal;
+                            }
+                            else if (TypeTimeVal == "2")/*ساعت*/ {
+                                if (txtTimeVal >= 24) {
+                                    if (txtTimeVal % 24 == 0) {
+                                        Timeee = Math.floor(txtTimeVal / 24) + " روز";
+                                    }
+                                    else {
+                                        Timeee = Math.floor(txtTimeVal / 24) + " روز و " + txtTimeVal % 24 + " ساعت";
+                                    }
+                                }
+                                else {
+                                    Timeee = txtTimeVal + " ساعت";
+                                }
+                                Minute = txtTimeVal*60;
+                            }
+                            else /*روز*/ {
+                                Timeee = txtTimeVal + " روز";
+                                Minute = txtTimeVal *24* 60;
+                            }
+                            opt.record.set("fldTime", Timeee);
+                            opt.record.set("fldIsLimit", true);
+                            opt.record.set("fldMinute", Minute);
+                            FloatPanel.destroy();
+                        }
+                    }
+                }
+            },
+            {
+                type: 'button',
+                text: "Cancle",
+                listeners: {
+                    click: function () {
+                        FloatPanel.destroy();
+                        App.colCheck.getComponent(rowIndex).setValue(false);
+                    }
+                }
+            }]
+        });
+        FloatPanel.alignTo(App.colCheck.getComponent(rowIndex), "tr-tr", [170, 15], "slideIn");
+        FloatPanel.show();
+    }
+
+    var hideCheckBox = function (columnn, component, record, rowIndex) {
+        if (record.data.fldTimeLimit == false) {
+            component.hide();
+        }
+    };
+
+    function GotoUserGroup_Per(valuee) {
+        var idusergroup = 0;
+        if (valuee == 1) {
+            idusergroup = App.Permission.queryById('CboGrohKarbari').getValue();
+        }
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/UserGroup/New',
+            params: {
+                id: idusergroup,
+            },
+            success: function () {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+    var nodeLoadTreePermission = function (store, operation, options) {
+        var GrohKarbari = App.Permission.queryById('CboGrohKarbari');
+        var node = operation.node;
+        Ext.net.DirectMethod.request({
+            url: '/Permission/NodeLoad',
+            params: {
+                node: node.getId(),
+                GrohKarbari: GrohKarbari.getValue(),
+                __RequestVerificationToken: App.Permission.queryById('antiForgeryToken').getValue()
+            },
+            success: function (result) {
+                node.set('loading', false);
+                node.set('loaded', true);
+                node.appendChild(result);
+                CheckdBeforeChange2 = App.TreePermission.getChecked();
+                node.expand(true);
+            },
+            failure: function (errorMsg) {
+                Ext.Msg.alert('Failure', errorMsg);
+            }
+        });
+        return false;
+    };
+
+    function PermissionSetSize() {
+        App.Permission.setSize(App.UserWin.getWidth() - 10, App.UserWin.getHeight() - 85);
+        App.Permission.queryById("PnlForTree").setSize(App.UserWin.getWidth() - 15, App.UserWin.getHeight() - 160);
+        App.Permission.queryById("Panel").setWidth(App.UserWin.getWidth() - 15);
+    }
+
+    var GetGroupIdPermission = function (node, checked, eOpts) {
+        if (checked==false && node.data.fldTimeLimit) {
+            node.set("fldIsLimit", false);
+            node.set("fldMinute", 0);
+            node.set("fldTime", "نامحدود");
+        }
+        if (node.childNodes.length > 0) {
+            node.cascadeBy(function (n) {
+                n.set('checked', checked);
+                if (checked == false && n.data.fldTimeLimit) {
+                    n.set("fldIsLimit", false);
+                    n.set("fldMinute", 0);
+                    n.set("fldTime", "نامحدود");
+                }
+            });
+            if (checked == true) {
+                while (node.parentNode.getId() != 0) {
+                    node.parentNode.set('checked', true);
+                    node = node.parentNode;
+                }
+            }
+            else {
+                var StateEqual = true;
+                while (node.parentNode.getId() != 0) {
+                    node.parentNode.cascadeBy(function (n) {
+                        if (n != node.parentNode) {
+                            if (n.get('checked') == true) {
+                                StateEqual = false;
+                            }
+                        }
+                    });
+                    if (StateEqual == true) {
+                        node.parentNode.set('checked', false);
+                        if (node.parentNode.data.fldTimeLimit) {
+                            node.parentNode.set("fldIsLimit", false);
+                            node.parentNode.set("fldMinute", 0);
+                            node.parentNode.set("fldTime", "نامحدود");
+                        }
+                    }
+                    node = node.parentNode;
+                }
+            }
+        }
+        else {
+            if (checked == true) {
+                while (node.parentNode.getId() != 0) {
+                    node.parentNode.set('checked', true);
+                    node = node.parentNode;
+                }
+            }
+            else {
+                var StateEqual = true;
+                node.parentNode.cascadeBy(function (n) {
+                    if (n != node.parentNode) {
+                        if (n.get('checked') != checked) {
+                            StateEqual = false;
+                        }
+                    }
+                });
+                if (StateEqual != checked) {
+                    node.parentNode.set('checked', checked);
+                    if (node.parentNode.data.fldTimeLimit) {
+                        node.parentNode.set("fldIsLimit", false);
+                        node.parentNode.set("fldMinute", 0);
+                        node.parentNode.set("fldTime", "نامحدود");
+                    }
+                }
+
+                var StateEqual2 = true;
+                while (node.parentNode.getId() != 0) {
+                    node.parentNode.cascadeBy(function (n) {
+                        if (n != node.parentNode) {
+                            if (n.get('checked') == true) {
+                                StateEqual2 = false;
+                            }
+                        }
+                    });
+                    if (StateEqual2 == true) {
+                        node.parentNode.set('checked', false);
+                        if (node.parentNode.data.fldTimeLimit) {
+                            node.parentNode.set("fldIsLimit", false);
+                            node.parentNode.set("fldMinute", 0);
+                            node.parentNode.set("fldTime", "نامحدود");
+                        }
+                    }
+                    node = node.parentNode;
+                }
+            }
+        }
+    };
+
+    function LoadUserGroup() {
+        Ext.net.DirectMethod.request({
+            url: '/Permission/ReloadDrp',
+            params: {
+                __RequestVerificationToken: App.Permission.queryById('antiForgeryToken').getValue()
+            },
+            success: function (data) {
+                var CboType = App.Permission.queryById('CboGrohKarbari');
+                CboType.setValue(data.fldUserGroupId);
+            }
+        });
+    }
+
+    function ChangePermission() {
+        var GrohKarbari = App.Permission.queryById('CboGrohKarbari');
+        Ext.net.DirectMethod.request({
+            url: '/Permission/NodeLoad',
+            params: {
+                node: "0",
+                GrohKarbari: GrohKarbari.getValue(),
+                __RequestVerificationToken: App.Permission.queryById('antiForgeryToken').getValue()
+            },
+            success: function () {
+                App.TreePermission.store.load();
+            },
+            failure: function (errorMsg) {
+                Ext.Msg.alert('Failure', errorMsg);
+            }
+
+        });
+        return false;
+    }
+
+    function SavePermission() {
+        var Checked = App.TreePermission.getChecked();
+        DeletedPer = CheckdBeforeChange2.filter(function (el) { return Checked.indexOf(el) < 0; });
+        DeletedPer1 = DeletedPer.filter(function (el) { return el.id.includes("Charkhe") == false; });
+        DeletedPer2 = DeletedPer.filter(function (el) { return el.id.includes("Charkhe") == true; });
+        var Permission = new Array();
+        var UnChecked = "";
+        var UnChecked_Charkhe = "";
+        var CboGrohKarbari = App.Permission.queryById('CboGrohKarbari');
+
+        if (DeletedPer1.length != 0 || DeletedPer2.length != 0) {
+            Ext.MessageBox.show({
+                title: "اخطار",
+                msg: "با حذف دسترسی موردنظر، این دسترسی از تمامی گروه های کاربری زیرمجموعه نیز حذف می گردد.",
+                icon: Ext.MessageBox.WARNING,
+                buttons: Ext.MessageBox.OKCANCEL,
+                closable: true,
+                fn: function (btn) {
+                    if (btn == 'ok') {
+                        for (var i = 0; i < DeletedPer1.length; i++) {
+                            UnChecked = UnChecked + DeletedPer1[i].data.id + ";";
+                        }
+                        for (var i = 0; i < DeletedPer2.length; i++) {
+                            UnChecked_Charkhe = UnChecked_Charkhe + DeletedPer2[i].data.id.substring(7) + ";";
+                        }
+                        for (var i = 0; i < Checked.length ; i++) {
+                            Permission.push({
+                                'fldApplicationPartID': Checked[i].getId(),
+                                'fldUserGroupID': CboGrohKarbari.getValue(),
+                                'fldTimeLimit': Checked[i].data.fldMinute
+                            });
+                        }
+                        var data = {
+                            permi1: JSON.stringify(Permission),
+                            'UserGroupID': CboGrohKarbari.getValue(),
+                            UnChecked: UnChecked,
+                            UnChecked_Charkhe: UnChecked_Charkhe,
+                            __RequestVerificationToken: App.Permission.queryById('antiForgeryToken').getValue()
+                        };
+                        Ext.net.Mask.show({ msg: 'در حال ذخیره سازی...' });
+                        $.ajax({
+                            type: "POST",
+                            url: '/Permission/SavePermission',
+                            datatype: "json",
+                            data: data,
+                            /*contentType: 'application/json',*/
+                            success: function (data) {
+                                var ic = Ext.MessageBox.INFO;
+                                if (data.Er == 1)
+                                    ic = Ext.MessageBox.ERROR;
+                                Ext.MessageBox.show({
+                                    title: data.MsgTitle,
+                                    msg: data.Msg,
+                                    icon: ic,
+                                    buttons: Ext.MessageBox.OK
+                                });
+                                Ext.net.Mask.hide();
+                                CheckdBeforeChange2 = Checked;
+                            },
+                            failure: function (data) {
+                                alert(data.data);
+                            }
+                        });
+                    }
+                }
+            });
+        }
+        else {
+            Ext.net.Mask.show({ msg: 'در حال ذخیره سازی...' });
+            for (var i = 0; i < Checked.length ; i++) {
+                Permission.push({
+                    'fldApplicationPartID': Checked[i].getId(),
+                    'fldUserGroupID': CboGrohKarbari.getValue(),
+                    'fldTimeLimit': Checked[i].data.fldMinute
+                });
+            }
+
+            var data = {
+                permi1: JSON.stringify(Permission),
+                'UserGroupID': CboGrohKarbari.getValue(),
+                UnChecked: "",
+                UnChecked_Charkhe: "",
+                __RequestVerificationToken: App.Permission.queryById('antiForgeryToken').getValue()
+            };
+            $.ajax({
+                type: "POST",
+                url: '/Permission/SavePermission',
+                datatype: "json",
+                data: data,
+               /* contentType: 'application/json',*/
+                success: function (data) {
+                    var ic = Ext.MessageBox.INFO;
+                    if (data.Er == 1)
+                        ic = Ext.MessageBox.ERROR;
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: ic,
+                        buttons: Ext.MessageBox.OK
+                    });
+                    Ext.net.Mask.hide();
+                    CheckdBeforeChange2 = Checked;
+                },
+                failure: function (data) {
+                    alert(data.data);
+                }
+            });
+        }
+
+    }
+
+    function HelpPermission() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Permission/Help',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+</script>

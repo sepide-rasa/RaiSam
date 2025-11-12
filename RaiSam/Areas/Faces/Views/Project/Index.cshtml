@@ -1,0 +1,511 @@
+﻿@model IEnumerable<RaiSam.Models.prs_tblRegistrationFirstContractSelect>
+@using Ext.Net.MVC
+@using Ext.Net;
+@{
+
+    var X = Html.X();
+}
+<script>
+   
+
+
+    var templateSent = '<img src={0} alt="" title={1} />';
+
+    var ShowStatus = function (value) {
+        if (value == 1) {
+            Pic = "@Url.Content("~/Content/icon/mini/state2.png")";
+            ToolTip = "درحال" + '&nbsp;' +"بررسی";
+        }
+        else{
+            Pic = "@Url.Content("~/Content/icon/mini/state1.png")";
+            ToolTip = "درحال" + '&nbsp;' + "تکمیل" ;
+        }
+        return Ext.String.format(templateSent, Pic, ToolTip);
+    };
+</script>
+
+@(X.Window()
+    .Listeners(l => l.Render.Handler = "App.Project.setWidth(Ext.getBody().getViewSize().width-150);")
+        //.Width(1200)
+    .Height(550)
+    .RTL(true)
+    .Border(false)
+    .ID("Project")
+    .Modal(true)
+    .Title("پروژه ها")
+    .AutoScroll(true)
+    .Layout(Ext.Net.LayoutType.VBox)
+    .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Stretch })
+    .Items(
+        X.Panel()
+            .Border(false)
+            .Layout(Ext.Net.LayoutType.VBox)
+            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+            .Items(
+                 X.AntiForgeryField().ItemID("AntiForgeryField"),
+                X.FieldSet()
+                    .Title("اطلاعیه مهم")
+                    .AutoScroll(true)
+                    .Height(100)
+                    .ItemID("ProjectNotification")
+                    .Listeners(l => l.Render.Handler = "App.Project.queryById('ProjectNotification').setWidth(Ext.getBody().getViewSize().width-220);")
+                    .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 1 })
+                    .Defaults(new { Margin = 5 })
+                    .Items(
+                        X.Label()
+                            .ItemID("lblMatnHtmlProject")
+                            .Cls("lblInfo")
+                            .Listeners(l => l.Render.Handler = "loadMatnHtmlProject()")
+                            )),
+        X.Panel()
+            .Border(false)
+            .AutoScroll(true)
+            .Layout(Ext.Net.LayoutType.Fit)
+            .Items(
+                   X.GridPanel()
+                    .Listeners(l => l.ItemClick.Handler = "ReloadButtonProject()")
+                    .AutoScroll(true)
+                    .TopBar(
+                        Html.X().Toolbar()
+                            .Items(
+                                //X.Button()
+                                //    .Text("جدید")
+                                //    .ItemID("btnNewProject")
+                                //    .Icon(Ext.Net.Icon.Add)
+                                //    .Listeners(li =>
+                                //    {
+                                //        li.Click.Handler = "NewProject();";
+                                //    }),
+                                X.Button()
+                                    .ItemID("btnUpdateProject")
+                                    .Text("ویرایش")
+                                    .Icon(Ext.Net.Icon.Pencil)
+                                    .Listeners(Li => Li.Click.Handler = "EditProject();"),
+                                X.Button()
+                                    .ItemID("btnDelProject")
+                                    .Text("حذف")
+                                    .Icon(Ext.Net.Icon.Delete)
+                                    .Listeners(de =>
+                                    {
+                                        de.Click.Handler = "DeleteProject();";
+                                    })
+        /*,
+        X.Button()
+        .ItemID("btnVorud")
+        .Text("ورود به چرخه")
+        .Icon(Ext.Net.Icon.ArrowIn)
+        .Listeners(de =>
+        {
+            de.Click.Handler = "VorudBeCharkhe();";
+        })*/
+        //    ,
+        //                X.SplitButton()
+        //    .Text("راهنما")
+        //    .Icon(Ext.Net.Icon.Help)
+        //    .Menu(X.Menu()
+        //    .Items(
+        //    X.MenuItem()
+        //                .Text("راهنما متنی")
+        //                .Icon(Ext.Net.Icon.TextPaddingTop)
+        //                .Listeners(l => l.Click.Handler = "HelpProject()")
+        //                .ItemID("btnHelpProject"),
+        //        X.MenuItem()
+        //                .Text("راهنما تصویری")
+        //                .Icon(Ext.Net.Icon.PlayBlue)
+        //                    .Listeners(l => l.Click.Handler = "Help_VideoProject()")
+
+                                //)
+                            )
+
+                        )
+
+                    .ItemID("GridProject")
+                    .BottomBar(X.PagingToolbar())
+                    .Store(
+                            X.StoreForModel()
+                                     .Listeners(l => { l.BeforeLoad.Handler = "App.Project.queryById('GridProject').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.Project.queryById('AntiForgeryField').getValue());";
+                                     l.Load.Handler = "CheckBtn()";
+                                     })
+                                    .Proxy(Html.X().AjaxProxy()
+                                    .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                .Url(Url.Action("Read"))
+                                .Reader(Html.X().JsonReader().Root("data"))
+                            )
+                            .Listeners(l => l.DataChanged.Handler = "App.Project.queryById('GridProject').selModel.refresh();")
+                            .PageSize(20)
+                            .RemoteFilter(true)
+                            .RemotePaging(true)
+                    )
+                    .View(
+                        Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                    )
+                    .Plugins(X.FilterHeader().Remote(true))
+                    .ColumnModel(
+                            Html.X().RowNumbererColumn(),
+                            Html.X().Column().DataIndex(Model, m => m.fldId).Text("کد").Hidden(true).Flex(1),
+                            Html.X().Column().DataIndex(Model, m => m.fldTitle).Text("عنوان").Wrap(true).Flex(10),
+                                Html.X().Column().DataIndex(Model, m => m.fldTedad).Text("تعداد واگن").Wrap(true).Flex(7),
+                            Html.X().Column().DataIndex(Model, m => m.fldTypeVagonName).Text("نوع واگن").Wrap(true).Flex(7),
+                            Html.X().Column().DataIndex(Model, m => m.ExistsEnter).Flex(1).Renderer("ShowStatus").Filterable(false),
+                                     Html.X().ImageCommandColumn().PrepareCommand("prepareCommandProject")
+                                .Listeners(l => l.Command.Fn = "ShowInfoProject")
+                                .Flex(1).Commands(Html.X().ImageCommand().CommandName("InfoProject").Icon(Ext.Net.Icon.Information).ToolTip(tt => tt.Text = "نمایش اطلاعات")
+        //, Html.X().ImageCommand().CommandName("EditCommandProjects").Icon(Ext.Net.Icon.PageEdit).ToolTip(tt => tt.Text = "ویرایش")
+        // , Html.X().ImageCommand().CommandName("DeleteCommandProjects").Icon(Ext.Net.Icon.Delete).ToolTip(tt => tt.Text = "حذف")
+                            )
+                        )
+                )
+            )
+)
+
+
+<script type="text/javascript">
+    function CheckBtn() {
+        var btnNewProject = App.Project.queryById("btnNewProject");
+        if (App.Project.queryById('GridProject').store.count() > 0)
+            btnNewProject.setDisabled(true);
+        else
+            btnNewProject.setDisabled(false);
+    }
+    function Help_VideoProject() {
+        /*window.location.href = 'Url.Content("~/Faces/Project/DownloadV")';
+        App.NewDL.destroy();
+        Ext.net.Mask.hide();*/
+        var nameVideo = "Project.mp4";
+        window = Ext.widget('window', {
+            renderTo: Ext.getBody(),
+            width: 710,
+            height: 420,
+            html: '<video width="700" controls><source src="/Uploaded/Help/' + nameVideo + '" type="video/mp4"><source src="/Uploaded/Help/' + nameVideo + '" type="video/ogg"></video>'
+        }).show();
+    }
+    function HelpProject() {
+        Ext.net.DirectMethod.request({
+            url: '/Home/HelpHtml',
+            params: {
+                TableId: 26
+            },
+            success: function (result) {
+                var mybr = document.createElement('br');
+
+                Ext.net.Notification.show({
+                    alignToCfg: {
+                        offset: [150, -30],
+                        position: 'bl-bl',
+                    },
+                    pinned: true,
+                    showPin: true,
+                    modal: true,
+                    bringToFront: true,
+                    pinEvent: 'click',
+                    height: 520,
+                    width: 700,
+                    html: result.HelpHtml,
+                    autoScroll: true,
+                    title: 'راهنمای ثبت نام'
+                });
+            }
+        });
+    }
+   
+
+    function loadMatnHtmlProject() {
+        var lblMatnHtmlProject = App.Project.queryById("lblMatnHtmlProject");
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Faces/Project/MatnHtmlProject',
+            success: function (data) {
+                if (data.MatnHtmlProject != "") {
+                    lblMatnHtmlProject.setText(data.MatnHtmlProject, false);
+                    App.Project.queryById('GridProject').setHeight(410);
+                }
+                else {
+                    App.Project.queryById('ProjectNotification').hide();
+                    App.Project.queryById('GridProject').setHeight(510);
+                }
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+    function ReloadButtonProject() {
+        var SelectedRow = App.Project.queryById('GridProject').selModel.getLastSelected();
+        if (SelectedRow.data.ExistsEnter == 1) {
+            App.Project.queryById('btnUpdateProject').disable(true);
+        }
+        else {
+            App.Project.queryById('btnUpdateProject').enable(true);
+        }
+
+        if (SelectedRow.data.ExistsEnter == 1) {
+            App.Project.queryById('btnDelProject').disable(true);
+        }
+        else {
+            App.Project.queryById('btnDelProject').enable(true);
+        }
+    }
+  
+
+    var prepareCommandProject = function (grid, command, record, row) {
+        if (command.command == "EditProjectt" || command.command == "DeleteProjectt") {
+            if (record.data.ExistsEnter == 1) {
+                command.hidden = true;
+                command.hideMode = 'visibility';
+            }
+            else {
+                command.hidden = false;
+                command.hideMode = 'visibility';
+            }
+        }
+    };
+
+    function ActionsProject(grid, command, record, row) {
+        if (command == 'EditProjectt') {
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/Faces/Project/New',
+                params: {
+                    Id: record.data.fldId
+                },
+                success: function () {
+                    Ext.net.Mask.hide();
+                }
+            });
+        }
+        else if (command == 'DeleteProjectt') {
+            Ext.MessageBox.show({
+                title: "هشدار",
+                msg: "آیا برای حذف مطمئن هستید؟",
+                icon: Ext.MessageBox.WARNING,
+                buttons: Ext.MessageBox.YESNO,
+                fn: function (btn) {
+                    if (btn == 'yes') {
+                        Ext.net.DirectMethod.request({
+                            url: '/Faces/Project/Delete',
+                            params: {
+                                id: record.data.fldId,
+                                TimeStamp: record.data.fldTimeStamp,
+                                __RequestVerificationToken: App.Project.queryById('AntiForgeryField').getValue()
+                            },
+                            success: function (data) {
+                                chat.server.reloadLog();
+                                if (data.Er == 1 && data.Change == 1) {/*vaghti TimeStamp==0*/
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.WARNING,
+                                        buttons: Ext.MessageBox.OK,
+                                        fn: function (btn) {
+                                            if (btn == 'ok') {
+                                                App.Project.queryById('GridProject').store.load()
+                                            }
+                                        }
+                                    });
+                                }
+                                else if (data.Er == 1 && data.Change == 2) {/*vaghti TimeStamp==2*/
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.ERROR,
+                                        buttons: Ext.MessageBox.OK,
+                                        fn: function (btn) {
+                                            if (btn == 'ok') {
+                                                App.Project.queryById('GridProject').store.load()
+                                            }
+                                        }
+                                    });
+                                }
+                                else if (data.Er == 1) {
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.ERROR,
+                                        buttons: Ext.MessageBox.OK
+                                    });
+                                }
+                                else {
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.INFO,
+                                        buttons: Ext.MessageBox.OK
+                                    });
+                                    App.Project.queryById('GridProject').store.load()
+                                }
+                                Ext.net.Mask.hide();
+                            }
+                        });
+                    }
+                }
+            });
+        }
+        else {
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/Faces/Project/ShowInfoProject',
+                params: {
+                    Id: record.data.fldId,
+                    StateAORC: "0",
+                    StatusRequest: "",
+                    UserNameAdmin: "",
+                    PassAdmin: ""
+                }
+            });
+        }
+    }
+
+    function NewProject() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Faces/Project/New',
+            params: {
+                Id: 0
+            },
+            success: function () {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+    function EditProject() {
+        var SelectedRow = App.Project.queryById('GridProject').selModel.getLastSelected();
+        if (SelectedRow != null) {
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/Faces/Project/New',
+                params: {
+                    Id: SelectedRow.data.fldId
+                },
+                success: function () {
+                    Ext.net.Mask.hide();
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفاً یک سطر را انتخاب نمایید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+
+    function DeleteProject() {
+        var SelectedRow1 = App.Project.queryById('GridProject').selModel.getLastSelected();
+        if (SelectedRow1 != null) {
+            Ext.MessageBox.show({
+                title: "هشدار",
+                msg: "آیا برای حذف مطمئن هستید؟",
+                icon: Ext.MessageBox.WARNING,
+                buttons: Ext.MessageBox.YESNO,
+                fn: function (btn) {
+                    if (btn == 'yes') {
+                        Ext.net.DirectMethod.request({
+                            url: '/Faces/Project/Delete',
+                            params: {
+                                Id: SelectedRow1.data.fldId,
+                                __RequestVerificationToken: App.Project.queryById('AntiForgeryField').getValue()
+                            },
+                            success: function (data) {
+                                var ic = Ext.MessageBox.INFO;
+                                if (data.Er == 1)
+                                    ic = Ext.MessageBox.ERROR;
+                                Ext.MessageBox.show({
+                                    title: data.MsgTitle,
+                                    msg: data.Msg,
+                                    icon: ic,
+                                    buttons: Ext.MessageBox.OK
+                                });
+                                App.Project.queryById('GridProject').store.load()
+                            }
+                        });
+                    }
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفاً یک سطر را انتخاب نمایید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+    
+    function VorudBeCharkhe() {
+        var SelectedRow1 = App.Project.queryById('GridProject').selModel.getLastSelected();
+        if (SelectedRow1 != null) {
+            Ext.MessageBox.show({
+                title: "هشدار",
+                msg: "آیا برای ورود به چرخه مطمئن هستید؟",
+                icon: Ext.MessageBox.WARNING,
+                buttons: Ext.MessageBox.YESNO,
+                fn: function (btn) {
+                    if (btn == 'yes') {
+                        Ext.net.DirectMethod.request({
+                            url: '/Faces/FinalCheck/index',
+                            params: {
+                                Title: SelectedRow1.data.fldTitle,
+                                ContractId: SelectedRow1.data.fldId
+                            },
+                            success: function (data) {
+                            }
+                        });
+                    }
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفاً یک سطر را انتخاب نمایید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+    function ShowInfoProject(grid, command, record, row) {
+        if (command == 'InfoProject') {
+            var Id = record.data.fldId;
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/Faces/Project/ShowInfoProject',
+                params: {
+                    Id: record.data.fldId
+                },
+                success: function (data) {
+                    Ext.net.Mask.hide();
+                }
+            });
+        }
+    }
+    function showHelpDirectorate() {
+        Ext.net.DirectMethod.request({
+            url: '/Home/HelpHtml',
+            params: {
+                TableId: 3
+            },
+            success: function (result) {
+                var mybr = document.createElement('br');
+
+                Ext.net.Notification.show({
+                    alignToCfg: {
+                        offset: [150, -30],
+                        position: 'bl-bl',
+                    },
+                    pinned: true,
+                    showPin: true,
+                    modal: true,
+                    bringToFront: true,
+                    pinEvent: 'click',
+                    height: 520,
+                    width: 700,
+                    html: result.HelpHtml,
+                    autoScroll: true,
+                    title: 'راهنمای ثبت پروژه'
+                });
+            }
+        });
+    }
+</script>

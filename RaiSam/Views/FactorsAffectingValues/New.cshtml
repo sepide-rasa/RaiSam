@@ -1,0 +1,621 @@
+﻿@model IEnumerable<RaiSam.Models.prs_SelectAllAvamelMoasser_Upgrade_Effecting>
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+    var perr = false;
+    if (RaiSam.Models.Permission.haveAccess(132,"","0"))/*دسترسی عوامل مؤثر*/
+    {
+        perr = true;
+    }
+}
+<style>
+    .x-mcombo-item-unchecked {
+        background-position: right;
+        padding-right: 20px;
+    }
+
+    .x-mcombo-item-checked {
+        background-position: right;
+        padding-right: 20px;
+    }
+</style>
+
+@(Html.X()
+    .Window()
+    .Modal(true)
+    .Listeners(li =>
+    {
+        li.Resize.Handler = "ResizeGrid()";
+        li.Render.Fn = "addKeyMapFactorsAffectingValues";
+    })
+    .Width(670)
+    .Title("تعریف مقادیر عوامل مؤثر")
+    .ID("NewFactorsAffectingValues")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .ButtonAlign(Ext.Net.Alignment.Center)
+    .Layout(LayoutType.Fit)
+    .Buttons(
+        X.Button()
+            .Text("ذخیره")
+            .Icon(Ext.Net.Icon.Disk)
+            .Listeners(l => l.Click.Handler = "SaveFactorsAffectingValues();"),
+        X.Button()
+            .Text("خروج")
+            .Icon(Ext.Net.Icon.DoorOut)
+            .ToolTip("کلید میانبر Esc")
+            .OnClientClick("App.NewFactorsAffectingValues.hide();"))
+    .Items(
+         X.AntiForgeryField()
+            .ItemID("antiForgeryToken")
+            .Hidden(true),
+        X.Panel()
+            .Border(false)
+            .ItemID("pnlInfo")
+            .Layout(LayoutType.VBox)
+            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+            .Items(
+                X.FieldSet()
+                    .Border(true)
+                    .Title("فیلتر مدرک")
+                    .ItemID("FieldSetFilter")
+                    .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 4 })
+                    .Defaults(new { Margin = 2 })
+                    .Items(
+                        X.Hidden().ItemID("fldId"),
+                        X.Label("عنوان چرخه:"),
+                        X.ComboBox()
+                            .ItemID("CboCharkhe")
+                            .ReadOnly(true)
+                            .TypeAhead(true)
+                            .Editable(true)
+                            .ForceSelection(true)
+                            .QueryMode(DataLoadMode.Local)
+                            .TriggerAction(TriggerAction.All)
+                            .AllowBlank(false)
+                            .BlankText("لطفا چرخه را انتخاب کنید.")
+                            .DisplayField("fldName")
+                            .ValueField("fldId")
+                            .Listeners(l => l.BeforeQuery.Fn = "SearchMatchCombo")
+                            .EmptyText("چرخه...")
+                            .Store(X.Store()
+                                .Listeners(l => l.Load.Handler = "setDefaultCboCharkhe();LoadFactorsAffectingValues();")
+                                .Model(X.Model()
+                                    .IDProperty("fldId")
+                                    .Fields(
+                                        new ModelField("fldId", ModelFieldType.Int) { Mapping = "fldId" },
+                                        new ModelField("fldName", ModelFieldType.String) { Mapping = "fldName" }
+                                        )
+                                )
+                                    .Listeners(l => l.BeforeLoad.Handler = "App.NewFactorsAffectingValues.queryById('CboCharkhe').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.NewFactorsAffectingValues.queryById('antiForgeryToken').getValue());")
+                                    .Proxy(Html.X().AjaxProxy()
+                                        .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                    .Timeout(200000000)
+                                        .Url(Url.Action("GetCharkhe"))
+                                    .Reader(X.JsonReader().Root("data"))
+                                )
+                        ),
+        //X.Label("عنوان:"),
+        //X.TextField()
+        //    .ItemID("txtTitle")
+        //    .ColSpan(3)
+        //    .MaxLength(300)
+        //    .Width(320)
+        //    .EnforceMaxLength(true)
+        //    .AllowBlank(false)
+        //    .BlankText("لطفا عنوان را وارد کنید.")
+        //    .AutoFocus(true),
+                        X.Label("تاریخ اجرا:"),
+                        X.PDateField()
+                            .ItemID("txtExecDate")
+                            .AllowBlank(false)
+                            .ReadOnly(true)
+                            .BlankText("لطفا تاریخ اجرا را وارد کنید.")
+                            .Editable(true)
+                            .MaskRe("/[0-9 /]/")
+                            .Listeners(l =>
+                            {
+                                l.AfterRender.Handler = "SetDefaulttxtExecDate()";
+                                //l.Change.Handler = "SetValidateExecDate()";
+                            })
+                            .MaxLength(10)
+                            .EnforceMaxLength(true),
+        //X.Label("پایه:"),
+        //X.ComboBox()
+        //    .ItemID("CboCareerBase")
+        //    .TypeAhead(true)
+        //    .Editable(true)
+        //    .ForceSelection(true)
+        //    .QueryMode(DataLoadMode.Local)
+        //    .TriggerAction(TriggerAction.All)
+        //    .AllowBlank(false)
+        //    .BlankText("لطفا پایه شغلی را انتخاب کنید.")
+        //    .DisplayField("fldName")
+        //    .ValueField("fldId")
+        //    .Listeners(l => l.BeforeQuery.Fn = "SearchMatchCombo")
+        //    .EmptyText("پایه شغلی...")
+        //    .Store(X.Store()
+        //            .Listeners(l => l.Load.Handler = "setDefaultCboCareerBase();LoadFactorsAffectingValues();")
+        //        .Model(X.Model()
+        //            .IDProperty("fldId")
+        //            .Fields(
+        //                new ModelField("fldId", ModelFieldType.Int) { Mapping = "fldId" },
+        //                new ModelField("fldName", ModelFieldType.String) { Mapping = "fldName" }
+        //                )
+        //        )
+        //        .Proxy(X.AjaxProxy()
+        //            .Timeout(200000000)
+        //            .Url(Url.Action("GetCareerBase"))
+        //            .Reader(X.JsonReader().Root("data"))
+        //        )
+        //),
+                        X.Label("مدرک تحصیلی:"),
+                        X.MultiCombo()
+                            .ItemID("CboDegreeEducation")
+                            .TypeAhead(true)
+        //.Editable(true)
+                            .ForceSelection(true)
+                                .AutoFocus(true)
+
+                            .MultiSelect(true)
+                            .QueryMode(DataLoadMode.Local)
+                            .TriggerAction(TriggerAction.All)
+                            .AllowBlank(false)
+                            .BlankText("لطفا مدرک تحصیلی را انتخاب کنید.")
+                            .DisplayField("fldName")
+                            .ValueField("fldId")
+                            .ColSpan(3)
+                            .Width(348)
+        //.Listeners(l =>{
+        //    l.BeforeQuery.Fn = "SearchMatchCombo";
+        //    l.Focus.Fn = "resetValueCboCareerBase";
+        //})
+                            .EmptyText("مدرک تحصیلی...")
+                            .Store(X.Store()
+        //.Listeners(l => l.Load.Handler = "setDefaultCboDegreeEducation();")
+                                .Model(X.Model()
+                                    .IDProperty("fldId")
+                                    .Fields(
+                                        new ModelField("fldId", ModelFieldType.String) { Mapping = "fldId" },
+                                        new ModelField("fldName", ModelFieldType.String) { Mapping = "fldName" }
+                                        )
+                                )
+                                    .Listeners(l => l.BeforeLoad.Handler = "App.NewFactorsAffectingValues.queryById('CboDegreeEducation').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.NewFactorsAffectingValues.queryById('antiForgeryToken').getValue());")
+                                        .Proxy(Html.X().AjaxProxy()
+                                            .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                    .Timeout(200000000)
+                                    .Url(Url.Action("GetDegree"))
+                                    .Reader(X.JsonReader().Root("data"))
+                                )
+                        )//,
+        //X.Label("توضیحات:"),
+        //X.TextField()
+        //    .ItemID("txtDesc")
+        //    //.Listeners(l=>l.Focus.Fn ="resetValueCboDegreeEducation")
+        //    .ColSpan(3)
+        //    .Width(348)
+                     ),
+                X.GridPanel()
+                    .AutoScroll(true)
+                    .Title("<div>لیست عوامل مؤثر&nbsp;&nbsp<input id=btnnewFactor style='font-family:tahoma;font-size:11px;display: none;' type='button' value='جدید' onclick='javascript:GotoNewFactor()'></div>")
+        //.Title("لیست عوامل مؤثر")
+                    .ItemID("GridFactorsAffecting")
+                    .MarginSpec("0 0 5px 0")
+                    .Frame(true)
+                    .Width(630)
+                        .Listeners(l => l.AfterRender.Handler = "App.NewFactorsAffectingValues.queryById('GridFactorsAffecting').setHeight(App.OperationWin.getHeight() - 290)")
+                    .Store(
+                        X.StoreForModel()
+                            .AutoLoad(false)
+                                .Listeners(l => l.BeforeLoad.Handler = "App.NewFactorsAffectingValues.queryById('GridFactorsAffecting').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.NewFactorsAffectingValues.queryById('antiForgeryToken').getValue());")
+                                    .Proxy(Html.X().AjaxProxy()
+                                .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                .Url(Url.Action("ReadFactorsAffecting"))
+                                .Reader(Html.X().JsonReader().Root("data"))
+        //.ExtraParams(x => x.Add(new { HeaderId = @ViewBag.HeaderId }))
+                                )
+                            .RemoteFilter(false)
+                            .RemotePaging(false)
+                    )
+                    .View(
+                        Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                    )
+                    .Plugins(Html.X().CellEditing().ClicksToEdit(1)
+                     .Listeners(l =>
+                            {
+                                l.Edit.Fn = "nextcellRowFactorsAffecting";
+                                l.BeforeEdit.Fn = "LockOn";
+                            }
+                    ))
+                    .Plugins(X.FilterHeader().Remote(false))
+                    .ColumnModel(
+                        Html.X().RowNumbererColumn(),
+                        Html.X().Column().DataIndex(Model, m => m.fldId).Text("کد").Hidden(true).Flex(1),
+                        Html.X().Column().DataIndex(Model, m => m.fldIdFactorDatail).Text("کد جزئیات").Hidden(true).Flex(1),
+                        Html.X().Column().DataIndex(Model, m => m.fldName).Text("عنوان").Flex(5).Wrap(true),
+                        Html.X().Column().DataIndex(Model, m => m.fldEnglishNameFormul).Text("نام انگلیسی در فرمول").Flex(4),
+                        Html.X().Column().DataIndex(Model, m => m.fldValue).Text("مقدار").Flex(5).Editor(
+                            Html.X().TextField()
+                                .ItemID("txtValue").MaxLength(200).EnforceMaxLength(true).EnableKeyEvents(true)
+                                .Listeners(l => l.SpecialKey.Handler = "checkhintkeyFactorsAffecting(e.getKey())")
+
+                        )
+                    )
+                    .SelectionModel(
+                        Html.X().CheckboxSelectionModel().PruneRemoved(false)
+                        .ShowHeaderCheckbox(false)
+                            .Mode(SelectionMode.Multi).CheckOnly(true))
+                )
+        )
+)
+<script type="text/javascript">
+    var HintEnterFactorsAffecting = 0;
+
+    var LockOn = function (editor, e) {
+        App.NewFactorsAffectingValues.queryById("GridFactorsAffecting").getSelectionModel().setLocked(true);
+        /*App.NewFactorsAffectingValues.queryById("GridFactorsAffecting").getView().focusRow(e.rowIdx);*/
+    };
+
+    /*var LockOff = function (a, b) {
+        App.NewFactorsAffectingValues.queryById("GridFactorsAffecting").getSelectionModel().setLocked(false);
+        App.NewFactorsAffectingValues.queryById("GridFactorsAffecting").getView().focusRow(b.rowIdx);
+    };*/
+
+    var SearchMatchCombo = function (record) {
+        return record.query = new RegExp(record.query.replace("(", "[(]").replace(")", "[)]"), 'i');
+    };
+
+    function checkhintkeyFactorsAffecting(e) {
+        if (e == 13) {
+            HintEnterFactorsAffecting = 1;
+        }
+    };
+
+    var nextcellRowFactorsAffecting = function (a, b) {
+        if (b.field == "fldValue") {
+            if (HintEnterFactorsAffecting == 1) {
+                HintEnterFactorsAffecting = 0;
+                if (b.rowIdx == App.NewFactorsAffectingValues.queryById("GridFactorsAffecting").store.count() - 1) {
+                    if (b.record.data.fldValue != "") {
+                        App.NewFactorsAffectingValues.queryById("GridFactorsAffecting").getSelectionModel().setLocked(false);
+                        App.NewFactorsAffectingValues.queryById("GridFactorsAffecting").getSelectionModel().select(b.rowIdx, true);
+                        SaveFactorsAffectingValues();
+                    }
+                    else {
+                        App.NewFactorsAffectingValues.queryById("GridFactorsAffecting").getSelectionModel().setLocked(false);
+                        App.NewFactorsAffectingValues.queryById("GridFactorsAffecting").getSelectionModel().deselect(b.rowIdx, true);
+                        SaveFactorsAffectingValues();
+                    }
+                }
+                else {
+                    if (b.record.data.fldValue != "") {
+                        App.NewFactorsAffectingValues.queryById("GridFactorsAffecting").getSelectionModel().setLocked(false);
+                        App.NewFactorsAffectingValues.queryById("GridFactorsAffecting").getSelectionModel().select(b.rowIdx, true);
+                    }
+                    else {
+                        App.NewFactorsAffectingValues.queryById("GridFactorsAffecting").getSelectionModel().setLocked(false);
+                        App.NewFactorsAffectingValues.queryById("GridFactorsAffecting").getSelectionModel().deselect(b.rowIdx, true);
+                    }
+                    App.NewFactorsAffectingValues.queryById("GridFactorsAffecting").editingPlugin.startEdit(b.rowIdx + 1, 4);
+                }
+            }
+            else {
+                if (b.record.data.fldValue != "") {
+                    App.NewFactorsAffectingValues.queryById("GridFactorsAffecting").getSelectionModel().setLocked(false);
+                    App.NewFactorsAffectingValues.queryById("GridFactorsAffecting").getSelectionModel().select(b.rowIdx, true);
+                }
+                else {
+                    App.NewFactorsAffectingValues.queryById("GridFactorsAffecting").getSelectionModel().setLocked(false);
+                    App.NewFactorsAffectingValues.queryById("GridFactorsAffecting").getSelectionModel().deselect(b.rowIdx, true);
+                }
+            }
+        }
+    };
+
+    /*var resetValueCboCareerBase = function (Fieldd, Eventt) {
+        if (App.NewFactorsAffectingValues.queryById("CboCareerBase").value == null) {
+            if (App.NewFactorsAffectingValues.queryById("CboCareerBase").getPicker().highlightedItem == undefined) {
+                App.NewFactorsAffectingValues.queryById("CboCareerBase").reset();
+                App.NewFactorsAffectingValues.queryById("CboCareerBase").validate();
+            }
+        }
+    };*/
+
+    /*var resetValueCboDegreeEducation = function (Fieldd, Eventt) {
+        if (App.NewFactorsAffectingValues.queryById("CboDegreeEducation").value == null) {
+            if (App.NewFactorsAffectingValues.queryById("CboDegreeEducation").getPicker().highlightedItem == undefined) {
+                App.NewFactorsAffectingValues.queryById("CboDegreeEducation").reset();
+                App.NewFactorsAffectingValues.queryById("CboDegreeEducation").validate();
+            }
+        }
+    };*/
+
+    function GotoNewFactor(grid, command, record, rowIndex) {
+        App.NewFactorsAffectingValues.body.mask("در حال بارگذاری...");
+        Ext.net.DirectMethod.request({
+            url: '/AvamelMoasser_Upgrade/New',
+            params: {
+                id: 0
+            },
+            success: function (data) {
+                App.NewFactorsAffectingValues.body.mask().hide();
+            }
+        });
+    };
+
+    function SetDefaulttxtExecDate() {
+        App.NewFactorsAffectingValues.queryById("txtExecDate").setRawValue('@ViewBag.fldTarikh');
+    }
+
+    @*function SetValidateExecDate() {
+        if ('@ViewBag.HeaderId' == "0") {
+            if (App.NewFactorsAffectingValues.queryById("txtExecDate").getRawValue().length == 10) {
+                Ext.net.DirectMethod.request({
+                    url: '/FactorsAffectingValues/GetLastDate',
+                    success: function (data) {
+                        if (data.MinDate != "") {
+                            App.NewFactorsAffectingValues.queryById("txtExecDate").setMinValue(new Date(data.MinDate));
+                            App.NewFactorsAffectingValues.queryById("txtExecDate").validate();
+                            App.NewFactorsAffectingValues.queryById("txtExecDate").minText = 'تاریخ اجرا باید بزرگتر از آخرین تاریخ اجرای ثبت شده باشد.';
+                        }
+                    }
+                });
+            }
+        }
+    }*@
+
+    function ResizeGrid() {
+        App.NewFactorsAffectingValues.queryById('pnlInfo').setSize(App.NewFactorsAffectingValues.getWidth() - 12, App.NewFactorsAffectingValues.getHeight() - 61);
+        App.NewFactorsAffectingValues.queryById('GridFactorsAffecting').setSize(App.NewFactorsAffectingValues.getWidth() - 40, App.NewFactorsAffectingValues.getHeight() - 148);
+    }
+
+    @*function setDefaultCboCareerBase() {
+        if ('@ViewBag.HeaderId' == "0") {
+            App.NewFactorsAffectingValues.queryById("CboCareerBase").setValue(App.NewFactorsAffectingValues.queryById("CboCareerBase").store.getAt(0));
+        }
+    }*@
+
+    function setDefaultCboCharkhe() {
+        App.NewFactorsAffectingValues.queryById("CboCharkhe").setValue(parseInt('@ViewBag.CharkheId'));
+    }
+
+    @*function setDefaultCboDegreeEducation() {
+        if ('@ViewBag.HeaderId' == "0") {
+            App.NewFactorsAffectingValues.queryById("CboDegreeEducation").setValue(App.NewFactorsAffectingValues.queryById("CboDegreeEducation").store.getAt(0));
+        }
+    }*@
+
+    function LoadFactorsAffectingValues() {
+        if ('@ViewBag.DegreeIds' != '') {
+            @*App.NewFactorsAffectingValues.body.mask("در حال بارگذاری...");
+            Ext.net.DirectMethod.request({
+                url: '/FactorsAffectingValues/Details_Group',
+                params: {
+                    Id: '@ViewBag.DetailId'
+                },
+                success: function (data) {
+                    /*var txtTitle = App.NewFactorsAffectingValues.queryById('txtTitle');
+                    txtTitle.setValue(data.fldTitle);*/
+
+                    /*var CboCharkhe = App.NewFactorsAffectingValues.queryById('CboCharkhe');
+                    CboCharkhe.setValue(data.fldCharkheId).focus();
+
+                    var txtExecDate = App.NewFactorsAffectingValues.queryById('txtExecDate');
+                    txtExecDate.setRawValue(data.fldTarikh);*/
+
+                    /*var CboCareerBase = App.NewFactorsAffectingValues.queryById('CboCareerBase');
+                    CboCareerBase.setValue(data.fldAnvePayeId);*/
+
+                    var CboDegreeEducation = App.NewFactorsAffectingValues.queryById('CboDegreeEducation');
+                    CboDegreeEducation.setValue(data.fldDegreeEducationId);
+
+                    /*var txtDesc = App.NewFactorsAffectingValues.queryById('txtDesc');
+                    txtDesc.setValue(data.fldDesc);*/
+
+                    var Id = App.NewFactorsAffectingValues.queryById('fldId');
+                    Id.setValue(data.fldId);
+                    App.NewFactorsAffectingValues.body.mask().hide();
+                }
+            });*@
+            var CboDegreeEducation = App.NewFactorsAffectingValues.queryById('CboDegreeEducation');
+            CboDegreeEducation.setValue('@ViewBag.DegreeIds'.split(';'));
+            LoadGridFactorsAffecting();
+        }
+        else {
+            App.NewFactorsAffectingValues.queryById('CboDegreeEducation').validate();
+            /*App.NewFactorsAffectingValues.queryById('CboCareerBase').validate();*/
+            App.NewFactorsAffectingValues.queryById('txtExecDate').validate();
+            App.NewFactorsAffectingValues.queryById('CboCharkhe').validate();
+            /*App.NewFactorsAffectingValues.queryById('txtTitle').validate();*/
+            App.NewFactorsAffectingValues.queryById('GridFactorsAffecting').getStore().getProxy().setExtraParam("HeaderId", 0);
+            App.NewFactorsAffectingValues.queryById('GridFactorsAffecting').store.load();
+            Ext.net.Mask.hide();
+        }
+        /* App.NewFactorsAffectingValues.queryById('GridFactorsAffecting').getStore().getProxy().setExtraParam("HeaderId", 'ViewBag.HeaderId');
+         App.NewFactorsAffectingValues.queryById('GridFactorsAffecting').store.load();*/
+    }
+    function LoadGridFactorsAffecting() {
+        var HeaderRow = App.FactorsAffectingValues.queryById('GridFactorsAffectingValues').getSelectionModel().getLastSelected();
+        App.NewFactorsAffectingValues.body.mask("در حال بارگذاری...");
+        Ext.net.DirectMethod.request({
+            url: '/FactorsAffectingValues/LoadDataFactorsAffecting',
+            params: {
+                HeaderId: HeaderRow.data.fldId,
+                DegreeIds: '@ViewBag.DegreeIds',
+                __RequestVerificationToken: App.NewFactorsAffectingValues.queryById('antiForgeryToken').getValue()
+            },
+            success: function (result) {
+                App.NewFactorsAffectingValues.queryById('GridFactorsAffecting').store.loadData(result.Data);
+                if (result.checkId != null) {
+                    for (var j = 0; j < result.checkId.length; j++) {
+                        var index2 = App.NewFactorsAffectingValues.queryById('GridFactorsAffecting').getStore().findExact("fldIdFactorDatail", result.checkId[j]);
+                        App.NewFactorsAffectingValues.queryById('GridFactorsAffecting').getSelectionModel().select(index2, true);
+                    }
+                    if (j == result.checkId.length) {
+                        App.NewFactorsAffectingValues.queryById('CboDegreeEducation').focus();
+                    }
+                }
+                App.NewFactorsAffectingValues.body.mask().hide();
+            }
+        });
+    }
+
+    function SaveFactorsAffectingValues() {
+        /*var CboCharkhe = App.NewFactorsAffectingValues.queryById('CboCharkhe');*/
+        /*var txtTitle = App.NewFactorsAffectingValues.queryById('txtTitle');*/
+        /*var txtExecDate = App.NewFactorsAffectingValues.queryById('txtExecDate');*/
+        /*var CboCareerBase = App.NewFactorsAffectingValues.queryById('CboCareerBase');*/
+        var CboDegreeEducation = App.NewFactorsAffectingValues.queryById('CboDegreeEducation');
+        /*var txtDesc = App.NewFactorsAffectingValues.queryById('txtDesc');*/
+        /*var Id = App.NewFactorsAffectingValues.queryById('fldId');*/
+        var SelectedHeader = App.FactorsAffectingValues.queryById('GridFactorsAffectingValues').selModel.getLastSelected();
+        var Grid = App.NewFactorsAffectingValues.queryById('GridFactorsAffecting');
+        var GridRow = Grid.getSelectionModel().getSelection();
+
+        var DetailsArray = new Array();
+        var er = false;
+
+        /*if (txtTitle.validate() == false) {
+            er = true;
+        }*/
+        /*if (txtExecDate.validate() == false) {
+            er = true;
+        }*/
+        /*if (CboCareerBase.validate() == false) {
+            er = true;
+        }*/
+        if (CboDegreeEducation.validate() == false) {
+            er = true;
+        }
+        /*if (CboCharkhe.validate() == false) {
+            er = true;
+        }*/
+
+        if (er == true)
+            return;
+
+        if (GridRow.length == 0) {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا حداقل یک  عامل را انتخاب نمایید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+            return;
+        }
+        var DegreeIds = "";
+        for (var j = 0; j < CboDegreeEducation.getValue().length; j++) {
+            DegreeIds = DegreeIds + CboDegreeEducation.getValue()[j] + ";";
+            for (var i = 0; i < GridRow.length ; i++) {
+                if (GridRow[i].data.fldValue == "") {
+                    Ext.MessageBox.show({
+                        title: "خطا",
+                        msg: "لطفا مقادیر را وارد کنید.",
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK
+                    });
+                    return;
+                }
+                else {
+                    DetailsArray.push({
+                        "fldId": GridRow[i].data.fldIdFactorDatail,
+                        "fldAvamelUpgradeId": GridRow[i].data.fldId,
+                        "fldValue": GridRow[i].data.fldValue,
+                        "fldDegreeEducationId": CboDegreeEducation.getValue()[j]
+                    });
+                }
+            }
+        }
+
+        var data = {
+            /*fldId: Id.getValue(),*/
+            HeaderId: SelectedHeader.data.fldId,
+            EditDegreeIds: '@ViewBag.DegreeIds',
+            NewDegreeIds: DegreeIds,
+            /*fldTitle: txtTitle.getValue(),*/
+            /*fldTarikh: txtExecDate.getRawValue(),*/
+            /*fldAnvePayeId:CboCareerBase.getValue(),*/
+            /*fldDesc: txtDesc.getValue(),*/
+            /*fldCharkheId: CboCharkhe.getValue(),*/
+            DetailsArray1: JSON.stringify(DetailsArray),
+            __RequestVerificationToken: App.NewFactorsAffectingValues.queryById('antiForgeryToken').getValue()
+        };
+        App.NewFactorsAffectingValues.body.mask("در حال ذخیره سازی");
+        $.ajax({
+            type: "POST",
+            url: '/FactorsAffectingValues/Save',
+            datatype: "json",
+            data: data,
+            /*contentType: 'application/json',*/
+            success: function (result) {
+                chat.server.reloadLog();
+                var ic = Ext.MessageBox.INFO;
+                if (result.Er == 1)
+                    ic = Ext.MessageBox.ERROR;
+                Ext.MessageBox.show({
+                    title: result.MsgTitle,
+                    msg: result.Msg,
+                    icon: ic,
+                    buttons: Ext.MessageBox.OK,
+                    fn: function (btn) {
+                        if (btn == "ok") {
+                            if ('@ViewBag.DegreeIds' != "") {
+                                App.NewFactorsAffectingValues.destroy();
+                            }
+                            else {
+                                App.NewFactorsAffectingValues.queryById('CboDegreeEducation').focus();
+                            }
+                        }
+                    }
+                });
+                /*App.FactorsAffectingValues.queryById('GridFactorsAffectingValues').store.load();*/
+                App.FactorsAffectingValues.queryById('GridFactorsAffectingValuesDetail').getStore().getProxy().setExtraParam("HeaderId", SelectedHeader.data.fldId);
+                App.FactorsAffectingValues.queryById('GridFactorsAffectingValuesDetail').store.load();
+                App.NewFactorsAffectingValues.body.mask().hide();
+                if (result.Er != 1)
+                    ClearFactorsAffectingValues();
+            },
+            failure: function () {
+            }
+        });
+    }
+
+    function ClearFactorsAffectingValues() {
+        /*App.NewFactorsAffectingValues.queryById('txtTitle').setValue("");*/
+        /*App.NewFactorsAffectingValues.queryById('txtExecDate').setRawValue("");*/
+        /*App.NewFactorsAffectingValues.queryById('txtDesc').setValue("");*/
+        /*App.NewFactorsAffectingValues.queryById('fldId').setValue(0);*/
+        App.NewFactorsAffectingValues.queryById('GridFactorsAffecting').getStore().getProxy().setExtraParam("HeaderId", 0);
+        App.NewFactorsAffectingValues.queryById('GridFactorsAffecting').store.load();
+    }
+
+    var addKeyMapFactorsAffectingValues = function (cmp) {
+        if ('@perr' == 'True') {
+            $('#btnnewFactor').show();
+        }
+        this.keyMap = new Ext.util.KeyMap({
+            target: cmp.getEl(),
+            binding: [{
+                key: [13, 9], /*Ext.EventObject.ENTER,*/
+                fn: function (key, e) {
+                    if (e.getKey() == 9) {
+                        e.stopEvent();
+                    }
+                    var keyfield = App.NewFactorsAffectingValues.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+                    var nextfld;
+                    if (keyfield.itemId == "CboDegreeEducation") {
+                        App.NewFactorsAffectingValues.queryById("GridFactorsAffecting").editingPlugin.startEdit(0, 4);
+                        return;
+                    }
+                    else {
+                        nextfld = keyfield.nextSibling().nextSibling();
+                    }
+                    nextfld.focus();
+                    nextfld.selectText();
+                }
+            }]
+        });
+    };
+</script>

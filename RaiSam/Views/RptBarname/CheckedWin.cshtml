@@ -1,0 +1,290 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+
+<style>
+    #fieldsetfileAc legend {
+        text-align: right;
+        font-family: Tahoma !important;
+    }
+
+    #DeleteActionFileimg:hover {
+        cursor: pointer;
+    }
+</style>
+@(Html.X().Window().Modal(true).Listeners(li => { li.Render.Fn = "addKeyMapCheckedWin";  })
+.Width(450)//.Height(300)
+    .Title("موارد خروجی")
+        .ID("CheckedWin")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+        .ButtonAlign(Ext.Net.Alignment.Center)
+        .Buttons(X.Button().Text("اکسل").Icon(Ext.Net.Icon.PageExcel)
+            .Listeners(l =>
+            {
+                l.Click.Handler = "GOtOExcel();";
+
+            })
+            .ItemID("btnSaveCheckedWin"),
+            X.Button().Text("pdf").Icon(Ext.Net.Icon.PageWhiteAcrobat)
+            .Listeners(l =>
+            {
+                l.Click.Handler = "GOtOpdf();";
+
+            })
+                .Hidden(ViewBag.IsMalek==1)
+            ,
+            X.Button().Text("خروج").Icon(Ext.Net.Icon.DoorOut).ToolTip("کلید میانبر Esc")
+                  .OnClientClick("App.CheckedWin.destroy();"))
+    .Items(
+        X.AntiForgeryField()
+                .ItemID("antiForgeryToken").Hidden(true),
+                X.FormPanel().Border(false)
+                    .Layout(Ext.Net.LayoutType.VBox)
+                        .LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Center })
+
+            .Items(
+                X.FieldSet().Border(false)
+                .Center()
+                .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 4 })
+                .Defaults(new { Margin = 2 })
+                .Items(
+                       X.FieldSet()
+                        .Border(false)
+                        .Layout(LayoutType.HBox)
+                        .ColSpan(2)
+                             .Padding(0)
+
+                        .Items(
+                            X.Checkbox()
+                                .ItemID("chkJozeeM").Checked(true)
+                               // .PaddingSpec("0 0px 0 7px")
+                                ,
+                            X.Label("جزئی هر ماه").Width(70)),
+                            
+                         X.FieldSet()
+                        .Border(false)
+                        .Layout(LayoutType.HBox)
+                        .ColSpan(2)
+                             .Padding(0)
+
+                        .Items(
+                                X.Checkbox()
+                                        .ItemID("chkKoliM").Checked(true)
+                                .PaddingSpec("0 51px 0 7px")
+                                ,
+                            X.Label("کلی هر ماه"))
+                            ,
+                           X.FieldSet()
+                            .Border(false)
+                            .Layout(LayoutType.HBox)
+                            .ColSpan(2)
+                                 .Padding(0)
+
+                            .Items(
+                                X.Checkbox()
+                                        .ItemID("chkJozeeF").Checked(true)
+                                   // .PaddingSpec("0 51px 0 7px")
+                                    ,
+                                X.Label("جزئی هر فصل")),
+
+                             X.FieldSet()
+                            .Border(false)
+                            .Layout(LayoutType.HBox)
+                            .ColSpan(2)
+                                 .Padding(0)
+
+                            .Items(
+                                    X.Checkbox()
+                                            .ItemID("chkKoliF").Checked(true)
+                                    .PaddingSpec("0 51px 0 7px")
+                                    ,
+                                    X.Label("کلی هر فصل").Width(70))
+                                ,
+                        X.FieldSet()
+                        .Border(false)
+                        .Layout(LayoutType.HBox)
+                        .ColSpan(2)
+                             .Padding(0)
+
+                        .Items(
+                            X.Checkbox()
+                                    .ItemID("chkJozeeY").Checked(true)
+                               // .PaddingSpec("0 51px 0 7px")
+                                ,
+                            X.Label("جزئی هر سال")),
+                            
+                         X.FieldSet()
+                        .Border(false)
+                        .Layout(LayoutType.HBox)
+                        .ColSpan(2)
+                             .Padding(0)
+
+                        .Items(
+                                X.Checkbox()
+                                        .ItemID("chkKoliY").Checked(true)
+                                .PaddingSpec("0 51px 0 7px")
+                                ,
+                            X.Label("کلی هر سال"))
+                            
+                            )
+                )
+        )
+)
+
+<script type="text/javascript">
+
+
+    function GOtOExcel() {
+
+        App.CheckedWin.body.mask("در حال بارگذاری...");
+        Ext.net.DirectMethod.request({
+            url: "/RptBarname/SaveToSafDl",
+            params: {
+                sal: '@ViewBag.sal',
+                Tasal: '@ViewBag.Tasal',
+                MalekId: '@ViewBag.MalekId',
+                ContractId: '@ViewBag.ContractId',
+                ShVagon: '@ViewBag.ShVagon',
+                AzVagon: '@ViewBag.AzVagon',
+                TaVagon: '@ViewBag.TaVagon',
+                TypeVagon: '@ViewBag.TypeVagon',
+                State: '@ViewBag.State',
+                JozeeM: App.CheckedWin.queryById('chkJozeeM').getValue(),
+                KoliM: App.CheckedWin.queryById('chkKoliM').getValue(),
+                JozeeF: App.CheckedWin.queryById('chkJozeeF').getValue(),
+                KoliF: App.CheckedWin.queryById('chkKoliF').getValue(),
+                JozeeY: App.CheckedWin.queryById('chkJozeeY').getValue(),
+                KoliY: App.CheckedWin.queryById('chkKoliY').getValue()
+            },
+            success: function (data) {
+
+                Ext.MessageBox.show({
+                    title: "عملیات موفق",
+                    msg: data.msg,
+                    icon: Ext.MessageBox.INFO,
+                    buttons: Ext.MessageBox.OK
+                });
+            }
+        });
+
+ 
+                @*$.ajax({
+                    type: "POST",
+                    dataType: 'native',
+                    url: "/RptBarname/GenerateXlsGroup",
+                    xhrFields: {
+                        responseType: 'blob'
+                    },
+                    data: {
+                        sal: '@ViewBag.sal',
+                        Tasal: '@ViewBag.Tasal',
+                        MalekId: '@ViewBag.MalekId',
+                        ContractId: '@ViewBag.ContractId',
+                        ShVagon: '@ViewBag.ShVagon',
+                        AzVagon: '@ViewBag.AzVagon',
+                        TaVagon: '@ViewBag.TaVagon',
+                        TypeVagon: '@ViewBag.TypeVagon',
+                        State: '@ViewBag.State',
+                        JozeeM: App.CheckedWin.queryById('chkJozeeM').getValue(),
+                        KoliM: App.CheckedWin.queryById('chkKoliM').getValue(),
+                        JozeeF: App.CheckedWin.queryById('chkJozeeF').getValue(),
+                        KoliF: App.CheckedWin.queryById('chkKoliF').getValue(),
+                        JozeeY: App.CheckedWin.queryById('chkJozeeY').getValue(),
+                        KoliY: App.CheckedWin.queryById('chkKoliY').getValue()
+                    },
+                    success: function (blob) {
+                        x = blob;
+                        var link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = "AllFile" + '@ViewBag.sal' + "_" + '@ViewBag.Tasal' + ".xlsx";
+                        link.click();
+                        App.CheckedWin.body.mask().hide();
+                    },
+                    timeout: 720000000
+                });*@
+
+
+        /*  Ext.net.DirectMethod.request({
+       url: '/RptBarname/ProgressWin',
+       params: {
+           k: 0
+       },
+       success: function (data) {
+
+
+
+            }
+        });*/
+        
+
+
+    }
+    function GOtOpdf() {
+        App.CheckedWin.body.mask("در حال بارگذاری...");
+       /* Ext.net.DirectMethod.request({
+            url: '/RptBarname/ProgressWin',
+            params: {
+                k: 0
+            },
+            success: function (data) {*/
+        $.ajax({
+            type: "POST",
+            dataType: 'native',
+            url: "/RptBarname/GeneratePDFGroup",
+            xhrFields: {
+                responseType: 'blob'
+            },
+            data: {
+                sal: '@ViewBag.sal',
+                Tasal: '@ViewBag.Tasal',
+                MalekId: '@ViewBag.MalekId',
+                ContractId: '@ViewBag.ContractId',
+                ShVagon: '@ViewBag.ShVagon',
+                AzVagon: '@ViewBag.AzVagon',
+                TaVagon: '@ViewBag.TaVagon',
+                TypeVagon: '@ViewBag.TypeVagon',
+                State: '@ViewBag.State',
+                JozeeM: App.CheckedWin.queryById('chkJozeeM').getValue(),
+                KoliM: App.CheckedWin.queryById('chkKoliM').getValue(),
+                JozeeF: App.CheckedWin.queryById('chkJozeeF').getValue(),
+                KoliF: App.CheckedWin.queryById('chkKoliF').getValue(),
+                JozeeY: App.CheckedWin.queryById('chkJozeeY').getValue(),
+                KoliY: App.CheckedWin.queryById('chkKoliY').getValue()
+            },
+            success: function (blob) {
+                x = blob;
+                var link = document.createElement('a');
+                link.href = window.URL.createObjectURL(blob);
+                link.download = "AllFile" + '@ViewBag.sal' + "_" + '@ViewBag.Tasal' + ".fpx";
+                link.click();
+                App.CheckedWin.body.mask().hide();
+            },
+            timeout: 7200000
+        });
+        /*    }
+        });*/
+    }
+
+    var addKeyMapCheckedWin = function (cmp) {
+        this.keyMap = new Ext.util.KeyMap({
+            target: cmp.getEl(),
+            binding: [{
+                key: [13, 9], /*Ext.EventObject.ENTER,*/
+                fn: function (key, e) {
+                    if (e.getKey() == 9) {
+                        e.stopEvent();
+                    }
+                    var keyfield = App.CheckedWin.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+                    var nextfld= keyfield.nextSibling().nextSibling();
+
+                    nextfld.focus();
+                    nextfld.selectText();
+                }
+            }]
+        });
+    }
+</script>

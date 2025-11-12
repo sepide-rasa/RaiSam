@@ -1,0 +1,370 @@
+﻿@model IEnumerable<RaiSam.Models.prs_tblRegistrationFirstContractSelect>
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+<script>
+    Ext.net.FilterHeader.behaviour.string[0].match = function (recordValue, matchValue) {
+        return (Ext.net.FilterHeader.behaviour.getStrValue(recordValue) || "").indexOf(matchValue) > -1;
+    };
+
+    Ext.net.FilterHeader.behaviour.string[0].getStrValue = function (value) {
+        return value.toString();
+    };
+
+    Ext.net.FilterHeader.behaviour.string[0].serialize = function (value) {
+        return {
+            type: "string",
+            op: "*",
+            value: value
+        };
+    };
+</script>
+<style>
+    .titlebold {
+        font-weight: bold;
+        font-size: 12px;
+        color: ThreeDDarkShadow;
+    }
+
+    .wrap-lable {
+        word-wrap: break-word;
+    }
+</style>
+@(Html.X().Window()
+    .Modal(true)
+    .ID("TaiidMarhaleWin")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Layout(LayoutType.Fit)
+        .Listeners(l =>
+        {
+            l.AfterRender.Handler = "SetSizeTaiidMarhale()";
+            //l.Render.Fn = "addKeyMapTaiidMarhale";
+        })
+        //    .Title("تایید مرحله(نام اقدام: " + @ViewBag.EghdamTitle + " )")
+                    .Title("تایید مرحله")
+                .ButtonAlign(Ext.Net.Alignment.Center)
+    .Buttons(X.Button().Text("تایید").Icon(Ext.Net.Icon.Disk)
+                .Listeners(l =>
+                {
+                    l.Click.Handler = "BeforeSaveTaiid();";
+
+                })
+                                            .ItemID("btnSaveTaiidMarhale")
+                ,
+                X.Button().Text("خروج").Icon(Ext.Net.Icon.DoorOut).ToolTip("کلید میانبر Esc")
+                                                    .OnClientClick("App.TaiidMarhaleWin.hide();")
+                                                    )
+    .Items(
+        X.AntiForgeryField().ItemID("antiForgeryToken").Hidden(true),
+        X.Panel()
+            .Border(false)
+            .AutoScroll(true)
+            .Layout(LayoutType.VBox)
+            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+            .Items(
+             X.FieldSet()
+                        .Border(false)
+                    .Defaults(new { Margin = 2 })
+                        .Layout(LayoutType.HBox)
+                    .Items(
+                    X.Label("با تایید این مرحله، پرونده به یک گام جلوتر منتقل می شود.")
+                    )
+                    ,
+                            X.FieldSet()
+                                .ItemID("Etelaat")
+                                    .Border(true)
+                                    .Title("مشخصات اقدام")
+                                    .Center()
+                                    .Layout(LayoutType.HBox)
+                                    .Items(
+                                        X.FieldSet()
+                                            .Border(false)
+                                            .Center()
+                                            .Width(800)
+                                            .Padding(0)
+                                            .Margin(0)
+                                            .Layout(LayoutType.VBox)
+                                            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Right })
+                                            .Items(
+                                                X.FieldSet()
+                                                    .Layout(LayoutType.HBox)
+                                                    .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                                                    .Border(false)
+                                                    .Padding(0)
+                                                    .Width(750)
+                                                    .Items(
+                                                        X.Label()
+                                                            .Text("نام کارتابل:")
+                                                            .Cls("titlebold"),
+                                                        X.Label()
+                                                            .Width(250)
+                                                            .Text(@ViewBag.cartableTitle)
+                                                            .PaddingSpec("0 0 0 5px")
+                                                            .Height(18)
+                                                                .Cls("wrap-lable"),
+                                                            X.Label()
+                                                                .Text("نام اقدام:")
+                                                                .Cls("titlebold"),
+                                                            X.Label()
+                                                                .Width(180)
+                                                                    .Text(@ViewBag.EghdamTitle)
+                                                                .Height(18)
+                                                                .PaddingSpec("0 0 0 5px")
+                                                                .Cls("wrap-lable"),
+                                                            X.Label().Hidden(@ViewBag.NameCharkhe == "")
+                                                            .Text("نام چرخه:")
+                                                            .Cls("titlebold"),
+                                                            X.Label().Hidden(@ViewBag.NameCharkhe == "")
+                                                            .Width(210)
+                                                            .Text(@ViewBag.NameCharkhe)
+                                                            .Height(18)
+        // .PaddingSpec("0 0 0 5px")
+                                                            .Cls("wrap-lable")
+                                                        )
+                                                        )
+                                                        ),
+                                            X.FieldSet()
+                                .Border(true)
+                                    .Title("مشخصات درخواست")
+                                              .ItemID("SingleP")
+                                .Center()
+                                .Layout(LayoutType.HBox)
+                                    .Items(
+                                        X.FieldSet()
+                                            .Border(false)
+                                            .Center()
+                                            .Width(800)
+                                            .Padding(0)
+                                            .Margin(0)
+                                            .Layout(LayoutType.VBox)
+                                            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Right })
+                                            .Items(
+                                                X.FieldSet()
+                                                    .Layout(LayoutType.HBox)
+                                                    .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                                                    .Border(false)
+                                                    .Padding(0)
+                                                    .Width(725)
+                                                    .Items(
+                                                        X.Label()
+                                                            .Text("عنوان:")
+                                                            .Cls("titlebold"),
+                                                        X.Label()
+                                                            .Width(410)
+                                                            .ItemID("NameRequest")
+                                                            .Text("")
+                                                            .PaddingSpec("0 0 0 5px")
+                                                            .Height(18)
+                                                            .Cls("wrap-lable")
+                                                        )
+
+                                            )
+                                            ),
+                                X.FieldSet()
+                                .ItemID("GroupP")
+                                .Border(true)
+                                    .Title("درخواست ها")
+        //.Defaults(new { Margin = 2 })
+                                .Layout(LayoutType.Fit)
+                            .Items(
+                                     X.GridPanel()
+                                .AutoScroll(true)
+                                .Frame(true)
+                                .ItemID("GridListRequest")
+                                .Listeners(l => l.AfterRender.Handler = "LoadSelectedRequest()")
+                                .Store(
+                                    X.StoreForModel()
+                                    .AutoLoad(false)
+                                        .Proxy(Html.X().AjaxProxy()
+                                                .Url(Url.Action("ReadRequest"))
+                                            .Reader(Html.X().JsonReader().Root("data"))
+        // .ExtraParams(ex => ex.Add(new { PersonalLocoId = @ViewBag.PersonalLocoId }))
+                                    )
+                                    .PageSize(20000)
+                                    .RemoteFilter(false)
+                                    .RemotePaging(false)
+                                                .Listeners(l => l.DataChanged.Handler = "App.TaiidMarhaleWin.queryById('GridListRequest').selModel.refresh();")
+                                )
+                                     .View(
+                                        Html.X().GridView()
+                                        .LoadingText("در حال بارگذاری...").RTL(true)
+                                    )
+                                .Plugins(X.FilterHeader().Remote(false))
+                                .ColumnModel(
+                                        Html.X().RowNumbererColumn(),
+                                        Html.X().Column().DataIndex(Model, m => m.fldId).Text("ContractId").Flex(1).Hidden(true),
+                                                Html.X().Column().DataIndex(Model, m => m.fldRequestId).Text("firstکد").Flex(1).Hidden(true),
+                                         Html.X().Column().DataIndex(Model, m => m.fldTitle).Text("عنوان").Flex(5).Wrap(true)
+                                )
+                                .SelectionModel(
+                                    Html.X().RowSelectionModel()
+                                        .Mode(Ext.Net.SelectionMode.Single)
+                                )
+                                )
+                        ,
+                X.FieldSet()
+                .ItemID("FieldSetDesc")
+                    .Border(true)
+                    .Title("توضیحات")
+        //  .Defaults(new { Margin = 2 })
+                        .Layout(LayoutType.Fit)
+                    .Items(
+                            X.TextArea().Width(330)
+                            .ItemID("txtDesc").AutoFocus(true)
+                                    .Listeners(l => l.Focus.Handler = "App.TaiidMarhaleWin.queryById('txtDesc').el.swallowEvent(['keypress', 'keydown']);")
+                    )
+  
+
+            )
+        )
+)
+
+<script type="text/javascript">
+    function SetSizeTaiidMarhale() {
+
+        App.TaiidMarhaleWin.setSize(870, Ext.getBody().getViewSize().height - 200);
+        App.TaiidMarhaleWin.queryById("txtDesc").setSize(800);
+        /*App.TaiidMarhaleWin.queryById("Etelaat").setWidth(Ext.getBody().getViewSize().width - 800 + 20);*/
+
+        if ('@ViewBag.IsGroup' == "True") {
+            App.TaiidMarhaleWin.queryById("SingleP").hide();
+            App.TaiidMarhaleWin.queryById("GridListRequest").setSize(800, 200);
+          
+
+        }
+        else {
+            App.TaiidMarhaleWin.queryById("GroupP").hide();
+            LoadPersonInf();
+        }
+    }
+   
+    function LoadSelectedRequest() {
+        Ext.net.DirectMethod.request({
+            url: '/TaiidMarhale/LoadSelectedRequest',
+            params: {
+                EnterSicleIds: '@ViewBag.EnterSicleIds',
+                __RequestVerificationToken: App.TaiidMarhaleWin.queryById('antiForgeryToken').getValue()
+            },
+            success: function (result) {
+                App.TaiidMarhaleWin.queryById('GridListRequest').store.loadData(result.ListLoco);
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+    function LoadPersonInf() {
+
+        
+            App.TaiidMarhaleWin.queryById("NameRequest").setText('@ViewBag.TitleContract');
+        
+    }
+
+    function BeforeSaveTaiid() {
+        Ext.MessageBox.show({
+            title: "هشدار",
+            msg: "آیا برای تایید این مرحله مطمئن هستید؟",
+            icon: Ext.MessageBox.WARNING,
+            buttons: Ext.MessageBox.YESNO,
+            fn: function (btn) {
+                if (btn == 'yes') {
+                        SaveTaiidMarhale();
+
+                }
+            }
+        });
+
+    }
+    function SaveTaiidMarhale() {
+        App.TaiidMarhaleWin.queryById('btnSaveTaiidMarhale').setDisabled(true);
+        var txtDesc = App.TaiidMarhaleWin.queryById('txtDesc');
+        var grid = App.TaiidMarhaleWin.queryById('GridListRequest').getSelectionModel().getStore();
+        var ListArray = new Array();
+
+        if ('@ViewBag.IsGroup' == "True") {
+            for (var i = 0; i < grid.count() ; i++) {
+                ListArray.push({
+                    "fldEnterCycleId": grid.data.items[i].data.fldId,
+                    "fldDesc": txtDesc.getValue()
+                });
+            }
+        }
+        else {
+            ListArray.push({
+                "fldEnterCycleId": '@ViewBag.EnterSicleIds',
+                "fldDesc": txtDesc.getValue()
+            });
+        }
+
+        var data = {
+            ListArray: ListArray,
+            fldDesc: txtDesc.getValue(),
+            EghdamId: '@ViewBag.EghdamId',
+            EnterSicleIds: '@ViewBag.EnterSicleIds',
+            cartableId:'@ViewBag.cartableId'
+        };
+        App.TaiidMarhaleWin.body.mask("در حال انجام عملیات");
+        $.ajax({
+            type: "POST",
+            url: '/TaiidMarhale/SaveTaiidMarhale',
+            datatype: "json",
+            data: {
+                Data: JSON.stringify(ListArray),
+                fldDesc: txtDesc.getValue(),
+                EghdamId: '@ViewBag.EghdamId',
+                EnterSicleIds: '@ViewBag.EnterSicleIds',
+                cartableId:'@ViewBag.cartableId',
+                __RequestVerificationToken: App.TaiidMarhaleWin.queryById('antiForgeryToken').getValue()
+            },
+            /*contentType: 'application/json',*/
+            success: function (result) {
+                var ic = Ext.MessageBox.INFO;
+                if (result.Er == 1) {
+                    ic = Ext.MessageBox.ERROR;
+                }
+                Ext.MessageBox.show({
+                    title: result.MsgTitle,
+                    msg: result.Msg,
+                    icon: ic,
+                    buttons: Ext.MessageBox.OK,
+                    fn: function (btn) {
+                        if (btn == 'ok') {
+                            if (result.Er != 1) {
+                                SearchSK();
+                                ReloadCountTree();
+                                App.TaiidMarhaleWin.destroy();
+                                /*App.TaiidMarhaleWin.queryById('GridListLocos').getStore().load();*/
+                            }
+                        }
+                    }
+                });
+                App.TaiidMarhaleWin.queryById('btnSaveTaiidMarhale').setDisabled(false);
+                App.TaiidMarhaleWin.body.mask().hide();
+            },
+            failure: function () {
+            }
+        });
+
+    }
+   
+
+    @*var addKeyMapTaiidMarhale = function (cmp) {
+        this.keyMap = new Ext.util.KeyMap({
+            target: cmp.getEl(),
+            binding: [{
+                key: [13, 9], /*Ext.EventObject.ENTER,*/
+                fn: function (key, e) {
+                    if (e.getKey() == 9) {
+                        e.stopEvent();
+                    }
+                    var keyfield = App.TaiidMarhaleWin.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+                    var nextfld = keyfield.nextSibling().nextSibling();
+                    nextfld.focus();
+                    nextfld.selectText();
+                }
+            }]
+        });
+    }*@
+</script>

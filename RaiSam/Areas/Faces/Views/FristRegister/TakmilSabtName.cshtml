@@ -1,0 +1,165 @@
+﻿@{
+    Layout = "~/Areas/Faces/Views/Shared/_shared.cshtml";
+}
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+
+<style>
+    td {
+        text-align: left;
+    }
+    
+    .x-window-body-default{
+background:#dfe8f6;
+}
+</style>
+@(Html.X().Window().Modal(true)//.Listeners(li => li.AfterRender.Handler = "LoadVerification();")
+.Width(400).Height(150)
+    .Title("تکمیل ثبت نام")
+                   .ID("TakmilSabtName")
+    .Closable(false)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Items(
+        X.FormPanel().Border(false)
+        .Border(false).ButtonAlign(Ext.Net.Alignment.Center)
+
+            .DefaultButton("btn")
+        .TitleAlign(Ext.Net.TitleAlign.Center)
+               .Buttons(
+               X.Button().Text("ثبت").Icon(Ext.Net.Icon.Add)
+                                                .Listeners(l => l.Click.Handler = "SaveTakmilSabtName()")
+                                    , X.Button()
+                                .Text("راهنما")
+                                    .Icon(Ext.Net.Icon.Help)
+                                        .Listeners(l => l.Click.Handler = "HelpTakmilSabtName()")
+                            , X.Button().Text("خروج").Icon(Ext.Net.Icon.DoorOut).ToolTip("کلید میانبر Esc")
+                                                    .Listeners(l => l.Click.Handler = "LogonExit()"))
+                .Items(
+                X.Panel().Border(false)
+
+            .Items(
+                X.FieldSet().Border(false)
+                .Center()
+                .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 3 })
+                .Defaults(new { Margin = 2 })
+                .Items(
+        X.FieldSet().Border(false)
+            .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 2 })
+                .Defaults(new { Margin = 2 })
+            .Items(
+                 X.AntiForgeryField().ItemID("AntiForgeryField"),
+                     X.Label("شماره موبایل:")
+                               , X.TextField()
+                                    .ItemID("txtMobail").RTL(false)
+                                    .MsgTarget(Ext.Net.MessageTarget.Side)
+                                    .AllowBlank(false)
+                                    .AutoFocus(true)
+                                        .BlankText("لطفا شماره موبایل را وارد کنید.")
+                                            .EmptyText("09111111111")
+                                                .Plugins(X.InputMask()
+                                                    .Mask("09AAAAAAAAA")
+        //.UnmaskOnBlur(true)
+                                                    .ClearWhenInvalid(true)
+                                                    .MaskSymbols(ls =>
+                                                    {
+                                                        ls.Add(new MaskSymbol { Name = "A", Regex = "[0-9]", Placeholder = "_".ToCharArray()[0] });
+                                                    })
+                                                )
+                       , X.Label("کد تائید:")
+                       , X.Container().Content(@<div><input id='txtCodeTaaid' class='text' style='direction:ltr;font-family:sans-serif;width: 145px;height: 22px;' /></div>)
+                           //, X.TextField()
+                           //     .ItemID("txtCodeTaaid")
+                           //     .MsgTarget(Ext.Net.MessageTarget.Side)
+                           //     .AllowBlank(false)
+                           //     .BlankText("لطفا کد تائید را وارد کنید."),
+                                ,X.Label("*کد تأیید به حروف کوچک و بزرگ حساس است.").StyleSpec("color:red;").ColSpan(2)
+                             )
+
+
+                        )
+
+                )
+                    .Layout(Ext.Net.LayoutType.VBox)
+                    .LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Center })
+            )
+        )
+)
+<script type="text/javascript">
+    @*function LoadVerification() {
+        var url = '@Url.Content("~/FristRegister/generateVerification")';
+    }*@
+    function LogonExit() {
+        window.location.href = '@Url.Content("~/Account/Logon")'
+    }
+    function SaveTakmilSabtName() {
+
+        /* var txtCodeTaaid = App.TakmilSabtName.queryById('txtCodeTaaid');*/
+        var txtCodeTaaid = $('#txtCodeTaaid').val();
+        var txtMobail = App.TakmilSabtName.queryById('txtMobail');
+        var er = false;
+        if (txtCodeTaaid == "") {
+            er = true;
+            alert("لطفا کد تأیید را وارد نمایید.");
+        }
+        if (txtMobail.validate() == false) {
+            alert("لطفا شماره موبایل را وارد نمایید.");
+            er = true;
+        }
+        if (er == true)
+            return;
+        Ext.net.Mask.show({ msg: 'در حال بررسی ...' });
+        Ext.net.DirectMethod.request({
+            url: '/Faces/FristRegister/CheckCodeTaaid',
+            params: {
+                CodeTaaid: txtCodeTaaid,
+                Mobail: txtMobail.getValue(),
+                __RequestVerificationToken: App.TakmilSabtName.queryById('AntiForgeryField').getValue()
+            },
+            success: function (data) {
+                Ext.net.Mask.hide();
+                if (data.Err == 1) {
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK
+                    });
+                }
+                else if (data.Err == 2) {
+                    @*window.location.href = '@Url.Content("~/FristRegister/Index")';*@
+                    Ext.MessageBox.show({
+                        title:"خطا",
+                        msg: "شماره مورد نظر در سیستم ثبت نشده است. برای ثبت اطلاعات از قسمت ثبت نام وارد شوید.",
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK
+                    });
+                }
+
+                else {
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: Ext.MessageBox.INFO,
+                        buttons: Ext.MessageBox.OK
+                    });
+                }
+            }
+        });
+    }
+    function HelpTakmilSabtName() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Faces/FristRegister/HelpTakmilSabtName',
+            params: {
+
+            },
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+</script>

@@ -1,0 +1,109 @@
+﻿@model IEnumerable<RaiSam.Models.prs_tblCitySelect>
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+
+    var X = Html.X();
+}
+@(Html.X().Window()
+    .Width(400)
+    .Height(300)
+    .Title("لیست شهرها")
+    .ID("SearchCity")
+    .Closable(true)
+    .Modal(true)
+    .Layout(Ext.Net.LayoutType.Fit)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Listeners(l => l.Destroy.Handler = "if(state==1){App.NewHuman.queryById('txtMahalTavalod').focus();}else if(state==2){App.NewHuman.queryById('txtMahalSoddor').focus();}")
+    .Items(
+            X.AntiForgeryField()
+            .ItemID("antiForgeryToken")
+            .Hidden(true),
+        X.Panel()
+            .Border(false)
+            .AutoScroll(true)
+            .Layout(Ext.Net.LayoutType.Fit)
+            .Items(
+                X.GridPanel()
+                    .AutoScroll(true)
+                    .Border(false)
+                    .ItemID("GridSearchCity")
+                    .BottomBar(X.PagingToolbar())
+                    .TopBar(
+                        Html.X().Toolbar()
+                            .Items(
+                                X.Button()
+                                    .Text("افزودن شهر جدید")
+                                    .Icon(Icon.Add)
+                                    .Listeners(l => l.Click.Handler = "NewCity()")
+                            )
+                    )
+                    .Listeners(a => a.CellDblClick.Handler = "NextSearchCity();")
+                    .Store(
+                        X.StoreForModel()
+                            .Listeners(l => l.BeforeLoad.Handler = "App.SearchCity.queryById('GridSearchCity').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.SearchCity.queryById('antiForgeryToken').getValue());")
+                            .Proxy(Html.X().AjaxProxy()
+                                .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                .Url(Url.Action("Read"))
+                                .Reader(Html.X().JsonReader().Root("data"))
+                        )
+                        .PageSize(8)
+                        .RemoteFilter(true)
+                        .RemotePaging(true)
+                    )
+                    .View(
+                        Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                    )
+                    .Plugins(X.FilterHeader().Remote(true))
+                    .ColumnModel(
+                        Html.X().RowNumbererColumn(),
+                            Html.X().Column().DataIndex(Model, m => m.fldId).Text("کد").Hidden(true).Flex(1),
+                        Html.X().Column().DataIndex(Model, m => m.fldName).Text("نام شهر").Flex(3)
+                    )
+                    .SelectionModel(
+                        Html.X().RowSelectionModel()
+                            .Mode(Ext.Net.SelectionMode.Single)
+                    )
+            )
+        )
+)
+
+<script type="text/javascript">
+    var state = '@ViewBag.state';
+    function NewCity() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Human/NewCity',
+            params: {
+                Id: 0
+            },
+            success: function () {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+    function NextSearchCity() {
+        var SelectedRow = App.SearchCity.queryById('GridSearchCity').selModel.getLastSelected();
+        if (SelectedRow != null) {
+            if (state  == 1) {
+                App.NewHuman.queryById('fldCodeMahalTavalod').setValue(SelectedRow.data.fldId);
+                App.NewHuman.queryById('txtMahalTavalod').setValue(SelectedRow.data.fldName);
+            }
+            else if (state == 2) {
+                App.NewHuman.queryById('fldCodeMahalSodoor').setValue(SelectedRow.data.fldId);
+                App.NewHuman.queryById('txtMahalSoddor').setValue(SelectedRow.data.fldName);
+            }
+            App.SearchCity.destroy();
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک شخص را انتخاب کنید",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+</script>

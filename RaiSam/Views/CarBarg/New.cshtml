@@ -1,0 +1,219 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+<style>
+    .custom-icon {
+        margin-right: 380px !important;
+    }
+</style>
+
+@(Html.X().Window().Modal(true).Listeners(li =>
+        {
+            li.Render.Fn = "addKeyMapCarBarg";
+             li.AfterRender.Handler = "LoadCarBarg();";
+        })
+.Width(350)//.Height(300)
+    .Title("ثبت مقادیر")
+             .ID("NewCarBarg")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .ButtonAlign(Ext.Net.Alignment.Center)
+        .Buttons(X.Button().Text("ذخیره").Icon(Ext.Net.Icon.Disk)
+                .Listeners(l =>
+                {
+                    l.Click.Handler = "SaveCarBarg();";
+
+                })
+                        .ItemID("btnSaveCarBarg")
+                ,
+                X.Button().Text("خروج").Icon(Ext.Net.Icon.DoorOut).ToolTip("کلید میانبر Esc")
+                .OnClientClick("App.NewCarBarg.hide();"))
+    .Items(
+        X.AntiForgeryField()
+                .ItemID("antiForgeryToken").Hidden(true),
+            X.Panel().Border(false)
+            .Items(
+                X.FieldSet().Border(true).Title("مقادیر موردنیاز")
+                .Center()
+                .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 2 })
+                .Defaults(new { Margin = 2 })
+                .Items(
+                X.Hidden().ItemID("fldId"),
+                   
+                     X.Label("تاریخ:"),
+                        X.PDateField()
+                        .ItemID("txtTarikh")
+                    .AllowBlank(false)
+                    .AutoFocus(true)
+                        .BlankText("لطفا تاریخ را وارد کنید.")
+                    .Editable(true)
+                    .MaskRe("/[0-9/]/")
+                    .MaxLength(10)
+                    .MinLength(10)
+                    .EnforceMaxLength(true)
+                  
+                            ,
+                                X.Label("نرخ دلار:"),
+                         X.NumberField()
+
+                                         .AllowDecimals(true)
+                                         .ItemID("txtNerkhDolar")
+                            .MaxLength(17)//.Width(330)
+                        .EnforceMaxLength(true)
+                                .AllowBlank(false)
+                                     //   .DecimalPrecision(2)
+                            //.MaskRe("[0-9 .]")
+                                .BlankText("لطفا نرخ دلار را وارد کنید.")
+                                ,
+                                    X.Label("یارانه صرفه جویی:"),
+                                     X.NumberField()
+                                //     .AllowDecimals(true)
+                                             .ItemID("txtSarfeJooee")
+                                .MaxLength(17)//.Width(330)
+                            .EnforceMaxLength(true)
+                                    .AllowBlank(false)
+                                    .DecimalPrecision(4)
+                             //   .MaskRe("[0-9 .]")
+                                    .BlankText("لطفا یارانه صرفه جویی را وارد کنید.")
+                        )
+
+                )
+                    .Layout(Ext.Net.LayoutType.VBox)
+                    .LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Center })
+        )
+)
+<script type="text/javascript">
+  
+    function LoadCarBarg() {
+        Ext.net.Mask.hide();
+        ReplaceArabic();
+        if ('@ViewBag.Id' != '0') {
+            App.NewCarBarg.body.mask("در حال بارگذاری...");
+            Ext.net.DirectMethod.request({
+                url: '/CarBarg/Details',
+                params: {
+                    Id: '@ViewBag.Id',
+                    __RequestVerificationToken: App.NewCarBarg.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+
+                    var fldId = App.NewCarBarg.queryById('fldId');
+                    fldId.setValue(data.fldId);
+                    var txtTarikh = App.NewCarBarg.queryById('txtTarikh');
+                    txtTarikh.setValue(data.fldTarikh);
+                    var txtSarfeJooee = App.NewCarBarg.queryById('txtSarfeJooee');
+                    txtSarfeJooee.setValue(data.fldSarfeJooee);
+                    var txtNerkhDolar = App.NewCarBarg.queryById('txtNerkhDolar');
+                    txtNerkhDolar.setValue(data.fldNerkhDolar);
+                    App.NewCarBarg.body.mask().hide();
+                }
+            });
+        }
+        else {
+            App.NewCarBarg.queryById('txtTarikh').validate();
+            App.NewCarBarg.queryById('txtSarfeJooee').validate();
+            App.NewCarBarg.queryById('txtNerkhDolar').validate();
+        }
+
+    }
+    var kk;
+    function SaveCarBarg() {
+        
+        var txtTarikh = App.NewCarBarg.queryById('txtTarikh');
+        var txtSarfeJooee = App.NewCarBarg.queryById('txtSarfeJooee');
+        var txtNerkhDolar = App.NewCarBarg.queryById('txtNerkhDolar');
+        var fldId = App.NewCarBarg.queryById('fldId');
+            var er = false;
+
+            /*if (txtTarikhMovafeghat.validate() == false) {
+                er = true;
+            }
+            if (txtShomareMovafeghat.validate() == false) {
+                er = true;
+            }*/
+            if (txtTarikh.validate() == false) {
+                er = true;
+            }
+            if (txtSarfeJooee.validate() == false) {
+                er = true;
+            }
+            if (txtNerkhDolar.validate() == false) {
+                er = true;
+            }
+            
+            if (er == true)
+                return;
+
+            App.NewCarBarg.body.mask("در حال ذخیره سازی");
+            Ext.net.DirectMethod.request({
+                url: '/CarBarg/Save',
+                params: {
+                    fldId: fldId.getValue(),
+                    fldTarikh: txtTarikh.rawValue,
+                    fldSarfeJooee: txtSarfeJooee.getValue(),
+                    fldNerkhDolar: txtNerkhDolar.getValue(),
+                    __RequestVerificationToken: App.NewCarBarg.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+                    chat.server.reloadLog();
+                   if (data.Er == 1) {
+                        Ext.MessageBox.show({
+                            title: data.MsgTitle,
+                            msg: data.Msg,
+                            icon: Ext.MessageBox.ERROR,
+                            buttons: Ext.MessageBox.OK,
+                        });
+                    }
+                    else {
+                        Ext.MessageBox.show({
+                            title: data.MsgTitle,
+                            msg: data.Msg,
+                            icon: Ext.MessageBox.INFO,
+                            buttons: Ext.MessageBox.OK,
+                        });
+                    }
+                    App.CarBarg.queryById('GridCarBarg').store.load();
+                    if (data.Er != 1)
+                        ClearCarBarg();
+                    App.NewCarBarg.body.mask().hide();
+                }
+
+            });
+        }
+    function ClearCarBarg() {
+
+        
+        App.NewCarBarg.queryById('txtTarikh').setValue("");
+        App.NewCarBarg.queryById('txtSarfeJooee').setValue("");
+        App.NewCarBarg.queryById('txtNerkhDolar').setValue("");
+        App.NewCarBarg.queryById('fldId').setValue(0);
+    }
+    var addKeyMapCarBarg = function (cmp) {
+        this.keyMap = new Ext.util.KeyMap({
+            target: cmp.getEl(),
+            binding: [{
+                key: [13, 9], /*Ext.EventObject.ENTER,*/
+                fn: function (key, e) {
+                    if (e.getKey() == 9) {
+                        e.stopEvent();
+                    }
+                    var keyfield = App.NewCarBarg.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+                    var nextfld;
+                    if (keyfield.itemId == "txtSarfeJooee") {
+                        nextfld = App.NewCarBarg.queryById('btnSaveCarBarg');
+                        SaveCarBarg();
+                        return;
+                    }
+                    else {
+                        nextfld = keyfield.nextSibling().nextSibling();
+                    }
+                    nextfld.focus();
+                    nextfld.selectText();
+                }
+            }]
+        });
+    }
+</script>

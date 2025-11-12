@@ -1,0 +1,396 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+
+<style>
+    #fieldsetfileAc legend {
+        text-align: right;
+        font-family: Tahoma !important;
+    }
+
+    #DeleteActionFileimg:hover {
+        cursor: pointer;
+    }
+</style>
+@(Html.X().Window().Modal(true).Listeners(li => { li.Render.Fn = "addKeyMapContactType"; li.AfterRender.Handler = "LoadContactType()"; })
+.Width(600)//.Height(300)
+    .Title("انواع تماس ها")
+        .ID("NewContactType")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+        .ButtonAlign(Ext.Net.Alignment.Center)
+        .Buttons(X.Button().Text("ذخیره").Icon(Ext.Net.Icon.Disk)
+            .Listeners(l =>
+            {
+                l.Click.Handler = "SaveContactType();";
+
+            })
+            .ItemID("btnSaveContactType"),
+            X.Button().Text("خروج").Icon(Ext.Net.Icon.DoorOut).ToolTip("کلید میانبر Esc")
+              .OnClientClick("App.NewContactType.hide();"))
+    .Items(
+        X.AntiForgeryField()
+                .ItemID("antiForgeryToken").Hidden(true),
+                X.FormPanel().Border(false)
+                    .Layout(Ext.Net.LayoutType.VBox)
+                        .LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Center })
+
+            .Items(
+                X.FieldSet().Border(true).Title("انواع تماس")
+                .Center()
+                .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 2 })
+                .Defaults(new { Margin = 2 })
+                .Items(
+                X.Hidden().ItemID("fldId"),
+                            X.Label("نوع تماس:"),
+                          X.TextField().Width(200)
+                             .ItemID("txtContactType")
+                        .MaxLength(100).MaskRe("[ ,),(,ا-ی-آ-ئ-ء]")
+                        .EnforceMaxLength(true)
+                        .AllowBlank(false)
+                        .BlankText("لطفا نوع تماس را وارد کنید.")
+                        .AutoFocus(true),
+
+                     X.FieldSet()
+                            .Border(true)
+                            .AutoScroll(true)
+                            .ColSpan(4)
+                            .Title("انتخاب فایل(حداکثر حجم مجاز: 300KB)")
+                            .ID("fieldsetfileAc")
+                            .Layout(LayoutType.HBox)
+                            .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Middle })
+                            .Items(
+                                X.FormPanel()
+                                    .Border(false)
+                                    .Layout(LayoutType.HBox)
+                                    .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Middle })
+                                    .Width(410)
+                                    .Items(
+                                        X.FileUploadField()
+                                            .MarginSpec("0 10px 10px 0")
+                                            .Icon(Ext.Net.Icon.DiskUpload)
+                                            .ButtonOnly(true)
+                                            .ButtonText("انتخاب فایل")
+                                            .DirectEvents(l =>
+                                            {
+                                                l.Change.Action = "Upload";
+                                                l.Change.Delay = 1000;
+                                                l.Change.Before = "if(GotoServerAc==false){return false;}";
+                                                l.Change.Success = "hideprogressAc";
+                                            })
+                                            .Listeners(l => l.Change.Fn = "showFileAc"),
+                                        X.Container()
+                                            .Content(@<div id="fi-button-msgAc" class="Wrap-label" style="width:310px;height:auto;text-align:right;"><b>فایل انتخاب شده:</b></div>)
+                                        ),
+                                X.Panel()
+                                    .Border(false)
+                                    .Layout(LayoutType.VBox)
+                                    .LayoutConfig(new VBoxLayoutConfig { Align=VBoxAlign.Center})
+                                    .Items(
+                                        X.Label("پیش نمایش"),
+                                        X.Panel()
+                                            .Frame(true)
+                                            .MarginSpec("3px 0 0 0")
+                                            .Layout(LayoutType.Fit)
+                                            .Items(
+                                                X.Image()
+                                                    .ItemID("Image")
+                                                    .MarginSpec("3px 0 0 0")
+                                                    .Flex(1)
+                                                    .ImageUrl("/Content/icon/Blank.jpg")
+                                                    .Width(40)
+                                                    .Height(40)
+                                                    .Border(true)
+                                                    .Frame(true)
+                                            )
+                                        )
+                            ))
+
+                )
+        )
+)
+<script type="text/javascript">
+    var EndUploadAc = false;
+    var FileId = 0;
+    var GotoServerAc = false;
+
+    var hideprogressAc = function (Responsdtxt, ResponseObj) {
+        if (ResponseObj.IsValid == true) {
+            EndUploadAc = true;
+        }
+        else {
+            var el = Ext.get('fi-button-msgAc');
+            GotoServerAc = false;
+            clearInterval(CheckEndAc);
+            EndUploadAc = false;
+            el.update('<b>فایل انتخاب شده:</b> ');
+            App.NewContactType.queryById('Image').setImageUrl("/Content/icon/Blank.jpg");
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: ResponseObj.Message,
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    };
+    var Check = setInterval(CheckEndAc, 500);
+
+    function CheckEndAc() {
+        if (EndUploadAc == true) {
+            Ext.net.DirectMethod.request({
+                url: '/ContanctType/ShowPicUpload',
+                params: {
+                    __RequestVerificationToken: App.NewContactType.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+                    value = "data:image/gif;base64," + data.image;
+                    App.NewContactType.queryById('Image').setImageUrl(value);
+                }
+            });
+            Ext.MessageBox.hide();
+            GotoServerAc = false;
+            Ext.Msg.alert('عملیات موفق', 'فایل با موفقیت آپلود شد.');
+            clearInterval(CheckEndAc);
+            EndUploadAc = false;
+        }
+    }
+    var showFileAc = function (fb, v) {
+        var id = fb.fileInputEl.dom.id;
+        var el = Ext.get('fi-button-msgAc');
+        if (v) {
+            showProgressBarAc();
+            if (v.split('.').pop().toLowerCase() == "jpg" || v.split('.').pop().toLowerCase() == "png" || v.split('.').pop().toLowerCase() == "jpeg"
+                || v.split('.').pop().toLowerCase() == "tif" || v.split('.').pop().toLowerCase() == "tiff" || v.split('.').pop().toLowerCase() == "gif"
+                || v.split('.').pop().toLowerCase() == "bmp")  {
+                if (document.getElementById(id).files[0].size <= 307200) {
+                    GotoServerAc = true;
+                    el.update('<b>فایل انتخاب شده: ' + v + '</b>' + "&nbsp;&nbsp;" + '<img id="DeleteActionFileimg"  title="حذف فایل" src="/Content/cancel.png" style="width:15px;height:15px;margin-bottom: -4px;" onclick="javascript:DeleteFileAc()" />');
+                }
+                else {
+                    clearInterval(CheckEndAc);
+                    el.update('<b>فایل انتخاب شده:</b>');
+                    App.NewContactType.queryById('Image').setImageUrl("/Content/icon/Blank.jpg");
+                    Ext.MessageBox.show({
+                        title: "خطا",
+                        msg: "حجم فایل انتخاب شده غیرمجاز است.",
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK
+                    });
+                }
+
+                if (!el.isVisible()) {
+                    el.slideIn('t', {
+                        duration: .2,
+                        easing: 'easeIn',
+                        callback: function () {
+                            el.highlight();
+                        }
+                    });
+                } else {
+                    el.highlight();
+                }
+            }
+            else {
+                clearInterval(CheckEndAc);
+                el.update('<b>فایل انتخاب شده:</b>');
+                App.NewContactType.queryById('Image').setImageUrl("/Content/icon/Blank.jpg");
+                Ext.MessageBox.show({
+                    title: "خطا",
+                    msg: "فایل انتخاب شده غیرمجاز است.",
+                    icon: Ext.MessageBox.ERROR,
+                    buttons: Ext.MessageBox.OK
+                });
+            }
+        }
+    };
+    function showProgressBarAc() {
+        Ext.MessageBox.show({
+            msg: 'لطفاً منتظر باشید',
+            progressText: 'در حال آپلود فایل...',
+            width: 300,
+            wait: true,
+            waitConfig:
+            {
+                interval: 200,
+                text: 'در حال آپلود فایل...',
+                scope: this
+            }
+        });
+    }
+
+    var DeleteFile = false;
+    function DeleteFileAc() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/ContanctType/DeleteSessionFile',
+            success: function (data) {
+                DeleteFile = true;
+                App.NewContactType.queryById('Image').setImageUrl("/Content/icon/Blank.jpg");
+                var el = Ext.get('fi-button-msgAc');
+                el.update('<b>فایل انتخاب شده:</b>');
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+    function setDefaultRotatingAgentA() {
+        if ('@ViewBag.Id' == '0') {
+            App.NewContactType.queryById("txtContactType").setValue(App.NewContactType.queryById("txtContactType").store.getAt(0));
+        }
+    }
+
+    var fldTimeStamp = 0;
+    function LoadContactType() {
+        ReplaceArabic();
+        if ('@ViewBag.Id' != '0') {
+            App.NewContactType.body.mask("در حال بارگذاری...");
+            Ext.net.DirectMethod.request({
+                url: '/ContanctType/Details',
+                params: {
+                    Id: '@ViewBag.Id',
+                    __RequestVerificationToken: App.NewContactType.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+                    var txtContactType = App.NewContactType.queryById('txtContactType');
+                    txtContactType.setValue(data.fldType);
+                    var Id = App.NewContactType.queryById('fldId');
+                    Id.setValue(data.fldId);
+                    FileId = data.fldIconId;
+                    fldTimeStamp = data.fldTimeStamp;
+
+                    if (data.NameFile != "") {
+                        var fldfile = "data:image/gif;base64," + data.fldIcon;
+                        App.NewContactType.queryById('Image').setImageUrl(fldfile);
+                        Ext.get('fi-button-msgAc').update('<b>فایل انتخاب شده: ' + data.NameFile + '</b>' + "&nbsp;&nbsp;" + '<img id="DeleteActionFileimg" title="حذف فایل" src="/Content/cancel.png" style="width:15px;height:15px;margin-bottom: -4px;" onclick="javascript:DeleteFileAc()" />');
+                    }
+                    else {
+                        App.NewContactType.queryById('Image').setImageUrl("/Content/icon/Blank.jpg");
+                        Ext.get('fi-button-msgAc').update('<b>فایل انتخاب شده:</b>');
+                    }
+                    App.NewContactType.body.mask().hide();
+                }
+            });
+        }
+        else {
+            App.NewContactType.queryById('txtContactType').validate();
+        }
+
+    }
+
+    function SaveContactType() {
+        var Id = App.NewContactType.queryById('fldId');
+        var txtContactType = App.NewContactType.queryById('txtContactType');
+
+        var er = false;
+        if (txtContactType.validate() == false) {
+            er = true;
+        }
+        if (er == true)
+            return;
+        App.NewContactType.body.mask("در حال ذخیره سازی");
+        Ext.net.DirectMethod.request({
+            url: '/ContanctType/Save',
+            params: {
+                DeleteFile: DeleteFile,
+                fldId: Id.getValue(),
+                fldType: txtContactType.getValue(),
+                fldIconId: FileId,
+                fldTimeStamp: fldTimeStamp,
+                __RequestVerificationToken: App.NewContactType.queryById('antiForgeryToken').getValue()
+            },
+            success: function (data) {
+                chat.server.reloadLog();
+                if (data.Er == 1 && data.Change == 1) {/*vaghti TimeStamp==0*/
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: Ext.MessageBox.WARNING,
+                        buttons: Ext.MessageBox.OK,
+                        fn: function (btn) {
+                            if (btn == 'ok') {
+                                LoadContactType();
+                            }
+                        }
+                    });
+                }
+                else if (data.Er == 1 && data.Change == 2) {/*vaghti TimeStamp==2*/
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK,
+                        fn: function (btn) {
+                            if (btn == 'ok') {
+                                App.NewContactType.destroy();
+                            }
+                        }
+                    });
+
+                }
+                else if (data.Er == 1) {
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK,
+                    });
+                }
+                else {
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: Ext.MessageBox.INFO,
+                        buttons: Ext.MessageBox.OK,
+                    });
+                }
+
+
+                if (App.ContactType) {
+                    App.ContactType.queryById('GridContactType').store.load();
+                }
+                if (App.NewKartabl) {
+                    App.NewKartabl.queryById('GridContactType').store.load();
+                }
+                if (data.Er != 1)
+                    ClearContactType();
+                App.NewContactType.body.mask().hide();
+            }
+
+        });
+    }
+    function ClearContactType() {
+        App.NewContactType.queryById('fldId').setValue(0);
+        FileId = 0;
+        App.NewContactType.queryById('Image').setImageUrl("/Content/icon/Blank.jpg");
+        Ext.get('fi-button-msgAc').update('<b>فایل انتخاب شده:</b>');
+    }
+    var addKeyMapContactType = function (cmp) {
+        this.keyMap = new Ext.util.KeyMap({
+            target: cmp.getEl(),
+            binding: [{
+                key: [13, 9], /*Ext.EventObject.ENTER,*/
+                fn: function (key, e) {
+                    if (e.getKey() == 9) {
+                        e.stopEvent();
+                    }
+                    var keyfield = App.NewContactType.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+                    var nextfld;
+                    if (keyfield.itemId == "txtDesc") {
+                        nextfld = App.NewContactType.queryById('btnSaveContactType');
+                        SaveContactType();
+                        return;
+                    }
+                    else {
+                        nextfld = keyfield.nextSibling().nextSibling();
+                        nextfld.selectText();
+                    }
+                    nextfld.focus();
+                    nextfld.selectText();
+                }
+            }]
+        });
+    }
+</script>

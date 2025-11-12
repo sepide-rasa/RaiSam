@@ -1,0 +1,30 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+
+@(
+ Html.X().Panel()
+        .Title("پیش نمایش گزارش اولین بارنامه لکوموتیو")
+    .AutoScroll(true)
+            .ID("RptPrintFirstBarnameLoco")
+    .Closable(true)
+        .CloseAction(Ext.Net.CloseAction.Destroy)
+                               .Listeners(l => l.BeforeRender.Handler = "App.RptPrintFirstBarnameLoco.setHeight(App.ReportRaiSamWin.getHeight() - 83);")
+                        .Listeners(l => l.AfterRender.Handler = "LoadRptPrintFirstBarnameLoco();")
+        // .Html("<center><object class='se-pre-con' style='width: 100%;height: 100%;border: 1px solid #ccc;' type='application/pdf' data='/Personeli/Reports/GeneratePDFCoveredPeople'></object></center>")
+)
+
+<script>
+    function LoadRptPrintFirstBarnameLoco() {
+        var height = App.ReportRaiSamWin.getHeight() - 87;
+        /*App.RptAfradTP.setHeight(App.PersoneliWin.getHeight() - 150);*/
+        App.RptPrintFirstBarnameLoco.update("<center><object class='se-pre-con' style='width: 100%;height:" + height + "px;border: 1px solid #ccc;' type='application/pdf' data='/RptBarname/GeneratePDFBarnameLoco?ContractId="  + '@ViewBag.ContractId'  + "&TypeVagon=" + '@ViewBag.TypeVagon' + "'></object></center>");
+        @*App.RptPrintBarnameLoco.update("<center><object class='se-pre-con' style='width: 100%;height:" + height + "px;border: 1px solid #ccc;' type='application/pdf' data='/RptBarname/GenerateRptTest?Id=" + '@ViewBag.TypeVagon' + "'></object></center>");*@
+        /*var a = $('object');
+        var h = App.RptAfradTP.height;
+        a.height(h-35);*/
+    }
+</script>

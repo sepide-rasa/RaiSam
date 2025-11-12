@@ -1,0 +1,129 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+
+<style>
+    #TreeUserforPermission .x-tree-icon {
+        cursor: pointer;
+    }
+</style>
+@(X.Panel()
+.Border(false)
+.ID("UserforPermission")
+.Title("بازبینی دسترسی ها")
+.Listeners(l => l.AfterRender.Handler = "PermissionforUserSetSize()")
+.Closable(true)
+.CloseAction(Ext.Net.CloseAction.Destroy)
+.Layout(LayoutType.Fit)
+.Items(
+    X.AntiForgeryField()
+        .ItemID("antiForgeryToken").Listeners(l => l.AfterRender.Handler = "App.TreeUserforPermission.store.load();setTimeout(function(){App.TreeUserforPermission.expandAll();},1000);")
+       .Hidden(true),
+    X.Panel()
+        .Border(false)
+        .AutoScroll(true)
+        .ItemID("PnlForTree")
+        .Layout(LayoutType.Fit)
+            .TopBar(
+                    Html.X().Toolbar()
+                        .Items(
+                 X.SplitButton()
+                                    .Text("راهنما")
+                                    .Icon(Ext.Net.Icon.Help)
+                                    .Menu(X.Menu()
+                                    .Items(
+                                    X.MenuItem()
+                                                .Text("راهنما متنی")
+                                                .Icon(Ext.Net.Icon.TextPaddingTop)
+                                                        .Listeners(l => l.Click.Handler = "HelpUserforPermission()")
+                                                .ItemID("btnshowHelpDirectorate"),
+                                        X.MenuItem()
+                                                .Text("راهنما تصویری")
+                                                .Icon(Ext.Net.Icon.PlayBlue)
+                                                    .Listeners(l => l.Click.Handler = "showHelp_VideoUserforPermission()")
+
+                                )
+                            )
+                         )
+                    )
+        .Items(
+            X.TreePanel()
+                .ID("TreeUserforPermission")
+                .Width(500)
+                .UseArrows(true)
+                .Border(false)
+                .Store(
+                    X.TreeStore()
+                        .AutoLoad(false)
+                        .Proxy(
+                            Html.X().AjaxProxy()
+                                .Url(Url.Action("NodeLoadGroupTreePermissionforUser"))
+                                    .ActionMethods(l => l.Read = HttpMethod.POST)
+                        )
+                        .Listeners(l =>
+                        {
+                            l.BeforeLoad.Fn = "GetParamTreePermissionforUser";
+                        })
+                    )
+                .Listeners(a =>
+                {
+                    a.ItemClick.Fn = "ShowUserPer";
+                    //a.AfterRender.Handler = " App.TreeUserforPermission.expandAll();";
+                })
+                .Root(
+                    Html.X().Node()
+                        .NodeID("0")
+                        .Text("ساختار درختی دسترسی")
+                        .Checked(null))
+                )
+        )
+)
+<script type="text/javascript">
+    function showHelp_VideoUserforPermission() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Permission/VideoWinUserforPermission',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+
+    }
+    var GetParamTreePermissionforUser = function (store, operation, eOpts) {
+        var nodeId = operation.node.getId();
+        operation.params.nod = nodeId;
+        operation.params.__RequestVerificationToken = App.UserforPermission.queryById('antiForgeryToken').getValue();
+    };
+
+    function PermissionforUserSetSize() {
+        App.UserforPermission.setSize(App.UserWin.getWidth() - 10, App.UserWin.getHeight() - 85);
+        App.UserforPermission.queryById("PnlForTree").setHeight(App.UserWin.getHeight() - 140);
+    }
+    function HelpUserforPermission() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Permission/HelpUserforPermission',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+    var ShowUserPer = function (treeModel, record, item, index, e, eOpts) {
+        var iconElClicked = e.getTarget('.x-tree-icon');
+        if (iconElClicked) {
+            App.UserforPermission.body.mask("در حال بارگذاری");
+            Ext.net.DirectMethod.request({
+                url: '/Permission/ShowUsers',
+                params: {
+                    ApplicationPartId: record.data.id
+                },
+                success: function () {
+                    App.UserforPermission.body.mask().hide();
+                }
+            });
+        }
+    };
+</script>

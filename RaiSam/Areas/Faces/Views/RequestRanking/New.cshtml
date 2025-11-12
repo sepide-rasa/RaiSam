@@ -1,0 +1,262 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@using Ext.Net.Utilities
+@{
+
+    var X = Html.X();
+}
+
+@(X.Window()
+        // .Height(300)
+    .Width(530)
+    .Modal(true)
+    .ID("NewRequestRankingWin")
+    .Title("تقاضای جدید")
+    .Icon(Ext.Net.Icon.PageAdd)
+    .Closable(true)
+    .Border(false)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Layout(Ext.Net.LayoutType.Fit)
+    .ButtonAlign(Ext.Net.Alignment.Center)
+    .Buttons(
+        Html.X().Button()
+            .Text("ذخیره")
+            .Icon(Icon.Disk)
+            .Listeners(l => l.Click.Handler = "SaveNewRequestRanking();"),
+        Html.X().Button()
+            .Text("خروج")
+            .Icon(Icon.BulletCross)
+            .Listeners(l => l.Click.Handler = "App.NewRequestRankingWin.destroy()")
+    )
+        .Items(
+            X.Panel()
+                .MarginSpec("10px 0 10px 0")
+                .ItemID("PnlNewRequestRanking")
+                .Border(false)
+                .Layout(LayoutType.VBox)
+                    .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+                    .Defaults(new { Margin = 10 })
+                .Items(
+
+                 X.AntiForgeryField().ItemID("AntiForgeryField"),
+                X.FieldSet()
+                .Title("اطلاعیه مهم")
+                .AutoScroll(true)
+                .Height(100)
+                .ItemID("RequestRankingNotification")
+                .Width(488)
+                .MarginSpec("")
+                .Defaults(new { Margin = 5 })
+                .Items(
+                    X.Label()
+                        .ItemID("lblMatnHtmlRequestRanking")
+                        .Cls("lblInfo")
+                        .Listeners(l => l.Render.Handler = "loadMatnHtmlRequestRanking()")
+                    ),
+                X.FieldSet()
+                .Title("مشخصات درخواست")
+                .ItemID("test")
+                .Height(78)
+                .Defaults(new { Margin = 2 })
+                .Layout(LayoutType.Table)
+                .LayoutConfig(new TableLayoutConfig { Columns = 4 })
+                .Border(true)
+                .Items(
+                X.Label("نوع درخواست:"),
+                X.ComboBox()
+                    .Listeners(ls =>
+                        ls.Select.Handler = "App.NewRequestRankingWin.queryById('CboHadafAllowed').clearValue(); App.NewRequestRankingWin.queryById('CboHadafAllowed').getStore().load()"
+                        )
+                        .ItemID("cboRequestType")
+                            .Editable(false)
+                            .AllowBlank(false)
+                                .BlankText("لطفاً نوع درخواست را انتخاب نمایید.")
+                            .TypeAhead(true)
+                            .LabelAlign(Ext.Net.LabelAlign.Right)
+                            .QueryMode(Ext.Net.DataLoadMode.Local)
+                            .DisplayField("Name")
+                            .ValueField("ID")
+                            .EmptyText("نوع درخواست")
+                            .Store(
+                                X.Store()
+         .Listeners(l => l.Load.Handler = "setDefaulta();")
+                          .Listeners(l => l.BeforeLoad.Handler = "App.NewRequestRankingWin.queryById('cboRequestType').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.NewRequestRankingWin.queryById('AntiForgeryField').getValue());")
+                                    .Model(X.Model()
+                                        .IDProperty("ID")
+                                        .Fields(
+                                            new Ext.Net.ModelField("ID", Ext.Net.ModelFieldType.String) { Mapping = "Id" },
+                                            new Ext.Net.ModelField("Name", Ext.Net.ModelFieldType.String) { Mapping = "Name" }))
+                                        .Proxy(X.AjaxProxy()
+                                            .ActionMethods(l => l.Read = HttpMethod.POST)
+                                            .Url(Url.Action("GetRequestType"))
+                                    .Reader(X.JsonReader().Root("data")))
+                        )
+        //.AllowBlank(false)
+        //.BlankText("لطفاً نوع درخواست را انتخاب نمایید.")
+        //.Editable(false)
+        //.EmptyText("نوع درخواست")
+        //.LabelAlign(Ext.Net.LabelAlign.Right)
+        //.RawText("بررسی احراز صلاحیت")
+        //.Value("1")
+        //.Items(
+        //    X.ListItem()
+        //        .Text("بررسی احراز صلاحیت")
+        //        .Value("1"))
+                                ,
+                                    X.Label("تاریخ درخواست:"),
+                    X.PDateField()
+                        .ItemID("txtTarikh")
+                        .ReadOnly(true)
+                        .AllowBlank(false)
+                        .BlankText("لطفاً تاریخ درخواست را وارد نمایید.")
+                        .LabelAlign(Ext.Net.LabelAlign.Right),
+        //.Width(250),
+                       X.Label("اهداف مجاز:"),
+                    X.ComboBox()
+                        .Editable(false)
+                        .ColSpan(3)
+                        .AllowBlank(false)
+                        .BlankText("لطفاً هدف مورد نظر خود را انتخاب نمایید.")
+                        .ItemID("CboHadafAllowed")
+                        .TypeAhead(true)
+                        .LabelAlign(Ext.Net.LabelAlign.Right)
+                        .Width(384)
+                        .QueryMode(Ext.Net.DataLoadMode.Local)
+        //.TriggerAction(Ext.Net.TriggerAction.All)
+                        .DisplayField("Name")
+                        .ValueField("ID")
+                        .EmptyText("اهداف مجاز")
+        //  .Listeners(l=>l.Select.Handler="SelectCbo()")
+                        .Store(
+                            X.Store()
+                                    .Listeners(l => l.BeforeLoad.Handler = "App.NewRequestRankingWin.queryById('CboHadafAllowed').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.NewRequestRankingWin.queryById('AntiForgeryField').getValue());")
+        // .Listeners(l => l.Load.Handler = "setDefaulta();")
+                                .Model(X.Model()
+                                    .IDProperty("ID")
+                                    .Fields(
+                                            new Ext.Net.ModelField("ID", Ext.Net.ModelFieldType.String) { Mapping = "HadafAllowedId" },
+                                            new Ext.Net.ModelField("Name", Ext.Net.ModelFieldType.String) { Mapping = "HadafAllowedName" }))
+                                    .Proxy(X.AjaxProxy()
+                                            .ActionMethods(l => l.Read = HttpMethod.POST)
+                                    .Url(Url.Action("GetStakeholdersTreeAllowed"))
+                                .Reader(X.JsonReader().Root("data")))
+                                    .Parameters(ps => ps.Add(new StoreParameter("ID", "App.NewRequestRankingWin.queryById('cboRequestType').getValue()", ParameterMode.Raw)))
+                    )
+
+                )
+                )
+)
+)
+<script>
+    var NotSave = false;
+    function SelectCbo() {
+        var Cbo = App.NewRequestRankingWin.queryById('CboHadafAllowed');
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Faces/RequestRanking/DetailsStakeholderAllowed',
+            params: {
+                Id: Cbo.getValue(),
+                __RequestVerificationToken: App.NewRequestRankingWin.queryById('AntiForgeryField').getValue()
+            },
+            success: function (data) {
+                if (data.NotSave) {
+                    NotSave = true;
+                    Ext.MessageBox.show({
+                        title: "هشدار",
+                        msg: "ثبت درخواست برای ذینفع موردنظر متعاقبا اعلام می گردد.",
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK
+                    });
+                }
+                else
+                    NotSave = false;
+
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+    function loadMatnHtmlRequestRanking() {
+        var lblMatnHtmlRequestRanking = App.NewRequestRankingWin.queryById("lblMatnHtmlRequestRanking");
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Faces/RequestRanking/MatnHtmlRequestRanking',
+            success: function (data) {
+                if (data.MatnHtml != "") {
+                    lblMatnHtmlRequestRanking.setText(data.MatnHtml, false);
+                }
+                else {
+                    App.NewRequestRankingWin.queryById('RequestRankingNotification').hide();
+                }
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+    function setDefaulta() {
+       /* var CboHadafAllowed = App.NewRequestRankingWin.queryById('CboHadafAllowed');
+        CboHadafAllowed.select(CboHadafAllowed.store.getAt(0));*/
+        App.NewRequestRankingWin.queryById('txtTarikh').setRawValue('@ViewBag.currentDate');
+
+        var cboRequestType = App.NewRequestRankingWin.queryById('cboRequestType');
+        cboRequestType.select(cboRequestType.store.getAt(0));
+    }
+
+    function SaveNewRequestRanking() {
+        var CboHadafAllowed = App.NewRequestRankingWin.queryById('CboHadafAllowed');
+        var cboRequestType = App.NewRequestRankingWin.queryById('cboRequestType');
+        var txtTarikh = App.NewRequestRankingWin.queryById('txtTarikh');
+
+        if (CboHadafAllowed.validate() == false || cboRequestType.validate() == false || txtTarikh.validate() == false) {
+            return;
+        }
+
+       /* Ext.net.DirectMethod.request({
+            url: '/RequestRanking/DetailsStakeholderAllowed',
+            params: {
+                Id: CboHadafAllowed.getValue()
+            },
+            success: function (data) {
+                if (!data.NotSave) {*/
+
+                    Ext.net.Mask.show({ msg: 'در حال ذخیره سازی...' });
+                    Ext.net.DirectMethod.request({
+                        url: "/Faces/RequestRanking/Save",
+                        params: {
+                            RequestDate: txtTarikh.getRawValue(),
+                            RequestType: cboRequestType.getValue(),
+                            HadafId: CboHadafAllowed.getValue(),
+                            __RequestVerificationToken: App.NewRequestRankingWin.queryById('AntiForgeryField').getValue()
+                        },
+                        success: function (data) {
+                            var ic = Ext.MessageBox.INFO;
+                            if (data.MsgTitle == "خطا") {
+                                ic = Ext.MessageBox.ERROR;
+                            }
+                            Ext.MessageBox.show({
+                                title: data.MsgTitle,
+                                msg: data.Msg,
+                                icon: ic,
+                                buttons: Ext.MessageBox.OK
+                            });
+                            App.RequestRankingWin.queryById("GridRequestRanking").store.load();
+                            Ext.net.Mask.hide();
+                            if (data.MsgTitle != "خطا") {
+                                App.NewRequestRankingWin.destroy();
+                            }
+                            Ext.net.Mask.hide();
+                        }
+                    });
+              /*  }
+                else
+                    Ext.MessageBox.show({
+                        title: "هشدار",
+                        msg: "ثبت درخواست برای ذینفع موردنظر متعاقبا اعلام می گردد.",
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK
+                    });
+            }
+        });*/
+    }
+
+
+</script>

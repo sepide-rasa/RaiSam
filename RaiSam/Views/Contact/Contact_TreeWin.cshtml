@@ -1,0 +1,171 @@
+﻿@model IEnumerable<RaiSam.Models.prs_tblTreeGroupSelect>
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+
+@{ var X = Html.X();}
+
+@(Html.X().Window()
+    .ID("Contact_TreeGroup")
+    .Modal(true)
+    .Title("اختصاص تماس به ساختار درختی گروه تماس")
+    .Width(550)
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Layout(LayoutType.VBox)
+    .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+    .ButtonAlign(Ext.Net.Alignment.Center)
+    .Buttons(
+        X.Button()
+            .Text("ذخیره")
+            .Icon(Ext.Net.Icon.Disk)
+            .Listeners(l => l.Click.Handler = "SaveContact_TreeGroup();"),
+        X.Button()
+            .Text("خروج")
+            .Icon(Ext.Net.Icon.DoorOut)
+            .OnClientClick("App.Contact_TreeGroup.destroy();")
+    )
+    .Items(
+        X.AntiForgeryField()
+                .ItemID("antiForgeryToken").Hidden(true),
+        X.Panel()
+            .Border(false).Width(300)
+            .Layout(LayoutType.Table)
+            .LayoutConfig(new TableLayoutConfig { Columns = 2 })
+            .Padding(10)
+            .Items(
+                X.Label("گروه تماس:"),
+                X.ComboBox()
+                    .Width(200)
+                    .AutoFocus(true)
+                    .ItemID("CboContactGroup")
+                    .EmptyText("گروه تماس...")
+                    .AllowBlank(false)
+                    .BlankText("لطفا گروه تماس را انتخاب نمایید.")
+                    .TypeAhead(true)
+                    .Editable(false)
+                    .QueryMode(DataLoadMode.Local)
+                    .ForceSelection(true)
+                    .TriggerAction(TriggerAction.All)
+                    .DisplayField("fldName")
+                    .ValueField("ID")
+                    .Listeners(l => l.Change.Handler = "reloadTreeContactGroup2()")
+                    .Store(
+                        X.Store()
+                            .Listeners(l => l.Load.Handler = "setDefaultCboContactGroup1();")
+                            .Model(X.Model()
+                                .IDProperty("ID")
+                                .Fields(
+                                    new ModelField("ID", ModelFieldType.String) { Mapping = "fldId" },
+                                    new ModelField("fldName", ModelFieldType.String) { Mapping = "fldName" }
+                                )
+                            )
+                             .Listeners(l => l.BeforeLoad.Handler = "App.Contact_TreeGroup.queryById('CboContactGroup').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.Contact_TreeGroup.queryById('antiForgeryToken').getValue());")
+                            .Proxy(X.AjaxProxy()
+                                    .ActionMethods(l => l.Read = HttpMethod.POST)
+                                .Url(Url.Action("GetContactGroup"))
+                                .Reader(X.JsonReader().Root("data"))
+                            )
+                    )
+            ),
+        X.FieldSet()
+            .Border(true)
+            .Title("ساختار درختی گروه تماس")
+            .Layout(LayoutType.Fit)
+            .Items(
+                X.TreePanel()
+                    .ID("TreeContactGroup2")
+                    .AutoScroll(true)
+                    .UseArrows(true)
+                    .Border(false)
+                    .Height(400)
+                    .Width(500)
+                    .Store(
+                        X.TreeStore()
+                            .Model(
+                                Html.X().Model()
+                                    .Fields(
+                                            X.ModelField().Name(Model, m => m.fldId).Type(ModelFieldType.String),
+                                        X.ModelField().Name(Model, m => m.fldNameGroup).Type(ModelFieldType.String)
+                                    )
+                            )
+                            .Proxy(
+                                Html.X().AjaxProxy()
+                                    .Url(Url.Action("NodeLoadContactGroup"))
+                                        .ActionMethods(l => l.Read = HttpMethod.POST)
+                            )
+                            .Listeners(l => l.BeforeLoad.Fn = "GetParamTreeContactGroup2")
+                        )
+                    .Root(Html.X().Node().NodeID("0").Text("ساختار درختی گروه تماس").Checked(null))
+                )
+        )
+)
+<script type="text/javascript">
+    function reloadTreeContactGroup2() {
+        App.TreeContactGroup2.store.load();
+        setTimeout(function ()
+        {
+            App.TreeContactGroup2.expandAll();
+        }
+        , 1000);
+    }
+
+    function setDefaultCboContactGroup1() {
+        App.Contact_TreeGroup.queryById('CboContactGroup').setValue(App.Contact_TreeGroup.queryById('CboContactGroup').store.getAt(0));
+    }
+
+    var GetParamTreeContactGroup2 = function (store, operation, eOpts) {
+        var nodeId = operation.node.getId();
+        operation.params.nod = nodeId;
+        operation.params.GroupId = App.Contact_TreeGroup.queryById('CboContactGroup').getValue();
+        operation.params.ContactId = '@ViewBag.ContactId';
+        operation.params.__RequestVerificationToken = App.Contact_TreeGroup.queryById('antiForgeryToken').getValue();
+    };
+
+    function SaveContact_TreeGroup() {
+        var SelectedNodes = App.TreeContactGroup2.getChecked();
+        if (SelectedNodes.length == 0) {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا حداقل یک شاخه را انتخاب نمایید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+            return;
+        }
+        else {
+            var TreeGroupArray = new Array();
+            for (var i = 0; i < SelectedNodes.length; i++) {
+                TreeGroupArray.push(SelectedNodes[i].data.id);
+            }
+            App.Contact_TreeGroup.body.mask("در حال ذخیره سازی...");
+            $.ajax({
+                type: "POST",
+                url: '/Contact/SaveContact_TreeGroup',
+                datatype: "json",
+                /*contentType: 'application/json',*/
+                data: {
+                    TreeGroupArray1: JSON.stringify(TreeGroupArray),
+                    ContactId: '@ViewBag.ContactId',
+                    GroupId: App.Contact_TreeGroup.queryById('CboContactGroup').getValue(),
+                    __RequestVerificationToken: App.Contact_TreeGroup.queryById('antiForgeryToken').getValue()
+                },
+                success: function (result) {
+                    chat.server.reloadLog();
+                    var ic = Ext.MessageBox.INFO;
+                    if (result.Er == 1)
+                        ic = Ext.MessageBox.ERROR;
+                    Ext.MessageBox.show({
+                        title: result.MsgTitle,
+                        msg: result.Msg,
+                        icon: ic,
+                        buttons: Ext.MessageBox.OK
+                    });
+                    App.Contact_TreeGroup.body.mask().hide();
+                },
+                failure: function () {
+                }
+            });
+        }
+    }
+</script>

@@ -1,0 +1,488 @@
+﻿@model IEnumerable<RaiSam.Models.prs_tblTreeGroupSelect>
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+
+@{ var X = Html.X();}
+
+<style>
+    .rowheight {
+        height: 50px;
+    }
+
+    .x-mcombo-item-unchecked {
+        background-position: right;
+        padding-right: 20px;
+    }
+</style>
+
+@(Html.X().Panel()
+    .ID("ContactGroup_Tree")
+    .Title("ساختار درختی گروه تماس")
+    .Width(1000)
+        .Listeners(li => { li.AfterRender.Handler = "ContactGroup_TreeSetSize();"; li.Render.Fn = "addKeyMapContactGroup_Tree"; })
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Layout(LayoutType.VBox)
+    .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+    .Border(false)
+    .Items(
+            X.AntiForgeryField()
+                .ItemID("antiForgeryToken").Listeners(l => l.AfterRender.Handler = "App.TreeContactGroup.store.load();setTimeout(function(){App.TreeContactGroup.expandAll();},1000);")
+                .Hidden(true),
+        X.Panel()
+            .Border(false)
+            .Layout(LayoutType.HBox)
+                .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Middle })
+            .Items(
+                X.Panel()
+                    .ItemID("PnlFields")
+                    .Border(false)
+        //.Layout(LayoutType.Fit)
+                    .PaddingSpec("15px 0 0 10px")
+                    .Items(
+                        X.Panel()
+                            .Frame(true)
+                            .ItemID("pnlFrame")
+                            .Title("اطالاعات ساختار درختی گروه تماس")
+                            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center, Pack = BoxPack.Start })
+                            .ButtonAlign(Alignment.Center)
+                            .Buttons(
+                                Html.X().Button().ItemID("btnSave").Text("ذخیره").Margin(5).Icon(Icon.Disk).Listeners(l => l.Click.Handler = "SaveTree()")
+                            )
+        //.PaddingSpec("0 0 0 10px")
+                            .Items(
+                                X.Panel()
+                                    .Border(false)
+                                    .LayoutConfig(new TableLayoutConfig { Columns = 2, TRAttrs = { Cls = "rowheight" } })
+                                        .Defaults(new { MarginSpec = "5px 5px 5px 5px" })
+                                    .Items(
+                                        X.Hidden().ItemID("fldId"),
+                                     X.Label("گروه تماس:"),
+                                    X.ComboBox()
+                                        .ItemID("CboContactGroup")
+                                        .Width(200)
+                                        .EmptyText("گروه تماس...")
+                                        .AllowBlank(false)
+                                        .BlankText("لطفا گروه تماس را انتخاب نمایید.")
+                                        .TypeAhead(true)
+                                        .Editable(false)
+                                        .QueryMode(DataLoadMode.Local)
+                                        .ForceSelection(true)
+                                        .TriggerAction(TriggerAction.All)
+                                        .DisplayField("fldName")
+                                        .ValueField("ID")
+                                            .Listeners(l => l.AfterRender.Handler = "App.ContactGroup_Tree.queryById('CboContactGroup').validate();")
+                                                .Listeners(l => { l.Change.Handler = "App.TreeContactGroup.store.load()"; })
+
+                                        .Store(
+                                            X.Store()
+                                             .Listeners(l =>
+                                             {
+                                                 l.BeforeLoad.Handler = "App.ContactGroup_Tree.queryById('CboContactGroup').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.ContactGroup_Tree.queryById('antiForgeryToken').getValue());";
+                                                 l.Load.Handler = "setDefaultContactGroup();";
+                                             })
+                                                .Model(X.Model()
+                                                .IDProperty("ID")
+                                                .Fields(
+                                                    new ModelField("ID", ModelFieldType.String) { Mapping = "ID" },
+                                                    new ModelField("fldName", ModelFieldType.String) { Mapping = "fldName" })
+                                                )
+                                                .Proxy(X.AjaxProxy()
+                                                    .ActionMethods(l => l.Read = HttpMethod.POST)
+                                                    .Url(Url.Action("GetContactGroup"))
+                                                    .Reader(X.JsonReader().Root("data"))
+                                                )
+                                        ),
+                                        X.Label("عنوان:"),
+                                        X.TextField()
+                                            .ItemID("txtTitle")
+                                            .Width(200)
+                                            .AllowBlank(false)
+                                            .BlankText("لطفا عنوان را وارد کنید.")
+                                            .MaxLength(300)
+                                            .EnforceMaxLength(true)
+                                            .AutoFocus(true)
+                                    )
+                            )
+
+                    )
+                   ,
+                X.Panel()
+
+                    .Border(false)
+                    .Layout(LayoutType.Fit)
+                    .ItemID("PnlTree")
+                    .PaddingSpec("15px 0 0 0")
+                    .Items(
+                        X.FieldSet()
+                            .Border(false)
+                            .Layout(LayoutType.Fit)
+                            .Items(
+                                X.TreePanel()
+                                    .ID("TreeContactGroup")
+                                        .Title("ساختار درختی گروه تماس")
+                                        .AutoScroll(true)
+                                        .Frame(true)
+                                        .UseArrows(true)
+        //.Listeners(l => l.AfterRender.Handler = "AddMenu()")
+                                        .ViewConfig(Html.X().TreeView().Listeners(l => l.BeforeDrop.Fn = "moveNodes").Plugins(Html.X().TreeViewDragDrop().AppendOnly(true)))
+                                    .Store(
+                                        X.TreeStore()
+                                            .AutoLoad(false)
+                                            .Proxy(
+                                                    X.AjaxProxy().Url(Url.Action("NodeLoadContactGroupTree"))
+                                                        .ActionMethods(l => l.Read = HttpMethod.POST)
+                                            )
+                                            .Listeners(l => l.BeforeLoad.Fn = "GetParamTreeContactGroup")
+                                    )
+                                    .TopBar(X.Toolbar().Items(
+                                        X.Button().Text("ویرایش").Icon(Icon.Pencil).Listeners(l => l.Click.Handler = "EditNodeContactGroupTree()"),
+                                        X.Button().Text("حذف").Icon(Icon.Delete).Listeners(l => l.Click.Handler = "DeleteNodeContactGroupTree()"),
+                                            X.SplitButton()
+                                        .Text("راهنما")
+                                        .Icon(Ext.Net.Icon.Help)
+                                        .Menu(X.Menu()
+                                        .Items(
+                                        X.MenuItem()
+                                                    .Text("راهنما متنی")
+                                                    .Icon(Ext.Net.Icon.TextPaddingTop)
+                                                                .Listeners(l => { l.Click.Handler = "HelpContactGroupTree()"; }),
+                                            X.MenuItem()
+                                                    .Text("راهنما تصویری")
+                                                    .Icon(Ext.Net.Icon.PlayBlue)
+                                                        .Listeners(l => l.Click.Handler = "showHelp_VideoContactGroupTree()")
+
+                                    )
+                                )
+                                ))
+                                    .Listeners(l =>
+                                    {
+                                        l.AfterRender.Handler = "App.TreeContactGroup.expandAll();";
+                                    })
+
+                                        //.Root(Html.X().Node().NodeID("0").AttributesObject(new { fldId = "", fldTitle = "ساختار درختی گروه تماس" }).Expanded(true))
+                                        .Root(Html.X().Node().NodeID("0").Text("ساختار درختی گروه تماس"))
+                            )
+                        )
+                )
+        )
+)
+<script type="text/javascript">
+
+    function setDefaultContactGroup() {
+        App.ContactGroup_Tree.queryById("CboContactGroup").setValue(App.ContactGroup_Tree.queryById("CboContactGroup").store.getAt(0));
+    }
+    function showHelp_VideoContactGroupTree() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/ContactGroupTree/VideoWinContactGroupTree',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+
+    }
+
+
+    var moveNodes = function (a, child, parent, d, e) {
+        e.wait = true;
+        Ext.MessageBox.show({
+            title: "هشدار",
+            msg: "آیا برای جابجایی این شاخه مطمئن هستید؟",
+            icon: Ext.MessageBox.WARNING,
+            buttons: Ext.MessageBox.YESNO,
+            fn: function (btn) {
+                if (btn == "yes") {
+                    Ext.net.Mask.show({ msg: 'در حال انجام عملیات...' });
+                    Ext.net.DirectMethod.request({
+                        url: '/ContactGroupTree/MoveNodes',
+                        params: {
+                            childId: child.records[0].data.id,
+                            parentId: parent.data.id,
+                            __RequestVerificationToken: App.ContactGroup_Tree.queryById('antiForgeryToken').getValue()
+                        },
+                        success: function (data) {
+                            if (data.Er == 1) {
+                                e.cancelDrop();
+                                Ext.MessageBox.show({
+                                    title: data.MsgTitle,
+                                    msg: data.Msg,
+                                    icon: Ext.MessageBox.ERROR,
+                                    buttons: Ext.MessageBox.OK
+                                });
+                            }
+                            else {
+                                e.processDrop();
+                            }
+                            Ext.net.Mask.hide();
+                        }
+                    });
+                }
+                else {
+                    e.cancelDrop();
+                }
+            }
+        });
+    };
+
+    function HelpContactGroupTree() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/ContactGroupTree/Help',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+
+    function SaveTree() {
+        var Id = App.ContactGroup_Tree.queryById('fldId');
+        var txtTitle = App.ContactGroup_Tree.queryById('txtTitle');
+        var CboContactGroup = App.ContactGroup_Tree.queryById('CboContactGroup');
+        var SelectedNode = App.TreeContactGroup.getSelectionModel().getLastSelected();
+
+        var er = false;
+        if (txtTitle.validate() == false) {
+            er = true;
+        }
+        if (CboContactGroup.validate() == false) {
+            er = true;
+        }
+        if (er == true)
+            return;
+
+        if (SelectedNode == null) {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا ابتدا یک سطر (شاخه) را انتخاب نمایید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+            return;
+        }
+
+        var data = {
+            fldId: Id.getValue(),
+            fldPId: SelectedNode.data.id,
+            NameTree: SelectedNode.data.text,
+            fldTitle: txtTitle.getValue(),
+            fldGroupId: CboContactGroup.getValue(),
+            fldNameGroup: CboContactGroup.getDisplayValue(),
+            __RequestVerificationToken: App.ContactGroup_Tree.queryById('antiForgeryToken').getValue()
+        };
+        Ext.net.Mask.show({ msg: 'در حال ذخیره سازی...' });
+        $.ajax({
+            type: "POST",
+            url: '/ContactGroupTree/Save',
+            datatype: "json",
+            data: data,
+            /*contentType: 'application/json',*/
+            success: function (result) {
+                chat.server.reloadLog();
+                Ext.net.Mask.hide();
+                var ic = Ext.MessageBox.INFO;
+                if (result.Er == 1)
+                    ic = Ext.MessageBox.ERROR;
+                Ext.MessageBox.show({
+                    title: result.MsgTitle,
+                    msg: result.Msg,
+                    icon: ic,
+                    buttons: Ext.MessageBox.OK
+                });
+                if (result.Er != 1) {
+                    if (Id.getValue() == 0) {/*insert*/
+                        App.TreeContactGroup.getStore().load({ node: SelectedNode });
+                        ClearContactGroupTree();
+                    }
+                    else {/*edit*/
+                        App.TreeContactGroup.getStore().load({ node: SelectedNode.parentNode });
+                        ClearContactGroupTree();
+                    }
+                }
+            },
+            failure: function () {
+            }
+        });
+    }
+
+    function AddMenu() {
+        var menu_grid = new Ext.menu.Menu({
+            bodyStyle: 'background-color:#dfe8f6 !important;',
+            items: [
+                { text: "ویرایش", iconCls: "Editico", handler: function () { EditNodeContactGroupTree(); } },
+                { text: "حذف", iconCls: "Deleteico", handler: function () { DeleteNodeContactGroupTree(); } }
+            ]
+        });
+        App.TreeContactGroup.on("itemcontextmenu", function (view, record, item, index, e, eOpts) { if (record.data.id != 0) { var position = e.getXY(); e.stopEvent(); menu_grid.showAt(position); } });
+    }
+
+    function EditNodeContactGroupTree() {
+        var SelectedNode = App.TreeContactGroup.getSelectionModel().getLastSelected();
+        if (SelectedNode != null) {
+            if (SelectedNode.data.id != 0) {
+                App.ContactGroup_Tree.queryById('fldId').setValue(SelectedNode.data.id);
+                App.ContactGroup_Tree.queryById('txtTitle').setValue(SelectedNode.data.text);
+                App.ContactGroup_Tree.queryById('txtTitle').focus();
+            }
+            else {
+                Ext.MessageBox.show({
+                    title: "خطا",
+                    msg: "امکان ویرایش شاخه مورد نظر وجود ندارد.",
+                    icon: Ext.MessageBox.ERROR,
+                    buttons: Ext.MessageBox.OK
+                });
+            }
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر (شاخه) را انتخاب کنید",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+
+    function DeleteNodeContactGroupTree() {
+        var SelectedNode = App.TreeContactGroup.getSelectionModel().getLastSelected();
+        if (SelectedNode != null) {
+            if (SelectedNode.data.id != 0) {
+                if (SelectedNode.childNodes.length == 0) {
+                    Ext.MessageBox.show({
+                        title: "هشدار",
+                        msg: "آیا برای حذف مطمئن هستید؟",
+                        icon: Ext.MessageBox.WARNING,
+                        buttons: Ext.MessageBox.YESNO,
+                        fn: function (btn) {
+                            if (btn == 'yes') {
+                                Ext.net.Mask.show({ msg: 'در حال انجام عملیات...' });
+                                Ext.net.DirectMethod.request({
+                                    url: ' /ContactGroupTree/Delete',
+                                    params: {
+                                        Id: SelectedNode.data.id,
+                                        __RequestVerificationToken: App.ContactGroup_Tree.queryById('antiForgeryToken').getValue()
+                                    },
+                                    success: function (data) {
+                                        chat.server.reloadLog();
+                                        var ic = Ext.MessageBox.INFO;
+                                        if (data.Er == 1)
+                                            ic = Ext.MessageBox.ERROR;
+                                        Ext.MessageBox.show({
+                                            title: data.MsgTitle,
+                                            msg: data.Msg,
+                                            icon: ic,
+                                            buttons: Ext.MessageBox.OK
+                                        });
+                                        if (data.Er != 1) {
+                                            App.TreeContactGroup.getStore().load({ node: SelectedNode.parentNode }); SelectedNode.expand();
+                                        }
+                                    }
+                                });
+                                Ext.net.Mask.hide();
+                            }
+                        }
+                    });
+                }
+                else {
+                    Ext.MessageBox.show({
+                        title: "خطا",
+                        msg: "لطفا ابتدا زیرشاخه های مربوطه را پاک نموده و سپس اقدام به حذف شاخه مورد نظر نمایید.",
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK
+                    });
+                }
+            }
+            else {
+                Ext.MessageBox.show({
+                    title: "خطا",
+                    msg: "امکان حذف شاخه مورد نظر وجود ندارد.",
+                    icon: Ext.MessageBox.ERROR,
+                    buttons: Ext.MessageBox.OK
+                });
+            }
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر (شاخه) را انتخاب کنید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+
+    function ClearContactGroupTree() {
+        App.ContactGroup_Tree.queryById('fldId').setValue(0);
+        App.ContactGroup_Tree.queryById('txtTitle').setValue("");
+    }
+    var GetParamTreeContactGroup = function (store, operation, eOpts) {
+        var CboContactGroup = App.ContactGroup_Tree.queryById("CboContactGroup");
+        var nodeId = operation.node.getId();
+        operation.params.nod = nodeId;
+        operation.params.GroupId = CboContactGroup.getValue();
+        operation.params.__RequestVerificationToken = App.ContactGroup_Tree.queryById('antiForgeryToken').getValue();
+    };
+
+   /* var GetParamTreeContactGroup = function (store, operation, options) {
+        var CboContactGroup = App.ContactGroup_Tree.queryById('CboContactGroup');
+        var nodeId = operation.node.getId();
+        operation.params.nod = nodeId;
+        operation.params.GroupId = CboContactGroup.getValue();*/
+
+        /*var node = operation.node;
+        var GroupId= CboContactGroup.getValue();*/
+        /*Ext.net.DirectMethod.request({
+            url: '/ContactGroupTree/NodeLoadContactGroupTree',
+            params: {
+                nod: node.getId(),
+                GroupId: CboContactGroup.getValue()
+            },
+            success: function (result) {
+                node.set('loading', false);
+                node.set('loaded', true);
+                node.appendChild(result);
+                CheckdBeforeChange2 = App.TreePermission.getChecked();
+                node.expand(true);
+            },
+            failure: function (errorMsg) {
+                Ext.Msg.alert('Failure', errorMsg);
+            }
+        });
+        return false;
+    };*/
+
+    function ContactGroup_TreeSetSize() {
+        App.ContactGroup_Tree.setWidth(App.ContactWin.getWidth());
+        var splitWidth = (App.ContactWin.getWidth() - 10) / 4;
+        App.ContactGroup_Tree.queryById("PnlFields").setSize(splitWidth, App.ContactWin.getHeight() - 85);
+        App.ContactGroup_Tree.queryById("PnlTree").setSize(splitWidth * 3, App.ContactWin.getHeight() - 85);
+        App.ContactGroup_Tree.queryById("pnlFrame").setHeight(App.ContactWin.getHeight() - 110);
+        App.ContactGroup_Tree.queryById('txtTitle').validate();
+        InsertToLog("ساختار درختی بایگانی دیجیتال", 2, true);
+    }
+
+    var addKeyMapContactGroup_Tree = function (cmp) {
+        this.keyMap = new Ext.util.KeyMap({
+            target: cmp.getEl(),
+            binding: [{
+                key: [13, 9], /*Ext.EventObject.ENTER,*/
+                fn: function (key, e) {
+                    if (e.getKey() == 9) {
+                        e.stopEvent();
+                    }
+                    var keyfield;
+                    var nextfld;
+                    if (keyfield.itemId == "txtTitle") {
+                        SaveTree();
+                        return;
+                    }
+
+                    nextfld.focus();
+                    nextfld.selectText();
+                }
+            }]
+        });
+    };
+</script>

@@ -1,0 +1,2540 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>
+    </ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{ABB19ADF-5F59-4952-AABF-3F54FED2598E}</ProjectGuid>
+    <ProjectTypeGuids>{E3E379DF-F4C6-4180-9B81-6769533ABE47};{349c5851-65df-11da-9384-00065b846f21};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>RaiSam</RootNamespace>
+    <AssemblyName>RaiSam</AssemblyName>
+    <TargetFrameworkVersion>v4.7</TargetFrameworkVersion>
+    <MvcBuildViews>false</MvcBuildViews>
+    <UseIISExpress>true</UseIISExpress>
+    <IISExpressSSLPort />
+    <IISExpressAnonymousAuthentication />
+    <IISExpressWindowsAuthentication />
+    <IISExpressUseClassicPipelineMode />
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Aspose.Cells">
+      <HintPath>..\..\MedicalExaminations\MedicalExaminations\bin\Aspose.Cells.dll</HintPath>
+    </Reference>
+    <Reference Include="Aspose.Imaging">
+      <HintPath>..\..\MedicalExaminations\MedicalExaminations\bin\Aspose.Imaging.dll</HintPath>
+    </Reference>
+    <Reference Include="Aspose.Pdf">
+      <HintPath>..\..\Automation Team\NEW\Automation\Automation\bin\Aspose.Pdf.dll</HintPath>
+    </Reference>
+    <Reference Include="EASendMail">
+      <HintPath>..\EASendMail.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer">
+      <HintPath>\\192.168.1.33\share\fani\Ext\EntityFramework.SqlServer.dll</HintPath>
+    </Reference>
+    <Reference Include="Ext.Net">
+      <HintPath>\\192.168.1.33\share\fani\Ext\Ext.Net.dll</HintPath>
+    </Reference>
+    <Reference Include="Ext.Net.Utilities">
+      <HintPath>\\192.168.1.33\share\fani\Ext\Ext.Net.Utilities.dll</HintPath>
+    </Reference>
+    <Reference Include="FastReport, Version=2023.2.17.0, Culture=neutral, PublicKeyToken=db7e5ce63278458c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Program Files (x86)\FastReports\FastReport.Net Trial\Framework\FastReport.dll</HintPath>
+    </Reference>
+    <Reference Include="FastReport.Bars, Version=2023.2.17.0, Culture=neutral, PublicKeyToken=db7e5ce63278458c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Program Files (x86)\FastReports\FastReport.Net Trial\Framework\FastReport.Bars.dll</HintPath>
+    </Reference>
+    <Reference Include="FastReport.Compat, Version=2022.3.2.0, Culture=neutral, PublicKeyToken=406e1f4c3c8ef97e, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Program Files (x86)\FastReports\FastReport.Net Trial\Framework\FastReport.Compat.dll</HintPath>
+    </Reference>
+    <Reference Include="FastReport.Editor, Version=2023.2.17.0, Culture=neutral, PublicKeyToken=db7e5ce63278458c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Program Files (x86)\FastReports\FastReport.Net Trial\Framework\FastReport.Editor.dll</HintPath>
+    </Reference>
+    <Reference Include="FastReport.Service, Version=2023.2.17.0, Culture=neutral, PublicKeyToken=db7e5ce63278458c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Program Files (x86)\FastReports\FastReport.Net Trial\Framework\FastReport.Service.dll</HintPath>
+    </Reference>
+    <Reference Include="FastReport.VSDesign, Version=1.0.0.0, Culture=neutral, PublicKeyToken=417583d16d08abed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Program Files (x86)\FastReports\FastReport.Net Trial\Framework\FastReport.VSDesign.dll</HintPath>
+    </Reference>
+    <Reference Include="FastReport.Web, Version=2023.2.17.0, Culture=neutral, PublicKeyToken=db7e5ce63278458c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Program Files (x86)\FastReports\FastReport.Net Trial\Framework\FastReport.Web.dll</HintPath>
+    </Reference>
+    <Reference Include="GroupDocs.Signature">
+      <HintPath>C:\Users\RasaCo\Documents\GroupDocs.Signature.dll</HintPath>
+    </Reference>
+    <Reference Include="Hogaf.ExtNet.UX">
+      <HintPath>\\192.168.1.33\share\fani\Ext\Hogaf.ExtNet.UX.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNet.Identity.Core, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\MedicalExaminations\MedicalExaminations\bin\Microsoft.AspNet.Identity.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNet.Identity.EntityFramework, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\MedicalExaminations\MedicalExaminations\bin\Microsoft.AspNet.Identity.EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNet.Identity.Owin, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\MedicalExaminations\MedicalExaminations\bin\Microsoft.AspNet.Identity.Owin.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNet.SignalR.Core, Version=2.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\MedicalExaminations\MedicalExaminations\bin\Microsoft.AspNet.SignalR.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNet.SignalR.SystemWeb, Version=2.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\MedicalExaminations\MedicalExaminations\bin\Microsoft.AspNet.SignalR.SystemWeb.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.Data.Edm, Version=5.6.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\MedicalExaminations\MedicalExaminations\bin\Microsoft.Data.Edm.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Data.OData, Version=5.6.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\MedicalExaminations\MedicalExaminations\bin\Microsoft.Data.OData.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin, Version=2.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\MedicalExaminations\MedicalExaminations\bin\Microsoft.Owin.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Host.SystemWeb, Version=2.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\MedicalExaminations\MedicalExaminations\bin\Microsoft.Owin.Host.SystemWeb.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Security, Version=2.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\MedicalExaminations\MedicalExaminations\bin\Microsoft.Owin.Security.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Security.Cookies, Version=2.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\MedicalExaminations\MedicalExaminations\bin\Microsoft.Owin.Security.Cookies.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Security.Google, Version=2.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\MedicalExaminations\MedicalExaminations\bin\Microsoft.Owin.Security.Google.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Security.OAuth, Version=2.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\MedicalExaminations\MedicalExaminations\bin\Microsoft.Owin.Security.OAuth.dll</HintPath>
+    </Reference>
+    <Reference Include="MyLib">
+      <HintPath>..\..\MedicalExaminations\MedicalExaminations\bin\MyLib.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\VacationTaxi\VacationTaxi\bin\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="Owin, Version=1.0.0.0, Culture=neutral, PublicKeyToken=f0ebd12fd5e55cc5, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\MedicalExaminations\MedicalExaminations\bin\Owin.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Data.Entity" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.Spatial, Version=5.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\MedicalExaminations\MedicalExaminations\bin\System.Spatial.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.DynamicData" />
+    <Reference Include="System.Web.Entity" />
+    <Reference Include="System.Web.ApplicationServices" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Web.Http.OData">
+      <HintPath>..\..\MedicalExaminations\MedicalExaminations\bin\System.Web.Http.OData.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Optimization">
+      <HintPath>..\..\MedicalExaminations\MedicalExaminations\bin\System.Web.Optimization.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Abstractions" />
+    <Reference Include="System.Web.Routing" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Transactions" />
+    <Reference Include="System.Web.Services" />
+    <Reference Include="System.EnterpriseServices" />
+    <Reference Include="EntityFramework">
+      <HintPath>\\192.168.1.33\share\fani\Ext\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Web.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\packages\Microsoft.Web.Infrastructure.1.0.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Web.Mvc.FixedDisplayModes, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\..\MedicalExaminations\MedicalExaminations\bin\Microsoft.Web.Mvc.FixedDisplayModes.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Http">
+    </Reference>
+    <Reference Include="System.Net.Http.Formatting, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.WebApi.Client.4.0.30506.0\lib\net40\System.Net.Http.Formatting.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Http.WebRequest">
+    </Reference>
+    <Reference Include="System.Web.Helpers, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\packages\Microsoft.AspNet.WebPages.2.0.30506.0\lib\net40\System.Web.Helpers.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Http, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.WebApi.Core.4.0.30506.0\lib\net40\System.Web.Http.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Http.WebHost, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.WebApi.WebHost.4.0.30506.0\lib\net40\System.Web.Http.WebHost.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Mvc, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\packages\Microsoft.AspNet.Mvc.4.0.30506.0\lib\net40\System.Web.Mvc.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Razor, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\packages\Microsoft.AspNet.Razor.2.0.30506.0\lib\net40\System.Web.Razor.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.WebPages, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\packages\Microsoft.AspNet.WebPages.2.0.30506.0\lib\net40\System.Web.WebPages.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.WebPages.Deployment, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\packages\Microsoft.AspNet.WebPages.2.0.30506.0\lib\net40\System.Web.WebPages.Deployment.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.WebPages.Razor, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\packages\Microsoft.AspNet.WebPages.2.0.30506.0\lib\net40\System.Web.WebPages.Razor.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="Transformer.NET">
+      <HintPath>..\..\MedicalExaminations\MedicalExaminations\bin\Transformer.NET.dll</HintPath>
+    </Reference>
+    <Reference Include="WebGrease">
+      <HintPath>\\192.168.1.33\share\fani\Ext\WebGrease.dll</HintPath>
+    </Reference>
+    <Reference Include="WebMatrix.Data, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\packages\Microsoft.AspNet.WebPages.Data.2.0.30506.0\lib\net40\WebMatrix.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Web.WebPages.OAuth, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\packages\Microsoft.AspNet.WebPages.OAuth.2.0.30506.0\lib\net40\Microsoft.Web.WebPages.OAuth.dll</HintPath>
+    </Reference>
+    <Reference Include="WebMatrix.WebData, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\packages\Microsoft.AspNet.WebPages.WebData.2.0.30506.0\lib\net40\WebMatrix.WebData.dll</HintPath>
+    </Reference>
+    <Reference Include="DotNetOpenAuth.AspNet, Version=4.1.0.0, Culture=neutral, PublicKeyToken=2780ccd10d57b246, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\..\MedicalExaminations\MedicalExaminations\bin\DotNetOpenAuth.AspNet.dll</HintPath>
+    </Reference>
+    <Reference Include="DotNetOpenAuth.Core, Version=4.1.0.0, Culture=neutral, PublicKeyToken=2780ccd10d57b246, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\..\MedicalExaminations\MedicalExaminations\bin\DotNetOpenAuth.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="DotNetOpenAuth.OAuth.Consumer, Version=4.1.0.0, Culture=neutral, PublicKeyToken=2780ccd10d57b246, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\..\MedicalExaminations\MedicalExaminations\bin\DotNetOpenAuth.OAuth.Consumer.dll</HintPath>
+    </Reference>
+    <Reference Include="DotNetOpenAuth.OAuth, Version=4.1.0.0, Culture=neutral, PublicKeyToken=2780ccd10d57b246, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\..\MedicalExaminations\MedicalExaminations\bin\DotNetOpenAuth.OAuth.dll</HintPath>
+    </Reference>
+    <Reference Include="DotNetOpenAuth.OpenId, Version=4.1.0.0, Culture=neutral, PublicKeyToken=2780ccd10d57b246, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\..\MedicalExaminations\MedicalExaminations\bin\DotNetOpenAuth.OpenId.dll</HintPath>
+    </Reference>
+    <Reference Include="DotNetOpenAuth.OpenId.RelyingParty, Version=4.1.0.0, Culture=neutral, PublicKeyToken=2780ccd10d57b246, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\..\MedicalExaminations\MedicalExaminations\bin\DotNetOpenAuth.OpenId.RelyingParty.dll</HintPath>
+    </Reference>
+    <Reference Include="Antlr3.Runtime">
+      <Private>True</Private>
+      <HintPath>..\..\MedicalExaminations\MedicalExaminations\bin\Antlr3.Runtime.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="App_Start\AuthConfig.cs" />
+    <Compile Include="App_Start\BundleConfig.cs" />
+    <Compile Include="App_Start\FilterConfig.cs" />
+    <Compile Include="App_Start\IdentityConfig.cs" />
+    <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="Areas\Faces\Controllers\AdminController.cs" />
+    <Compile Include="Areas\Faces\Controllers\CompanyProfileController.cs" />
+    <Compile Include="Areas\Faces\Controllers\DynamicFormController.cs" />
+    <Compile Include="Areas\Faces\Controllers\FinalCheckController.cs" />
+    <Compile Include="Areas\Faces\Controllers\FristRegisterController.cs" />
+    <Compile Include="Areas\Faces\Controllers\NavaghesController.cs" />
+    <Compile Include="Areas\Faces\Controllers\ProjectController.cs" />
+    <Compile Include="Areas\Faces\Controllers\RequestRankingController.cs" />
+    <Compile Include="Areas\Faces\Controllers\ScheduleContractController.cs" />
+    <Compile Include="Areas\Faces\Controllers\SearchAshkhasController.cs" />
+    <Compile Include="Areas\Faces\Controllers\SearchComponyController.cs" />
+    <Compile Include="Areas\Faces\Controllers\SearchTypeVagonController.cs" />
+    <Compile Include="Areas\Faces\Controllers\ShareholdersController.cs" />
+    <Compile Include="Areas\Faces\Controllers\TicketController.cs" />
+    <Compile Include="Areas\Faces\FacesAreaRegistration.cs" />
+    <Compile Include="CaptchaImage.cs" />
+    <Compile Include="CodeDecode.cs" />
+    <Compile Include="Controllers\AccountController.cs" />
+    <Compile Include="Controllers\Actions\AcceptOrRejectController.cs" />
+    <Compile Include="Controllers\Actions\BazgashtBeGhablController.cs" />
+    <Compile Include="Controllers\Actions\EtmamCharkheController.cs" />
+    <Compile Include="Controllers\Actions\TaiidMarhaleController.cs" />
+    <Compile Include="Controllers\BasicInfo\AnnouncementController.cs" />
+    <Compile Include="Controllers\BasicInfo\AshkhasHoghooghiController.cs" />
+    <Compile Include="Controllers\BasicInfo\CarBargController.cs" />
+    <Compile Include="Controllers\BasicInfo\contract_projectController.cs" />
+    <Compile Include="Controllers\BasicInfo\ErrorController.cs" />
+    <Compile Include="Controllers\BasicInfo\FinancialValueController.cs" />
+    <Compile Include="Controllers\BasicInfo\HadafGroupNameController.cs" />
+    <Compile Include="Controllers\BasicInfo\HadafSabtNamController.cs" />
+    <Compile Include="Controllers\BasicInfo\HelpController.cs" />
+    <Compile Include="Controllers\BasicInfo\HumanController.cs" />
+    <Compile Include="Controllers\BasicInfo\ItemDynamicPropertiesController.cs" />
+    <Compile Include="Controllers\BasicInfo\Malek_VagonController.cs" />
+    <Compile Include="Controllers\BasicInfo\MosavabatController.cs" />
+    <Compile Include="Controllers\BasicInfo\PageHtmlController.cs" />
+    <Compile Include="Controllers\BasicInfo\PersonalInfoController.cs" />
+    <Compile Include="Controllers\BasicInfo\ScheduleTitleController.cs" />
+    <Compile Include="Controllers\BasicInfo\ScheduleTitle_HadafController.cs" />
+    <Compile Include="Controllers\BasicInfo\SearchAshkhasHoghooghiController.cs" />
+    <Compile Include="Controllers\BasicInfo\SearchCityController.cs" />
+    <Compile Include="Controllers\BasicInfo\SearchContract_ProjectController.cs" />
+    <Compile Include="Controllers\BasicInfo\SearchDizelController.cs" />
+    <Compile Include="Controllers\BasicInfo\SearchFirstController.cs" />
+    <Compile Include="Controllers\BasicInfo\SearchHumanController.cs" />
+    <Compile Include="Controllers\BasicInfo\SearchMalek_VagonController.cs" />
+    <Compile Include="Controllers\BasicInfo\SearchStationController.cs" />
+    <Compile Include="Controllers\BasicInfo\SearchTitleRatingDynamicController.cs" />
+    <Compile Include="Controllers\BasicInfo\SearchVagonController.cs" />
+    <Compile Include="Controllers\BasicInfo\TaeedItemsController.cs" />
+    <Compile Include="Controllers\BasicInfo\TechnicalDocumentationController.cs" />
+    <Compile Include="Controllers\BasicInfo\TitleRatingDynamicController.cs" />
+    <Compile Include="Controllers\BasicInfo\TypeVagonController.cs" />
+    <Compile Include="Controllers\BasicInfo\VagonController.cs" />
+    <Compile Include="Controllers\Contancts\ContactController.cs" />
+    <Compile Include="Controllers\Contancts\ContactGroupController.cs" />
+    <Compile Include="Controllers\Contancts\ContactGroupTreeController.cs" />
+    <Compile Include="Controllers\Contancts\ContanctTypeController.cs" />
+    <Compile Include="Controllers\CRM\ErjaController.cs" />
+    <Compile Include="Controllers\CRM\ShowVersionController.cs" />
+    <Compile Include="Controllers\CRM\VersionController.cs" />
+    <Compile Include="Controllers\GeneralKartablController.cs" />
+    <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\MonitoringFirstRegisterController.cs" />
+    <Compile Include="Controllers\MonitoringRegisterCompleteController.cs" />
+    <Compile Include="Controllers\Operation\ActionsController.cs" />
+    <Compile Include="Controllers\Operation\AvamelMoasser_UpgradeController.cs" />
+    <Compile Include="Controllers\Operation\CharkheController.cs" />
+    <Compile Include="Controllers\Operation\FactorsAffectingValuesController.cs" />
+    <Compile Include="Controllers\Operation\ItemsDynamicRatingController.cs" />
+    <Compile Include="Controllers\Operation\KartablController.cs" />
+    <Compile Include="Controllers\Operation\MostanadatFaniController.cs" />
+    <Compile Include="Controllers\Operation\OperationController.cs" />
+    <Compile Include="Controllers\Operation\RulesController.cs" />
+    <Compile Include="Controllers\Operation\SearchDynamicItem_CharkheEghdamController.cs" />
+    <Compile Include="Controllers\Operation\SearchOperationController.cs" />
+    <Compile Include="Controllers\Report\RptBarnameController.cs" />
+    <Compile Include="Controllers\Report\RptCarbargController.cs" />
+    <Compile Include="Controllers\Report\RptRizAmalkardController.cs" />
+    <Compile Include="Controllers\SMSEmailCachController.cs" />
+    <Compile Include="Controllers\SmsFromExcelController.cs" />
+    <Compile Include="Controllers\SpecializedKartablController.cs" />
+    <Compile Include="Controllers\ThemDesktop_UserController.cs" />
+    <Compile Include="Controllers\Ticketing\TicketCategoryController.cs" />
+    <Compile Include="Controllers\Ticketing\TicketFormatFileController.cs" />
+    <Compile Include="Controllers\Ticketing\TicketKartablController.cs" />
+    <Compile Include="Controllers\Ticketing\TicketPermissionController.cs" />
+    <Compile Include="Controllers\Ticketing\UserTicketController.cs" />
+    <Compile Include="Controllers\Transaction\EventController.cs" />
+    <Compile Include="Controllers\Transaction\EventTablesController.cs" />
+    <Compile Include="Controllers\Transaction\NameTablesController.cs" />
+    <Compile Include="Controllers\Transaction\TransactionGroupController.cs" />
+    <Compile Include="Controllers\Transaction\TransactionTypeController.cs" />
+    <Compile Include="Controllers\Transaction\UserLogController.cs" />
+    <Compile Include="Controllers\User\LimitationController.cs" />
+    <Compile Include="Controllers\User\PermissionController.cs" />
+    <Compile Include="Controllers\User\SpecificCartablePermission_UserGroupController.cs" />
+    <Compile Include="Controllers\User\UserController.cs" />
+    <Compile Include="Controllers\User\UserGroupController.cs" />
+    <Compile Include="DataSet\DataSet1.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>DataSet1.xsd</DependentUpon>
+    </Compile>
+    <Compile Include="Filters\InitializeSimpleMembershipAttribute.cs" />
+    <Compile Include="Global.asax.cs">
+      <DependentUpon>Global.asax</DependentUpon>
+    </Compile>
+    <Compile Include="MimeType.cs" />
+    <Compile Include="Models\AccountModels.cs" />
+    <Compile Include="Models\ActionAttribute.cs" />
+    <Compile Include="Models\ActionsResult.cs" />
+    <Compile Include="Models\ApiClient.cs" />
+    <Compile Include="Models\ApplicationPart.cs" />
+    <Compile Include="Models\BazgashtBeGhabl.cs" />
+    <Compile Include="Models\CharkheAction.cs" />
+    <Compile Include="Models\Class1.cs" />
+    <Compile Include="Models\ClassYear.cs" />
+    <Compile Include="Models\companyOut.cs" />
+    <Compile Include="Models\ContractCycle.cs" />
+    <Compile Include="Models\Contract_Project.cs" />
+    <Compile Include="Models\FactorsAffectingValues.cs" />
+    <Compile Include="Models\FileInfoExtensions.cs" />
+    <Compile Include="Models\FinalCheckGrid.cs" />
+    <Compile Include="Models\FinancialValue.cs" />
+    <Compile Include="Models\FM.cs" />
+    <Compile Include="Models\IdentityModels.cs" />
+    <Compile Include="Models\InfoActionAttribute.cs" />
+    <Compile Include="Models\InputDto_Address.cs" />
+    <Compile Include="Models\InputDto_SabtAhval.cs" />
+    <Compile Include="Models\Input_Company.cs" />
+    <Compile Include="Models\Input_Mosaferi.cs" />
+    <Compile Include="Models\Input_Sejam.cs" />
+    <Compile Include="Models\KartablAction.cs" />
+    <Compile Include="Models\Limitation.cs" />
+    <Compile Include="Models\ListSms.cs" />
+    <Compile Include="Models\LogOnUsers.cs" />
+    <Compile Include="Models\Model1.Context.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Model1.Context.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\Model1.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\Model1.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Model1.edmx</DependentUpon>
+    </Compile>
+    <Compile Include="Models\Monitorring.cs" />
+    <Compile Include="Models\MoveTranDetails.cs" />
+    <Compile Include="Models\OBJ_Permission.cs" />
+    <Compile Include="Models\OBJ_UpdateOrder.cs" />
+    <Compile Include="Models\OutputDto_Address.cs" />
+    <Compile Include="Models\OutputDto_SabtAhvalSitad.cs" />
+    <Compile Include="Models\Output_Mosaferi.cs" />
+    <Compile Include="Models\Parameters.cs" />
+    <Compile Include="Models\Permission.cs" />
+    <Compile Include="Models\ProgressBar.cs" />
+    <Compile Include="Models\ProjectDetails.cs" />
+    <Compile Include="Models\prs_ApplictionPart_Charkhe.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_CheckContact.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_CheckIPUnique.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_CheckRequest_HadafAllowedId.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_CheckTicketPermission.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_DeleteHadafAllowed_NoRequest.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_DeleteKolByEnterId.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_DeleteWithCompanyId.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_ExistsTitleRating_CharkheEghdam.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_GetDate.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_GetName_applicationpart.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_GetUserGroupTree.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_HadafListForFirstRegister.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_HaveItemDynamic.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_InsertAshkhas.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_ListCompany.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_ListCompanyForExcel.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_ListCompany_First.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_ListNameShakhInCartabl.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_MinusSaham.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_NameItemDynamicRatingForHadafId.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_RptAmalKardKoliMosaferi.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_RptAmalkardMosaferi.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_RptBarname.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_RptBarname_Info.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_RptDizel.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_RptDizelFirstBarname.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_RptHeaderContract_Dizel.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_RptHeaderContract_Station.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_RptKoliBarname.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_SelectAllAvamelMoasser_Upgrade_Effecting.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_SelectAllContract_Project.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_SelectBarnameDetail.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_SelectCartablInCherkhe_Eghdam.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_SelectCheckUniqueFactors.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_SelectContractDetailLastVagon.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_SelectContract_Project_Detail.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_SelectDistictAction_Cartable.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_SelectDistictOperation_Action.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_SelectDizelForRptBarname.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_SelectEshterakOpration.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_SelectExistsOpertionOnAction.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_SelectLastOpration_EnterCycleId.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_selectListEnterIdByCharkhe.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_SelectMonth.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_SelectMosaferiDetail.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_SelectNextAction_CharkheEghdam.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_SelectRequestType.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_SelectRequest_Action.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_SelectScheduleTitleByFirstContract.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_SelectTimeLine.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_SelectUserByUserId.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_SelectUserByUserIdTicket.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_SelectVagonForRptBarname.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_SelectVersionInformation.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_SpecificCartablePermissionTreeSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblAcceptOrRejectSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblActionsDelete.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblActionsSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblActionsUpdate.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblAddressSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblAnavinGhabelCharkheshSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblAnnouncementManagerAttachmentSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblAnnouncementManagerSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblAnnouncement_HadafSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblAnnouncement_TreeSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblAnvaPayeSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblApplicationPartSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblApplicationPart_ClientSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblAshkhasDelete.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblAshkhasHoghooghiDelete.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblAshkhasHoghooghiInsert.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblAshkhasHoghooghiSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblAshkhasHoghooghiUpdate.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblAshkhasSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblAshkhasUpdate.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblAvamelMoasser_UpgradeSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblBazgashBeGhablSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblCarBargSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblCharkheDelete.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblCharkheSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblCharkheUpdate.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblCharkhe_EghdamSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblCharkhe_FirstEghdamSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblCh_CompanyProfileSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblCityDelete.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblCitySelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblCommentSentSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblCompanyLocationSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblCompanyProfileInsert.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblCompanyProfileInsert_Header.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblCompanyProfileSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblCompanyProfileUpdate.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblCompanyProfileUpdate_Header.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblCompanyProfile_DetailSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblCompanyTypeSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblComputationFormulaSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblContactDelete.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblContactGroupDelete.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblContactGroupSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblContactGroupUpdate.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblContactSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblContactUpdate.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblContact_TreeGroupSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblContanctTypeDelete.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblContanctTypeSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblContanctTypeUpdate.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblContractTypeSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblContract_DetailDizelSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblContract_ProjectDelete.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblContract_ProjectInsert.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblContract_ProjectSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblContract_ProjectUpdate.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblContract_Project_DetailSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblContract_Project_ExcelInsert.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblContract_StationSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblCountrySelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblCountySelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblDataTypesSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblDegreeOfEducationSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblDizelSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblEkhtesasActions_CartableSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblEkhtesasActions_CartableUpdate.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblEmailSettingSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblEnterToCycleSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblErjaDelete.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblErjaSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblErjaUpdate.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblErrorSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblEtmamCharkheSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblEventSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblEventTablesSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblEventTypeSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblFactorsAffectingValues_DetailGroupSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblFactorsAffectingValues_DetailSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblFactorsAffectingValues_HeaderDelete.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblFactorsAffectingValues_HeaderSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblFactorsAffectingValues_HeaderUpdate.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblFileBlockListSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblFileDesktop_UserSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblFileSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblFinancialValue_DetailSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblFinancialValue_HeaderSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblFirstRegisterSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblFirstRegister_HadafAllowedSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblFirstRegister_SelectedHadafSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblFirstRegister_UserIdDelete.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblFormatFileSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblHadafGroupingSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblHadafGroupNameDelete.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblHadafGroupNameSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblHadafGroupNameUpdate.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblHadafSabtNamDelete.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblHadafSabtNamSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblHadafSabtNamUpdate.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblHelpSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblHtmlViewerSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblInputInfoSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblItemDynamicPropertiesSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblItemDynamic_ClientDelete.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblItemDynamic_ClientInsert.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblItemDynamic_ClientSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblItemDynamic_ClientUpdate.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblItemDynamic_Client_SignSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblItemProperties_ClientSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblItemsDynamicRatingSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblKartablDelete.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblKartablSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblKartablUpdate.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblLimitationIPDelete.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblLimitationIPSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblLimitationIPUpdate.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblLimitationMacAddressSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblLimitationTimeDelete.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblLimitationTimeSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblLimitationTimeUpdate.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblMahalSazmaniSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblMalek_CompanyProfileSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblMalek_VagonInfoInsert.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblMalek_VagonInfoSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblMalek_VagonInfoUpdate.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblMalek_VagonInfo_MalekSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblMosavabatInsert.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblMosavabatSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblNahiSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblNameTablesSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblNatijeErjaDelete.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblNatijeErjaSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblNatijeErjaUpdate.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblOperationDelete.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblOperationSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblOperationUpdate.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblOpertion_ActionSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblOpertion_NoeCharkheshSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblOrganSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblPageHtmlSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblPermissionCharkheSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblPermissionSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblPermission_ClientSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblPersonalInfoSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblProgressSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblReferralRulesDelete.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblReferralRulesSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblReferralRulesUpdate.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblRegistrationFirstContractInsert.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblRegistrationFirstContractSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblRegistrationFirstContract_HaghighiSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblRegistrationFirstContract_HoghoghiInsert.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblRegistrationFirstContract_HoghoghiSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblRegistrationFirstContract_HoghoghiUpdate.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblRegistrationFirstContract_HoghoghiUpdateFile.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblRequestRankingInsert.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblRequestRankingSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblRequest_ItemDynamic_ClientSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblRulesDelete.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblRulesSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblRulesUpdate.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblSafDownloadSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblSafSMSSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblScheduleContractSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblScheduleContract_HeaderInsert.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblScheduleContract_HeaderSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblScheduleTitleDelete.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblScheduleTitleSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblScheduleTitleUpdate.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblScheduleTitle_HadafSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblSettingSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblShahrSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblShareholderSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblSharesSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblShowVersionSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblShowVersionUpdate.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblSign_StampDigitalInsert.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblSign_StampDigitalSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblSMSEmailCachSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblSMSSettingSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblSpecificCartablePermissionSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblSpecificCartablePermission_UserGroupSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblStateSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblStationBarnameSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblStationFareeFromBarSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblStationSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblStatuteFirstPageSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblTaeedatSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblTaeedItemsSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblTaeedMarhaleSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblThemDesktop_UserSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblTicketCategoryDelete.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblTicketCategorySelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblTicketCategoryUpdate.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblTicketFormatFileDelete.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblTicketFormatFileSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblTicketFormatFileUpdate.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblTicketPermissionSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblTicketSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblTimeLimit_UserGroupSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblTimeLimit_UserSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblTitleGeneralRatingSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblTitleRatingDynamicDelete.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblTitleRatingDynamicSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblTitleRatingDynamicUpdate.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblTitleRatingDynamic_CharkheEghdamSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblTransactionGroupSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblTransactionTypeSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblTreeGroupSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblTypeMalekiyatSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblTypeMojavezFaaliatSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblTypeVagonDelete.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblTypeVagonSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblTypeVagonUpdate.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblUploadFileCompanySelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblUserGroupDelete.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblUserGroupSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblUserGroupUpdate.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblUserSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblUser_GroupSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblUser_PermissionCharkheSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblUser_PermissionSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblUser_StationSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblVagonDelete.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblVagonSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblVagonUpdate.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblVagon_MalekSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblVersionDelete.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblVersionMostanadatDelete.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblVersionMostanadatSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblVersionMostanadatUpdate.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblVersionSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblVersionUpdate.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_tblVersion_SeenSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_TicketForwardHistory.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_TreeUserGroupSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_TreeUserGroupWithGrantSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_UpdateCharkhFirstTableActions.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_UpdateItemDynamicClient.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_UserLogSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_UserTypeSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_User_PermissionAppIdSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\prs_User_PermissionCharkheIdSelect.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\RaiClient.cs" />
+    <Compile Include="Models\RptBarname.cs" />
+    <Compile Include="Models\Shareholders.cs" />
+    <Compile Include="Models\SpecificCartablePermissionTree.cs" />
+    <Compile Include="Models\User.cs" />
+    <Compile Include="Models\UserGroupPermission.cs" />
+    <Compile Include="Models\UserInfo.cs" />
+    <Compile Include="Models\UserLoginCount.cs" />
+    <Compile Include="ProgressHub.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+    <Compile Include="SejamService.asmx.cs">
+      <DependentUpon>SejamService.asmx</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="SignalrHub.cs" />
+    <Compile Include="Startup.cs" />
+    <Compile Include="Web References\RaiSms\Reference.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Reference.map</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="App_Data\aspnet-RaiSam-20220723110723.mdf" />
+    <Content Include="App_Data\aspnet-RaiSam-20220723110723_log.ldf">
+      <DependentUpon>aspnet-RaiSam-20220723110723.mdf</DependentUpon>
+    </Content>
+    <Content Include="Content\1379792081_attachment.png" />
+    <Content Include="Content\1381415123_help.png" />
+    <Content Include="Content\animated-dataview.css" />
+    <Content Include="Content\Back.png" />
+    <Content Include="Content\backgrand7.png" />
+    <Content Include="Content\Blank.jpg" />
+    <Content Include="Content\bootstrap-theme.css" />
+    <Content Include="Content\bootstrap-theme.min.css" />
+    <Content Include="Content\bootstrap.css" />
+    <Content Include="Content\bootstrap.min.css" />
+    <Content Include="Content\BtnWarning.png" />
+    <Content Include="Content\cancel.png" />
+    <Content Include="Content\clock.png" />
+    <Content Include="Content\CsharpEditor\active-line.js" />
+    <Content Include="Content\CsharpEditor\ambiance.css" />
+    <Content Include="Content\CsharpEditor\blackboard.css" />
+    <Content Include="Content\CsharpEditor\clike.js" />
+    <Content Include="Content\CsharpEditor\closebrackets.js" />
+    <Content Include="Content\CsharpEditor\cobalt.css" />
+    <Content Include="Content\CsharpEditor\codemirror.css" />
+    <Content Include="Content\CsharpEditor\codemirror.js" />
+    <Content Include="Content\CsharpEditor\comment.js" />
+    <Content Include="Content\CsharpEditor\erlang-dark.css" />
+    <Content Include="Content\CsharpEditor\Format.js" />
+    <Content Include="Content\CsharpEditor\matchbrackets.js" />
+    <Content Include="Content\CsharpEditor\midnight.css" />
+    <Content Include="Content\CsharpEditor\monokai.css" />
+    <Content Include="Content\CsharpEditor\night.css" />
+    <Content Include="Content\CsharpEditor\rubyblue.css" />
+    <Content Include="Content\CsharpEditor\search.js" />
+    <Content Include="Content\CsharpEditor\searchcursor.js" />
+    <Content Include="Content\CsharpEditor\show-hint.css" />
+    <Content Include="Content\CsharpEditor\show-hint.js" />
+    <Content Include="Content\CsharpEditor\solarized.css" />
+    <Content Include="Content\Error.css" />
+    <Content Include="Content\Error.png" />
+    <Content Include="Content\Forward.png" />
+    <Content Include="Content\forwardedMsg.png" />
+    <Content Include="Content\glass.png" />
+    <Content Include="Content\Header.png" />
+    <Content Include="Content\hours.png" />
+    <Content Include="Content\icon\BasicInf\mini\miniثبت اطلاعیه.png" />
+    <Content Include="Content\icon\BasicInf\mini\miniراهنمای فرمها.png" />
+    <Content Include="Content\icon\BasicInf\mini\اطلاعات پرسنل mini.png" />
+    <Content Include="Content\icon\BasicInf\mini\بررسی خطاهاmini.png" />
+    <Content Include="Content\icon\BasicInf\mini\تعریف اشخاص حقوقی.png" />
+    <Content Include="Content\icon\BasicInf\mini\تعریف اشخاصmini.png" />
+    <Content Include="Content\icon\BasicInf\اطلاعات پرسنل.png" />
+    <Content Include="Content\icon\BasicInf\اطلاعات پرسنل1.png" />
+    <Content Include="Content\icon\BasicInf\بررسی خطاها.png" />
+    <Content Include="Content\icon\BasicInf\بررسی خطاها1.png" />
+    <Content Include="Content\icon\BasicInf\تعریف اشخاص حقوقی.png" />
+    <Content Include="Content\icon\BasicInf\تعریف اشخاص حقوقی1.png" />
+    <Content Include="Content\icon\BasicInf\تعریف اشخاص.png" />
+    <Content Include="Content\icon\BasicInf\تعریف اشخاص1.png" />
+    <Content Include="Content\icon\BasicInf\ثبت اطلاعیه.png" />
+    <Content Include="Content\icon\BasicInf\ثبت اطلاعیه1.png" />
+    <Content Include="Content\icon\BasicInf\راهنمای فرمها.png" />
+    <Content Include="Content\icon\BasicInf\راهنمای فرمها1.png" />
+    <Content Include="Content\icon\Blank.jpg" />
+    <Content Include="Content\icon\Contact\mini\تماس.png" />
+    <Content Include="Content\icon\Contact\mini\ساختار درختی گروه تماس.png" />
+    <Content Include="Content\icon\Contact\mini\نوع تماس.png" />
+    <Content Include="Content\icon\Contact\mini\گروه.png" />
+    <Content Include="Content\icon\Contact\تماس.png" />
+    <Content Include="Content\icon\Contact\تماس1.png" />
+    <Content Include="Content\icon\Contact\ساختار درختی گروه تماس.png" />
+    <Content Include="Content\icon\Contact\ساختار درختی گروه تماس1.png" />
+    <Content Include="Content\icon\Contact\نوع تماس.png" />
+    <Content Include="Content\icon\Contact\نوع تماس1.png" />
+    <Content Include="Content\icon\Contact\گروه.png" />
+    <Content Include="Content\icon\Contact\گروه1.png" />
+    <Content Include="Content\icon\CRM\mini\ارجاع.png" />
+    <Content Include="Content\icon\CRM\mini\مستندات ورژن.png" />
+    <Content Include="Content\icon\CRM\mini\نتیجه ارجاع.png" />
+    <Content Include="Content\icon\CRM\mini\ورژن.png" />
+    <Content Include="Content\icon\CRM\ارجاع.png" />
+    <Content Include="Content\icon\CRM\ارجاع1.png" />
+    <Content Include="Content\icon\CRM\ورژن.png" />
+    <Content Include="Content\icon\CRM\ورژن1.png" />
+    <Content Include="Content\icon\Desktop\crm.png" />
+    <Content Include="Content\icon\Desktop\آرشیوالکترونیک.png" />
+    <Content Include="Content\icon\Desktop\آیتم های مدیریتی.png" />
+    <Content Include="Content\icon\Desktop\آیتم های مهندسی.png" />
+    <Content Include="Content\icon\Desktop\ارسال تیکت.png" />
+    <Content Include="Content\icon\Desktop\ارسال پیامک و ایمیل از اکسل1.png" />
+    <Content Include="Content\icon\Desktop\اطلاعات پایه.png" />
+    <Content Include="Content\icon\Desktop\ایمیل ها و پیامکهای ارسال شده.png" />
+    <Content Include="Content\icon\Desktop\تاریخچه تقاضا.png" />
+    <Content Include="Content\icon\Desktop\تقاضای تشکیل کنسرسیوم.png" />
+    <Content Include="Content\icon\Desktop\تماس ها.png" />
+    <Content Include="Content\icon\Desktop\تکمیل ثبت نام.png" />
+    <Content Include="Content\icon\Desktop\تیکت.png" />
+    <Content Include="Content\icon\Desktop\ثبت قرارداد.png" />
+    <Content Include="Content\icon\Desktop\ثبت نوبت معاینه.png" />
+    <Content Include="Content\icon\Desktop\راهنما.png" />
+    <Content Include="Content\icon\Desktop\راهنمای فرم ها.png" />
+    <Content Include="Content\icon\Desktop\رویدادها.png" />
+    <Content Include="Content\icon\Desktop\سهامداران.png" />
+    <Content Include="Content\icon\Desktop\صفحات html.png" />
+    <Content Include="Content\icon\Desktop\عملیات.png" />
+    <Content Include="Content\icon\Desktop\فهرست تقاضاها.png" />
+    <Content Include="Content\icon\Desktop\مانیتورینگ تکمیل ثبت نام.png" />
+    <Content Include="Content\icon\Desktop\مانیتورینگ ثبت نام اولیه.png" />
+    <Content Include="Content\icon\Desktop\مانیتورینگ ردپای کاربر.png" />
+    <Content Include="Content\icon\Desktop\مستندات فنی.png" />
+    <Content Include="Content\icon\Desktop\چاپ گزارش.png" />
+    <Content Include="Content\icon\Desktop\کاربران.png" />
+    <Content Include="Content\icon\Desktop\کارتابل تخصصی.png" />
+    <Content Include="Content\icon\Desktop\کارتابل عمومی.png" />
+    <Content Include="Content\icon\Desktop\کنترل نهایی و ارسال .png" />
+    <Content Include="Content\icon\Desktop\گزارشات.png" />
+    <Content Include="Content\icon\Desktop\گفتگو.png" />
+    <Content Include="Content\icon\mini\accept%281%29.png" />
+    <Content Include="Content\icon\mini\accept..png" />
+    <Content Include="Content\icon\mini\accept.png" />
+    <Content Include="Content\icon\mini\accept3.png" />
+    <Content Include="Content\icon\mini\barresifornext.png" />
+    <Content Include="Content\icon\mini\cancel.png" />
+    <Content Include="Content\icon\mini\cancell.png" />
+    <Content Include="Content\icon\mini\delete.png" />
+    <Content Include="Content\icon\mini\edit.png" />
+    <Content Include="Content\icon\mini\erjafromprevious.png" />
+    <Content Include="Content\icon\mini\excel.png" />
+    <Content Include="Content\icon\mini\folder1.png" />
+    <Content Include="Content\icon\mini\green.png" />
+    <Content Include="Content\icon\mini\letter.png" />
+    <Content Include="Content\icon\mini\letter2.png" />
+    <Content Include="Content\icon\mini\loader3.gif" />
+    <Content Include="Content\icon\mini\loading.gif" />
+    <Content Include="Content\icon\mini\loading2.gif" />
+    <Content Include="Content\icon\mini\loading_green.gif" />
+    <Content Include="Content\icon\mini\loading_spinner.gif" />
+    <Content Include="Content\icon\mini\moayene.png" />
+    <Content Include="Content\icon\mini\mp41.jpg" />
+    <Content Include="Content\icon\mini\pdf.png" />
+    <Content Include="Content\icon\mini\pdfimages3.jpg" />
+    <Content Include="Content\icon\mini\question222.png" />
+    <Content Include="Content\icon\mini\question333.jpg" />
+    <Content Include="Content\icon\mini\questionnnn.png" />
+    <Content Include="Content\icon\mini\red.png" />
+    <Content Include="Content\icon\mini\rules2.png" />
+    <Content Include="Content\icon\mini\state1.png" />
+    <Content Include="Content\icon\mini\state2.png" />
+    <Content Include="Content\icon\mini\state3.png" />
+    <Content Include="Content\icon\mini\state4.png" />
+    <Content Include="Content\icon\mini\timeline.png" />
+    <Content Include="Content\icon\mini\time_delete.png" />
+    <Content Include="Content\icon\mini\Untitled-3.png" />
+    <Content Include="Content\icon\mini\آبی.png" />
+    <Content Include="Content\icon\mini\ابطالشده.png" />
+    <Content Include="Content\icon\mini\اداره کل.png" />
+    <Content Include="Content\icon\mini\ارسال به حقوق و دستمزدmini.png" />
+    <Content Include="Content\icon\mini\اقدام اولین بار.png" />
+    <Content Include="Content\icon\mini\اقدام برگشت خورده.png" />
+    <Content Include="Content\icon\mini\اقدام.png" />
+    <Content Include="Content\icon\mini\انتخاب تم.png" />
+    <Content Include="Content\icon\mini\انتخاب.png" />
+    <Content Include="Content\icon\mini\اکشن.png" />
+    <Content Include="Content\icon\mini\باززرد.png" />
+    <Content Include="Content\icon\mini\بازطوسی.png" />
+    <Content Include="Content\icon\mini\بایگانی.png" />
+    <Content Include="Content\icon\mini\بدونکلاه.png" />
+    <Content Include="Content\icon\mini\بررسیشده..png" />
+    <Content Include="Content\icon\mini\بررسینشده.png" />
+    <Content Include="Content\icon\mini\بستهزرد.png" />
+    <Content Include="Content\icon\mini\تداخل.png" />
+    <Content Include="Content\icon\mini\تعلقمیگیره.png" />
+    <Content Include="Content\icon\mini\تعلقنمیگیره.png" />
+    <Content Include="Content\icon\mini\جرقه.png" />
+    <Content Include="Content\icon\mini\حذفف.png" />
+    <Content Include="Content\icon\mini\راهن.png" />
+    <Content Include="Content\icon\mini\راهنمای تصویری.png" />
+    <Content Include="Content\icon\mini\راهنمای متنی.png" />
+    <Content Include="Content\icon\mini\زرد.png" />
+    <Content Include="Content\icon\mini\سایر.png" />
+    <Content Include="Content\icon\mini\شرکتی.png" />
+    <Content Include="Content\icon\mini\ضربدر.png" />
+    <Content Include="Content\icon\mini\ضربدری.png" />
+    <Content Include="Content\icon\mini\علامتسوال....png" />
+    <Content Include="Content\icon\mini\علامتسوال.png" />
+    <Content Include="Content\icon\mini\فرمولmini.png" />
+    <Content Include="Content\icon\mini\قطار.png" />
+    <Content Include="Content\icon\mini\قفل باز.png" />
+    <Content Include="Content\icon\mini\قفل بسته.png" />
+    <Content Include="Content\icon\mini\قهوه.png" />
+    <Content Include="Content\icon\mini\قوانین ارجاع1.png" />
+    <Content Include="Content\icon\mini\معتبر.png" />
+    <Content Include="Content\icon\mini\ورود به چرخه.png" />
+    <Content Include="Content\icon\mini\ورود به چرخه2.png" />
+    <Content Include="Content\icon\mini\چرخه ها.png" />
+    <Content Include="Content\icon\mini\چرخه.png" />
+    <Content Include="Content\icon\mini\کارتابل.png" />
+    <Content Include="Content\icon\mini\کامل.png" />
+    <Content Include="Content\icon\mini\گزارشات اطلاعات پایهmini.png" />
+    <Content Include="Content\icon\mini\گفتگو.png" />
+    <Content Include="Content\icon\no-image.jpg" />
+    <Content Include="Content\icon\Operation\Mini\miniتعریف کارتابل.png" />
+    <Content Include="Content\icon\Operation\Mini\تعریف اقداماتmini.png" />
+    <Content Include="Content\icon\Operation\Mini\تعریف اکشنmini.png" />
+    <Content Include="Content\icon\Operation\Mini\تعریف چرخهmini.png" />
+    <Content Include="Content\icon\Operation\Mini\عوامل موثر در چرخهmini.png" />
+    <Content Include="Content\icon\Operation\Mini\قوانین چرخهmini.png" />
+    <Content Include="Content\icon\Operation\Mini\مقادیرعوامل موثر در چرخهmini.png" />
+    <Content Include="Content\icon\Operation\Mini\ورود به معاینات بدو استخدام.png" />
+    <Content Include="Content\icon\Operation\Mini\ورود به معاینات دوره ای.png" />
+    <Content Include="Content\icon\Operation\تعریف اقدامات.png" />
+    <Content Include="Content\icon\Operation\تعریف اقدامات1.png" />
+    <Content Include="Content\icon\Operation\تعریف اکشن.png" />
+    <Content Include="Content\icon\Operation\تعریف اکشن1.png" />
+    <Content Include="Content\icon\Operation\تعریف چرخه.png" />
+    <Content Include="Content\icon\Operation\تعریف چرخه1.png" />
+    <Content Include="Content\icon\Operation\تعریف کارتابل.png" />
+    <Content Include="Content\icon\Operation\تعریف کارتابل1.png" />
+    <Content Include="Content\icon\Operation\عوامل موثر در چرخه.png" />
+    <Content Include="Content\icon\Operation\عوامل موثر در چرخه1.png" />
+    <Content Include="Content\icon\Operation\قوانین چرخه.png" />
+    <Content Include="Content\icon\Operation\قوانین چرخه1.png" />
+    <Content Include="Content\icon\Operation\مقادیرعوامل موثر در چرخه.png" />
+    <Content Include="Content\icon\Operation\مقادیرعوامل موثر در چرخه1.png" />
+    <Content Include="Content\icon\Operation\ورود به معاینات بدو استخدام.png" />
+    <Content Include="Content\icon\Operation\ورود به معاینات بدو استخدام1.png" />
+    <Content Include="Content\icon\Operation\ورود به معاینات دوره ای.png" />
+    <Content Include="Content\icon\Operation\ورود به معاینات دوره ای1.png" />
+    <Content Include="Content\icon\Ticketing\Mini\دسترسی گفتگوmini.png" />
+    <Content Include="Content\icon\Ticketing\Mini\موضوع گفتگوmini.png" />
+    <Content Include="Content\icon\Ticketing\Mini\گفتگوهاmini.png" />
+    <Content Include="Content\icon\Ticketing\دسترسی گفتگو.png" />
+    <Content Include="Content\icon\Ticketing\دسترسی گفتگو1.png" />
+    <Content Include="Content\icon\Ticketing\موضوع گفتگو.png" />
+    <Content Include="Content\icon\Ticketing\موضوع گفتگو1.png" />
+    <Content Include="Content\icon\Ticketing\گفتگوها.png" />
+    <Content Include="Content\icon\Ticketing\گفتگوها1.png" />
+    <Content Include="Content\icon\Transaction\mini\انواع تراکنش هاmini.png" />
+    <Content Include="Content\icon\Transaction\mini\جداولmini.png" />
+    <Content Include="Content\icon\Transaction\mini\رویدادهای تراکنش ها.png" />
+    <Content Include="Content\icon\Transaction\mini\رویدادهای جداول.png" />
+    <Content Include="Content\icon\Transaction\mini\مانیتورینگ رد پای کاربران.png" />
+    <Content Include="Content\icon\Transaction\mini\گروه تراکنش هاmini.png" />
+    <Content Include="Content\icon\Transaction\انواع تراکنش ها.png" />
+    <Content Include="Content\icon\Transaction\انواع تراکنش ها1.png" />
+    <Content Include="Content\icon\Transaction\جداول.png" />
+    <Content Include="Content\icon\Transaction\جداول1.png" />
+    <Content Include="Content\icon\Transaction\رویدادهای تراکنش ها.png" />
+    <Content Include="Content\icon\Transaction\رویدادهای تراکنش ها1.png" />
+    <Content Include="Content\icon\Transaction\رویدادهای جداول.png" />
+    <Content Include="Content\icon\Transaction\رویدادهای جداول1.png" />
+    <Content Include="Content\icon\Transaction\مانیتورینگ ردپای کاربران.png" />
+    <Content Include="Content\icon\Transaction\مانیتورینگ ردپای کاربران1.png" />
+    <Content Include="Content\icon\Transaction\گروه تراکنش ها.png" />
+    <Content Include="Content\icon\Transaction\گروه تراکنش ها1.png" />
+    <Content Include="Content\icon\User\Mini\بازبینی دسترسیmini.png" />
+    <Content Include="Content\icon\User\Mini\تعریف کاربرmini.png" />
+    <Content Include="Content\icon\User\Mini\تعیین دسترسیmini.png" />
+    <Content Include="Content\icon\User\Mini\دسترسی کارتابل تخصصی.png" />
+    <Content Include="Content\icon\User\Mini\گروه کاربریmini.png" />
+    <Content Include="Content\icon\User\بازبینی دسترسی.png" />
+    <Content Include="Content\icon\User\بازبینی دسترسی1.png" />
+    <Content Include="Content\icon\User\تعریف کاربر.png" />
+    <Content Include="Content\icon\User\تعریف کاربر1.png" />
+    <Content Include="Content\icon\User\تعیین دسترسی.png" />
+    <Content Include="Content\icon\User\تعیین دسترسی1.png" />
+    <Content Include="Content\icon\User\دسترسی کارتابل تخصصی.png" />
+    <Content Include="Content\icon\User\دسترسی کارتابل تخصصی1.png" />
+    <Content Include="Content\icon\User\گروه کاربری.png" />
+    <Content Include="Content\icon\User\گروه کاربری1.png" />
+    <Content Include="Content\images1.png" />
+    <Content Include="Content\info.png" />
+    <Content Include="Content\info11.png" />
+    <Content Include="Content\info111.png" />
+    <Content Include="Content\jQueryRotate.2.2.js" />
+    <Content Include="Content\leaflet.css" />
+    <Content Include="Content\login-box.css" />
+    <Content Include="Content\minutes.png" />
+    <Content Include="Content\QUESTION.png" />
+    <Content Include="Content\refresh1.png" />
+    <Content Include="Content\reply-sender.png" />
+    <Content Include="Content\seconds.png" />
+    <Content Include="Content\small-rasa-red.png" />
+    <Content Include="Content\style.css" />
+    <Content Include="Content\StyleSheet1.css" />
+    <Content Include="Content\StyleSheet2.css" />
+    <Content Include="Content\themes\base\images\ui-bg_flat_0_aaaaaa_40x100.png" />
+    <Content Include="Content\themes\base\images\ui-bg_flat_75_ffffff_40x100.png" />
+    <Content Include="Content\themes\base\images\ui-bg_glass_55_fbf9ee_1x400.png" />
+    <Content Include="Content\themes\base\images\ui-bg_glass_65_ffffff_1x400.png" />
+    <Content Include="Content\themes\base\images\ui-bg_glass_75_dadada_1x400.png" />
+    <Content Include="Content\themes\base\images\ui-bg_glass_75_e6e6e6_1x400.png" />
+    <Content Include="Content\themes\base\images\ui-bg_glass_95_fef1ec_1x400.png" />
+    <Content Include="Content\themes\base\images\ui-bg_highlight-soft_75_cccccc_1x100.png" />
+    <Content Include="Content\themes\base\images\ui-icons_222222_256x240.png" />
+    <Content Include="Content\themes\base\images\ui-icons_2e83ff_256x240.png" />
+    <Content Include="Content\themes\base\images\ui-icons_454545_256x240.png" />
+    <Content Include="Content\themes\base\images\ui-icons_888888_256x240.png" />
+    <Content Include="Content\themes\base\images\ui-icons_cd0a0a_256x240.png" />
+    <Content Include="Content\themes\base\jquery-ui.css" />
+    <Content Include="Content\themes\base\jquery.ui.accordion.css" />
+    <Content Include="Content\themes\base\jquery.ui.all.css" />
+    <Content Include="Content\themes\base\jquery.ui.autocomplete.css" />
+    <Content Include="Content\themes\base\jquery.ui.base.css" />
+    <Content Include="Content\themes\base\jquery.ui.button.css" />
+    <Content Include="Content\themes\base\jquery.ui.core.css" />
+    <Content Include="Content\themes\base\jquery.ui.datepicker.css" />
+    <Content Include="Content\themes\base\jquery.ui.dialog.css" />
+    <Content Include="Content\themes\base\jquery.ui.progressbar.css" />
+    <Content Include="Content\themes\base\jquery.ui.resizable.css" />
+    <Content Include="Content\themes\base\jquery.ui.selectable.css" />
+    <Content Include="Content\themes\base\jquery.ui.slider.css" />
+    <Content Include="Content\themes\base\jquery.ui.tabs.css" />
+    <Content Include="Content\themes\base\jquery.ui.theme.css" />
+    <Content Include="Content\themes\base\minified\images\ui-bg_flat_0_aaaaaa_40x100.png" />
+    <Content Include="Content\themes\base\minified\images\ui-bg_flat_75_ffffff_40x100.png" />
+    <Content Include="Content\themes\base\minified\images\ui-bg_glass_55_fbf9ee_1x400.png" />
+    <Content Include="Content\themes\base\minified\images\ui-bg_glass_65_ffffff_1x400.png" />
+    <Content Include="Content\themes\base\minified\images\ui-bg_glass_75_dadada_1x400.png" />
+    <Content Include="Content\themes\base\minified\images\ui-bg_glass_75_e6e6e6_1x400.png" />
+    <Content Include="Content\themes\base\minified\images\ui-bg_glass_95_fef1ec_1x400.png" />
+    <Content Include="Content\themes\base\minified\images\ui-bg_highlight-soft_75_cccccc_1x100.png" />
+    <Content Include="Content\themes\base\minified\images\ui-icons_222222_256x240.png" />
+    <Content Include="Content\themes\base\minified\images\ui-icons_2e83ff_256x240.png" />
+    <Content Include="Content\themes\base\minified\images\ui-icons_454545_256x240.png" />
+    <Content Include="Content\themes\base\minified\images\ui-icons_888888_256x240.png" />
+    <Content Include="Content\themes\base\minified\images\ui-icons_cd0a0a_256x240.png" />
+    <Content Include="Content\themes\base\minified\jquery-ui.min.css" />
+    <Content Include="Content\themes\base\minified\jquery.ui.accordion.min.css" />
+    <Content Include="Content\themes\base\minified\jquery.ui.autocomplete.min.css" />
+    <Content Include="Content\themes\base\minified\jquery.ui.button.min.css" />
+    <Content Include="Content\themes\base\minified\jquery.ui.core.min.css" />
+    <Content Include="Content\themes\base\minified\jquery.ui.datepicker.min.css" />
+    <Content Include="Content\themes\base\minified\jquery.ui.dialog.min.css" />
+    <Content Include="Content\themes\base\minified\jquery.ui.progressbar.min.css" />
+    <Content Include="Content\themes\base\minified\jquery.ui.resizable.min.css" />
+    <Content Include="Content\themes\base\minified\jquery.ui.selectable.min.css" />
+    <Content Include="Content\themes\base\minified\jquery.ui.slider.min.css" />
+    <Content Include="Content\themes\base\minified\jquery.ui.tabs.min.css" />
+    <Content Include="Content\themes\base\minified\jquery.ui.theme.min.css" />
+    <Content Include="Content\Tick1.png" />
+    <Content Include="Content\Tick2.png" />
+    <Content Include="Content\ui.css" />
+    <Content Include="Content\warning.png" />
+    <Content Include="Content\شروع.png" />
+    <Content Include="Content\پایان.png" />
+    <Content Include="Content\پایان2.png" />
+    <Content Include="favicon.ico" />
+    <Content Include="Global.asax" />
+    <EntityDeploy Include="Models\Model1.edmx">
+      <Generator>EntityModelCodeGenerator</Generator>
+      <LastGenOutput>Model1.Designer.cs</LastGenOutput>
+    </EntityDeploy>
+    <Content Include="Models\Model1.edmx.diagram">
+      <DependentUpon>Model1.edmx</DependentUpon>
+    </Content>
+    <Content Include="Content\bootstrap-theme.css.map" />
+    <Content Include="Content\bootstrap-theme.min.css.map" />
+    <Content Include="Content\bootstrap.css.map" />
+    <Content Include="Content\bootstrap.min.css.map" />
+    <Content Include="Content\RasaFont.eot" />
+    <Content Include="Content\RasaFont.otf" />
+    <Content Include="Content\RasaFont.ttf" />
+    <Content Include="Content\RasaFont.woff" />
+    <Content Include="Content\TTahoma.otf" />
+    <Content Include="Content\TTahoma.ttf" />
+    <Content Include="Content\TTahoma.woff" />
+    <Content Include="Scripts\accounting.js" />
+    <Content Include="Scripts\accounting.min.js" />
+    <Content Include="Scripts\anychart\modules.json" />
+    <Content Include="Areas\Faces\Views\Web.config" />
+    <Content Include="Areas\Faces\Views\FristRegister\ForgetPass.cshtml" />
+    <Content Include="Areas\Faces\Views\FristRegister\Help.cshtml" />
+    <Content Include="Areas\Faces\Views\FristRegister\HelpForgetPass.cshtml" />
+    <Content Include="Areas\Faces\Views\FristRegister\Index.cshtml" />
+    <Content Include="Areas\Faces\Views\FristRegister\VerificationCode.cshtml" />
+    <Content Include="Areas\Faces\Views\FristRegister\HelpTakmilSabtName.cshtml" />
+    <Content Include="Areas\Faces\Views\FristRegister\TakmilSabtName.cshtml" />
+    <Content Include="DataSet\DataSet1.xsc">
+      <DependentUpon>DataSet1.xsd</DependentUpon>
+    </Content>
+    <Content Include="Areas\Faces\Views\CompanyProfile\EstelamMojavezWin.cshtml" />
+    <Content Include="Areas\Faces\Views\CompanyProfile\Get.cshtml" />
+    <Content Include="Areas\Faces\Views\CompanyProfile\Index.cshtml" />
+    <Content Include="Areas\Faces\Views\CompanyProfile\NewCh_CompanyProfile.cshtml" />
+    <Content Include="Areas\Faces\Views\CompanyProfile\OpenMap.cshtml" />
+    <Content Include="Areas\Faces\Views\CompanyProfile\PrintForm.cshtml" />
+    <Content Include="Areas\Faces\Views\CompanyProfile\ShowConversationCompanyProfile.cshtml" />
+    <Content Include="Areas\Faces\Views\CompanyProfile\ShowMsgCompanyProfile.cshtml" />
+    <Content Include="Areas\Faces\Views\Admin\Index.cshtml" />
+    <Content Include="Areas\Faces\Views\Shared\_shared.cshtml" />
+    <Content Include="Areas\Faces\Views\Admin\ChangePassword.cshtml" />
+    <Content Include="Areas\Faces\Views\RequestRanking\Index.cshtml" />
+    <Content Include="Areas\Faces\Views\RequestRanking\New.cshtml" />
+    <Content Include="Areas\Faces\Views\RequestRanking\ShowRelativeStakeholders.cshtml" />
+    <Content Include="Areas\Faces\Views\CompanyProfile\Help.cshtml" />
+    <Content Include="Areas\Faces\Views\CompanyProfile\VideoWinCompanyProfile.cshtml" />
+    <Content Include="Areas\Faces\Views\FristRegister\VideoWinFristRegister.cshtml" />
+    <Content Include="Areas\Faces\Views\DynamicForm\Index.cshtml" />
+    <Content Include="Areas\Faces\Views\DynamicForm\New.cshtml" />
+    <Content Include="Areas\Faces\Views\Project\Index.cshtml" />
+    <Content Include="Areas\Faces\Views\Project\New.cshtml" />
+    <Content Include="Areas\Faces\Views\FinalCheck\Index.cshtml" />
+    <Content Include="Areas\Faces\Views\Shareholders\Index.cshtml" />
+    <Content Include="Areas\Faces\Views\Shareholders\New.cshtml" />
+    <Content Include="Areas\Faces\Views\SearchAshkhas\SearchAll.cshtml" />
+    <Content Include="Areas\Faces\Views\Shareholders\NewHoghoghiGheyrKhososi.cshtml" />
+    <Content Include="Areas\Faces\Views\Shareholders\NewHoghoghiKhososi.cshtml" />
+    <Content Include="Areas\Faces\Views\SearchCompony\Index.cshtml" />
+    <Content Include="Areas\Faces\Views\SearchCompony\New.cshtml" />
+    <Content Include="Areas\Faces\Views\SearchCompony\NewWithService.cshtml" />
+    <Content Include="Areas\Faces\Views\SearchTypeVagon\Index.cshtml" />
+    <Content Include="Areas\Faces\Views\SearchAshkhas\SabtAshkhasNew.cshtml" />
+    <Content Include="Areas\Faces\Views\ScheduleContract\Index.cshtml" />
+    <Content Include="Areas\Faces\Views\Ticket\Index.cshtml" />
+    <Content Include="Areas\Faces\Views\Shareholders\ShowInfoShareholders.cshtml" />
+    <Content Include="Areas\Faces\Views\DynamicForm\ShowInfoDynamicForm.cshtml" />
+    <Content Include="Areas\Faces\Views\Project\ShowInfoProject.cshtml" />
+    <Content Include="Areas\Faces\Views\Navaghes\Index.cshtml" />
+    <Content Include="Areas\Faces\Views\Navaghes\ShowMsg.cshtml" />
+    <Content Include="Areas\Faces\Views\Project\WinUploadFiles.cshtml" />
+    <Content Include="Areas\Faces\Views\Project\PrintProj.cshtml" />
+    <Content Include="Areas\Faces\Views\ScheduleContract\PrintSchedule.cshtml" />
+    <Content Include="Areas\Faces\Views\FinalCheck\IndexCheck.cshtml" />
+    <Content Include="Areas\Faces\Views\Navaghes\Mosavabat.cshtml" />
+    <None Include="DataSet\DataSet1.xsd">
+      <SubType>Designer</SubType>
+      <Generator>MSDataSetGenerator</Generator>
+      <LastGenOutput>DataSet1.Designer.cs</LastGenOutput>
+    </None>
+    <Content Include="DataSet\DataSet1.xss">
+      <DependentUpon>DataSet1.xsd</DependentUpon>
+    </Content>
+    <Content Include="Reports\RptFirstRegister.frx" />
+    <Content Include="Help\HelpKoli\راهنمای ماده 12 .pdf" />
+    <Content Include="Help\Mostanadat\CHM\ChmDocument.chm" />
+    <Content Include="Help\Mostanadat\MostanadPdf\MostanadPdf.pdf" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <None Include="Scripts\jquery-1.8.2.intellisense.js" />
+    <Content Include="Models\Model1.Context.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <DependentUpon>Model1.edmx</DependentUpon>
+      <LastGenOutput>Model1.Context.cs</LastGenOutput>
+    </Content>
+    <Content Include="Models\Model1.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <DependentUpon>Model1.edmx</DependentUpon>
+      <LastGenOutput>Model1.cs</LastGenOutput>
+    </Content>
+    <Content Include="Ribbon\images\icon.png" />
+    <Content Include="Ribbon\images\icon_about.png" />
+    <Content Include="Ribbon\images\icon_datetime.png" />
+    <Content Include="Ribbon\images\icon_doc.png" />
+    <Content Include="Ribbon\images\icon_exit.png" />
+    <Content Include="Ribbon\images\icon_ooxml.png" />
+    <Content Include="Ribbon\images\icon_open.png" />
+    <Content Include="Ribbon\images\icon_otherformats.png" />
+    <Content Include="Ribbon\images\icon_pagesetup.png" />
+    <Content Include="Ribbon\images\icon_paint.png" />
+    <Content Include="Ribbon\images\icon_paste.png" />
+    <Content Include="Ribbon\images\icon_picture.png" />
+    <Content Include="Ribbon\images\icon_plaintext.png" />
+    <Content Include="Ribbon\images\icon_print.png" />
+    <Content Include="Ribbon\images\icon_printpreview.png" />
+    <Content Include="Ribbon\images\icon_quickprint.png" />
+    <Content Include="Ribbon\images\icon_richtext.png" />
+    <Content Include="Ribbon\images\icon_save.png" />
+    <Content Include="Ribbon\images\icon_saveas.png" />
+    <Content Include="Ribbon\images\icon_sendemail.png" />
+    <Content Include="Ribbon\images\icon_small_copy.png" />
+    <Content Include="Ribbon\images\icon_small_cut.png" />
+    <Content Include="Ribbon\images\icon_small_find.png" />
+    <Content Include="Ribbon\images\icon_small_measurement.png" />
+    <Content Include="Ribbon\images\icon_small_replace.png" />
+    <Content Include="Ribbon\images\icon_small_selectall.png" />
+    <Content Include="Ribbon\images\icon_small_theme.png" />
+    <Content Include="Ribbon\images\icon_small_wordwrap.png" />
+    <Content Include="Ribbon\images\icon_zoom100.png" />
+    <Content Include="Ribbon\images\icon_zoomin.png" />
+    <Content Include="Ribbon\images\icon_zoomout.png" />
+    <Content Include="Ribbon\themes\simple\images\arrow.png" />
+    <Content Include="Ribbon\themes\simple\images\arrow_down.png" />
+    <Content Include="Ribbon\themes\simple\images\bg.png" />
+    <Content Include="Ribbon\themes\simple\images\item_background.png" />
+    <Content Include="Ribbon\themes\simple\images\item_small_background.png" />
+    <Content Include="Ribbon\themes\simple\images\menuitem_background.png" />
+    <Content Include="Ribbon\themes\simple\images\menu_background.png" />
+    <Content Include="Ribbon\themes\simple\images\menu_bottom.png" />
+    <Content Include="Ribbon\themes\simple\images\menu_dropdownitembg.png" />
+    <Content Include="Ribbon\themes\simple\images\menu_dropdownitembghover.png" />
+    <Content Include="Ribbon\themes\simple\images\menu_item_hover.png" />
+    <Content Include="Ribbon\themes\simple\images\menu_middle.png" />
+    <Content Include="Ribbon\themes\simple\images\menu_top.png" />
+    <Content Include="Ribbon\themes\simple\images\orb.png" />
+    <Content Include="Ribbon\themes\simple\images\orb_hover.png" />
+    <Content Include="Ribbon\themes\simple\images\orb_submenu_item_hover.png" />
+    <Content Include="Ribbon\themes\simple\images\top_background.png" />
+    <Content Include="Ribbon\themes\simple\ribbon.css" />
+    <Content Include="Ribbon\themes\windows7\images\arrow.png" />
+    <Content Include="Ribbon\themes\windows7\images\arrow_down.png" />
+    <Content Include="Ribbon\themes\windows7\images\bg.png" />
+    <Content Include="Ribbon\themes\windows7\images\item_background.png" />
+    <Content Include="Ribbon\themes\windows7\images\item_small_background.png" />
+    <Content Include="Ribbon\themes\windows7\images\menuitem_background.png" />
+    <Content Include="Ribbon\themes\windows7\images\menu_background.png" />
+    <Content Include="Ribbon\themes\windows7\images\menu_bottom.png" />
+    <Content Include="Ribbon\themes\windows7\images\menu_dropdownitembg.png" />
+    <Content Include="Ribbon\themes\windows7\images\menu_dropdownitembghover.png" />
+    <Content Include="Ribbon\themes\windows7\images\menu_item_hover.png" />
+    <Content Include="Ribbon\themes\windows7\images\menu_middle.png" />
+    <Content Include="Ribbon\themes\windows7\images\menu_top.png" />
+    <Content Include="Ribbon\themes\windows7\images\orb.png" />
+    <Content Include="Ribbon\themes\windows7\images\orb_hover.png" />
+    <Content Include="Ribbon\themes\windows7\images\orb_submenu_item_hover.png" />
+    <Content Include="Ribbon\themes\windows7\images\top_background.png" />
+    <Content Include="Ribbon\themes\windows7\ribbon.css" />
+    <Content Include="Scripts\anychart\anychart-annotations.min.js" />
+    <Content Include="Scripts\anychart\anychart-base.min.js" />
+    <Content Include="Scripts\anychart\anychart-bullet.min.js" />
+    <Content Include="Scripts\anychart\anychart-bundle.min.js" />
+    <Content Include="Scripts\anychart\anychart-cartesian-3d.min.js" />
+    <Content Include="Scripts\anychart\anychart-cartesian.min.js" />
+    <Content Include="Scripts\anychart\anychart-chart-editor.min.js" />
+    <Content Include="Scripts\anychart\anychart-circular-gauge.min.js" />
+    <Content Include="Scripts\anychart\anychart-core.min.js" />
+    <Content Include="Scripts\anychart\anychart-data-adapter.min.js" />
+    <Content Include="Scripts\anychart\anychart-default-theme.min.js" />
+    <Content Include="Scripts\anychart\anychart-editor.min.js" />
+    <Content Include="Scripts\anychart\anychart-exports.min.js" />
+    <Content Include="Scripts\anychart\anychart-gantt.min.js" />
+    <Content Include="Scripts\anychart\anychart-heatmap.min.js" />
+    <Content Include="Scripts\anychart\anychart-linear-gauge.min.js" />
+    <Content Include="Scripts\anychart\anychart-map.min.js" />
+    <Content Include="Scripts\anychart\anychart-mekko.min.js" />
+    <Content Include="Scripts\anychart\anychart-pareto.min.js" />
+    <Content Include="Scripts\anychart\anychart-pert.min.js" />
+    <Content Include="Scripts\anychart\anychart-pie.min.js" />
+    <Content Include="Scripts\anychart\anychart-polar.min.js" />
+    <Content Include="Scripts\anychart\anychart-pyramid-funnel.min.js" />
+    <Content Include="Scripts\anychart\anychart-radar.min.js" />
+    <Content Include="Scripts\anychart\anychart-resource.min.js" />
+    <Content Include="Scripts\anychart\anychart-scatter.min.js" />
+    <Content Include="Scripts\anychart\anychart-sparkline.min.js" />
+    <Content Include="Scripts\anychart\anychart-stock.min.js" />
+    <Content Include="Scripts\anychart\anychart-sunburst.min.js" />
+    <Content Include="Scripts\anychart\anychart-table.min.js" />
+    <Content Include="Scripts\anychart\anychart-tag-cloud.min.js" />
+    <Content Include="Scripts\anychart\anychart-treemap.min.js" />
+    <Content Include="Scripts\anychart\anychart-ui-binding.min.js" />
+    <Content Include="Scripts\anychart\anychart-ui.min.js" />
+    <Content Include="Scripts\anychart\anychart-venn.min.js" />
+    <Content Include="Scripts\anychart\anychart-vml.min.js" />
+    <Content Include="Scripts\anychart\anychart-waterfall.min.js" />
+    <Content Include="Scripts\anychart\graphics.js" />
+    <Content Include="Scripts\anychart\graphics.min.js" />
+    <Content Include="Scripts\anychart\iran.js" />
+    <Content Include="Scripts\anychart\parts\annotations.js" />
+    <Content Include="Scripts\anychart\parts\binding.js" />
+    <Content Include="Scripts\anychart\parts\bullet.js" />
+    <Content Include="Scripts\anychart\parts\cartesian-3d.js" />
+    <Content Include="Scripts\anychart\parts\cartesian.js" />
+    <Content Include="Scripts\anychart\parts\chart-editor.js" />
+    <Content Include="Scripts\anychart\parts\circular-gauge.js" />
+    <Content Include="Scripts\anychart\parts\color-scales.js" />
+    <Content Include="Scripts\anychart\parts\core.js" />
+    <Content Include="Scripts\anychart\parts\data-adapter.js" />
+    <Content Include="Scripts\anychart\parts\exports.js" />
+    <Content Include="Scripts\anychart\parts\gantt-base.js" />
+    <Content Include="Scripts\anychart\parts\gantt-part.js" />
+    <Content Include="Scripts\anychart\parts\heatmap-part.js" />
+    <Content Include="Scripts\anychart\parts\linear-gauge-part.js" />
+    <Content Include="Scripts\anychart\parts\map-part.js" />
+    <Content Include="Scripts\anychart\parts\mekko.js" />
+    <Content Include="Scripts\anychart\parts\pareto.js" />
+    <Content Include="Scripts\anychart\parts\pert.js" />
+    <Content Include="Scripts\anychart\parts\pie.js" />
+    <Content Include="Scripts\anychart\parts\polar-part.js" />
+    <Content Include="Scripts\anychart\parts\pyramid-funnel.js" />
+    <Content Include="Scripts\anychart\parts\radar-part.js" />
+    <Content Include="Scripts\anychart\parts\radar-polar-base.js" />
+    <Content Include="Scripts\anychart\parts\resource.js" />
+    <Content Include="Scripts\anychart\parts\scatter.js" />
+    <Content Include="Scripts\anychart\parts\sparkline.js" />
+    <Content Include="Scripts\anychart\parts\stock.js" />
+    <Content Include="Scripts\anychart\parts\sunburst.js" />
+    <Content Include="Scripts\anychart\parts\table.js" />
+    <Content Include="Scripts\anychart\parts\tag-cloud-part.js" />
+    <Content Include="Scripts\anychart\parts\theme-annotations.js" />
+    <Content Include="Scripts\anychart\parts\theme-bullet.js" />
+    <Content Include="Scripts\anychart\parts\theme-cartesian-3d.js" />
+    <Content Include="Scripts\anychart\parts\theme-cartesian.js" />
+    <Content Include="Scripts\anychart\parts\theme-circular-gauge.js" />
+    <Content Include="Scripts\anychart\parts\theme-color-scales.js" />
+    <Content Include="Scripts\anychart\parts\theme-core.js" />
+    <Content Include="Scripts\anychart\parts\theme-gantt.js" />
+    <Content Include="Scripts\anychart\parts\theme-heatmap.js" />
+    <Content Include="Scripts\anychart\parts\theme-linear-gauge.js" />
+    <Content Include="Scripts\anychart\parts\theme-map.js" />
+    <Content Include="Scripts\anychart\parts\theme-mekko.js" />
+    <Content Include="Scripts\anychart\parts\theme-pareto.js" />
+    <Content Include="Scripts\anychart\parts\theme-pert.js" />
+    <Content Include="Scripts\anychart\parts\theme-pie.js" />
+    <Content Include="Scripts\anychart\parts\theme-polar.js" />
+    <Content Include="Scripts\anychart\parts\theme-pyramid-funnel.js" />
+    <Content Include="Scripts\anychart\parts\theme-radar.js" />
+    <Content Include="Scripts\anychart\parts\theme-resource.js" />
+    <Content Include="Scripts\anychart\parts\theme-scatter.js" />
+    <Content Include="Scripts\anychart\parts\theme-sparkline.js" />
+    <Content Include="Scripts\anychart\parts\theme-stock.js" />
+    <Content Include="Scripts\anychart\parts\theme-sunburst.js" />
+    <Content Include="Scripts\anychart\parts\theme-tag-cloud.js" />
+    <Content Include="Scripts\anychart\parts\theme-treemap.js" />
+    <Content Include="Scripts\anychart\parts\theme-venn.js" />
+    <Content Include="Scripts\anychart\parts\theme-waterfall.js" />
+    <Content Include="Scripts\anychart\parts\tree-data.js" />
+    <Content Include="Scripts\anychart\parts\treemap-part.js" />
+    <Content Include="Scripts\anychart\parts\ui.js" />
+    <Content Include="Scripts\anychart\parts\venn.js" />
+    <Content Include="Scripts\anychart\parts\vml.js" />
+    <Content Include="Scripts\anychart\parts\waterfall.js" />
+    <Content Include="Scripts\anychart\proj4.js" />
+    <Content Include="Scripts\anychart\themes\coffee.min.js" />
+    <Content Include="Scripts\anychart\themes\dark_blue.min.js" />
+    <Content Include="Scripts\anychart\themes\dark_earth.min.js" />
+    <Content Include="Scripts\anychart\themes\dark_glamour.min.js" />
+    <Content Include="Scripts\anychart\themes\dark_provence.min.js" />
+    <Content Include="Scripts\anychart\themes\dark_turquoise.min.js" />
+    <Content Include="Scripts\anychart\themes\light_blue.min.js" />
+    <Content Include="Scripts\anychart\themes\light_earth.min.js" />
+    <Content Include="Scripts\anychart\themes\light_glamour.min.js" />
+    <Content Include="Scripts\anychart\themes\light_provence.min.js" />
+    <Content Include="Scripts\anychart\themes\light_turquoise.min.js" />
+    <Content Include="Scripts\anychart\themes\monochrome.min.js" />
+    <Content Include="Scripts\anychart\themes\morning.min.js" />
+    <Content Include="Scripts\anychart\themes\pastel.min.js" />
+    <Content Include="Scripts\anychart\themes\sea.min.js" />
+    <Content Include="Scripts\anychart\themes\wines.min.js" />
+    <Content Include="Scripts\bootstrap.js" />
+    <Content Include="Scripts\bootstrap.min.js" />
+    <Content Include="Scripts\bundle_packager_fix.js" />
+    <Content Include="Scripts\duplicate.js" />
+    <Content Include="Scripts\Ext-extensions.js" />
+    <Content Include="Scripts\ext\HtmlEditorImage.js" />
+    <Content Include="Scripts\ext\iframe_styles.css" />
+    <Content Include="Scripts\ext\styles.css" />
+    <Content Include="Scripts\fa-ir.js" />
+    <Content Include="Scripts\Helper.js" />
+    <Content Include="Scripts\img\arrow-resize.png" />
+    <Content Include="Scripts\img\constrain.gif" />
+    <Content Include="Scripts\img\delete.gif" />
+    <Content Include="Scripts\img\editor_background.gif" />
+    <Content Include="Scripts\img\image_crop.gif" />
+    <Content Include="Scripts\img\image_resize.gif" />
+    <Content Include="Scripts\img\image_rotate.png" />
+    <Content Include="Scripts\img\image_upload.png" />
+    <Content Include="Scripts\img\mouse-select-wheel.png" />
+    <Content Include="Scripts\img\trash.gif" />
+    <Content Include="Scripts\jquery-1.8.2.js" />
+    <Content Include="Scripts\jquery-1.8.2.min.js" />
+    <Content Include="Scripts\jquery-3.5.1.min.map" />
+    <Content Include="Scripts\jquery-3.5.1.slim.min.map" />
+    <None Include="Scripts\jquery.validate-vsdoc.js" />
+    <Content Include="Scripts\jquery-3.5.1.js" />
+    <Content Include="Scripts\jquery-3.5.1.min.js" />
+    <Content Include="Scripts\jquery-3.5.1.slim.js" />
+    <Content Include="Scripts\jquery-3.5.1.slim.min.js" />
+    <Content Include="Scripts\jquery-ajax-native.js" />
+    <Content Include="Scripts\jquery-ui-1.11.4.js" />
+    <Content Include="Scripts\jquery-ui-1.11.4.min.js" />
+    <Content Include="Scripts\jquery-ui-1.8.24.js" />
+    <Content Include="Scripts\jquery-ui-1.8.24.min.js" />
+    <Content Include="Scripts\jquery.easing.js" />
+    <Content Include="Scripts\jquery.min.js" />
+    <Content Include="Scripts\jquery.prettyPhoto.js" />
+    <Content Include="Scripts\jquery.quicksand.js" />
+    <Content Include="Scripts\jquery.ribbon.js" />
+    <Content Include="Scripts\jquery.signalR-1.1.3.js" />
+    <Content Include="Scripts\jquery.signalR-1.1.3.min.js" />
+    <Content Include="Scripts\jquery.signalR-2.2.3.js" />
+    <Content Include="Scripts\jquery.signalR-2.2.3.min.js" />
+    <Content Include="Scripts\jquery.signalR-2.4.0.min.js" />
+    <Content Include="Scripts\jquery.ui.datepicker-cc.all.min.js" />
+    <Content Include="Scripts\jquery.unobtrusive-ajax.js" />
+    <Content Include="Scripts\jquery.unobtrusive-ajax.min.js" />
+    <Content Include="Scripts\jquery.uploadify-3.1.js" />
+    <Content Include="Scripts\jquery.uploadify-3.1.min.js" />
+    <Content Include="Scripts\jquery.validate.js" />
+    <Content Include="Scripts\jquery.validate.min.js" />
+    <Content Include="Scripts\jquery.validate.unobtrusive.js" />
+    <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
+    <Content Include="Scripts\json2.js" />
+    <Content Include="Scripts\json2.min.js" />
+    <Content Include="Scripts\knockout-2.1.0.debug.js" />
+    <Content Include="Scripts\knockout-2.1.0.js" />
+    <Content Include="Scripts\knockout-2.2.0.debug.js" />
+    <Content Include="Scripts\knockout-2.2.0.js" />
+    <Content Include="Scripts\leaflet.geometryutil.js" />
+    <Content Include="Scripts\leaflet.js" />
+    <Content Include="Scripts\less.js" />
+    <Content Include="Scripts\less.min.js" />
+    <Content Include="Scripts\lightbox.js" />
+    <Content Include="Scripts\lightbox.min.js" />
+    <Content Include="Scripts\MicrosoftAjax.debug.js" />
+    <Content Include="Scripts\MicrosoftAjax.js" />
+    <Content Include="Scripts\MicrosoftMvcAjax.debug.js" />
+    <Content Include="Scripts\MicrosoftMvcAjax.js" />
+    <Content Include="Scripts\MicrosoftMvcValidation.debug.js" />
+    <Content Include="Scripts\MicrosoftMvcValidation.js" />
+    <Content Include="Scripts\modernizr-1.7.js" />
+    <Content Include="Scripts\modernizr-1.7.min.js" />
+    <Content Include="Scripts\modernizr-2.5.3.js" />
+    <Content Include="Scripts\modernizr-2.6.2.js" />
+    <Content Include="Scripts\modernizr-2.8.3.js" />
+    <Content Include="Scripts\page.js" />
+    <Content Include="Scripts\pdate.js" />
+    <Content Include="Scripts\script.js" />
+    <Content Include="Scripts\ThousandSeparatorNumberField.js" />
+    <Content Include="SejamService.asmx" />
+    <Content Include="Uploaded\Google.Chrome\Google.Chrome.v55.0\pd.jpg" />
+    <Content Include="Uploaded\Google.Chrome\Google.Chrome.v55.0\Setup.exe" />
+    <Content Include="Web References\RaiSms\Reference.map">
+      <Generator>MSDiscoCodeGenerator</Generator>
+      <LastGenOutput>Reference.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\Malek_Vagon\UploadFileMalekan.cshtml" />
+    <Content Include="Views\contract_project\Index.cshtml" />
+    <Content Include="Views\contract_project\UploadFileContract_Project.cshtml" />
+    <Content Include="Views\MonitoringRegisterComplete\Index.cshtml" />
+    <Content Include="Views\MonitoringRegisterComplete\BackToClientPanel.cshtml" />
+    <Content Include="Views\MonitoringRegisterComplete\Help.cshtml" />
+    <Content Include="Views\MonitoringRegisterComplete\HistoryLogin_Comoany.cshtml" />
+    <Content Include="Views\MonitoringRegisterComplete\Print.cshtml" />
+    <Content Include="Views\MonitoringRegisterComplete\SendMessage.cshtml" />
+    <Content Include="Views\MonitoringRegisterComplete\ShowCacheSmsEmail.cshtml" />
+    <Content Include="Views\MonitoringRegisterComplete\ShowComment.cshtml" />
+    <Content Include="Views\Malek_Vagon\New.cshtml" />
+    <Content Include="Views\contract_project\New.cshtml" />
+    <Content Include="Views\SearchVagon\Index.cshtml" />
+    <Content Include="Views\MonitoringRegisterComplete\ShowRequest.cshtml" />
+    <Content Include="Views\MonitoringRegisterComplete\ShowInfoCompanyProfile.cshtml" />
+    <Content Include="Views\MonitoringRegisterComplete\ShowMatnPayam.cshtml" />
+    <Content Include="Views\MonitoringRegisterComplete\ShowRelativeStakeholders.cshtml" />
+    <Content Include="Views\SMSEmailCach\Index.cshtml" />
+    <Content Include="Views\SMSEmailCach\ShowMatnPayam.cshtml" />
+    <Content Include="Views\SmsFromExcel\Index.cshtml" />
+    <Content Include="Views\contract_project\NewHeader.cshtml" />
+    <Content Include="Views\RptBarname\Index.cshtml" />
+    <Content Include="Views\SearchMalek_Vagon\IndexChecked.cshtml" />
+    <Content Include="Views\SearchContract_Project\IndexChecked.cshtml" />
+    <Content Include="Views\RptBarname\IndexKoli.cshtml" />
+    <Content Include="Views\contract_project\NewIndex.cshtml" />
+    <Content Include="Views\SearchVagon\IndexChecked.cshtml" />
+    <Content Include="Views\Vagon\Malek.cshtml" />
+    <Content Include="Views\RptBarname\NewIndex.cshtml" />
+    <Content Include="Views\RptBarname\NewIndexKoli.cshtml" />
+    <Content Include="Views\RptBarname\PrintPage.cshtml" />
+    <Content Include="Views\RptBarname\PrintPageKoli.cshtml" />
+    <Content Include="Views\MonitoringFirstRegister\Help.cshtml" />
+    <Content Include="Views\MonitoringFirstRegister\VideoWinFirst.cshtml" />
+    <Content Include="Views\MonitoringRegisterComplete\VideoWinMonitor.cshtml" />
+    <Content Include="Views\RptBarname\HelpBarname.cshtml" />
+    <Content Include="Views\RptBarname\VideoWinBarnameKoli.cshtml" />
+    <Content Include="Views\RptBarname\VideoWinBarname.cshtml" />
+    <Content Include="Views\RptBarname\HelpBarnameKoli.cshtml" />
+    <Content Include="Views\contract_project\Help.cshtml" />
+    <Content Include="Views\contract_project\VideoWinContract_Project.cshtml" />
+    <Content Include="Views\Vagon\Help.cshtml" />
+    <Content Include="Views\Vagon\VideoWinVagon.cshtml" />
+    <Content Include="Views\TypeVagon\Help.cshtml" />
+    <Content Include="Views\TypeVagon\VideoWinTypeVagon.cshtml" />
+    <Content Include="Views\HadafSabtNam\Help.cshtml" />
+    <Content Include="Views\HadafSabtNam\VideoWinHadafSabtNam.cshtml" />
+    <Content Include="Views\HadafGroupName\Help.cshtml" />
+    <Content Include="Views\HadafGroupName\VideoWinHadafGroupName.cshtml" />
+    <Content Include="Views\TicketFormatFile\Index.cshtml" />
+    <Content Include="Views\TicketFormatFile\New.cshtml" />
+    <Content Include="Views\TicketFormatFile\Help.cshtml" />
+    <Content Include="Views\TicketFormatFile\VideoWinTicketTicketFormatFile.cshtml" />
+    <Content Include="Views\RptBarname\ShowPageKoli.cshtml" />
+    <Content Include="Views\RptBarname\ShowPageKoliMosaferi.cshtml" />
+    <Content Include="Views\Help\Help.cshtml" />
+    <Content Include="Views\Help\VideoWinHelp.cshtml" />
+    <Content Include="Views\Malek_Vagon\Help.cshtml" />
+    <Content Include="Views\Malek_Vagon\VideoWinMalek_Vagon.cshtml" />
+    <Content Include="Views\TitleRatingDynamic\Index.cshtml" />
+    <Content Include="Views\TitleRatingDynamic\New.cshtml" />
+    <Content Include="Views\ItemDynamicProperties\Index.cshtml" />
+    <Content Include="Views\ItemsDynamicRating\Index.cshtml" />
+    <Content Include="Views\ItemsDynamicRating\New.cshtml" />
+    <Content Include="Views\SearchTitleRatingDynamic\Index.cshtml" />
+    <Content Include="Views\GeneralKartabl\TaiidMarhale.cshtml" />
+    <Content Include="Views\GeneralKartabl\BazgashtBeGhabl.cshtml" />
+    <Content Include="Views\GeneralKartabl\AcceptOrReject.cshtml" />
+    <Content Include="Views\GeneralKartabl\Index.cshtml" />
+    <Content Include="Views\GeneralKartabl\WinBazgashtBeGhabl.cshtml" />
+    <Content Include="Views\GeneralKartabl\WinTaeedMarhale.cshtml" />
+    <Content Include="Views\ScheduleTitle\Help.cshtml" />
+    <Content Include="Views\ScheduleTitle\VideoWinScheduleTitle.cshtml" />
+    <Content Include="Views\ScheduleTitle\Index.cshtml" />
+    <Content Include="Views\ScheduleTitle\New.cshtml" />
+    <Content Include="Views\ScheduleTitle_Hadaf\Index.cshtml" />
+    <Content Include="Views\FinancialValue\Index.cshtml" />
+    <Content Include="Views\FinancialValue\New.cshtml" />
+    <Content Include="Views\FinancialValue\Help.cshtml" />
+    <Content Include="Views\FinancialValue\VideoWinFinancialValue.cshtml" />
+    <Content Include="Views\ItemDynamicProperties\Help.cshtml" />
+    <Content Include="Views\ItemDynamicProperties\VideoWinItemDynamicProperties.cshtml" />
+    <Content Include="Views\TitleRatingDynamic\Help.cshtml" />
+    <Content Include="Views\TitleRatingDynamic\VideoWinTitleRatingDynamic.cshtml" />
+    <Content Include="Views\ItemsDynamicRating\Help.cshtml" />
+    <Content Include="Views\ItemsDynamicRating\VideoWinItemsDynamicRating.cshtml" />
+    <Content Include="Views\TicketKartabl\NewChatWin.cshtml" />
+    <Content Include="Views\SearchFirst\Index.cshtml" />
+    <Content Include="Views\GeneralKartabl\ShowScheduleContract.cshtml" />
+    <Content Include="Views\GeneralKartabl\ShowShareholders.cshtml" />
+    <Content Include="Views\GeneralKartabl\ShowDynamicForm.cshtml" />
+    <Content Include="Views\GeneralKartabl\ShowProject.cshtml" />
+    <Content Include="Views\GeneralKartabl\ShowCompanyProfile.cshtml" />
+    <Content Include="Views\TaeedItems\Index.cshtml" />
+    <Content Include="Views\GeneralKartabl\TaeedWin.cshtml" />
+    <Content Include="Views\SearchAshkhasHoghooghi\NewWithService.cshtml" />
+    <Content Include="Views\SearchDizel\IndexChecked.cshtml" />
+    <Content Include="Views\RptBarname\IndexLoco.cshtml" />
+    <Content Include="Views\GeneralKartabl\HistoryTaeedWin.cshtml" />
+    <Content Include="Views\GeneralKartabl\ShowMsg.cshtml" />
+    <Content Include="Views\GeneralKartabl\ShowMsgTaeed.cshtml" />
+    <Content Include="Views\SearchDynamicItem_CharkheEghdam\Index.cshtml" />
+    <Content Include="Views\Charkhe\Help.cshtml" />
+    <Content Include="Views\Charkhe\VideoWinCharkhe.cshtml" />
+    <Content Include="Views\RptBarname\IndexGroup.cshtml" />
+    <Content Include="Views\GeneralKartabl\EtmamCharkhe.cshtml" />
+    <Content Include="Views\GeneralKartabl\EtmamCharkhe_Info.cshtml" />
+    <Content Include="Views\RptBarname\CheckedWin.cshtml" />
+    <Content Include="Views\RptRizAmalkard\Index.cshtml" />
+    <Content Include="Views\RptRizAmalkard\IndexFasli.cshtml" />
+    <Content Include="Views\RptBarname\ProgressWin.cshtml" />
+    <Content Include="Views\GeneralKartabl\TimeLine.cshtml" />
+    <Content Include="Views\GeneralKartabl\TaiidMarhale_Info.cshtml" />
+    <Content Include="Views\GeneralKartabl\BazgashtBeGhabl_Info.cshtml" />
+    <Content Include="Views\GeneralKartabl\PrintRptGeneralKartabl.cshtml" />
+    <Content Include="Views\SearchStation\IndexChecked.cshtml" />
+    <Content Include="Views\RptBarname\IndexKhat.cshtml" />
+    <Content Include="Views\RptBarname\PrintPageKhat.cshtml" />
+    <Content Include="Views\RptBarname\PrintPageLoco.cshtml" />
+    <Content Include="Views\CarBarg\Index.cshtml" />
+    <Content Include="Views\CarBarg\New.cshtml" />
+    <Content Include="Views\GeneralKartabl\BazgashtBeMarhaleGhabl.cshtml" />
+    <Content Include="Views\GeneralKartabl\BazgashtBeMarhaleGhabl_Info.cshtml" />
+    <Content Include="Views\RptCarbarg\Index.cshtml" />
+    <Content Include="Views\Home\SafDl.cshtml" />
+    <Content Include="Views\RptBarname\IndexBarnameLoco.cshtml" />
+    <Content Include="Views\RptBarname\PrintPageBarnameLoco.cshtml" />
+    <Content Include="Views\Mosavabat\Index.cshtml" />
+    <Content Include="Views\Mosavabat\New.cshtml" />
+    <Content Include="Views\Human\Sign.cshtml" />
+    <Content Include="Views\RptBarname\PrintPageLocoKoli.cshtml" />
+    <None Include="Web References\RaiSms\service.disco" />
+    <Content Include="Web.config">
+      <SubType>Designer</SubType>
+    </Content>
+    <Content Include="Web.Debug.config">
+      <DependentUpon>Web.config</DependentUpon>
+    </Content>
+    <Content Include="Web.Release.config">
+      <DependentUpon>Web.config</DependentUpon>
+    </Content>
+    <Content Include="Content\Site.css" />
+    <Content Include="Scripts\_references.js" />
+    <Content Include="Images\accent.png" />
+    <Content Include="Images\bullet.png" />
+    <Content Include="Images\heroAccent.png" />
+    <Content Include="Images\orderedList0.png" />
+    <Content Include="Images\orderedList1.png" />
+    <Content Include="Images\orderedList2.png" />
+    <Content Include="Images\orderedList3.png" />
+    <Content Include="Images\orderedList4.png" />
+    <Content Include="Images\orderedList5.png" />
+    <Content Include="Images\orderedList6.png" />
+    <Content Include="Images\orderedList7.png" />
+    <Content Include="Images\orderedList8.png" />
+    <Content Include="Images\orderedList9.png" />
+    <Content Include="Views\_ViewStart.cshtml" />
+    <Content Include="Views\Account\_ChangePasswordPartial.cshtml" />
+    <Content Include="Views\Account\_ExternalLoginsListPartial.cshtml" />
+    <Content Include="Views\Account\_RemoveExternalLoginsPartial.cshtml" />
+    <Content Include="Views\Account\_SetPasswordPartial.cshtml" />
+    <Content Include="Views\Account\Login.cshtml" />
+    <Content Include="Views\Account\Manage.cshtml" />
+    <Content Include="Views\Account\Register.cshtml" />
+    <Content Include="Views\Account\ExternalLoginFailure.cshtml" />
+    <Content Include="Views\Account\ExternalLoginConfirmation.cshtml" />
+    <Content Include="Views\Home\About.cshtml" />
+    <Content Include="Views\Home\Contact.cshtml" />
+    <Content Include="Views\Home\Index.cshtml" />
+    <Content Include="Views\Shared\Error.cshtml" />
+    <Content Include="Views\Shared\_LoginPartial.cshtml" />
+    <Content Include="Views\Shared\_Layout.cshtml" />
+    <Content Include="Views\Web.config" />
+    <Content Include="Views\Account\LogOn.cshtml" />
+    <Content Include="Scripts\lightbox.min.map" />
+    <Content Include="Uploaded\Google.Chrome.zip" />
+    <Content Include="Uploaded\Google.Chrome\Google.Chrome.v55.0\!pd.nfo" />
+    <Content Include="Uploaded\Google.Chrome\Google.Chrome.v55.0\www.p30download.com.url" />
+    <Content Include="Uploaded\Google.Chrome\Google.Chrome.v55.0\www.p30forum.com.url" />
+    <Content Include="Views\Home\GotoNExtEtelaiie.cshtml" />
+    <Content Include="Views\Home\Setting.cshtml" />
+    <Content Include="Views\Home\OnlineUsers.cshtml" />
+    <Content Include="Views\Home\HistoryLogin.cshtml" />
+    <Content Include="Views\Home\ChangePassword.cshtml" />
+    <Content Include="Views\UserGroup\Index.cshtml" />
+    <Content Include="Views\UserGroup\CopyPermi.cshtml" />
+    <Content Include="Views\UserGroup\New.cshtml" />
+    <Content Include="Views\Permission\Index.cshtml" />
+    <Content Include="Views\Permission\PermissionUser.cshtml" />
+    <Content Include="Views\Permission\ShowUsers.cshtml" />
+    <Content Include="Views\Permission\UserforPermission.cshtml" />
+    <Content Include="Views\User\Index.cshtml" />
+    <Content Include="Views\User\New.cshtml" />
+    <Content Include="Views\User\ResetPassWindow.cshtml" />
+    <Content Include="Views\User\ShowPermission.cshtml" />
+    <Content Include="Views\User\ShowPermission2.cshtml" />
+    <Content Include="Views\User\TreeUser.cshtml" />
+    <Content Include="Views\EventTables\Index.cshtml" />
+    <Content Include="Views\EventTables\New.cshtml" />
+    <Content Include="Views\NameTables\Index.cshtml" />
+    <Content Include="Views\TransactionType\Index.cshtml" />
+    <Content Include="Views\TransactionType\New.cshtml" />
+    <Content Include="Views\TransactionGroup\Index.cshtml" />
+    <Content Include="Views\TransactionGroup\New.cshtml" />
+    <Content Include="Views\TicketKartabl\ForwardHistory.cshtml" />
+    <Content Include="Views\TicketKartabl\Help.cshtml" />
+    <Content Include="Views\TicketKartabl\Index.cshtml" />
+    <Content Include="Views\TicketKartabl\New.cshtml" />
+    <Content Include="Views\TicketKartabl\OpenForwardWin.cshtml" />
+    <Content Include="Views\TicketKartabl\OpenReplyWin.cshtml" />
+    <Content Include="Views\TicketKartabl\VideoWinTicketKartabl.cshtml" />
+    <Content Include="Views\TicketPermission\Help.cshtml" />
+    <Content Include="Views\TicketPermission\Index.cshtml" />
+    <Content Include="Views\TicketPermission\New.cshtml" />
+    <Content Include="Views\TicketPermission\VideoWinTicketPermission.cshtml" />
+    <Content Include="Views\UserTicket\Index.cshtml" />
+    <Content Include="Views\UserTicket\OpenReplyWin.cshtml" />
+    <Content Include="Views\TicketCategory\Help.cshtml" />
+    <Content Include="Views\TicketCategory\Index.cshtml" />
+    <Content Include="Views\TicketCategory\New.cshtml" />
+    <Content Include="Views\TicketCategory\VideoWinTicketCategory.cshtml" />
+    <Content Include="Views\UserLog\HistoryLogTable.cshtml" />
+    <Content Include="Views\UserLog\Index.cshtml" />
+    <Content Include="Views\UserLog\OldIndex.cshtml" />
+    <Content Include="Views\UserLog\ShowJsonParam.cshtml" />
+    <Content Include="Views\Event\Index.cshtml" />
+    <Content Include="Views\Event\New.cshtml" />
+    <Content Include="Views\Announcement\Help.cshtml" />
+    <Content Include="Views\Announcement\Index.cshtml" />
+    <Content Include="Views\Announcement\New.cshtml" />
+    <Content Include="Views\Announcement\VideoWinAnnouncement.cshtml" />
+    <Content Include="Views\Human\Help.cshtml" />
+    <Content Include="Views\Human\Index.cshtml" />
+    <Content Include="Views\Human\New.cshtml" />
+    <Content Include="Views\Human\NewCity.cshtml" />
+    <Content Include="Views\Human\VideoWinHuman.cshtml" />
+    <Content Include="Views\PersonalInfo\Help.cshtml" />
+    <Content Include="Views\PersonalInfo\Index.cshtml" />
+    <Content Include="Views\PersonalInfo\New.cshtml" />
+    <Content Include="Views\PersonalInfo\VideoWinPersonalInfo.cshtml" />
+    <Content Include="Views\SearchHuman\Index.cshtml" />
+    <Content Include="Views\Limitation\New.cshtml" />
+    <Content Include="Views\Erja\Index.cshtml" />
+    <Content Include="Views\Erja\New.cshtml" />
+    <Content Include="Views\Erja\NatijeErja.cshtml" />
+    <Content Include="Views\ShowVersion\New.cshtml" />
+    <Content Include="Views\Version\DescVersion.cshtml" />
+    <Content Include="Views\Version\DetailVersion.cshtml" />
+    <Content Include="Views\Version\GotoShowVersionLogin.cshtml" />
+    <Content Include="Views\Version\Index.cshtml" />
+    <Content Include="Views\Version\ListMostanad.cshtml" />
+    <Content Include="Views\Version\New.cshtml" />
+    <Content Include="Views\Version\VersionMostanadat.cshtml" />
+    <Content Include="Views\Error\Index.cshtml" />
+    <Content Include="Views\AshkhasHoghooghi\Help.cshtml" />
+    <Content Include="Views\AshkhasHoghooghi\Index.cshtml" />
+    <Content Include="Views\AshkhasHoghooghi\New.cshtml" />
+    <Content Include="Views\AshkhasHoghooghi\VideoWinAshkhasHoghooghi.cshtml" />
+    <Content Include="Views\ContanctType\FormulSaz.cshtml" />
+    <Content Include="Views\ContanctType\Index.cshtml" />
+    <Content Include="Views\ContanctType\New.cshtml" />
+    <Content Include="Views\ContactGroup\Index.cshtml" />
+    <Content Include="Views\ContactGroup\New.cshtml" />
+    <Content Include="Views\ContactGroup\Help.cshtml" />
+    <Content Include="Views\ContactGroup\VideoWinContactGroup.cshtml" />
+    <Content Include="Views\ContactGroupTree\Index.cshtml" />
+    <Content Include="Views\ContactGroupTree\Help.cshtml" />
+    <Content Include="Views\ContactGroupTree\VideoWinContactGroupTree.cshtml" />
+    <Content Include="Views\Contact\Contact_TreeWin.cshtml" />
+    <Content Include="Views\Contact\Index.cshtml" />
+    <Content Include="Views\Contact\New.cshtml" />
+    <Content Include="Views\Contact\NewPerHuman.cshtml" />
+    <Content Include="Views\SearchAshkhasHoghooghi\Index.cshtml" />
+    <Content Include="Views\PageHtml\Index.cshtml" />
+    <Content Include="Views\PageHtml\New.cshtml" />
+    <Content Include="Views\PageHtml\Help.cshtml" />
+    <Content Include="Views\PageHtml\VideoWinPageHtml.cshtml" />
+    <Content Include="Views\SearchCity\Index.cshtml" />
+    <Content Include="Views\Operation\Help.cshtml" />
+    <Content Include="Views\Operation\Index.cshtml" />
+    <Content Include="Views\Operation\New.cshtml" />
+    <Content Include="Views\Operation\VideoWinOperation.cshtml" />
+    <Content Include="Views\Help\Index.cshtml" />
+    <Content Include="Views\Help\New.cshtml" />
+    <Content Include="Views\Actions\Help.cshtml" />
+    <Content Include="Views\Actions\Index.cshtml" />
+    <Content Include="Views\Actions\New.cshtml" />
+    <Content Include="Views\Actions\VideoWinAction.cshtml" />
+    <Content Include="Views\TechnicalDocumentation\Index.cshtml" />
+    <Content Include="Views\TechnicalDocumentation\Print.cshtml" />
+    <Content Include="Views\TechnicalDocumentation\VideoWin.cshtml" />
+    <Content Include="Views\AvamelMoasser_Upgrade\Help.cshtml" />
+    <Content Include="Views\AvamelMoasser_Upgrade\Index.cshtml" />
+    <Content Include="Views\AvamelMoasser_Upgrade\New.cshtml" />
+    <Content Include="Views\AvamelMoasser_Upgrade\VideoWinAvamelMoasser.cshtml" />
+    <Content Include="Views\FactorsAffectingValues\Help.cshtml" />
+    <Content Include="Views\FactorsAffectingValues\Index.cshtml" />
+    <Content Include="Views\FactorsAffectingValues\New.cshtml" />
+    <Content Include="Views\FactorsAffectingValues\New_Header.cshtml" />
+    <Content Include="Views\FactorsAffectingValues\VideoWinFactorsAffecting.cshtml" />
+    <Content Include="Views\Kartabl\Help.cshtml" />
+    <Content Include="Views\Kartabl\Index.cshtml" />
+    <Content Include="Views\Kartabl\New.cshtml" />
+    <Content Include="Views\Kartabl\VideoWinKartabl.cshtml" />
+    <Content Include="Views\Rules\FormulSaz.cshtml" />
+    <Content Include="Views\Rules\Help.cshtml" />
+    <Content Include="Views\Rules\Index.cshtml" />
+    <Content Include="Views\Rules\New.cshtml" />
+    <Content Include="Views\Rules\VideoWinRules.cshtml" />
+    <Content Include="Views\SpecificCartablePermission_UserGroup\Index.cshtml" />
+    <Content Include="Views\User\SpecificKartablPer.cshtml" />
+    <Content Include="Views\ThemDesktop_User\Index.cshtml" />
+    <Content Include="Views\Charkhe\CartableAssign.cshtml" />
+    <Content Include="Views\Charkhe\CopyCharkhe.cshtml" />
+    <Content Include="Views\Charkhe\DefaulOP_Ac_CharkheEghdam.cshtml" />
+    <Content Include="Views\Charkhe\Index.cshtml" />
+    <Content Include="Views\Charkhe\ListAskhasCharkhe.cshtml" />
+    <Content Include="Views\Charkhe\New.cshtml" />
+    <Content Include="Views\Charkhe\ReferralRules.cshtml" />
+    <Content Include="Views\Charkhe\ShowAction_CharkheEghdam.cshtml" />
+    <Content Include="Views\Charkhe\TaainEghdamat.cshtml" />
+    <Content Include="Views\Error\Help.cshtml" />
+    <Content Include="Views\Error\VideoWinError.cshtml" />
+    <Content Include="Views\Contact\Help.cshtml" />
+    <Content Include="Views\Contact\VideoWinContact.cshtml" />
+    <Content Include="Views\ContanctType\Help.cshtml" />
+    <Content Include="Views\ContanctType\VideoWinContactType.cshtml" />
+    <Content Include="Views\Erja\HelpErja.cshtml" />
+    <Content Include="Views\Erja\VideoWinErja.cshtml" />
+    <Content Include="Views\Version\HelpVersion.cshtml" />
+    <Content Include="Views\Version\VideoWinVersion.cshtml" />
+    <Content Include="Views\UserGroup\Help.cshtml" />
+    <Content Include="Views\UserGroup\VideoWinUserGroup.cshtml" />
+    <Content Include="Views\User\Help.cshtml" />
+    <Content Include="Views\User\VideoWinUser.cshtml" />
+    <Content Include="Views\Permission\Help.cshtml" />
+    <Content Include="Views\Permission\VideoWinPermission.cshtml" />
+    <Content Include="Views\Permission\HelpUserforPermission.cshtml" />
+    <Content Include="Views\Permission\VideoWinUserforPermission.cshtml" />
+    <Content Include="Views\SpecificCartablePermission_UserGroup\Help.cshtml" />
+    <Content Include="Views\SpecificCartablePermission_UserGroup\VideoWinSpecificCartablePer.cshtml" />
+    <Content Include="Views\ThemDesktop_User\Help.cshtml" />
+    <Content Include="Views\ThemDesktop_User\VideoWinThemDesktop.cshtml" />
+    <Content Include="Views\SearchOperation\Index.cshtml" />
+    <Content Include="Views\Home\PrintHelp.cshtml" />
+    <Content Include="Views\MostanadatFani\PrintMostanadPdf.cshtml" />
+    <Content Include="Views\TypeVagon\Index.cshtml" />
+    <Content Include="Views\TypeVagon\New.cshtml" />
+    <Content Include="Views\Malek_Vagon\Index.cshtml" />
+    <Content Include="Views\Vagon\Index.cshtml" />
+    <Content Include="Views\Vagon\New.cshtml" />
+    <Content Include="Views\SearchMalek_Vagon\Index.cshtml" />
+    <Content Include="Views\HadafSabtNam\Index.cshtml" />
+    <Content Include="Views\HadafSabtNam\New.cshtml" />
+    <Content Include="Views\HadafGroupName\Index.cshtml" />
+    <Content Include="Views\HadafGroupName\New.cshtml" />
+    <Content Include="Views\HadafGroupName\HadafGrouping.cshtml" />
+    <Content Include="Views\MonitoringFirstRegister\Index.cshtml" />
+    <Content Include="Views\MonitoringFirstRegister\newPayam.cshtml" />
+    <Content Include="Views\MonitoringFirstRegister\Print.cshtml" />
+    <Content Include="Views\MonitoringFirstRegister\SendMessage.cshtml" />
+    <None Include="Web References\RaiSms\service.wsdl" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Areas\Faces\Models\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Service References\" />
+  </ItemGroup>
+  <ItemGroup>
+    <WebReferences Include="Web References\" />
+  </ItemGroup>
+  <ItemGroup>
+    <WebReferenceUrl Include="https://sms.rai.ir/webservice/service.asmx">
+      <UrlBehavior>Dynamic</UrlBehavior>
+      <RelPath>Web References\RaiSms\</RelPath>
+      <UpdateFromURL>https://sms.rai.ir/webservice/service.asmx</UpdateFromURL>
+      <ServiceLocationURL>
+      </ServiceLocationURL>
+      <CachedDynamicPropName>
+      </CachedDynamicPropName>
+      <CachedAppSettingsObjectName>Settings</CachedAppSettingsObjectName>
+      <CachedSettingsPropName>RaiSam_RaiSms_Service</CachedSettingsPropName>
+    </WebReferenceUrl>
+  </ItemGroup>
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+  </PropertyGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != ''" />
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="false" />
+  <Target Name="MvcBuildViews" AfterTargets="AfterBuild" Condition="'$(MvcBuildViews)'=='true'">
+    <AspNetCompiler VirtualPath="temp" PhysicalPath="$(WebProjectOutputDir)" />
+  </Target>
+  <ProjectExtensions>
+    <VisualStudio>
+      <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
+        <WebProjectProperties>
+          <UseIIS>True</UseIIS>
+          <AutoAssignPort>True</AutoAssignPort>
+          <DevelopmentServerPort>2328</DevelopmentServerPort>
+          <DevelopmentServerVPath>/</DevelopmentServerVPath>
+          <IISUrl>http://localhost:2328/</IISUrl>
+          <NTLMAuthentication>False</NTLMAuthentication>
+          <UseCustomServer>False</UseCustomServer>
+          <CustomServerUrl>
+          </CustomServerUrl>
+          <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
+        </WebProjectProperties>
+      </FlavorProperties>
+    </VisualStudio>
+  </ProjectExtensions>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target> -->
+</Project>

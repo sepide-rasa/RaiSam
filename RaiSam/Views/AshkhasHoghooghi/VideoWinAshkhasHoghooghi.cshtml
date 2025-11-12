@@ -1,0 +1,27 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+
+@using Ext.Net.MVC;
+@(
+ Html.X().Window().Listeners(l => l.BeforeClose.Handler = "CloseVideoAshkhasHoghooghi()")
+          .Height(565)
+         .Width(1000)
+             .ID("VideoAshkhasHoghooghi")
+        .Closable(true)
+            .Title("راهنمای تصویری اشخاص حقوقی")
+        .AutoScroll(true)
+        .Closable(true)
+            .Maximizable(true)
+        .Content(@<video width="100%;" id="AmozeshVideoAshkhasHoghooghi" controls="true" autoplay="true" controls><source src='@Url.Action("DownloadFileVideoAshkhasHoghooghi", "AshkhasHoghooghi")' type="video/mp4"></video>)
+
+)
+<script type="text/javascript">
+    function CloseVideoAshkhasHoghooghi() {
+        $('#AmozeshVideoAshkhasHoghooghi')[0].pause();
+    }
+
+</script>

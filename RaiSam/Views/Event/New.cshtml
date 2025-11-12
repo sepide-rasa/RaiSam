@@ -1,0 +1,278 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+
+@(Html.X()
+    .Window()
+    .Modal(true)
+    .Listeners(li =>
+    {
+        li.Render.Fn = "addKeyMapEvent";
+        //li.AfterRender.Handler = "LoadEvent()";
+    })
+    .Width(490)
+    .Title("ثبت رویدادهای تراکنش ها")
+    .ID("NewEvent")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Layout(LayoutType.Fit)
+    .ButtonAlign(Ext.Net.Alignment.Center)
+    .Buttons(
+        X.Button()
+            .Text("ذخیره")
+            .Icon(Ext.Net.Icon.Disk)
+            .Listeners(l => l.Click.Handler = "SaveEvent();"),
+        X.Button()
+            .Text("خروج")
+            .Icon(Ext.Net.Icon.DoorOut)
+            .ToolTip("کلید میانبر Esc")
+            .OnClientClick("App.NewEvent.destroy();"))
+    .Items(
+         X.AntiForgeryField()
+                .ItemID("antiForgeryToken").Hidden(true),
+        X.Panel()
+            .Border(false)
+            .Layout(LayoutType.VBox)
+            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+            .Items(
+                X.FieldSet()
+                    .Title("مشخصات رویداد")
+                    .Border(true)
+                    .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 4 })
+                    .Defaults(new { Margin = 2 })
+                    .Items(
+                        X.Hidden().ItemID("fldId"),
+                            X.Label("گروه تراکنش:"),
+                    X.ComboBox()
+                        .ItemID("CboGroup")
+                        .TypeAhead(true)
+                        .Editable(false)
+                        .AutoFocus(true)
+                            .ForceSelection(true)
+                            .QueryMode(DataLoadMode.Local)
+                            .TriggerAction(TriggerAction.All)
+                            .AllowBlank(false)
+                            .BlankText("لطفا گروه تراکنش را انتخاب کنید.")
+                            .DisplayField("fldName")
+                            .ValueField("fldId")
+                            .EmptyText("...")
+                            .Store(X.Store()
+                                     .Listeners(l => l.Load.Handler = "setDefaultCboGroup();")
+                                .Model(X.Model()
+
+                                    .IDProperty("fldId")
+                                    .Fields(
+                                        new ModelField("fldId", ModelFieldType.Int) { Mapping = "fldId" },
+                                        new ModelField("fldName", ModelFieldType.String) { Mapping = "fldName" }
+                                        )
+                                )
+                                 .Listeners(l => l.BeforeLoad.Handler = "App.NewEvent.queryById('CboGroup').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.NewEvent.queryById('antiForgeryToken').getValue());")
+                            .Proxy(Html.X().AjaxProxy()
+                            .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                    .Timeout(200000000)
+                                    .Url(Url.Action("GetTransGroup"))
+                                    .Reader(X.JsonReader().Root("data"))
+                                )
+                                )
+                        .Listeners(l =>
+                        {
+                            l.AfterRender.Handler = "LoadEvent()";
+                            l.Change.Handler = " App.NewEvent.queryById('CboTransType').getStore().load();";
+                        }),
+                        X.Label("نوع تراکنش:"),
+                        X.ComboBox()
+                                .ItemID("CboTransType")
+                            .TypeAhead(true)
+                            .Editable(false)
+                            .ForceSelection(true)
+                            .QueryMode(DataLoadMode.Local)
+                            .TriggerAction(TriggerAction.All)
+                            .AllowBlank(false)
+                            .BlankText("لطفا نوع تراکنش را انتخاب کنید.")
+                            .DisplayField("fldName")
+                            .ValueField("fldId")
+                            .EmptyText("...")
+                            .Store(X.Store()
+                            .AutoLoad(false)
+                                    .Listeners(l => l.Load.Handler = "setDefaultCboTransType();")
+                                .Model(X.Model()
+                                    .IDProperty("fldId")
+                                    .Fields(
+                                        new ModelField("fldId", ModelFieldType.Int) { Mapping = "fldId" },
+                                        new ModelField("fldName", ModelFieldType.String) { Mapping = "fldName" }
+                                        )
+                                )
+                                        .Listeners(l => l.BeforeLoad.Handler = "App.NewEvent.queryById('CboTransType').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.NewEvent.queryById('antiForgeryToken').getValue());")
+                                .Proxy(Html.X().AjaxProxy()
+                                .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                    .Timeout(200000000)
+                                        .Url(Url.Action("GetTransType"))
+                                    .Reader(X.JsonReader().Root("data"))
+                                    )
+                                        .Parameters(ps => ps.Add(new StoreParameter("GroupId", "App.NewEvent.queryById('CboGroup').getValue()", ParameterMode.Raw)))
+                        ),
+
+                            X.Label("نحوه اجرا:"),
+
+                                    X.ComboBox()
+                                        .ItemID("CboFlag")
+                                        .TypeAhead(true)
+                                        .Editable(false)
+                                        .QueryMode(DataLoadMode.Local)
+
+                                        .ForceSelection(true)
+                                        .TriggerAction(TriggerAction.All)
+                                        .Items(
+                                                new ListItem("در Thread اصلی", "0"),
+                                                new ListItem("در Thread جداگانه", "1")
+                                        )
+                                        .Listeners(l =>
+                                        {
+                                            l.AfterRender.Handler = "SetDefaultCboFlag()";
+                                        }),
+                        X.Label("توضیحات:"),
+                        X.TextField()
+                            .ItemID("txtDesc")
+        //.ColSpan(4)
+        //.Width(331)
+                     )
+                )
+        )
+)
+<script type="text/javascript">
+
+    function setDefaultCboTransType() {
+        if ('@ViewBag.Id' == "0") {
+            App.NewEvent.queryById('CboTransType').select(App.NewEvent.queryById('CboTransType').store.getAt(0));
+        }
+    }
+    function setDefaultCboGroup() {
+        if ('@ViewBag.Id' == "0") {
+            App.NewEvent.queryById('CboGroup').select(App.NewEvent.queryById('CboGroup').store.getAt(0));
+        }
+    }
+    function SetDefaultCboFlag() {
+        if ('@ViewBag.Id' == "0") {
+            App.NewEvent.queryById('CboFlag').select("0");
+        }
+    }
+
+    function LoadEvent() {
+        ReplaceArabic();
+        if ('@ViewBag.Id' != '0') {
+            App.NewEvent.body.mask("در حال بارگذاری...");
+            Ext.net.DirectMethod.request({
+                url: '/Event/Details',
+                params: {
+                    Id: '@ViewBag.Id',
+                    __RequestVerificationToken: App.NewEvent.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+                    var CboFlag = App.NewEvent.queryById('CboFlag');
+                    CboFlag.setValue(data.fldFlag);
+                    var CboGroup = App.NewEvent.queryById('CboGroup');
+                    CboGroup.setValue(data.fldTransactionGroupId);
+                    App.NewEvent.queryById('CboTransType').getStore().load();
+                    var CboTransType = App.NewEvent.queryById('CboTransType');
+                    CboTransType.setValue(data.fldTransactionTypeId);
+                    var txtDesc = App.NewEvent.queryById('txtDesc');
+                    txtDesc.setValue(data.fldDesc);
+                    var Id = App.NewEvent.queryById('fldId');
+                    Id.setValue(data.fldId);
+                    App.NewEvent.body.mask().hide();
+                }
+            });
+        }
+        else {
+            App.NewEvent.queryById('CboTransType').validate();
+            App.NewEvent.queryById('CboGroup').validate();
+            App.NewEvent.queryById('CboFlag').validate();
+        }
+
+    }
+
+    function SaveEvent() {
+        var CboTransType = App.NewEvent.queryById('CboTransType');
+        var CboGroup = App.NewEvent.queryById('CboGroup');
+        var CboFlag = App.NewEvent.queryById('CboFlag');
+        var txtDesc = App.NewEvent.queryById('txtDesc');
+        var Id = App.NewEvent.queryById('fldId');
+        var er = false;
+        if (CboTransType.validate() == false) {
+            er = true;
+        }
+        if (CboGroup.validate() == false) {
+            er = true;
+        }
+        if (CboFlag.validate() == false) {
+            er = true;
+        }
+        if (er == true)
+            return;
+
+        var flag=true;
+        if(CboFlag.getValue()=="0")
+            flag=false;
+
+        App.NewEvent.body.mask("در حال ذخیره سازی");
+        Ext.net.DirectMethod.request({
+            url: '/Event/Save',
+            params: {
+                fldId: Id.getValue(),
+                fldTransactionTypeId: CboTransType.getValue(),
+                fldTransactionGroupId: CboGroup.getValue(),
+                fldDesc: txtDesc.getValue(),
+                fldFlag: flag,
+                __RequestVerificationToken: App.NewEvent.queryById('antiForgeryToken').getValue()
+            },
+            success: function (data) {
+                var ic = Ext.MessageBox.INFO;
+                if (data.Er == 1)
+                    ic = Ext.MessageBox.ERROR;
+                Ext.MessageBox.show({
+                    Name: data.MsgName,
+                    msg: data.Msg,
+                    icon: ic,
+                    buttons: Ext.MessageBox.OK
+                });
+                App.Event.queryById('GridEvent').store.load();
+                if (data.Er != 1)
+                    ClearEvent();
+                App.NewEvent.body.mask().hide();
+            }
+
+        });
+    }
+    function ClearEvent() {
+        App.NewEvent.queryById('txtDesc').setValue("");
+        App.NewEvent.queryById('fldId').setValue(0);
+    }
+
+    var addKeyMapEvent = function (cmp) {
+        this.keyMap = new Ext.util.KeyMap({
+            target: cmp.getEl(),
+            binding: [{
+                key: [13, 9], /*Ext.EventObject.ENTER,*/
+                fn: function (key, e) {
+                    if (e.getKey() == 9) {
+                        e.stopEvent();
+                    }
+                    var keyfield = App.NewEvent.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+                    var nextfld;
+                    if (keyfield.itemId == "txtDesc") {
+                        SaveEvent();
+                        return;
+                    }
+                    else {
+                        nextfld = keyfield.nextSibling().nextSibling();
+                    }
+                    nextfld.focus();
+                    nextfld.selectText();
+                }
+            }]
+        });
+    };
+</script>

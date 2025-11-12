@@ -1,0 +1,128 @@
+﻿@model IEnumerable<RaiSam.Models.prs_tblMalek_VagonInfoSelect>
+@using Ext.Net.MVC;
+@{
+    var X = Html.X();
+}
+<script>
+    Ext.net.FilterHeader.behaviour.string[0].match = function (recordValue, matchValue) {
+        return (Ext.net.FilterHeader.behaviour.getStrValue(recordValue) || "").indexOf(matchValue) > -1;
+    };
+
+    Ext.net.FilterHeader.behaviour.string[0].getStrValue = function (value) {
+        return value.toString();
+    };
+
+
+    Ext.net.FilterHeader.behaviour.string[0].serialize = function (value) {
+        return {
+            type: "string",
+            op: "*",
+            value: value
+        };
+    };
+</script>
+@(Html.X().Window()
+    .Width(600)
+    .Height(350)
+    .Title("لیست مالکان")
+    .ID("SearchMalek")
+    .Closable(true)
+    .Modal(true)
+    .Layout(Ext.Net.LayoutType.Fit)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Items(
+        X.Panel()
+            .Border(false)
+            .AutoScroll(true)
+            .Layout(Ext.Net.LayoutType.Fit)
+            .Items(
+                X.GridPanel()
+                    .AutoScroll(true)
+                    .Border(false)
+                    .TopBar(
+                        Html.X().Toolbar()
+                            .Items(
+                                X.Button()
+                                    .Text("انتخاب")
+                                    .Icon(Ext.Net.Icon.ArrowRedo)
+                                    .Listeners(li => li.Click.Handler = "NextSearchMalek();")
+                                )
+                        )
+                    .ItemID("GridSearchMalek")
+                    .Store(
+                        X.StoreForModel()
+                            .Listeners(l => l.Load.Handler = "GetCheckedData()")
+                            .Proxy(Html.X().AjaxProxy()
+                                    .Url(Url.Action("ReadChecked"))
+                                    .Reader(Html.X().JsonReader().Root("data"))
+                                    .ExtraParams(x => x.Add(new { state = @ViewBag.state }))
+                        )
+                        .PageSize(20000)
+                        .RemoteFilter(false)
+                        .RemotePaging(false)
+                    )
+                    .View(
+                        Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                    )
+                    .Plugins(X.FilterHeader().Remote(false))
+                    .ColumnModel(
+                             Html.X().Column().DataIndex(Model, m => m.fldId).Text("کد").Flex(1).Hidden(true),
+                                Html.X().Column().DataIndex(Model, m => m.fldNameCompany).Text("نام مالک").Wrap(true).Flex(3),
+                                Html.X().Column().DataIndex(Model, m => m.fldCodeEghtasadi).Text("کداقتصادی").Wrap(true).Flex(5),
+                                Html.X().Column().DataIndex(Model, m => m.fldShenaseMeli).Text("شناسه ملی").Wrap(true).Flex(3),
+                                Html.X().Column().DataIndex(Model, m => m.fldTypeSamaneName).Text("نوع سامانه").Flex(3)
+                    )
+                   // .Listeners(a => a.CellDblClick.Handler = "NextSearchMalek();")
+                    .SelectionModel(
+                        Html.X().CheckboxSelectionModel().CheckOnly(true)
+                            //.Listeners(l =>
+                            //{
+                            //    l.Deselect.Fn = "getDeselectData";
+                            //})
+                            .PruneRemoved(false)
+                            .Mode(Ext.Net.SelectionMode.Multi)
+                    )
+            )
+        )
+)
+
+<script type="text/javascript">
+    /*var editMode = false;*/
+    /*var deletedata = new Array();*/
+    function GetCheckedData() {
+        alert('@ViewBag.state');
+        var Malekan = "";
+        if ('@ViewBag.state' == 1)
+            Malekan = App.RptBarname.queryById("fldMalek_InfoId").getValue();
+        else if ('@ViewBag.state' == 2)
+            Malekan = App.RptKoliBarname.queryById("fldMalek_InfoId").getValue();
+
+        var AllRow = Malekan.split(',');
+        for (var i = 0; i < AllRow.length - 1; i++) {
+            var index2 = App.SearchMalek.queryById("GridSearchMalek").getStore().findExact("fldId", parseInt(AllRow[i]));
+            App.SearchMalek.queryById("GridSearchMalek").getSelectionModel().select(index2, true);
+        }
+    }
+
+
+    function NextSearchMalek() {
+        var SelectedRow = App.SearchMalek.queryById('GridSearchMalek').getSelectionModel().getSelection();
+        var MalekTitle = "";
+        var Malekan = "";
+        for (var i = 0; i < SelectedRow.length; i++) {
+
+            Malekan = Malekan + SelectedRow[i].data.fldId + ",";
+            MalekTitle = MalekTitle + SelectedRow[i].data.fldNameCompany + "،";
+        }
+        if ('@ViewBag.state' == 1) {
+            App.RptBarname.queryById("txtMalekVagon").setValue(MalekTitle);
+            App.RptBarname.queryById("fldMalek_InfoId").setValue(Malekan);
+        }
+        else if ('@ViewBag.state' == 2) {
+            App.RptKoliBarname.queryById("txtMalekVagon").setValue(MalekTitle);
+            App.RptKoliBarname.queryById("fldMalek_InfoId").setValue(Malekan);
+        }
+        App.SearchMalek.destroy();
+
+    }
+</script>

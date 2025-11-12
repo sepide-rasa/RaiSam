@@ -1,0 +1,1214 @@
+﻿@model RaiSam.Models.RptBarname
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+<style>
+    .custom-icon {
+        margin-right: 380px !important;
+    }
+
+    .grid-title {
+        text-align: right;
+    }
+</style>
+<script>
+    Ext.net.FilterHeader.behaviour.string[0].match = function (recordValue, matchValue) {
+        return (Ext.net.FilterHeader.behaviour.getStrValue(recordValue) || "").indexOf(matchValue) > -1;
+    };
+
+    Ext.net.FilterHeader.behaviour.string[0].getStrValue = function (value) {
+        return value.toString();
+    };
+
+    Ext.net.FilterHeader.behaviour.string[0].serialize = function (value) {
+        return {
+            type: "string",
+            op: "*",
+            value: value
+        };
+    };
+
+</script>
+
+@(Html.X().Panel()
+    .Closable(true)
+    .AutoScroll(true)
+        .Border(false)
+    .CloseAction(CloseAction.Destroy)
+                    .Listeners(li =>
+                    {
+                        li.AfterRender.Handler = "setSizeRptPanel()";
+                        li.Render.Fn = "addKeyMapRptCarBarg";
+                    })
+        //  .Listeners(l => l.AfterRender.Handler = "setTitlePnlRpt()")
+       .Layout(LayoutType.Fit).Title("گزارش کاربرگ")
+            .ID("RptCarBarg")
+    .Items(
+        X.Panel()
+            .AutoScroll(true)
+            .Border(false)
+            .Layout(LayoutType.VBox)
+            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+            .Items(
+                X.FieldSet().Border(false)//.Width(760)
+            .Items(
+                        X.Panel()
+                    .AutoScroll(true)
+                    .Border(false)
+                    .ButtonAlign(Alignment.Center)
+                    .Buttons(
+                        //Html.X().Button()
+                        //    .Text("چاپ")
+                        //    .ItemID("btnPrint")
+                        //    .Icon(Ext.Net.Icon.Printer)
+                        //        .Listeners(l => l.Click.Handler = "PrintLoco()"),
+                                     Html.X().Button()
+                                .Text("اکسل")
+                                .ItemID("btnxls")
+                                .Icon(Ext.Net.Icon.PageExcel)
+                                        .Listeners(l => l.Click.Handler = "XlsLoco()"),
+                             //            Html.X().Button()
+                             //       .Text("مرحله قبل")
+                             //       .ItemID("btnpre")
+                             //       .Icon(Ext.Net.Icon.ArrowRight)
+                             //                   .Listeners(l => l.Click.Handler = "PrevLoco()"),
+                             //                Html.X().Button()
+                             //           .Text("مرحله بعد")
+                             //           .ItemID("btnnxt")
+                             //           .Icon(Ext.Net.Icon.ArrowLeft)
+                             //                   .Listeners(l => l.Click.Handler = "NextLoco()"),
+                             //X.SplitButton()
+                             //                   .Text("راهنما")
+                             //                   .Icon(Ext.Net.Icon.Help)
+                             //                   .Menu(X.Menu()
+                             //                   .Items(
+                             //                   X.MenuItem()
+                             //                               .Text("راهنما متنی")
+                             //                               .Icon(Ext.Net.Icon.TextPaddingTop)
+                             //                                           .Listeners(l => l.Click.Handler = "HelpLoco()"),
+                             //                       X.MenuItem()
+                             //                               .Text("راهنما تصویری")
+                             //                               .Icon(Ext.Net.Icon.PlayBlue)
+                             //                                           .Listeners(l => l.Click.Handler = "showHelp_VideoLoco()")
+
+                             //               )
+                             //               ),
+                        Html.X().Button()
+                            .Text("خروج")
+                            .ItemID("btnOut")
+                            .Icon(Ext.Net.Icon.DoorOut)
+                                        .Listeners(l => l.Click.Handler = " App.RptCarBarg.destroy()")
+                            )
+                    .Items(
+                                X.FieldSet().MarginSpec("5px 0 0 0")//.Width(680)
+                                .ItemID("Filters")
+                                .Border(true).Title("فیلترها")
+                                .Defaults(new { Margin = 2 })
+                               .Layout(Ext.Net.LayoutType.VBox)
+                    .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+                            .Items(
+                                    X.Hidden().ItemID("fldMalek_InfoGridId"),
+                                            X.Hidden().ItemID("fldContractGridId"),
+                                X.Hidden().ItemID("fldVagonGridId"),
+
+                                 X.FieldSet().MarginSpec("5px 0 0 0")//.Width(680)
+                                .Border(false)
+                                .Defaults(new { Margin = 2 })
+                            .Layout(LayoutType.Table)
+                            .LayoutConfig(new TableLayoutConfig { Columns = 10 })
+                            .Items(
+                             X.Label("نوع واگن:"),
+                                        X.ComboBox()
+          .Width(100)
+                                            .ItemID("CboTypeVagon")
+                                            .Editable(false)
+                                            .ForceSelection(true)
+                                            .AutoFocus(true)
+        // .TypeAhead(true)
+                                            .AllowBlank(false)
+                                            .BlankText("لطفا نوع واگن را انتخاب کنید.")
+                                                    .Listeners(l => l.Select.Handler = "ChangeTypeVagon()")
+                                            .QueryMode(DataLoadMode.Local)
+                                            .TriggerAction(TriggerAction.All)
+                                                   .Items(
+                                    new ListItem("مسافری", "1"),
+                                        new ListItem("باری", "3"),
+                                        new ListItem("لکوموتیو", "2")
+                                    )
+                                .SelectedItems(new { Value = "3" })
+                                ,
+
+                                   X.Label("گزارش براساس:"),
+                                    X.ComboBox()
+        //  .Width(100)
+                                        .ItemID("CboTypeRPT")
+                                        .Editable(false)
+                                        .ForceSelection(true)
+                                            .AutoFocus(true)
+                                            .ReadOnly(true)
+        // .TypeAhead(true)
+                                        .AllowBlank(false)
+                                        .BlankText("لطفا نوع گزارش گیری را انتخاب کنید.")
+                                                .Listeners(l => l.Change.Handler = "ChangeTypeRPT()")
+                                        .QueryMode(DataLoadMode.Local)
+                                        .TriggerAction(TriggerAction.All)
+                                        .Items(
+                                            new ListItem("مالک", "0"),
+                                                new ListItem("پروژه", "1"),
+                                                    new ListItem("شماره واگن", "2"),
+                                                        new ListItem("واگن تا واگن", "3"),
+                                                        new ListItem("لیست واگن", "4")
+                                                ),
+                                        X.Label("نوع بازه:"),
+                                        X.ComboBox()
+        // .Width(100)
+                                            .ItemID("CboTypeBaze")
+                                            .Editable(false)
+                                            .ForceSelection(true)
+        // .TypeAhead(true)
+                                            .AllowBlank(false)
+                                            .BlankText("لطفا نوع بازه را انتخاب کنید.")
+                                                    .Listeners(l => l.Change.Handler = "ChangeTypeBaze()")
+                                            .QueryMode(DataLoadMode.Local)
+                                            .TriggerAction(TriggerAction.All)
+                                            .Items(
+                                                new ListItem("تاریخ تا تاریخ", "0"),
+                                                    new ListItem("ماه تا ماه", "1")
+                                                    ),
+                            X.Label().Text("از تاریخ:").ItemID("lblAzTarikh"),
+                                X.PDateField()
+          .Width(100)
+                                .ItemID("txtAzTarikh")
+                                .AllowBlank(false)
+                                .MaskRe("[0-9,/]")
+                                .BlankText("لطفا از تاریخ را وارد کنید.")
+                                .PaddingSpec("0 0 0 10px")
+                                    .Listeners(l =>
+                                    {
+                                        l.Select.Handler = "ChangeTaTarikh_KarkardD()";
+                                        l.Blur.Handler = "SetCorrDateAz(0)";
+                                        l.SpecialKey.Handler = "SetCorrDateAz(e.getKey());";
+                                    })
+                                    .Editable(true),
+                            X.Label().Text("تا تاریخ:").ItemID("lblTaTarikh"),
+                                X.PDateField()
+           .Width(100)
+                                .ItemID("txtTaTarikh")
+                                    .MaskRe("[0-9,/]")
+        // .PaddingSpec("0 0 0 10px")
+                                .AllowBlank(false)
+                                                .BlankText("لطفا تا تاریخ را وارد کنید.")
+                                                .Listeners(l =>
+                                                {
+                                                    l.Change.Handler = "ChangeAzTarikh_KarkardD()";
+                                                    l.Blur.Handler = "SetCorrDateTa(0)";
+                                                    l.SpecialKey.Handler = "SetCorrDateTa(e.getKey());";
+                                                })
+                                    .Editable(true)
+                                    ,
+                                            X.Label("از ماه:").ItemID("lblAzz")
+                                    ,
+                                         X.FieldSet()//.MarginSpec("5px 0 0 0").Width(680)
+                                             .ItemID("flsAzz")
+        //  .PaddingSpec("0 0 0 10px")
+                                    .Border(false)
+                                    .Defaults(new { Margin = 2 })
+                                .Layout(LayoutType.Table)
+                                .LayoutConfig(new TableLayoutConfig { Columns = 2 })
+                                .Items(
+                                     X.ComboBox()
+                                        .ItemID("CboAzMonth")
+                                        .Width(80)
+                                        .Editable(false)
+                                        .TypeAhead(true)
+                                        .AllowBlank(false)
+                                        .BlankText("لطفا ماه را انتخاب کنید.")
+                                        .Listeners(l =>
+                                        {
+                                            l.AfterRender.Handler = "setValueMonth()";
+                                            l.Select.Handler = "SelectAzSalTaSal()";
+                                        })
+                                        .QueryMode(DataLoadMode.Local)
+                                        .TriggerAction(TriggerAction.All)
+                                        .Items(
+                                            new ListItem("فروردین", "01"),
+                                            new ListItem("اردیبهشت", "02"),
+                                            new ListItem("خرداد", "03"),
+                                            new ListItem("تیر", "04"),
+                                            new ListItem("مرداد", "05"),
+                                            new ListItem("شهریور", "06"),
+                                            new ListItem("مهر", "07"),
+                                            new ListItem("آبان", "08"),
+                                            new ListItem("آذر", "09"),
+                                            new ListItem("دی", "10"),
+                                            new ListItem("بهمن", "11"),
+                                            new ListItem("اسفند", "12")
+                                        ),
+                                     X.ComboBox()
+                                    .LabelAlign(Ext.Net.LabelAlign.Top)
+                                        .ItemID("CboAzYear")
+                                            .Width(70)
+                                    .DisplayField("fldYear")
+                                    .ValueField("fldYear")
+                                    .TypeAhead(true)
+                                    .Editable(false)
+                                    .AllowBlank(false)
+                                    .BlankText("لطفا سال را انتخاب کنید.")
+                                    .QueryMode(DataLoadMode.Local)
+                                        .ForceSelection(true)
+                                                        .Listeners(l => l.Select.Handler = "SelectAzSalTaSal()")
+                                    .TriggerAction(TriggerAction.All)
+                                            .Store(X.Store()
+                                            .Listeners(l => l.Load.Handler = "SetDefultYear();")
+                                    .Model(X.Model()
+                                    .IDProperty("fldYear")
+                                        .Fields(
+                                            new ModelField("fldYear", ModelFieldType.String) { Mapping = "fldYear" }
+                                        )
+                                    )
+                                        .Proxy(X.AjaxProxy()
+                                        .Url(Url.Action("GetSal"))
+                                        .Reader(X.JsonReader().Root("data"))
+                                                )
+                                    )
+
+                                    )
+                                        ,
+                                                X.Label("تا ماه:").ItemID("lblTaa")
+                                        ,
+                                             X.FieldSet()//.MarginSpec("5px 0 0 0").Width(680)
+                                             .ItemID("flsTaa")
+                                        .Border(false)
+                                        .Defaults(new { Margin = 2 })
+                                    .Layout(LayoutType.Table)
+                                    .LayoutConfig(new TableLayoutConfig { Columns = 2 })
+                                    .Items(
+                                         X.ComboBox()
+                                                .ItemID("CboTaMonth")
+                                            .Width(80)
+                                            .Editable(false)
+                                            .TypeAhead(true)
+                                            .AllowBlank(false)
+                                            .BlankText("لطفا ماه را انتخاب کنید.")
+                                            .Listeners(l =>
+                                            {
+                                                l.AfterRender.Handler = "setValueTaMonth()";
+                                                l.Select.Handler = "SelectAzSalTaSal()";
+                                            })
+                                            .QueryMode(DataLoadMode.Local)
+                                            .TriggerAction(TriggerAction.All)
+                                            .Items(
+                                                new ListItem("فروردین", "01"),
+                                                new ListItem("اردیبهشت", "02"),
+                                                new ListItem("خرداد", "03"),
+                                                new ListItem("تیر", "04"),
+                                                new ListItem("مرداد", "05"),
+                                                new ListItem("شهریور", "06"),
+                                                new ListItem("مهر", "07"),
+                                                new ListItem("آبان", "08"),
+                                                new ListItem("آذر", "09"),
+                                                new ListItem("دی", "10"),
+                                                new ListItem("بهمن", "11"),
+                                                new ListItem("اسفند", "12")
+                                            ),
+                                         X.ComboBox()
+                                        .LabelAlign(Ext.Net.LabelAlign.Top)
+                                            .ItemID("CboTaYear")
+                                            .Width(70)
+                                        .DisplayField("fldYear")
+                                        .ValueField("fldYear")
+                                        .TypeAhead(true)
+                                        .Editable(false)
+                                        .AllowBlank(false)
+                                        .BlankText("لطفا سال را انتخاب کنید.")
+                                            .QueryMode(DataLoadMode.Local)
+                                                            .Listeners(l => l.Select.Handler = "SelectAzSalTaSal()")
+                                        .ForceSelection(true)
+                                        .TriggerAction(TriggerAction.All)
+                                                .Store(X.Store().Listeners(l => l.Load.Handler = "SetDefultTaYear();")
+                                        .Model(X.Model()
+                                        .IDProperty("fldYear")
+                                            .Fields(
+                                                new ModelField("fldYear", ModelFieldType.String) { Mapping = "fldYear" }
+                                            )
+                                        )
+                                            .Proxy(X.AjaxProxy()
+                                            .Url(Url.Action("GetSal"))
+                                            .Reader(X.JsonReader().Root("data"))
+                                                    )
+                                        )
+
+                                        )
+                                             ,
+                                        X.Label("از واگن:").ItemID("lblAzShVagon"),
+                                        X.TextField()
+        //.Width(100)
+                                             .ItemID("txtAzShVagon")
+                                                    .AllowBlank(false)
+                                                    .BlankText("لطفا شماره واگن ابتدا را انتخاب کنید.")
+        //.Width(118)
+                                    .MaxLength(7).MaskRe("[ 0-9]")
+                                    .EnforceMaxLength(true),
+                                        X.Label("تا واگن:").ItemID("lblTaShVagon"),
+                                        X.TextField()
+        //    .Width(100)
+                                             .ItemID("txtTaShVagon")
+                                                    .AllowBlank(false)
+                                                    .BlankText("لطفا شماره واگن انتها را انتخاب کنید.")
+        //.Width(118)
+                                    .MaxLength(7).MaskRe("[ 0-9]")
+                                    .EnforceMaxLength(true)
+                                        )
+                                   ,
+                                X.GridPanel()
+                                          .Height(350)
+                                          .PaddingSpec("10px 0 10px 0")
+                                .Cls("grid-title")
+                        .AutoScroll(true)
+                        .Border(true)
+                        .Title("مالکان")
+                        .ItemID("GridSearchMalek")
+                        .Store(
+                                X.StoreFor(Model.Malek)
+          .Listeners(l => l.Load.Handler = "LoadSelectedMalek()")
+                                .Proxy(Html.X().AjaxProxy()
+                                        .Url(Url.Action("ReadMalek"))
+                                        .Reader(Html.X().JsonReader().Root("data"))
+        // .ExtraParams(x => x.Add(new { MalekId = @ViewBag.MalekId }))
+                            )
+                            .PageSize(20000)
+                            .RemoteFilter(false)
+                            .RemotePaging(false)
+                        )
+                        .View(
+                            Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                        )
+                        .Plugins(X.FilterHeader().Remote(false))
+                        .ColumnModel(
+                                     Html.X().Column().DataIndex(Model.Malek, m => m.fldId).Text("کد").Flex(1).Hidden(true),
+                                        Html.X().Column().DataIndex(Model.Malek, m => m.fldNameCompany).Text("نام مالک").Wrap(true).Flex(7),
+                                        Html.X().Column().DataIndex(Model.Malek, m => m.fldCodeEghtasadi).Text("کداقتصادی").Wrap(true).Flex(3),
+                                        Html.X().Column().DataIndex(Model.Malek, m => m.fldShenaseMeli).Text("شناسه ملی").Wrap(true).Flex(3),
+                                        Html.X().Column().DataIndex(Model.Malek, m => m.fldTypeSamaneName).Text("نوع سامانه").Flex(3)
+                        )
+                        .SelectionModel(
+                            Html.X().CheckboxSelectionModel().CheckOnly(true)
+                                .PruneRemoved(false)
+                                .Mode(Ext.Net.SelectionMode.Multi)
+                        )
+                                .Width(650).ColSpan(6)
+               ,
+                                      X.GridPanel()
+                                          .Height(350)
+                                              .PaddingSpec("10px 0 10px 0")
+                                    .Cls("grid-title")
+                        .AutoScroll(true)
+                        .Border(true)
+                        .Title("پروژه ها")
+                        .ItemID("GridSearchContract")
+                        .Store(
+                                X.StoreFor(Model.Contract)
+                                .AutoLoad(false)
+        //.Listeners(l => l.Load.Handler = "GetCheckedData()")
+                                .Proxy(Html.X().AjaxProxy()
+                                            .Url(Url.Action("ReadContract"))
+                                        .Reader(Html.X().JsonReader().Root("data"))
+                                                .ExtraParams(x => x.Add(new { Malek = @ViewBag.Malek }))
+                            )
+                            .PageSize(20000)
+                            .RemoteFilter(false)
+                            .RemotePaging(false)
+                        )
+                        .View(
+                            Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                        )
+                        .Plugins(X.FilterHeader().Remote(false))
+                             .Plugins(
+                                                                X.RowExpander()
+                                                                                .Listeners(l => l.BeforeExpand.Fn = "loadGridVagonsDetail")
+                                                                    .Component(
+                                                                        X.GridPanel()
+                                                                            .AutoScroll(true)
+                                                                            .ForceFit(true)
+                                                                            .Border(true)
+                                                                            .Height(150)
+                                                                                                .ItemID("GridVagonsDetail")
+        //.Listeners(l => l.ItemMouseEnter.Fn = "createTooltipMasirInDetailsKilometrazh2")
+                                                                            .Store(
+                                                                                        X.StoreFor(Model.Detail)
+                                                                                    .AutoLoad(false)
+                                                                                    .Proxy(Html.X().AjaxProxy()
+                                                                                                    .Url(Url.Action("ReadVagonsDetail"))
+                                                                                        .Reader(Html.X().JsonReader().Root("data"))
+                                                                                )
+                                                                                .PageSize(10)
+                                                                                .RemoteFilter(true)
+                                                                                .RemotePaging(true)
+                                                                            )
+                                                                                .ViewConfig(
+                                                                                    X.GridView()
+                                                                                            .LoadingText("در حال بارگذاری...").RTL(true)
+                                    .GetRowClass(l => l.Fn = "getRowClassInProj")
+                                                                                )
+                                                                            .ColumnModel(
+                                                                                 Html.X().RowNumbererColumn(),
+                                                                                                            Html.X().Column().DataIndex(Model.Detail, m => m.fldHeaderId).Text("fldHeaderId").Hidden(true).Flex(1),
+                                                                                                                    Html.X().Column().DataIndex(Model.Detail, m => m.Ismalk).Text("Ismalk").Hidden(true).Flex(1),
+                                                                                 Html.X().Column().DataIndex(Model.Detail, m => m.fldNameMalek).Text("مالک لکوموتیو").Wrap(true).Flex(7),
+                                                                                                                                                                    Html.X().Column().DataIndex(Model.Detail, m => m.fldShomareVagon).Text("شماره لکوموتیو").Wrap(true).Flex(3),
+                                                                                                            Html.X().Column().DataIndex(Model.Detail, m => m.fldZarfiyatBargiri).Text("توان لکوموتیو").Wrap(true).Flex(3),
+                                                                                                            Html.X().Column().DataIndex(Model.Detail, m => m.fldTypeVagon).Text("نوع لکوموتیو").Wrap(true).Flex(3),
+                                                                                                                Html.X().Column().DataIndex(Model.Detail, m => m.fldKarbariVagonName).Text("کاربری لکوموتیو").Wrap(true).Flex(3)
+                                                                            )
+                                                                            .SelectionModel(
+                                                                                Html.X().RowSelectionModel()
+                                                                                    .Mode(Ext.Net.SelectionMode.Single)
+                                                                            )
+                                                                    )
+                                                            )
+                        .ColumnModel(
+                                          Html.X().Column().DataIndex(Model.Contract, m => m.fldId).Text("کد").Hidden(true).Flex(1),
+                                        Html.X().Column().DataIndex(Model.Contract, m => m.fldTitle).Text("عنوان").Wrap(true).Flex(7),
+                                        Html.X().Column().DataIndex(Model.Contract, m => m.fldNameCompany).Text("نام شرکت").Wrap(true).Flex(7),
+                                        Html.X().Column().DataIndex(Model.Contract, m => m.fldShomareContract).Text("شماره قرارداد").Wrap(true).Flex(3),
+                                        Html.X().Column().DataIndex(Model.Contract, m => m.fldTarikhContract).Text("تاریخ قرارداد").Wrap(true).Flex(3),
+                                        Html.X().Column().DataIndex(Model.Contract, m => m.fldShomareMovafeghat).Text("شماره موافقتنامه").Wrap(true).Flex(3),
+                                            Html.X().Column().DataIndex(Model.Contract, m => m.fldTarikhMovafeghat).Text("تاریخ موافقتنامه").Wrap(true).Flex(3),
+                                                    Html.X().Column().DataIndex(Model.Contract, m => m.fldTedadVagon).Text("تعداد لکوموتیو").Wrap(true).Flex(2)
+                        )
+        //  .Listeners(a => a.CellDblClick.Handler = "NextSearchContract();")
+                        .SelectionModel(
+                            Html.X().CheckboxSelectionModel().CheckOnly(true)
+        //.Listeners(l =>
+        //{
+        //    l.Deselect.Fn = "getDeselectData";
+        //})
+                                .PruneRemoved(false)
+                                .Mode(Ext.Net.SelectionMode.Multi)
+                        )
+
+                                .Width(650).ColSpan(6)
+                                ,
+                                        X.GridPanel()
+                                        .Height(350)
+                                            .Title("واگن ها")
+                                              .PaddingSpec("10px 0 10px 0")
+                                    .Cls("grid-title")
+                        .AutoScroll(true)
+                        .Border(true)
+
+                        .ItemID("GridSearchVagon")
+                        .Store(
+                                X.StoreFor(Model.vagon)
+                            .AutoLoad(false)
+        //.Listeners(l => l.Load.Handler = "GetCheckedData()")
+                                .Proxy(Html.X().AjaxProxy()
+                                        .Url(Url.Action("ReadVagon"))
+                                        .Reader(Html.X().JsonReader().Root("data"))
+                                                            .ExtraParams(x => x.Add(new { Proj = @ViewBag.Proj }))
+                            )
+                            .PageSize(20000)
+                            .RemoteFilter(true)
+                            .RemotePaging(false)
+                        )
+                        .View(
+                            Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                        )
+                            .Plugins(X.FilterHeader().Remote(true))
+                        .ColumnModel(
+                                             Html.X().Column().DataIndex(Model.vagon, m => m.fldId).Text("کد").Hidden(true).Flex(1),
+                                                    Html.X().Column().DataIndex(Model.vagon, m => m.fldShomareVagon).Text("شماره لکوموتیو").Wrap(true).Flex(3),
+                                                    Html.X().Column().DataIndex(Model.vagon, m => m.fldKarbariVagonName).Text("کاربری لکوموتیو").Wrap(true).Flex(3),
+                                                    Html.X().Column().DataIndex(Model.vagon, m => m.fldNameCompany).Text("مالک لکوموتیو").Wrap(true).Flex(4),
+                                                    Html.X().Column().DataIndex(Model.vagon, m => m.fldToolVagon).Text("طول لکوموتیو").Wrap(true).Flex(3),
+                                                    Html.X().Column().DataIndex(Model.vagon, m => m.fldTypeVagon).Text("توع لکوموتیو").Wrap(true).Flex(3),
+                                                        Html.X().Column().DataIndex(Model.vagon, m => m.fldVaznKhali).Text("وزن لکوموتیو").Wrap(true).Flex(3),
+                                                        Html.X().Column().DataIndex(Model.vagon, m => m.fldZarfiyatBargiri).Text("توان").Wrap(true).Flex(3)
+                        )
+                        .SelectionModel(
+                            Html.X().CheckboxSelectionModel().CheckOnly(true)
+                                .PruneRemoved(false)
+                                .Mode(Ext.Net.SelectionMode.Multi)
+                        )
+                              .Width(650).ColSpan(6)
+
+                                ,
+                                    X.FormPanel()
+                                     .Layout(LayoutType.Table)
+                                     .Border(false)
+                                .LayoutConfig(new TableLayoutConfig { Columns = 2 })
+                                    .ColSpan(6).Width(650)
+                                .ItemID("flsFile").Items(
+                                X.Hidden().ItemID("fldShVagon"),
+                                     X.FileUploadField().ItemID("btnUp")
+                                .ButtonOnly(true).ButtonText("آپلود فایل اکسل")
+                                .PaddingSpec("0 29px 0 0")
+                                .DirectEvents(l =>
+                                {
+                                    l.Change.Action = "UploadExcelFileVagon";
+                                    l.Change.Success = "hideprogressExcelFileVagon();";
+                                })
+                                    .Listeners(l => l.Change.Fn = "showFileExcelVagon")
+                                .Icon(Ext.Net.Icon.DiskUpload)
+                                ,
+                                X.Label().ItemID("lblXlsVagon")
+                                )
+                        )
+                        )
+                        )
+        /*,
+    Html.X().Panel()
+    .Border(true)
+            .Listeners(L => L.AfterRender.Handler = "setSizeRptPanel()")
+    .AutoScroll(true)
+        .ItemID("RptPanel2_KarkardD")*/
+            )
+
+    )
+
+)
+
+<script type="text/javascript">
+    function ChangeTypeVagon() {
+        var CboTypeVagon = App.RptCarBarg.queryById('CboTypeVagon');
+        App.RptCarBarg.queryById('GridSearchContract').getStore().getProxy().setExtraParam("TypeVagon", CboTypeVagon.getValue());
+        App.RptCarBarg.queryById('GridSearchContract').getStore().getProxy().setExtraParam("MalekId", "");
+        App.RptCarBarg.queryById('GridSearchContract').store.load();
+    }
+    function SetCorrDateAz(st) {
+        if (st == 0 || st == 13) {
+            var txtAzTarikh = App.RptCarBarg.queryById('txtAzTarikh');
+            var AzTa = txtAzTarikh.rawValue;
+            if (AzTa.length == 8) {
+                txtAzTarikh.setValue(AzTa.substring(0, 4) + "/" + AzTa.substring(4, 6) + "/" + AzTa.substring(6, 8));
+            }
+        }
+    }
+    function SetCorrDateTa(st) {
+        if (st == 0 || st == 13) {
+            var txtTaTarikh = App.RptCarBarg.queryById('txtTaTarikh');
+            var TaTa = txtTaTarikh.rawValue;
+            if (TaTa.length == 8) {
+                txtTaTarikh.setValue(TaTa.substring(0, 4) + "/" + TaTa.substring(4, 6) + "/" + TaTa.substring(6, 8));
+            }
+        }
+    }
+ 
+    function LoadSelectedMalek() {
+        if ('@ViewBag.IsMalek' == 1)
+        App.RptCarBarg.queryById('GridSearchMalek').getSelectionModel().selectAll();
+    }
+    var loadGridVagonsDetail = function (rowExpanderr, record) {
+        var txtAzTarikh = App.RptCarBarg.queryById('txtAzTarikh');
+        var txtTaTarikh = App.RptCarBarg.queryById('txtTaTarikh');
+        var CboTypeBaze = App.RptCarBarg.queryById('CboTypeBaze');
+
+        var CboAzYear = App.RptCarBarg.queryById('CboAzYear');
+        var CboAzMonth = App.RptCarBarg.queryById('CboAzMonth');
+        var CboTaYear = App.RptCarBarg.queryById('CboTaYear');
+        var CboTaMonth = App.RptCarBarg.queryById('CboTaMonth');
+
+        var AzTa = txtAzTarikh.rawValue;
+        var TaTa = txtTaTarikh.rawValue;
+        if (CboTypeBaze.getValue() == "1") {
+            AzTa = CboAzYear.getValue() + "/" + CboAzMonth.getValue() + "/01";
+            if (parseInt(CboTaMonth.getValue()) > 6)
+                TaTa = CboTaYear.getValue() + "/" + CboTaMonth.getValue() + "/30";
+            else
+                TaTa = CboTaYear.getValue() + "/" + CboTaMonth.getValue() + "/31";
+        }
+
+        rowExpanderr.component.getStore().getProxy().setExtraParam("fldHeaderId", record.data.fldId);
+        rowExpanderr.component.getStore().getProxy().setExtraParam("azTarikh", AzTa);
+        rowExpanderr.component.getStore().getProxy().setExtraParam("tatarikh", TaTa);
+
+        rowExpanderr.component.getStore().load();
+    };
+    var getRowClassInProj = function (record, rowIndex, rowParams, store) {
+        if (record.data.Ismalk == 0) {
+            return "YellowRow";
+        }
+    };
+
+    function showHelp_VideoLoco() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/RptCarbarg/VideoWinLoco',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+
+    }
+    function HelpLoco() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/RptCarbarg/HelpLoco',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+    function SetDefultYear() {
+        var CboAzYear = App.RptCarBarg.queryById('CboAzYear');
+        CboAzYear.setValue('@ViewBag.AzSal');
+    }
+    function setValueMonth() {
+        var CboAzMonth = App.RptCarBarg.queryById('CboAzMonth');
+        CboAzMonth.setValue('@ViewBag.AzMah');
+    }
+    function SetDefultTaYear() {
+        var CboTaYear = App.RptCarBarg.queryById('CboTaYear');
+        CboTaYear.setValue('@ViewBag.TaSal');
+    }
+    function setValueTaMonth() {
+        var CboTaMonth = App.RptCarBarg.queryById('CboTaMonth');
+        CboTaMonth.setValue('@ViewBag.TaMah');
+    }
+    function ChangeTypeBaze() {
+        var CboTypeBaze = App.RptCarBarg.queryById('CboTypeBaze');
+        var txtAzTarikh = App.RptCarBarg.queryById('txtAzTarikh');
+        var txtTaTarikh = App.RptCarBarg.queryById('txtTaTarikh');
+        var lblAzTarikh = App.RptCarBarg.queryById('lblAzTarikh');
+        var lblTaTarikh = App.RptCarBarg.queryById('lblTaTarikh');
+        var flsAzz = App.RptCarBarg.queryById('flsAzz');
+        var lblAzz = App.RptCarBarg.queryById('lblAzz');
+        var flsTaa = App.RptCarBarg.queryById('flsTaa');
+        var lblTaa = App.RptCarBarg.queryById('lblTaa');
+
+        if (CboTypeBaze.getValue() == "0") {
+            txtAzTarikh.show();
+            txtTaTarikh.show();
+            lblAzTarikh.show();
+            lblTaTarikh.show();
+            flsAzz.hide();
+            lblAzz.hide();
+            flsTaa.hide();
+            lblTaa.hide();
+        }
+        else if (CboTypeBaze.getValue() == "1") {
+            txtAzTarikh.hide();
+            txtTaTarikh.hide();
+            lblAzTarikh.hide();
+            lblTaTarikh.hide();
+            flsAzz.show();
+            lblAzz.show();
+            flsTaa.show();
+            lblTaa.show();
+        }
+    }
+   
+    function ChangeTypeRPT() {    /*GridSearchVagon    GridSearchContract   GridSearchMalek*/
+
+        var CboTypeRPT = App.RptCarBarg.queryById('CboTypeRPT');
+        var GridSearchMalek = App.RptCarBarg.queryById('GridSearchMalek');
+        var GridSearchContract = App.RptCarBarg.queryById('GridSearchContract');
+        var GridSearchVagon = App.RptCarBarg.queryById('GridSearchVagon');
+        var txtAzTarikh = App.RptCarBarg.queryById('txtAzTarikh');
+        var txtTaTarikh = App.RptCarBarg.queryById('txtTaTarikh');
+        var lblAzShVagon = App.RptCarBarg.queryById('lblAzShVagon');
+        var txtAzShVagon = App.RptCarBarg.queryById('txtAzShVagon');
+        var lblTaShVagon = App.RptCarBarg.queryById('lblTaShVagon');
+        var txtTaShVagon = App.RptCarBarg.queryById('txtTaShVagon');
+        var CboTypeVagon = App.RptCarBarg.queryById('CboTypeVagon');
+        var flsFile = App.RptCarBarg.queryById('flsFile');
+
+        ClearAll();
+
+        if (CboTypeRPT.getValue() == "0") {
+            GridSearchMalek.show();
+            GridSearchContract.hide();
+            GridSearchVagon.hide();
+            lblAzShVagon.hide();
+            txtAzShVagon.hide();
+            lblTaShVagon.hide();
+            txtTaShVagon.hide();
+            flsFile.hide();
+            App.RptCarBarg.queryById('Filters').setSize(App.ReportRaiSamWin.getWidth() - 200, App.ReportRaiSamWin.getHeight() - 180);
+        }
+        else if (CboTypeRPT.getValue() == "1") {
+            GridSearchMalek.hide();
+            GridSearchContract.show();
+            GridSearchVagon.hide();
+            lblAzShVagon.hide();
+            txtAzShVagon.hide();
+            lblTaShVagon.hide();
+            txtTaShVagon.hide();
+            flsFile.hide();
+            App.RptCarBarg.queryById('Filters').setSize(App.ReportRaiSamWin.getWidth() - 200, App.ReportRaiSamWin.getHeight() - 180);
+
+            App.RptCarBarg.queryById('GridSearchContract').getStore().getProxy().setExtraParam("TypeVagon", CboTypeVagon.getValue());
+            App.RptCarBarg.queryById('GridSearchContract').getStore().getProxy().setExtraParam("MalekId", "");
+            App.RptCarBarg.queryById('GridSearchContract').store.load();
+        }
+        else if (CboTypeRPT.getValue() == "2") {
+            GridSearchMalek.hide();
+            GridSearchContract.hide();
+            GridSearchVagon.show();
+            lblAzShVagon.hide();
+            txtAzShVagon.hide();
+            lblTaShVagon.hide();
+            txtTaShVagon.hide();
+            flsFile.hide();
+            App.RptCarBarg.queryById('Filters').setSize(App.ReportRaiSamWin.getWidth() - 200, App.ReportRaiSamWin.getHeight() - 180);
+
+            App.RptCarBarg.queryById('GridSearchVagon').getStore().getProxy().setExtraParam("TypeVagon", CboTypeVagon.getValue());
+            App.RptCarBarg.queryById('GridSearchVagon').getStore().getProxy().setExtraParam("Projj", "");
+            App.RptCarBarg.queryById('GridSearchVagon').getStore().getProxy().setExtraParam("azTarikh", txtAzTarikh.rawValue);
+            App.RptCarBarg.queryById('GridSearchVagon').getStore().getProxy().setExtraParam("tatarikh", txtTaTarikh.rawValue);
+            App.RptCarBarg.queryById('GridSearchVagon').store.load();
+        }
+        else if (CboTypeRPT.getValue() == "3") {
+            GridSearchMalek.hide();
+            GridSearchContract.hide();
+            GridSearchVagon.hide();
+            lblAzShVagon.show();
+            txtAzShVagon.show();
+            lblTaShVagon.show();
+            txtTaShVagon.show();
+            flsFile.hide();
+            App.RptCarBarg.queryById('Filters').setSize(800, 100);
+        }
+        else if (CboTypeRPT.getValue() == "4") {
+            GridSearchMalek.hide();
+            GridSearchContract.hide();
+            GridSearchVagon.hide();
+            lblAzShVagon.hide();
+            txtAzShVagon.hide();
+            lblTaShVagon.hide();
+            txtTaShVagon.hide();
+            flsFile.show();
+            App.RptCarBarg.queryById('Filters').setSize(800, 100);
+        }
+    }
+    function HelpLoco() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/ReportsMachinery/HelpLoco',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+    function searchMalek(Code) {
+        if (Code == 45) {
+            App.RptCarBarg.body.mask("در حال بارگذاری");
+            Ext.net.DirectMethod.request({
+                url: '/SearchMalek_Vagon/IndexChecked',
+                params: {
+                    State: 1,
+                },
+                success: function () {
+                    App.RptCarBarg.body.mask().hide();
+                }
+            });
+        }
+    }
+    function SearchContract_Project(Code) {
+        if (Code == 45) {
+            App.RptCarBarg.body.mask("در حال بارگذاری");
+            Ext.net.DirectMethod.request({
+                url: '/SearchContract_Project/IndexChecked',
+                params: {
+                    State: 1,
+                    Malek: App.RptCarBarg.queryById('fldMalek_InfoId').getValue()
+                },
+                success: function () {
+                    App.RptCarBarg.body.mask().hide();
+                }
+            });
+        }
+    }
+
+    function ChangeTaTarikh_KarkardD() {
+        var CboTypeVagon = App.RptCarBarg.queryById('CboTypeVagon');
+        var txtAzTarikh = App.RptCarBarg.queryById('txtAzTarikh');
+        var txtTaTarikh = App.RptCarBarg.queryById('txtTaTarikh');
+        txtTaTarikh.setMinValue(txtAzTarikh.getValue());
+        txtTaTarikh.minText = "تا تاریخ باید بعد از تاریخ " + txtAzTarikh.rawValue + "باشد";
+
+        var fldMalek_InfoGridId = App.RptCarBarg.queryById('fldMalek_InfoGridId').getValue();
+        if (txtAzTarikh.validate() == true && txtTaTarikh.validate() == true && fldMalek_InfoGridId != "" && fldMalek_InfoGridId != null) {
+            App.RptCarBarg.queryById('GridSearchContract').getStore().getProxy().setExtraParam("TypeVagon", CboTypeVagon.getValue());
+            App.RptCarBarg.queryById('GridSearchContract').getStore().getProxy().setExtraParam("MalekId", fldMalek_InfoGridId);
+            App.RptCarBarg.queryById('GridSearchContract').store.load();
+        }
+    }
+    function ChangeAzTarikh_KarkardD() {
+        var CboTypeVagon = App.RptCarBarg.queryById('CboTypeVagon');
+        var txtAzTarikh = App.RptCarBarg.queryById('txtAzTarikh');
+        var txtTaTarikh = App.RptCarBarg.queryById('txtTaTarikh');
+        txtAzTarikh.setMaxValue(txtTaTarikh.getValue());
+        txtAzTarikh.maxText = "از تاریخ باید قبل از تا تاریخ " + txtTaTarikh.rawValue + "باشد";
+
+        var fldMalek_InfoGridId = App.RptCarBarg.queryById('fldMalek_InfoGridId').getValue();
+        if (txtAzTarikh.validate() == true && txtTaTarikh.validate() == true && fldMalek_InfoGridId != "" && fldMalek_InfoGridId != null) {
+            App.RptCarBarg.queryById('GridSearchContract').getStore().getProxy().setExtraParam("TypeVagon", CboTypeVagon.getValue());
+            App.RptCarBarg.queryById('GridSearchContract').getStore().getProxy().setExtraParam("MalekId", fldMalek_InfoGridId);
+            App.RptCarBarg.queryById('GridSearchContract').store.load();
+        }
+    }
+    function SelectAzSalTaSal() {
+        var CboTypeVagon = App.RptCarBarg.queryById('CboTypeVagon');
+        var fldMalek_InfoGridId = App.RptCarBarg.queryById('fldMalek_InfoGridId').getValue();
+        if (fldMalek_InfoGridId != "" && fldMalek_InfoGridId != null) {
+            App.RptCarBarg.queryById('GridSearchContract').getStore().getProxy().setExtraParam("TypeVagon", CboTypeVagon.getValue());
+            App.RptCarBarg.queryById('GridSearchContract').getStore().getProxy().setExtraParam("MalekId", fldMalek_InfoGridId);
+            App.RptCarBarg.queryById('GridSearchContract').store.load();
+        }
+    }
+
+    function setSizeRptPanel() {
+
+        App.RptCarBarg.queryById('CboTypeRPT').setValue("1");
+        App.RptCarBarg.queryById('CboTypeBaze').setValue("0");
+        var DateStart = new Date('@ViewBag.fldTarikh');
+        var txtAzTarikh = App.RptCarBarg.queryById('txtAzTarikh');
+        var txtTaTarikh = App.RptCarBarg.queryById('txtTaTarikh');
+        txtAzTarikh.setMaxValue(DateStart);
+        txtTaTarikh.setMaxValue(DateStart);
+        txtAzTarikh.maxText = "تاریخ باید قبل از" + '@ViewBag.fldTarikh_S' + "باشد";
+        txtTaTarikh.maxText = "تاریخ باید قبل از" + '@ViewBag.fldTarikh_S' + "باشد";
+
+
+        txtAzTarikh.setValue('@ViewBag.fldTarikh_az');
+        txtTaTarikh.setValue('@ViewBag.fldTarikh_ta');
+
+        App.RptCarBarg.queryById('Filters').setSize(App.ReportRaiSamWin.getWidth() - 200, App.ReportRaiSamWin.getHeight() - 180);
+        App.RptCarBarg.queryById('GridSearchVagon').setSize(App.ReportRaiSamWin.getWidth() - 230, App.ReportRaiSamWin.getHeight() - 230);
+        App.RptCarBarg.queryById('GridSearchContract').setSize(App.ReportRaiSamWin.getWidth() - 230, App.ReportRaiSamWin.getHeight() - 230);
+        App.RptCarBarg.queryById('GridSearchMalek').setSize(App.ReportRaiSamWin.getWidth() - 230, App.ReportRaiSamWin.getHeight() - 230);
+
+    }
+
+
+    function PrintLoco() {
+
+
+           GenerateLoco(1);
+    }
+    function XlsLoco() {
+        GenerateLoco(2);
+    }
+
+    function GenerateLoco(st) {
+        var CboTypeRPT = App.RptCarBarg.queryById('CboTypeRPT');
+        var txtAzTarikh = App.RptCarBarg.queryById('txtAzTarikh');
+        var txtTaTarikh = App.RptCarBarg.queryById('txtTaTarikh');
+        var lblAzShVagon = App.RptCarBarg.queryById('lblAzShVagon');
+        var txtAzShVagon = App.RptCarBarg.queryById('txtAzShVagon');
+        var lblTaShVagon = App.RptCarBarg.queryById('lblTaShVagon');
+        var txtTaShVagon = App.RptCarBarg.queryById('txtTaShVagon');
+        var fldShVagon = App.RptCarBarg.queryById('fldShVagon');
+        var lblXlsVagon = App.RptCarBarg.queryById('lblXlsVagon');
+        var fldShVagon = App.RptCarBarg.queryById('fldShVagon');
+
+        var GridSearchMalek = App.RptCarBarg.queryById('GridSearchMalek');
+        var GridSearchContract = App.RptCarBarg.queryById('GridSearchContract');
+        var GridSearchVagon = App.RptCarBarg.queryById('GridSearchVagon');
+        var fldMalek_InfoGridId = App.RptCarBarg.queryById('fldMalek_InfoGridId');
+        var fldContractGridId = App.RptCarBarg.queryById('fldContractGridId');
+        var fldVagonGridId = App.RptCarBarg.queryById('fldVagonGridId');
+
+        var CboTypeBaze = App.RptCarBarg.queryById('CboTypeBaze');
+        var CboAzYear = App.RptCarBarg.queryById('CboAzYear');
+        var CboAzMonth = App.RptCarBarg.queryById('CboAzMonth');
+        var CboTaYear = App.RptCarBarg.queryById('CboTaYear');
+        var CboTaMonth = App.RptCarBarg.queryById('CboTaMonth');
+        var CboTypeVagon = App.RptCarBarg.queryById('CboTypeVagon');
+
+        var AzTa = txtAzTarikh.rawValue;
+        var TaTa = txtTaTarikh.rawValue;
+        if (CboTypeBaze.getValue() == "1") {
+            AzTa = CboAzYear.getValue() + "/" + CboAzMonth.getValue() + "/01";
+            if (parseInt(CboTaMonth.getValue()) > 6)
+                TaTa = CboTaYear.getValue() + "/" + CboTaMonth.getValue() + "/30";
+            else
+                TaTa = CboTaYear.getValue() + "/" + CboTaMonth.getValue() + "/31";
+        }
+
+        var height = App.ReportRaiSamWin.getHeight() - 225;
+
+        var MalekId = ""; var ContractId = ""; var ShVagon = ""; var AzVagon = ""; var TaVagon = "";
+
+        if ((CboTypeBaze.getValue() == "0" && txtAzTarikh.validate() == true && txtTaTarikh.validate() == true) ||
+            (CboTypeBaze.getValue() == "1" && CboAzYear.validate() == true && CboAzMonth.validate() == true && CboTaYear.validate() == true && CboTaMonth.validate() == true)) {
+
+            if (CboTypeRPT.getValue() == "0") {
+                if (GridSearchMalek.isHidden() == false) {
+                    var SelectedRow1 = App.RptCarBarg.queryById('GridSearchMalek').getSelectionModel().getSelection();
+                    for (var i = 0; i < SelectedRow1.length; i++)
+                        MalekId = MalekId + SelectedRow1[i].data.fldId + ",";
+
+                    ContractId = "";
+                }
+                else if (GridSearchContract.isHidden() == false) {
+                    var SelectedRow1 = App.RptCarBarg.queryById('GridSearchContract').getSelectionModel().getSelection();
+                    for (var i = 0; i < SelectedRow1.length; i++)
+                        ContractId = ContractId + SelectedRow1[i].data.fldId + ",";
+
+                    MalekId = fldMalek_InfoGridId.getValue();
+                }
+                else if (GridSearchVagon.isHidden() == false) {
+                    var SelectedRow1 = App.RptCarBarg.queryById('GridSearchVagon').getSelectionModel().getSelection();
+                    for (var i = 0; i < SelectedRow1.length; i++)
+                        ShVagon = ShVagon + SelectedRow1[i].data.fldShomareVagon + ",";
+
+                    MalekId = fldMalek_InfoGridId.getValue();
+                    ContractId = fldContractGridId.getValue();
+                }
+
+                if (MalekId == "") {
+                    Ext.MessageBox.show({
+                        title: "خطا",
+                        msg: "انتخاب حداقل یک مالک ضروری است.",
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK
+                    });
+                    return;
+                }
+            }
+            else if (CboTypeRPT.getValue() == "1") {
+                if (GridSearchContract.isHidden() == false) {
+                    var SelectedRow1 = App.RptCarBarg.queryById('GridSearchContract').getSelectionModel().getSelection();
+                    for (var i = 0; i < SelectedRow1.length; i++)
+                        ContractId = ContractId + SelectedRow1[i].data.fldId + ",";
+
+                }
+                else if (GridSearchVagon.isHidden() == false) {
+                    var SelectedRow1 = App.RptCarBarg.queryById('GridSearchVagon').getSelectionModel().getSelection();
+                    for (var i = 0; i < SelectedRow1.length; i++)
+                        ShVagon = ShVagon + SelectedRow1[i].data.fldShomareVagon + ",";
+
+                    ContractId = fldContractGridId.getValue();
+                }
+
+                if (ContractId == "") {
+                    Ext.MessageBox.show({
+                        title: "خطا",
+                        msg: "انتخاب حداقل یک پروژه ضروری است.",
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK
+                    });
+                    return;
+                }
+            }
+            else if (CboTypeRPT.getValue() == "2") {
+                var SelectedRow1 = App.RptCarBarg.queryById('GridSearchVagon').getSelectionModel().getSelection();
+                for (var i = 0; i < SelectedRow1.length; i++)
+                    ShVagon = ShVagon + SelectedRow1[i].data.fldShomareVagon + ",";
+
+                if (ShVagon == "") {
+                    Ext.MessageBox.show({
+                        title: "خطا",
+                        msg: "انتخاب حداقل یک واگن ضروری است.",
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK
+                    });
+                    return;
+                }
+            }
+            else if (CboTypeRPT.getValue() == "3") {
+                if (txtAzShVagon.validate() == true && txtTaShVagon.validate() == true) {
+                    AzVagon = txtAzShVagon.getValue();
+                    TaVagon = txtTaShVagon.getValue();
+                }
+                else
+                    return;
+            }
+            else if (CboTypeRPT.getValue() == "4") {
+                if (fldShVagon.getValue() != "") {
+                    ShVagon = fldShVagon.getValue();
+                }
+                else
+                    return;
+            }
+
+            if (st == 1) {
+                /*App.RptCarBarg.queryById('RptPanel2_KarkardD').update("<center><object class='se-pre-con' style='width:100%;height:" + height + "px;border: 1px solid #ccc;' type='application/pdf' data='/RptBarname/GeneratePDF?StartDate=" + txtAzTarikh.rawValue + "&EndDate=" + txtTaTarikh.rawValue + "&MalekId=" + MalekId + "&ContractId=" + ContractId + "&ShVagon=" + ShVagon + "&AzVagon=" + AzVagon + "&TaVagon=" + TaVagon + "'></object></center>");*/
+                App.RptCarBarg.body.mask("در حال بارگذاری");
+                Ext.net.DirectMethod.request({
+                    url: '/RptCarbarg/PrintPage',
+                    params: {
+                        containerId: "ReportGeneralTab",
+                        StartDate: AzTa,
+                        EndDate: TaTa,
+                        MalekId: MalekId,
+                        ContractId: ContractId,
+                        ShVagon: ShVagon,
+                        AzVagon: AzVagon,
+                        TaVagon: TaVagon,
+                        TypeVagon: CboTypeVagon.getValue()
+
+                    },
+                    success: function () {
+                        App.RptCarBarg.body.mask().hide();
+                    }
+                });
+            }
+            else if (st == 2) {
+                App.RptCarBarg.body.mask("در حال بارگذاری");
+                $.ajax({
+                    type: "POST",
+                    dataType: 'native',
+                    url: "/RptCarbarg/GenerateXls",
+                    xhrFields: {
+                        responseType: 'blob'
+                    },
+                    data: {
+                        StartDate: AzTa,
+                        EndDate: TaTa,
+                        ContractId: ContractId,
+                        TypeVagon: CboTypeVagon.getValue()
+                    },
+                    success: function (blob) {
+                        x = blob;
+                        var link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = "کاربرگ.xlsx";
+                        link.click();
+                        App.RptCarBarg.body.mask().hide();
+                    },
+                    timeout: 720000000
+                });
+            }
+            @*else if (st == 2) {
+                var Checked = "";
+
+                Checked = "fldTrain_NO" + ";" + "fldWagon_No" + ";" + "fldTrainDate" + ";" + "fldTrainKind" + ";" + "fldDizel_No" + ";" + "fldTrainMabda" + ";" + "fldTrainMaghsad" + ";" + "fldBarKhales" + ";" + "fldBarNakhales" + ";" + "fldMasafat" + ";" + "fldTonNakhales" + ";";
+                    window.location.href = '@Url.Content("~/RptBarname/CreateExcelLoco/")' + '?Checked=' + Checked + "&StartDate=" + AzTa + "&EndDate=" + TaTa + "&MalekId=" + MalekId + "&ContractId=" + ContractId + "&ShVagon=" + ShVagon + "&AzVagon=" + AzVagon + "&TaVagon=" + TaVagon;
+
+        }*@
+
+        }
+        else {
+            return;
+        }
+    }
+
+    var MojazExcelFileVagon = 0;
+    var EndUploadExcelFileVagon = false;
+
+    var CheckExcelFileVagon = setInterval(CheckEndExcelFileVagon, 500);
+
+    function CheckEndExcelFileVagon() {
+        if (EndUploadExcelFileVagon == true) {
+            Ext.MessageBox.hide();
+            clearInterval(CheckEndExcelFileVagon);
+            EndUploadExcelFileVagon = false;
+            Ext.net.Mask.show({ msg: 'فایل با موفقیت آپلود شد. در حال بارگذاری....' });
+            Ext.net.DirectMethod.request({
+                url: '/RptCarbarg/ProcessXlsVagon',
+                success: function (data) {
+                    var ic = Ext.MessageBox.INFO;
+                    if (data.Er == 1) {
+                        App.RptCarBarg.queryById('lblXlsVagon').setText("هیچ شماره واگنی دریافت نشد.");
+
+                    }
+                    else {
+                        App.RptCarBarg.queryById('lblXlsVagon').setText("واگن های موردنظر با موفقیت بارگذاری شد.");
+                        App.RptCarBarg.queryById('fldShVagon').setValue(data.VagonIds);
+                    }
+                    Ext.net.Mask.hide();
+                },
+                timeout: 90000
+            });
+        }
+    }
+
+    var showFileExcelVagon = function (fb, v) {
+        if (v) {
+            showProgressBarExcelFileVagon();
+            if (v.split('.').pop().toLowerCase() == "xls" || v.split('.').pop().toLowerCase() == "xlsx") {
+                MojazExcelFileVagon = 1;
+            }
+        }
+    };
+
+    function hideprogressExcelFileVagon() {
+        if (MojazExcelFileVagon == 1) {
+            EndUploadExcelFileVagon = true;
+        }
+        MojazExcelFileVagon = 0;
+    }
+
+    function showProgressBarExcelFileVagon() {
+        Ext.MessageBox.show({
+            msg: 'لطفاً منتظر باشید',
+            progressText: 'در حال آپلود فایل...',
+            width: 300,
+            wait: true,
+            waitConfig:
+            {
+                interval: 200,
+                text: 'در حال آپلود فایل...',
+                scope: this
+            }
+        });
+    }
+    function ClearAll() {
+        App.RptCarBarg.queryById('txtAzShVagon').setValue("");
+        App.RptCarBarg.queryById('txtTaShVagon').setValue("");
+        App.RptCarBarg.queryById('fldShVagon').setValue("");
+    }
+    var addKeyMapRptCarBarg = function (cmp) {
+        var CboTypeRPT = App.RptCarBarg.queryById('CboTypeRPT');
+        var CboTypeBaze = App.RptCarBarg.queryById('CboTypeBaze');
+
+        this.keyMap = new Ext.util.KeyMap({
+            target: cmp.getEl(),
+            binding: [{
+                key: [13, 9], /*Ext.EventObject.ENTER,*/
+                fn: function (key, e) {
+                    if (e.getKey() == 9) {
+                        e.stopEvent();
+                    }
+                    var keyfield = App.RptCarBarg.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+                    var nextfld;
+
+                    if (keyfield.itemId == "CboTypeBaze") {
+                        if (CboTypeBaze.getValue() == "0")
+                            nextfld = App.RptCarBarg.queryById('txtAzTarikh');
+                        else if (CboTypeRPT.getValue() == "1") {
+                            nextfld = App.RptCarBarg.queryById('CboAzMonth');
+                        }
+                    }
+                    if (keyfield.itemId == "txtTaTarikh") {
+                        if (CboTypeRPT.getValue() == "0")
+                            nextfld = App.RptCarBarg.queryById('btnPrint');
+                        else if (CboTypeRPT.getValue() == "1")
+                            nextfld = App.RptCarBarg.queryById('btnPrint');
+                        else if (CboTypeRPT.getValue() == "2")
+                            nextfld = App.RptCarBarg.queryById('btnPrint');
+                        else if (CboTypeRPT.getValue() == "3")
+                            nextfld = App.RptCarBarg.queryById('txtAzShVagon');
+                        else if (CboTypeRPT.getValue() == "4")
+                            nextfld = App.RptCarBarg.queryById('btnUp');
+                    }
+                    if (keyfield.itemId == "CboTaYear") {
+                        if (CboTypeRPT.getValue() == "0")
+                            nextfld = App.RptCarBarg.queryById('btnPrint');
+                        else if (CboTypeRPT.getValue() == "1")
+                            nextfld = App.RptCarBarg.queryById('btnPrint');
+                        else if (CboTypeRPT.getValue() == "2")
+                            nextfld = App.RptCarBarg.queryById('btnPrint');
+                        else if (CboTypeRPT.getValue() == "3")
+                            nextfld = App.RptCarBarg.queryById('txtAzShVagon');
+                        else if (CboTypeRPT.getValue() == "4")
+                            nextfld = App.RptCarBarg.queryById('btnUp');
+                    }
+                    else {
+                        nextfld = keyfield.nextSibling().nextSibling();
+                    }
+                    nextfld.focus();
+                    nextfld.selectText();
+                }
+            }]
+        });
+    }
+</script>
+

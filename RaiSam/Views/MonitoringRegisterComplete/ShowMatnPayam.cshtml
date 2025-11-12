@@ -1,0 +1,60 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@{
+
+    var X = Html.X();
+}
+<style>
+    .a {
+        height: auto;
+        text-align: justify;
+    }
+</style>
+@(X.Window()
+    .Height(200)
+    .Width(470)
+    .Modal(true)
+    .Resizable(false)
+        .AutoScroll(true)
+    .ID("DescPayam")
+    .Title("متن پیام")
+    .Closable(true)
+    .Border(false)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Layout(Ext.Net.LayoutType.VBox)
+    .LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Center })
+    .ButtonAlign(Ext.Net.Alignment.Center)
+    .Buttons(
+        Html.X().Button()
+            .Text("خروج")
+            .Icon(Ext.Net.Icon.BulletCross)
+            .OnClientClick("App.DescPayam.destroy();")
+    )
+    .Items(
+            X.Panel()
+            .Border(false)
+            .Layout(Ext.Net.LayoutType.Fit)
+             .Items(
+                        X.FieldSet()
+                                .Width(440)
+                            .Layout(Ext.Net.LayoutType.VBox)
+                            .LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Right })
+                            .Border(false)
+                            .Defaults(new { Margin = 2 })
+                            .Items(
+                                           X.Label().ItemID("LblPayam").Listeners(l => l.AfterRender.Handler = "LoadLbl()")
+        // .Text(@ViewBag.DashboardDesc)
+                                       .Width(410).Cls("a")
+                            )
+                )
+    )
+)
+
+<script>
+    function LoadLbl() {
+        var SelectedRow = App.ShowCacheSmsEmail.queryById("ButtonsMatn").activeRecord.record;
+        LblPayam = App.DescPayam.queryById("LblPayam");
+        LblPayam.setText(SelectedRow.data.fldMatn, false)
+    }
+</script>

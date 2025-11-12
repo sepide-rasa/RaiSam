@@ -1,0 +1,103 @@
+﻿@model IEnumerable<RaiSam.Models.prs_tblTicketSelect>
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+
+    var X = Html.X();
+}
+<script src="~/Scripts/accounting.js"></script>
+<style>
+    .x-form-cb-wrap {
+        text-align: center;
+    }
+
+    .redwarning {
+        color: red;
+    }
+</style>
+
+@(X.Window()
+        .Modal(true).Resizable(false)
+        .Title("تاریخچه انتقال پیام")
+    .Border(true)
+    .ID("ForwardHistory")
+    .Closable(true)
+    .AutoScroll(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+      .Height(300)
+    .Width(800)
+    .Layout(LayoutType.Fit)
+        .ButtonAlign(Ext.Net.Alignment.Center)
+         .Buttons(
+                X.Button().Text("خروج").Icon(Ext.Net.Icon.DoorOut)
+                .OnClientClick("App.ForwardHistory.destroy();")
+     )
+    .Items(
+        X.AntiForgeryField()
+         .ItemID("antiForgeryToken").Hidden(true),
+        X.Panel()
+            .Border(false)
+            .Items(
+                X.Panel()
+                    .Border(false)
+                    .Items(
+                        X.GridPanel()
+                            .AutoScroll(true)
+                            .Height(300)
+                            .ItemID("GridCategory")
+
+                            .View(
+                                    Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                            )
+        //    .Listeners(l => l.AfterRender.Handler = "var grid=App.ForwardHistory.queryById('GridForwardHistory');grid.setHeight(App.TicketWin.height-112);")
+                        .Store(
+                            X.StoreForModel()
+                                    .Listeners(l => l.BeforeLoad.Handler = "App.ForwardHistory.queryById('GridCategory').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.ForwardHistory.queryById('antiForgeryToken').getValue());")
+                            .Proxy(Html.X().AjaxProxy()
+                            .ActionMethods(l => l.Read = HttpMethod.POST)
+                             .Url(Url.Action("ReadForwardHistory"))
+                              .ExtraParams(l => l.Add(new { chatId = @ViewBag.chatId }))
+                                .Reader(Html.X().JsonReader().Root("data"))
+
+                            )
+                            .PageSize(20)
+                            .RemoteFilter(true)
+                            .RemotePaging(true)
+
+                        )
+                            .ColumnModel(
+                                Html.X().RowNumbererColumn(),
+                                Html.X().Column().DataIndex(Model, m => m.fldId).Text("کد ").Hidden(true).Flex(1),
+                                Html.X().Column().DataIndex(Model, m => m.fldFerestandeName).Text("فرستنده پیام").Flex(5),
+                                Html.X().Column().DataIndex(Model, m => m.fldTarikh).Text("زمان ارسال").Flex(5),
+                                Html.X().Column().DataIndex(Model, m => m.fldNameUserSeen).Text("خواننده پیام").Flex(5),
+                                Html.X().Column().DataIndex(Model, m => m.fldSeenDate).Text("زمان خواندن").Flex(5),
+                                Html.X().Column().DataIndex(Model, m => m.fldTitle).Text("موضوع گفتگو").Flex(5)
+                                )
+
+                                .SelectionModel(
+                                    Html.X().RowSelectionModel()
+        // .Mode(Ext.Net.SelectionMode.Multi).CheckOnly(true)
+                                )
+                                .Plugins(Html.X().CellEditing().ClicksToEdit(1)
+                            )
+
+                        )
+                )
+        )
+)
+<script type="text/javascript">
+
+
+    /*function EnterNext() {
+        var keyfield = App.ForwardHistory.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+        var nextfld = keyfield.nextSibling().nextSibling();
+        nextfld.focus();
+        nextfld.selectText();
+    }*/
+
+</script>
+
+
+

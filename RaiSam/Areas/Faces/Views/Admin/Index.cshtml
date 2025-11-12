@@ -1,0 +1,1275 @@
+﻿
+<meta http-equiv="content-type" content="text/html; charset=Error" />
+@{
+    Layout = "~/Areas/Faces/Views/Shared/_shared.cshtml";
+    
+    string IP = System.Web.HttpContext.Current.Request.ServerVariables["REMOTE_HOST"];
+    RaiSam.Models.RaiSamEntities m = new RaiSam.Models.RaiSamEntities();
+    RaiSam.Models.UserInfo u = (RaiSam.Models.UserInfo)Session["User"];
+    bool Status = false;
+    var firstR = m.prs_tblFirstRegisterSelect("fldId", (Session["FristRegisterId"]).ToString(), "", 0).FirstOrDefault();
+
+    bool Final_Sabt = false;
+    string CompanyName = "";
+    int FirstId = Convert.ToInt32(Session["FristRegisterId"]);
+    int ReqId = Convert.ToInt32(Session["RankingId"]);
+
+    var CompanyProfile = m.prs_tblCompanyProfileSelect("fldFirstRegisterId_FinalSabt", Session["FristRegisterId"].ToString(), 0).FirstOrDefault();
+    if (CompanyProfile != null)
+    {
+        if (CompanyProfile.fldFinal_Sabt == true)
+        {
+            Final_Sabt = true;
+            CompanyName = "<< " + CompanyProfile.fldFullName + " >>";
+        }
+    }
+  
+    if (firstR.fldStatus == "1" && Final_Sabt == true)
+    {
+        Status = true;
+    }
+
+    //var HaveMomayez = servic.GetMomayezi_HeaderWithFilter("FirstRegisterId", Session["FristRegisterId"].ToString(), 0, out Err).Any();
+
+    var user = m.prs_tblFirstRegisterSelect("fldId", Session["FristRegisterId"].ToString(), "", 1).FirstOrDefault();
+    //var HelpArchive = m.prs_tblHelpUsersWithFilter("", "", 0, out Err).ToList();
+
+    var LastLogin = m.prs_tblInputInfoSelect("fldUserId", u.UserId.ToString(),"",true,2).ToList();
+    string _Date = "", Time = "", Ip = "", Name = "", Location = "";
+    int UsersId = 0;
+    UsersId = user.fldId;
+    int UserLoginCount = RaiSam.Models.UserLoginCount.userObj.Count();
+    Name = user.fldName + ' ' + user.fldFamily;
+
+    var NameUserSecond = "";
+    if (u.UserId != u.UserSecondId)
+    {
+        var f = m.prs_tblUserSelect("fldId", u.UserId.ToString(), "", 1).ToList();
+        Name = f[0].fldNamePersonal;
+        
+        var userSecond = m.prs_tblUserSelect("fldId", u.UserSecondId.ToString(), "", 1).ToList();
+        NameUserSecond = "(در نقش " + userSecond[0].fldNamePersonal + ")";
+    }
+    
+    // Location = user.fldLocation;
+    if (LastLogin.Count == 2)
+    {
+        _Date = LastLogin[1].fldDateTime.ToString();
+        Time = LastLogin[1].fldTime.ToString();
+        Ip = LastLogin[1].fldIP.ToString();
+
+    }
+
+
+    string PayamKarbaran = "";
+    var PageHtml = m.prs_tblPageHtmlSelect("fldId", "4", 1).FirstOrDefault();
+    PayamKarbaran = PageHtml.fldMohtavaHtml;
+}
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@using RaiSam.Models;
+
+@{var X = Html.X();}
+<style>
+    .Tool1 {
+        width: auto;
+    }
+
+    .x-window-body-default{
+background:#dfe8f6;
+}
+</style>
+@(
+
+ Html.X().Desktop()
+    .Listeners(k => k.Ready.Handler = "$('.ux-start-button .x-btn-inner').html('شروع');CheckChrome();ShowListofRequest();")
+    .ID("Desktop1")
+    .Modules(
+    Html.X().DesktopModule()
+            .ModuleID("Hello")                    
+            .AutoRun(true)
+            .Window(
+                Html.X().Window()
+                    .ID("InfoWin")
+                    .Plain(true)
+                    .Padding(10)
+                    .Height(200)
+                    .Width(500)
+                    .Modal(true)
+                    .Title("اطلاعیه")
+                    .CloseAction(CloseAction.Destroy)
+                    .Maximizable(false)
+                    .Minimizable(false)       
+                    .Content(@<p id="Info"></p>)
+                        ),
+             X.DesktopModule()
+              //  .AutoRun(true)
+                .ModuleID("InfoModule1")
+                .Window(
+                    X.Window()
+                        .Plain(true)
+                        .AutoScroll(true)
+                        .ID("AnnouncementWin")
+                        .Padding(5)
+                        .Height(200)
+                        .Width(500)
+                        .Modal(true)
+                        .Title("اطلاعیه های مهم")
+                        .CloseAction(CloseAction.Destroy)
+                        .Maximizable(false)
+                        .Minimizable(false)
+                        .Items(
+                            X.RadioGroup()
+                                .Layout(LayoutType.Table)
+                                .LayoutConfig(new TableLayoutConfig { Columns = 2 })
+                                        .PaddingSpec("5px 8px 0 0")
+                                .Defaults(new { Margin = 2 })
+                                        .Listeners(l => l.Change.Handler = "loadEtelaie()")
+                                .Items(
+                                    X.Radio()
+                                        .ItemID("RadioNotSeen")
+                                        .Checked(true)
+                                        .FieldLabel("اطلاعیه های خوانده نشده")
+                                        .LabelWidth(150)
+                                        .LabelAlign(Ext.Net.LabelAlign.Right)
+                                        .LabelSeparator("")
+                                        .RTL(false),
+                                    X.Radio()
+                                        .ItemID("RadioAll")
+                                        .FieldLabel("کلیه اطلاعیه ها")
+                                        .LabelAlign(Ext.Net.LabelAlign.Right)
+                                        .LabelSeparator("")
+                                        .RTL(false)
+                                ),
+                            Html.X().Panel()
+                                .PaddingSpec("5px 0 0 0")
+                                .Border(false)
+                                .Layout(LayoutType.VBox).ID("PnlAnnouncemenContainerNotSeen")
+                                .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Stretch })
+                        )
+                    ),
+        Html.X().DesktopModule()
+            .ModuleID("_PrintCompanyProfile")
+            .Shortcut(
+                Html.X().DesktopShortcut()
+                    .SortIndex(1)
+        //.Hidden(Status || !Final_Sabt)
+            .Hidden(!Final_Sabt)
+                    .Name("چاپ گزارش پیش ثبت نام")
+                    .IconCls("shortcut-PrintCompanyProfile")
+                        .Handler("Ext.net.DirectMethod.request({url: '/Faces/CompanyProfile/PrintForm'})")
+            )
+            .Launcher(
+                        Html.X().MenuItem()
+        //.Hidden(Status || !Final_Sabt)
+                .Hidden(!Final_Sabt)
+                        .ItemID("MenuItem_PrintCompanyProfile")
+                    .Text("چاپ گزارش پیش ثبت نام")
+                    //.Hidden(!servic.Permission(1, Session["Username"].ToString(), Session["Password"].ToString(), out Err))
+                    .IconCls("MiniPrintCompanyProfile")
+                        .Handler("Ext.net.DirectMethod.request({url: '/Faces/CompanyProfile/PrintForm'})")
+                    )
+        ,
+        Html.X().DesktopModule()
+            .ModuleID("_CompanyProfile")
+            .Shortcut(
+                    Html.X().DesktopShortcut()
+                    .SortIndex(0)
+                    .Hidden(Status)
+                    .Name("تکمیل ثبت نام")
+                    .IconCls("shortcut-CompanyProfile")
+                        .Handler("Ext.net.DirectMethod.request({url: '/Faces/CompanyProfile/index?SabtState=1'})")
+            )
+            .Launcher(
+                Html.X().MenuItem()
+                    .Hidden(Status)
+                    .Text("تکمیل ثبت نام")
+                    //.Hidden(!servic.Permission(1, Session["Username"].ToString(), Session["Password"].ToString(), out Err))
+                    .IconCls("MiniCompanyProfile")
+                            .Handler("Ext.net.DirectMethod.request({url: '/Faces/CompanyProfile/index?SabtState=1'})")
+                )
+                    ,
+        
+    //            Html.X().DesktopModule()
+    //                .ModuleID("_Navaghes")
+    //            .Shortcut(
+    //                Html.X().DesktopShortcut()
+    ////.Hidden(!servic.Permission(1, Session["Username"].ToString(), Session["Password"].ToString(), out Err))
+    //                    .Name("نواقص و تعهدات")
+    //                    .Hidden(true)
+    //                    .IconCls("shortcut-Navaghes")
+    //                    .TextCls("Text_PreviousExperience")
+    //                        .Handler("Ext.net.DirectMethod.request({url: '/Navaghes'})")
+    //                )
+    //                .Launcher(
+    //                    Html.X().MenuItem()
+    //                    .Hidden(true)
+    //                    .ItemID("MenuItem16")
+    //                    .Text("نواقص و تعهدات")
+    //                    .IconCls("shortcut-Navaghes")
+    //                        .Handler("Ext.net.DirectMethod.request({url: '/Navaghes'})")
+    //                    )
+    //                    ,
+                    Html.X().DesktopModule()
+                    .ModuleID("_TarikhcheTaghaza")
+                .Shortcut(
+                    Html.X().DesktopShortcut()
+    //.Hidden(!servic.Permission(1, Session["Username"].ToString(), Session["Password"].ToString(), out Err))
+                        .Name("تاریخچه تقاضا")
+                        .Hidden(true)
+                        .IconCls("shortcut-TarikhcheTaghaza")
+                        .TextCls("Text_PreviousExperience")
+             .Handler("Ext.net.DirectMethod.request({url: '/Faces/TarikhcheTaghaza'})")
+                    )
+                    .Launcher(
+                        Html.X().MenuItem()
+                        .Hidden(true)
+                            .ItemID("MenuItem_TarikhcheTaghaza")
+                        .Text("تاریخچه تقاضا")
+                        .IconCls("shortcut-TarikhcheTaghaza")
+            .Handler("Ext.net.DirectMethod.request({url: '/Faces/TarikhcheTaghaza'})")
+                        )
+                        
+                                       
+                                        ,
+                                Html.X().DesktopModule()
+                                                .ModuleID("tblCompanyProfile")
+                            .Shortcut(
+                                Html.X().DesktopShortcut()
+        //.Hidden(!servic.Permission(1, Session["Username"].ToString(), Session["Password"].ToString(), out Err))
+                                            .Name("اطلاعات اولیه شرکت")
+                                    .Hidden(true)
+                                                        .IconCls("shortcut-CompanyProfile")
+                                    .TextCls("Text_PreviousExperience")
+                                                    .Handler("Ext.net.DirectMethod.request({url: '/Faces/CompanyProfile/index?SabtState=2'})")
+                                )
+                                .Launcher(
+                                    Html.X().MenuItem()
+                                    .Hidden(true)
+                                            .ItemID("MenuItemtblCompanyProfile")
+                                            .Text("اطلاعات اولیه شرکت")
+                                                        .IconCls("shortcut-CompanyProfile")
+                                                    .Handler("Ext.net.DirectMethod.request({url: '/Faces/CompanyProfile/index?SabtState=2'})")
+                                    )
+                                        ,
+                                    Html.X().DesktopModule()
+                                             .ModuleID("tblRegistrationFirstContract")
+                                .Shortcut(
+                                    Html.X().DesktopShortcut()
+        //.Hidden(!servic.Permission(1, Session["Username"].ToString(), Session["Password"].ToString(), out Err))
+                                                .Name("پروژه ها")
+                                        .Hidden(true)
+                                                .IconCls("shortcut-Gharardad")
+                                                .TextCls("Text_Gharardad")
+                                                .Handler("Ext.net.DirectMethod.request({url: '/Faces/Project/New?Id=00'})")
+                                    )
+                                    .Launcher(
+                                        Html.X().MenuItem()
+                                        .Hidden(true)
+                                                .ItemID("MenuItemtblRegistrationFirstContract")
+                                            .Text("پروژه ها")
+                                                .IconCls("shortcut-Gharardad")
+                                                .Handler("Ext.net.DirectMethod.request({url: '/Faces/Project/New?Id=00'})")
+                                        )
+                                              ,
+                                        Html.X().DesktopModule()
+                                                     .ModuleID("tblShareholder")
+                                    .Shortcut(
+                                        Html.X().DesktopShortcut()
+        //.Hidden(!servic.Permission(1, Session["Username"].ToString(), Session["Password"].ToString(), out Err))
+                                                    .Name("سهامداران")
+                                            .Hidden(true)
+                                                        .IconCls("shortcut-Shareholders")
+                                                    .TextCls("Text_Gharardad")
+                                                    .Handler("Ext.net.DirectMethod.request({url: '/Faces/Shareholders/index'})")
+                                        )
+                                        .Launcher(
+                                            Html.X().MenuItem()
+                                            .Hidden(true)
+                                                        .ItemID("MenuItemtblShareholder")
+                                                .Text("سهامداران")
+                                                    .IconCls("shortcut-Gharardad")
+                                                        .Handler("Ext.net.DirectMethod.request({url: '/Faces/Shareholders/index'})")
+                                                )
+                                                 ,
+                                    Html.X().DesktopModule()
+                                                     .ModuleID("tblScheduleContract_Header")
+                                .Shortcut(
+                                    Html.X().DesktopShortcut()
+        //.Hidden(!servic.Permission(1, Session["Username"].ToString(), Session["Password"].ToString(), out Err))
+                                                .Name("زمانبندی پروژه ها")
+                                        .Hidden(true)
+                                                    .IconCls("shortcut-Schedule")
+                                                    .TextCls("Text_Schedule")
+                                                            .Handler("Ext.net.DirectMethod.request({url: '/Faces/ScheduleContract/index'})")
+                                    )
+                                    .Launcher(
+                                        Html.X().MenuItem()
+                                        .Hidden(true)
+                                                        .ItemID("MenuItemtblScheduleContract_Header")
+                                                .Text("زمانبندی پروژه ها")
+                                                    .IconCls("shortcut-Schedule")
+                                                                .Handler("Ext.net.DirectMethod.request({url: '/Faces/ScheduleContract/index'})")
+                                        ),
+
+                            Html.X().DesktopModule()
+                                        .ModuleID("tblItemsDynamicRating")
+                        .Shortcut(
+                            Html.X().DesktopShortcut()
+        //.Hidden(!servic.Permission(1, Session["Username"].ToString(), Session["Password"].ToString(), out Err))
+                                    .Name("مدارک عمومی شرکت")
+                                .Hidden(true)
+                                .IconCls("shortcut-DynamicForm")
+                                .TextCls("Text_PreviousExperience")
+                                .Handler("Ext.net.DirectMethod.request({url:'/Faces/DynamicForm/index?State=1'})")
+                            )
+                            .Launcher(
+                                Html.X().MenuItem()
+                                .Hidden(true)
+                                        .ItemID("MenuItemtblItemsDynamicRating")
+                                    .Text("مدارک عمومی شرکت")
+                                .IconCls("shortcut-DynamicForm")
+                                    .Handler("Ext.net.DirectMethod.request({url:'/Faces/DynamicForm/index?State=1'})")
+                                )
+
+                                ,
+                                Html.X().DesktopModule()
+                                        .ModuleID("tblItemsDynamicRating1")
+                        .Shortcut(
+                            Html.X().DesktopShortcut()
+        //.Hidden(!servic.Permission(1, Session["Username"].ToString(), Session["Password"].ToString(), out Err))
+                                .Name("مدارک عمومی پروژه")
+                                .Hidden(true)
+                                .IconCls("shortcut-DynamicForm1")
+                                .TextCls("Text_PreviousExperience")
+                                     .Handler("Ext.net.DirectMethod.request({url:'/Faces/DynamicForm/index?State=2'})")
+                            )
+                            .Launcher(
+                                Html.X().MenuItem()
+                                .Hidden(true)
+                                        .ItemID("MenuItemtblItemsDynamicRating1")
+                                .Text("مدارک عمومی پروژه")
+                                .IconCls("shortcut-DynamicForm1")
+                                    .Handler("Ext.net.DirectMethod.request({url:'/Faces/DynamicForm/index?State=2'})")
+                                )
+                                     ,
+                                    Html.X().DesktopModule()
+                                            .ModuleID("tblItemsDynamicRating11")
+                            .Shortcut(
+                                Html.X().DesktopShortcut()
+        //.Hidden(!servic.Permission(1, Session["Username"].ToString(), Session["Password"].ToString(), out Err))
+                                    .Name("مدارک اختصاصی پروژه")
+                                    .Hidden(true)
+                                    .IconCls("shortcut-DynamicForm11")
+                                    .TextCls("Text_PreviousExperience")
+                                         .Handler("Ext.net.DirectMethod.request({url:'/Faces/DynamicForm/index?State=3'})")
+                                )
+                                .Launcher(
+                                    Html.X().MenuItem()
+                                    .Hidden(true)
+                                            .ItemID("MenuItemtblItemsDynamicRating11")
+                                    .Text("مدارک اختصاصی پروژه")
+                                    .IconCls("shortcut-DynamicForm11")
+                                        .Handler("Ext.net.DirectMethod.request({url:'/Faces/DynamicForm/index?State=3'})")
+                                    )
+                               ,
+
+                        Html.X().DesktopModule()
+                        .ModuleID("_Ticket")
+                    .Shortcut(
+                        Html.X().DesktopShortcut()
+        //.Hidden(!servic.Permission(1, Session["Username"].ToString(), Session["Password"].ToString(), out Err))
+                            .Name("گفتگو")
+                           // .Hidden(true)
+                            .IconCls("shortcut-Ticket")
+                                .TextCls("Text_Ticket")
+                                          //  .Handler("notAllowed();")
+                                .Handler("Ext.net.DirectMethod.request({url: '/Faces/Ticket'})")
+                        )
+                        .Launcher(
+                            Html.X().MenuItem()
+                           // .Hidden(true)
+                                .ItemID("MenuItem_Ticket")
+                            .Text("گفتگو")
+                                .IconCls("shortcut-Ticket")
+                                          //  .Handler("notAllowed();")
+                                .Handler("Ext.net.DirectMethod.request({url: '/Faces/Ticket'})")
+                                    ),
+
+
+
+
+            Html.X().DesktopModule()
+            .ModuleID("ListofRequest")
+            .Shortcut(
+                Html.X().DesktopShortcut()
+                    .Hidden(!Status)
+                    .Name("فهرست تقاضاها")
+                    .IconCls("shortcut-ListofRequest")
+                    .Handler("Ext.net.DirectMethod.request({url: '/Faces/RequestRanking/index'})")
+            )
+            .Launcher(
+                Html.X().MenuItem()
+                    .Hidden(!Status)
+                        .ItemID("MenuItemListofRequest")
+                    .Text("فهرست تقاضاها")
+                        .Handler("Ext.net.DirectMethod.request({url: '/Faces/RequestRanking/index'})")
+                    .IconCls("shortcut-ListofRequest")
+                            )
+        ,
+                     X.DesktopModule()
+                            .ModuleID("ReportRaiSam")
+                    .Shortcut(
+                                Html.X().DesktopShortcut()
+                                            .Hidden(true)
+                                .Name("گزارشات")
+                            .IconCls("shortcut-ReportRaiSam")
+                           // .SortIndex(2)
+                    )
+                    .Launcher(
+                            Html.X().MenuItem()
+                                .Text("گزارشات")
+                            .ItemID("MenuItemReportRaiSam")
+                                                .Hidden(true)
+                        .IconCls("shortcut-ReportRaiSam")
+                    )
+                    .Window(
+                        Html.X().Window()
+                            .RTL(true)
+                                    .ID("ReportRaiSamWin")
+                            .AutoScroll(true)
+                                    .Title("گزارشات")
+                            .Icon(Ext.Net.Icon.User)
+                                .CloseAction(Ext.Net.CloseAction.Destroy)
+                            .Layout(Ext.Net.LayoutType.Anchor)
+                            .Maximized(true)
+                            .Height(600)
+                            .Items(
+                                X.Panel()
+                                    .Border(false)
+                                    .Items(
+                                        Html.X().TabPanel()
+                                            .Border(false)
+                                            .Items(
+                                                X.Panel()
+                                                        .Title("گزارشات")
+                                                            .TabMenu(h => h.Add(X.Menu().Items(
+                                                                                X.MenuItem().Text("گزارش بارنامه ها").DirectClickUrl("/RptBarname/NewIndex?containerId=crmTab").IconCls("miniRptBarname").Hidden(!RaiSam.Models.Permission.haveAccess(217, "", "0")),
+                                                                                    X.MenuItem().Text("گزارش کلی بارنامه ها").DirectClickUrl("/RptBarname/NewIndexKoli?containerId=crmTab").IconCls("miniRptKoliBarname").Hidden(!RaiSam.Models.Permission.haveAccess(218, "", "0"))
+
+                                                        )))
+                                                    .Border(false)
+                                                    .Items(
+                                                        Html.X().TabPanel()
+                                                            .Border(false)
+                                                                    .ID("ReportGeneralTab")
+                                                            .ManageHeight(true)
+                                                            .Items(
+                                                                X.Panel()
+                                                                    .Title("میزکار")
+                                                                        .ItemID("pnlReportRaiSamTab")
+                                                                    .Border(false)
+                                                                                                .Listeners(l => l.AfterRender.Handler = "App.ReportGeneralTab.queryById('pnlReportRaiSamTab').setSize(App.ReportRaiSamWin.getWidth()-10,App.ReportRaiSamWin.getHeight()-135);")
+                                                                    .AutoScroll(true)
+                                                                    .Margins("30 0 0 0")
+        //.Height(500)
+                                                                    .LayoutConfig(new Ext.Net.HBoxLayoutConfig { Align = Ext.Net.HBoxAlign.StretchMax, Pack = Ext.Net.BoxPack.Center })
+                                                                    .Items(
+                                                                        X.Container()
+                                                                            .Region(Ext.Net.Region.Center)
+                                                                            .Layout(Ext.Net.LayoutType.Table)
+                                                                            .Center()
+                                                                            .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 7 })
+                                                                            .Defaults(new { Width = 110, Height = 110 })
+                                                                                .Items(
+
+                                                                                     X.ImageButton()
+                                                                                               // .Hidden(!RaiSam.Models.Permission.haveAccess(217, "", "0"))
+                                                                                                    .ImageUrl("/Content/icon/Report/گزارش بارنامه ها1.png")
+                                                                                                    .OverImageUrl("/Content/icon/Report/گزارش بارنامه ها.png")
+                                                                                        .DirectEvents(
+                                                                                            de =>
+                                                                                            {
+                                                                                                de.Click.Url = "/RptBarname/NewIndex";
+                                                                                                de.Click.ExtraParams.Add(new { containerId = "ReportGeneralTab" });
+                                                                                                de.Click.Before = "if(App.RptBarname!=null){var tab =App.ReportGeneralTab.getComponent('RptBarname');App.ArchiveTab.setActiveTab(tab);return false;}Ext.net.Mask.show({ msg : 'در حال بارگذاری...' });";
+                                                                                                de.Click.Success = "Ext.net.Mask.hide();";
+                                                                                            }
+                                                                                        )
+                                                                                        ,
+                                                                                            X.ImageButton()
+                                                                                                  //  .Hidden(!RaiSam.Models.Permission.haveAccess(218, "", "0"))
+                                                                                                            .ImageUrl("/Content/icon/Report/گزارش کلی بارنامه ها1.png")
+                                                                                                            .OverImageUrl("/Content/icon/Report/گزارش کلی بارنامه ها.png")
+                                                                                            .DirectEvents(
+                                                                                                de =>
+                                                                                                {
+                                                                                                    de.Click.Url = "/RptBarname/NewIndexKoli";
+                                                                                                    de.Click.ExtraParams.Add(new { containerId = "ReportGeneralTab" });
+                                                                                                    de.Click.Before = "if(App.RptKoliBarname!=null){var tab =App.ReportGeneralTab.getComponent('RptKoliBarname');App.ArchiveTab.setActiveTab(tab);return false;}Ext.net.Mask.show({ msg : 'در حال بارگذاری...' });";
+                                                                                                    de.Click.Success = "Ext.net.Mask.hide();";
+                                                                                                }
+                                                                                            )
+                                                                                            ,    X.ImageButton()
+                                                                                                 //   .Hidden(!RaiSam.Models.Permission.haveAccess(249, "", "0"))
+                                                                                                                .ImageUrl("/Content/icon/Report/گزارش گروهی بارنامه1.png")
+                                                                                                                .OverImageUrl("/Content/icon/Report/گزارش گروهی بارنامه.png")
+                                                                                            .DirectEvents(
+                                                                                                de =>
+                                                                                                {
+                                                                                                    de.Click.Url = "/RptBarname/IndexGroup";
+                                                                                                    de.Click.ExtraParams.Add(new { containerId = "ReportGeneralTab" });
+                                                                                                    de.Click.Before = "if(App.RptGroup!=null){var tab =App.ReportGeneralTab.getComponent('RptGroup');App.ArchiveTab.setActiveTab(tab);return false;}Ext.net.Mask.show({ msg : 'در حال بارگذاری...' });";
+                                                                                                    de.Click.Success = "Ext.net.Mask.hide();";
+                                                                                                }
+                                                                                            )
+                                                                                            ,
+                                                                                                X.ImageButton()
+                                                                                                    //    .Hidden(!RaiSam.Models.Permission.haveAccess(246, "", "0"))
+                                                                                                                .ImageUrl("/Content/icon/Report/گزارش لکوموتیوها1.png")
+                                                                                                                .OverImageUrl("/Content/icon/Report/گزارش لکوموتیوها.png")
+                                                                                                .DirectEvents(
+                                                                                                    de =>
+                                                                                                    {
+                                                                                                        de.Click.Url = "/RptBarname/IndexLoco";
+                                                                                                        de.Click.ExtraParams.Add(new { containerId = "ReportGeneralTab" });
+                                                                                                        de.Click.Before = "if(App.RptLoco!=null){var tab =App.ReportGeneralTab.getComponent('RptLoco');App.ArchiveTab.setActiveTab(tab);return false;}Ext.net.Mask.show({ msg : 'در حال بارگذاری...' });";
+                                                                                                        de.Click.Success = "Ext.net.Mask.hide();";
+                                                                                                    }
+                                                                                                    ),
+                                                                                                X.ImageButton()
+                                                                                                     //   .Hidden(!RaiSam.Models.Permission.haveAccess(257, "", "0"))
+                                                                                                                    .ImageUrl("/Content/icon/Report/گزارش اولین بارنامه لوکوموتیو.png")
+                                                                                                                        .OverImageUrl("/Content/icon/Report/گزارش اولین بارنامه لوکوموتیو1.png")
+                                                                                                .DirectEvents(
+                                                                                                    de =>
+                                                                                                    {
+                                                                                                        de.Click.Url = "/RptBarname/IndexBarnameLoco";
+                                                                                                        de.Click.ExtraParams.Add(new { containerId = "ReportGeneralTab" });
+                                                                                                        de.Click.Before = "if(App.RptBarnameLoco!=null){var tab =App.ReportGeneralTab.getComponent('RptBarnameLoco');App.ArchiveTab.setActiveTab(tab);return false;}Ext.net.Mask.show({ msg : 'در حال بارگذاری...' });";
+                                                                                                        de.Click.Success = "Ext.net.Mask.hide();";
+                                                                                                    }
+                                                                                                    )
+                                                                        )
+                                                                )
+                                                        )
+                                                )
+                                        )
+                                )
+                        )
+                        ),
+                                    Html.X().DesktopModule()
+                                                .ModuleID("_FinalCheck")
+
+                                .Shortcut(
+                                    Html.X().DesktopShortcut()
+        //.Hidden(!servic.Permission(1, Session["Username"].ToString(), Session["Password"].ToString(), out Err))
+                                                .Name("کنترل نهایی و ارسال")
+                                        .Hidden(true)
+                                                .IconCls("shortcut-FinalCheck")
+                                        .TextCls("Text_PreviousExperience")
+                                                    .Handler("Ext.net.DirectMethod.request({url: '/Faces/FinalCheck/indexCheck'})")
+                                    )
+                                    .Launcher(
+                                        Html.X().MenuItem()
+                                        .Hidden(true)
+                                            .ItemID("MenuItem_FinalCheck")
+                                            .Text("کنترل نهایی و ارسال")
+                                                .IconCls("shortcut-FinalCheck")
+                                                        .Handler("Ext.net.DirectMethod.request({url: '/Faces/FinalCheck/indexCheck'})")
+                                                ),
+                                        Html.X().DesktopModule()
+                                                        .ModuleID("_navaghes")
+
+                                    .Shortcut(
+                                        Html.X().DesktopShortcut()
+        //.Hidden(!servic.Permission(1, Session["Username"].ToString(), Session["Password"].ToString(), out Err))
+                                                    .Name("نواقص و مصوبات")
+                                            .Hidden(true)
+                                                        .IconCls("shortcut-Navaghes")
+                                            .TextCls("Text_PreviousExperience")
+                                                        .Handler("Ext.net.DirectMethod.request({url: '/Faces/Navaghes/index'})")
+                                        )
+                                        .Launcher(
+                                            Html.X().MenuItem()
+                                            .Hidden(true)
+                                                    .ItemID("MenuItem_navaghes")
+                                                    .Text("نواقص و مصوبات")
+                                                        .IconCls("shortcut-Navaghes")
+                                                            .Handler("Ext.net.DirectMethod.request({url: '/Faces/Navaghes/index'})")
+                                                )
+                        ,
+
+                Html.X().DesktopModule()
+                    .ModuleID("DemandConsortium")
+                    .Shortcut(
+                        Html.X().DesktopShortcut()
+                            .Hidden(!Status)
+                            .Name("تقاضای تشکیل کنسرسیوم")
+                            .IconCls("shortcut-DemandConsortium")
+                            .Handler("notAllowed();")
+                    )
+                    .Launcher(
+                        Html.X().MenuItem()
+                            .Hidden(!Status)
+                            .ItemID("MenuItemDemandConsortium")
+                            .Text("تقاضای تشکیل کنسرسیوم")
+                            .Handler("notAllowed();")
+        //.Hidden(!servic.Permission(1, Session["Username"].ToString(), Session["Password"].ToString(), out Err))
+                            .IconCls("shortcut-DemandConsortium")
+                            )
+        //            ,
+        //        Html.X().DesktopModule()
+        //            .ModuleID("_ShowMomayezi")
+        //            .Shortcut(
+        //                Html.X().DesktopShortcut()
+        //                .Hidden(!Status)
+        //                .Handler("Chekmomayez();")
+        //                    .Name("ممیزی")
+        //                        .IconCls("shortcut-Momayezi")
+        //                    .Handler("Ext.net.DirectMethod.request({url: '/Momayezi/Index'})")
+        //            )
+        //            .Launcher(
+        //                            Html.X().MenuItem()
+        //                    .Hidden(!Status)
+        //                    .Handler("Chekmomayez();")
+        //                    .Text("ممیزی")
+        ////.Hidden(!servic.Permission(1, Session["Username"].ToString(), Session["Password"].ToString(), out Err))
+        //                            .IconCls("shortcut-Momayezi")
+        //                    .Handler("Ext.net.DirectMethod.request({url: '/Momayezi/Index'})")
+        //                )
+
+                  )
+    .DesktopConfig(
+        Html.X().DesktopConfig()
+                .Wallpaper("~/Content/Back.png")
+            .WallpaperStretch(true)
+            .ShortcutDragSelector(true)
+            .ShortcutDefaults(defaults =>
+            {
+                defaults.IconCls = "x-default-shortcut";
+            })
+            .ContextMenu(
+                Html.X().Menu()
+                    .Items(
+                        Html.X().MenuItem().Text("Change Settings"),
+                        Html.X().MenuSeparator(),
+                        Html.X().MenuItem().Text("Title").Icon(Ext.Net.Icon.ApplicationTileVertical),
+                        Html.X().MenuItem().Text("Cascade").Icon(Ext.Net.Icon.ApplicationCascade)
+                    )
+            )
+            @*.Content(@<text>
+                @(
+                    Html.X().Image()
+                                                        .ImageUrl("~/Content/blank.png")
+                                                .StyleSpec("position:absolute;top: 40%;left: 40%;width: 227px;margin-top: -39px; margin-left: -39px;")
+                                        )
+                </text>)*@
+)
+        .StartMenu(
+            Html.X().DesktopStartMenu()
+                .Title("رسا سیستم البرز")
+                .IconCls("RasaIco")
+                .Height(300)
+                .ToolConfig(
+                    Html.X().Toolbar()
+                        .Width(100)
+                        .Items(
+        //Html.X().Button()
+        //            .Text("تنظیمات")
+        //.Hidden(!Permossions.haveAccess(Convert.ToInt32(Session["UserId"]), 90))
+        //.Icon(Ext.Net.Icon.Cog)
+        //.DirectEvents(de =>
+        //{
+        //    de.Click.Action = "Setting";
+
+                                        //}),
+        //Html.X().Button()
+        //    .Text("Settings")
+        //                                .Icon(Ext.Net.Icon.Cog),
+        //Html.X().Button()
+        //.Text("مدیریت کاربران")
+        //.Hidden(!Permossions.haveAccess(Convert.ToInt32(Session["UserId"]), 39))
+        //.Icon(Ext.Net.Icon.User)
+        //.DirectEvents(
+        //de =>
+        //    {
+        //        de.Click.Url = "/User/index";
+        //        de.Click.ExtraParams.Add(new { containerId = "UserTab" });
+        //        de.Click.Before = "if(App.User!=null){var tab =App.UserTab.getComponent('User');App.UserTab.setActiveTab(tab);return false;}Ext.net.Mask.show({ msg : 'در حال بارگذاری...' });";
+        //        de.Click.Success = "Ext.net.Mask.hide();";
+        //    })
+        //,
+                            Html.X().Button()
+                                .Text("تغییر رمز عبور")
+                                .Icon(Ext.Net.Icon.Key)
+                                    .Handler("Ext.net.DirectMethod.request({url: '/Home/ChangePassword'})"),
+                            Html.X().Button()
+                                .Text("انتخاب برنامه")
+                                .Icon(Ext.Net.Icon.ArrowSwitch)
+                                .Listeners(l => l.Click.Handler = "ChangeProg();"),
+                            Html.X().Button()
+                                .Text("خروج")
+                                .Icon(Ext.Net.Icon.DoorOut)
+                                .DirectEvents(de =>
+                                {
+                                    de.Click.Action = "Logout";
+                                    de.Click.EventMask.ShowMask = true;
+                                    de.Click.EventMask.Msg = "خدانگهدار...";
+                                    de.Click.EventMask.MinDelay = 1000;
+                                })
+
+                        )
+                )
+        )
+        .TaskBar(
+            Html.X().DesktopTaskBar()
+        // .TrayWidth(600)
+        //.Cls("x-bold-text33")
+        // .TrayWidth(110)
+                        .QuickStart(
+                            Html.X().Toolbar()
+                                .Width(400)
+                                .Items(
+                                        Html.X().Label()
+                                .Cls("lblLocation")
+                                    .ID("lblLocation")
+                                )
+                        )
+        //.HideQuickStart(true)
+        //.QuickStart(
+        //    Html.X().Toolbar()
+        //        .Items(
+        //            Html.X().Button()
+        //             .Icon(Ext.Net.Icon.ApplicationTileVertical)
+        //                .ToolTip("Tile windows"),
+
+                //            Html.X().Button()
+        //          .Icon(Ext.Net.Icon.ApplicationCascade)
+        //                .ToolTip("Cascade windows")
+        //        )
+        //)
+                .Tray(
+                    Html.X().Toolbar()
+            .Width(250)
+            .Cls("x-bold-text33")
+                        .Items(
+                           X.Container().Content(@<table style="text-align:left;direction:ltr;font-size:10px;border:10px;"><tr><td style="color:#98c8ff;">|</td><td>CopyRight © 2022-Design By</td><td><a href="http://www.rasa-system.com/" style="text-decoration:none;"> RasaCo</a></td></tr></table>)
+                           , Html.X().ToolbarFill()
+                           )
+                        )
+                )
+)
+)
+)
+@X.TaskManager().ID("TaskManager1").Tasks(X.Task().TaskID("Task1")
+    .Interval(100)
+    .AutoRun(false)
+    .DirectEvents(de => de.Update.Action = "RefreshProgress")
+)
+@(X.Viewport().ID("Section")
+
+                .Margin(50)
+              .Frame(true)
+                      .Layout(Ext.Net.LayoutType.Absolute)
+
+                          //.LayoutConfig(new Ext.Net.AccordionLayoutConfig { Multi = true, OriginalHeader = true }).Border(true)
+        //.Layout(Ext.Net.LayoutType.HBox)
+            .Items(
+                X.Panel().X(0).Y(0)
+                    .Frame(false)
+                .Width(220).RTL(false)
+            .Layout(Ext.Net.LayoutType.Accordion)
+            .LayoutConfig(new Ext.Net.AccordionLayoutConfig { Multi = true, OriginalHeader = true }).Border(true)
+            .Items(
+                        X.Panel().ID("pnlUser")
+                             .RTL(true)
+                        .Title("اطلاعات کاربر")
+                        .Icon(Ext.Net.Icon.UserTick)
+                        .X(0)
+                       .Items(
+                       X.Container().Content(
+                    @<div id="pnlInfoUser" style="margin:10px; height:150px;">
+    <center>
+        <div style="font-weight:600"> @CompanyName</div>
+        <br />
+        <div style="font-weight:600"> @Name @NameUserSecond خوش آمدید.</div>
+        <div>
+            <a id="lblExistUserSecond" href="javascript:void(0)" onclick="javascript:ExistUserSecond()">خروج</a>
+
+        </div>
+        <br />
+        تاریخ آخرین ورود: @_Date
+        <br />
+        زمان آخرین ورود: @Time
+        <br />
+        IP آخرین ورود: @Ip
+        <br />
+        <div>
+            <span id="lblUserOnline">تعداد کاربران آنلاین: @UserLoginCount</span>
+        </div>
+    </center>
+</div>)
+
+                       ),
+                        X.Panel()
+                        .ID("pnlCom")
+                        .Title("پیام ها")
+                        .Icon(Ext.Net.Icon.Comments)
+                        .RTL(true)
+                        .Items(
+                       X.Container().AutoScroll(true).Content(
+                    @<div style="margin:10px;height:150px;">
+                        @*<center>*@
+                        <div>
+                            <div id="ext-comp-1035">
+                               <p style="color: rgb(0, 0, 0); text-align: right;"><span style="color:#13BEED; font-size:10pt;">شناسه کاربری و گذرواژه</span></p><p style="color: rgb(0, 0, 0); text-align: justify;">شناسه کاربری و گذرواژه پرونده الکترونیکی شرکت‌ها صرفاً در اختیار صاحبان امضاء مجاز شرکت است. هیچ فرد دیگری امکان درج اطلاعات و تغییر آن را ندارد، لذا مسئولیت صحت و سقم ورود هرگونه اطلاعات و الصاق مدارک و مستندات شرکت بر عهده صاحبان امضاء مجاز شرکت می باشد.</p><p style="color: rgb(0, 0, 0); text-align: justify;"></p><p style="color: rgb(0, 0, 0);"></p>
+                            </div>
+                        </div>
+
+                        @*  </center>*@
+                    </div>)
+
+                       )
+                       @*,
+
+                               X.Panel().ID("pnlHelp")
+                               .Title("راهنماها").Icon(Ext.Net.Icon.Help).AutoScroll(true)
+                            .RTL(true)
+                       .Items(
+                       X.Container().AutoScroll(true).Content(
+                    @<div style="margin:10px; height:100px;">
+                        <div id="ext-comp-1035">
+                            @foreach (var k in HelpArchive)
+                            {
+                                <a href="@Url.Content("~/HelpFile/DownloadHelpFile?id=" + k.fldId)" style=" margin:5px; line-height:25px; font-size:8pt;" target="_blank">@k.fldTitle</a>
+                              <br>
+                            }
+
+
+
+                        </div>
+
+
+                    </div>
+
+    )
+
+                       )*@
+
+                        )
+                        )
+
+            //.LayoutConfig(new Ext.Net.HBoxLayoutConfig { Pack=Ext.Net.BoxPack.Center,Align=Ext.Net.HBoxAlign.StretchMax})
+        //.Floating(true)
+                .Shadow(false)
+                    .Listeners(l =>
+                    {
+                        //l.AfterRender.Handler = "App.Section.el.alignTo(document.body, 'tr-tr', [0, 0], true);";
+                        //l.Far.Handler = "this.component.el.alignTo(Ext.net.Desktop.desktop.body, 'tl-tl', [0, 0], true);";
+                    })
+
+
+)
+<script src="@Url.Content("~/Content/jQueryRotate.2.2.js")" type="text/javascript"></script>
+<link href="~/Content/style.css" rel="stylesheet" />
+<script src="~/Scripts/jquery-ajax-native.js"></script>
+<script>
+    function DlHelpFile(ID) {
+        $.ajax({
+            type: "POST",
+            dataType: 'native',
+            url: "/HelpFile/DownloadHelpFile",
+            xhrFields: {
+                responseType: 'blob'
+            },
+            data: {
+                id: ID
+            },
+            success: function (blob) {
+                x = blob;
+                var link = document.createElement('a');
+                link.href = window.URL.createObjectURL(blob);
+                link.download = "DownloadFile";
+                link.click();
+            }
+        });
+    }
+
+    function ChangeProg() {
+        Ext.MessageBox.show({
+            title: "توجه",
+            msg: "آیا مایل به انتخاب دوباره نوع برنامه هستید؟",
+            icon: Ext.MessageBox.WARNING,
+            buttons: Ext.MessageBox.YESNO,
+            fn: function (btn) {
+                if (btn == 'yes') {
+                    location.reload();
+                }
+            }
+        });
+
+    }
+    function CheckChrome() {
+        if (Ext.isChrome == false) {
+            Ext.get('Info').update("<div><p style='text-align:justify;margin:5px'>کاربر گرامی لطفاً جهت جلوگیری از بروز هر گونه اشکال در کار با سامانه نکات زیر را رعایت فرمایید:</br>جهت استفاده از  نرم افزار، می بایست از مرورگر کروم استفاده نمایید.</br>لطفاً جهت بروز رسانی مرورگر کروم <a href='@Url.Content("~/HelpFile/DownloadChrome")'>اینجا</a> کلیک نمایید.</p></div>");
+
+        }
+        else if (Ext.isChrome == true && Ext.chromeVersion < 55) {
+            Ext.get('Info').update("</p><div><p style='text-align:justify;margin:5px'>کاربر گرامی لطفاً جهت جلوگیری از بروز اشکال در کار با سامانه نکات زیر را رعایت فرمایید:</br>نسخه مرورگر کروم شما قدیمی است. مرورگر مورد استفاده می بایست بروز رسانی شود. چنانچه این عمل صورت نپذیرد سامانه دچار اشکال شده و با مشکل مواجه خواهید شد.</br>لطفاً جهت بروزرسانی مرورگر کروم <a href='@Url.Content("~/HelpFile/DownloadChrome")'>اینجا</a> کلیک نمایید.</p></div>");
+        }
+        else {
+            App.InfoWin.close();
+        }
+    }
+
+    function notAllowed() {
+        Ext.MessageBox.show({
+            title: "خطا",
+            msg: "دسترسی به این آیتم امکانپذیر نمی باشد.",
+            icon: Ext.MessageBox.ERROR,
+            buttons: Ext.MessageBox.OK
+        });
+    }
+
+
+    function ShowListofRequest() {
+
+        if ('@ViewBag.FirstLogin' == 'True') {
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: "/Home/ChangePassword",
+                success: function () {
+                    Ext.net.Mask.hide();
+                }
+            });
+        }
+        else {
+            if ('@Status'=="True")
+            {
+                Ext.net.DirectMethod.request({
+                    url: "/Faces/RequestRanking/Index",
+                    success: function () {
+                        Ext.net.Mask.hide();
+                    }
+                });
+            }
+        }
+    }
+    function CheckEtelaie(EtelaieTitleAll, EtelaieIDAll) {
+        if (EtelaieTitleAll != "") {
+
+
+            var TitleHa = EtelaieTitleAll;
+            var IDha = EtelaieIDAll;
+            var k = TitleHa.split(';');
+            var ID = IDha.split(';');
+            var txt = "";
+            for (var i = 0; i < k.length - 1; i++) {
+                var fieldset = Ext.create('Ext.form.FieldSet', {
+                    border: false
+                });
+                var LblEtela = Ext.create('Ext.form.Label', {
+                    text: k[i],
+                    xtype: 'iconlabel',
+                    iconCls: 'Enter',
+                    padding: "0 5px 0 10px"
+                });
+                /*start*/
+                var BtnEtela = Ext.define('LinkButton', {
+                    extend: 'Ext.Component',
+                    xtype: 'linkbutton',
+                    autoEl: 'a',
+                    renderTpl: '<a class="linkButton" href=\"javascript:;\" id="{id}-btnEl">{text}</a>',
+                    config: {
+                        text: 'ادامه...',
+                        id: ID[i],
+                        handler: function () {
+                            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+                            Ext.net.DirectMethod.request({
+                                url: '/Home/GotoNExtEtelaiie',
+                                params: {
+                                    ID: this.id
+                                },
+                                success: function (data) {
+                                    Ext.net.Mask.hide();
+                                }
+                            });
+                        }
+                    },
+                    initComponent: function () {
+                        var me = this;
+                        me.callParent(arguments);
+
+                        this.renderData = {
+                            text: this.getText()
+                        };
+                    },
+                    onRender: function (ct, position) {
+                        var me = this,
+                            btn;
+
+                        me.addChildEls('btnEl');
+
+                        me.callParent(arguments);
+
+                        btn = me.btnEl;
+
+                        me.mon(btn, 'click', me.onClick, me);
+                    },
+                    onClick: function (e) {
+                        var me = this;
+                        if (me.preventDefault || (me.disabled && me.getHref()) && e) {
+                            e.preventDefault();
+                        }
+                        if (e.button !== 0) {
+                            return;
+                        }
+                        if (!me.disabled) {
+                            me.fireHandler(e);
+                        }
+                    },
+                    fireHandler: function (e) {
+                        var me = this,
+                            handler = me.handler;
+
+                        me.fireEvent('click', me, e);
+                        if (handler) {
+                            handler.call(me.scope || me, me, e);
+                        }
+                    }
+                });
+                App.PnlAnnouncemenContainerNotSeen.add(fieldset);
+                fieldset.add(LblEtela);
+                fieldset.add(BtnEtela);
+            }
+
+        }
+        else {
+            App.AnnouncementWin.close();
+        }
+    }
+    function loadEtelaie() {
+        var type = 0;
+        if (App.AnnouncementWin.queryById("RadioNotSeen").checked == true) {
+            type = 1;
+        }
+        App.PnlAnnouncemenContainerNotSeen.items.each(function () {
+            App.PnlAnnouncemenContainerNotSeen.items.items[0].destroy();
+        });
+        Ext.net.DirectMethod.request({
+            url: '/Faces/Admin/GetAnnoncement',
+            params: {
+                type: type
+            },
+            success: function (data) {
+                var TitleHa = data.EtelaieTitleAll;
+                var IDha = data.EtelaieIDAll;
+                var k = TitleHa.split(';');
+                var ID = IDha.split(';');
+                var txt = "";
+                for (var i = 0; i < k.length - 1; i++) {
+                    var fieldset = Ext.create('Ext.form.FieldSet', {
+                        border: false
+                    });
+                    var LblEtela = Ext.create('Ext.form.Label', {
+                        text: k[i],
+                        xtype: 'iconlabel',
+                        iconCls: 'Enter',
+                        padding: "0 5px 0 10px"
+                    });
+                    /*start*/
+                    var BtnEtela = Ext.define('LinkButton', {
+                        extend: 'Ext.Component',
+                        xtype: 'linkbutton',
+                        autoEl: 'a',
+                        renderTpl: '<a class="linkButton" href=\"javascript:;\" id="{id}-btnEl">{text}</a>',
+                        config: {
+                            text: 'ادامه...',
+                            id: ID[i],
+                            handler: function () {
+                                Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+                                Ext.net.DirectMethod.request({
+                                    url: '/Home/GotoNExtEtelaiie',
+                                    params: {
+                                        ID: this.id
+                                    },
+                                    success: function (data) {
+                                        Ext.net.Mask.hide();
+                                    }
+                                });
+                            }
+                        },
+                        initComponent: function () {
+                            var me = this;
+                            me.callParent(arguments);
+
+                            this.renderData = {
+                                text: this.getText()
+                            };
+                        },
+                        onRender: function (ct, position) {
+                            var me = this,
+                                btn;
+
+                            me.addChildEls('btnEl');
+
+                            me.callParent(arguments);
+
+                            btn = me.btnEl;
+
+                            me.mon(btn, 'click', me.onClick, me);
+                        },
+                        onClick: function (e) {
+                            var me = this;
+                            if (me.preventDefault || (me.disabled && me.getHref()) && e) {
+                                e.preventDefault();
+                            }
+                            if (e.button !== 0) {
+                                return;
+                            }
+                            if (!me.disabled) {
+                                me.fireHandler(e);
+                            }
+                        },
+                        fireHandler: function (e) {
+                            var me = this,
+                                handler = me.handler;
+
+                            me.fireEvent('click', me, e);
+                            if (handler) {
+                                handler.call(me.scope || me, me, e);
+                            }
+                        }
+                    });
+                    App.PnlAnnouncemenContainerNotSeen.add(fieldset);
+                    fieldset.add(LblEtela);
+                    fieldset.add(BtnEtela);
+                }
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+    function ExistUserSecond() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: "/Home/ExistUserSecond",
+            params: {
+
+            },
+            success: function () {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+    var treeRefresh = 25;
+    $(document).ready(function () {
+
+        if ('@NameUserSecond' == "") {
+           /* document.getElementById("pnlInfoUser").style.height = "270px";*/
+            $("#lblExistUserSecond").hide();
+        }
+        else {
+          /*  document.getElementById("pnlInfoUser").style.height = "330px";*/
+            $("#lblExistUserSecond").show();
+        }
+
+        setInterval(function () {
+            treeRefresh++;
+
+            /*چک صف دانلود*/
+            Ext.net.DirectMethod.request({
+                url: "/RptBarname/CheckSafDl",
+                success: function (res) {
+                    if (res.Id != 0) {
+                        $.ajax({
+                            type: "POST",
+                            dataType: 'native',
+                            url: res.fldNameFunc,
+                            xhrFields: {
+                                responseType: 'blob'
+                            },
+                            data: {
+                                SafDlId: res.Id,
+                                sal: res.fldsal,
+                                Tasal: res.fldTasal,
+                                MalekId: res.fldMalekId,
+                                ContractId: res.fldContractId,
+                                ShVagon: res.fldShVagon,
+                                AzVagon: res.fldAzVagon,
+                                TaVagon: res.fldTaVagon,
+                                TypeVagon: res.fldTypeVagon,
+                                State: res.fldState,
+                                JozeeM: res.fldJozeeM,
+                                KoliM: res.fldKoliM,
+                                JozeeF: res.fldJozeeF,
+                                KoliF: res.fldKoliF,
+                                JozeeY: res.fldJozeeY,
+                                KoliY: res.fldKoliY
+                            },
+                            success: function (blob) {
+                                App.CheckedWin.body.mask().hide();
+                                x = blob;
+                                var link = document.createElement('a');
+                                link.href = window.URL.createObjectURL(blob);
+                                link.download = "AllFile" + res.fldsal + "_" + res.fldTasal + ".xlsx";
+                                link.click();
+                            },
+                            timeout: 720000000
+                        });
+                    }
+                }
+            });
+
+            if (treeRefresh == 30) {
+                treeRefresh = 0;
+                /*Ext.net.DirectMethod.request({
+                    url: '/Ticket/CheckHavePm',
+                    success: function (data) {
+                        $('#lblUserOnline').html('تعداد کاربران آنلاین: ' + data.UserOnline);
+                        if (data.Have) {
+                            Ext.net.Notification.show({
+                                hideFx: {
+                                    fxName: 'switchOff'
+                                },
+                                showFx: {
+                                    fxName: 'slideIn',
+                                    args: [
+                                           'b', {
+                                               easing: 'bounceOut',
+                                               duration: 1000
+                                           }
+                                    ]
+                                },
+                                pinEvent: 'click',
+                                alignToCfg: {
+                                    offset: [-40, -25],
+                                    position: 'br-br'
+                                },
+                                html: "<ul>" + data.txt + "</ul>",
+                                title: 'پیام ها: ',
+                                width: 200,
+                                height: 80
+                            });
+                        }
+                    }
+                });*/
+            }
+        }, 1000);
+    })
+</script>
+
+<style>
+    #pnlUser-innerCt {
+        background-color: white;
+    }
+
+    #pnlCom-innerCt {
+        background-color: white;
+    }
+
+    #pnlHelp {
+        background-color: white;
+    }
+</style>

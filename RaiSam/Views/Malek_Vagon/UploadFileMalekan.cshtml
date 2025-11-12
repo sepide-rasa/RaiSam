@@ -1,0 +1,151 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net.Utilities
+@using Ext.Net;
+@{
+
+    var X = Html.X();
+}
+
+<style>
+    .lblredd {
+        color: red;
+    }
+</style>
+
+@(X.Window()
+    .Title("بارگذاری فایل مالکان")
+    .Modal(true)
+    .Border(false)
+    .ID("ExcelFileMalek")
+    .Closable(true)
+    .AutoScroll(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Width(520)
+    .Layout(LayoutType.Fit)
+    .ButtonAlign(Alignment.Center)
+    .Buttons(
+        X.Button()
+            .Text("خروج")
+            .Icon(Ext.Net.Icon.DoorOut)
+            .OnClientClick("App.ExcelFileMalek.destroy()")
+        //    ,
+        //X.Button()
+        //    .Text("تست سامانه ایمنی")
+        //    .Icon(Ext.Net.Icon.DoorOut)
+        //    .Listeners(l=>l.Click.Handler="sendSafety()")
+    )
+    .Items(
+        X.FormPanel()
+            .Border(false)
+            .Layout(LayoutType.VBox)
+            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+            .Items(
+                X.FieldSet()
+                    .Border(true)
+                   // .Title("انتخاب نوبت پرداخت ارسال معوقه")
+                    .Defaults(new { Margin = 2 })
+                    .Layout(LayoutType.Table)
+                    .LayoutConfig(new TableLayoutConfig { Columns = 4 })
+                    .Items(
+
+                        X.Label("نوع سامانه:"),
+                        X.ComboBox()
+                            .ItemID("CboType")
+                            .Editable(true)
+                            .ForceSelection(true)
+                            .TypeAhead(true)
+                            .AllowBlank(false)
+                            .BlankText("لطفا نوع را انتخاب کنید.")
+                            .QueryMode(DataLoadMode.Local)
+                            .TriggerAction(TriggerAction.All)
+                            .Items(
+                                new ListItem("باری", "0"),
+                                    new ListItem("مسافری", "1"),
+                                    new ListItem("لکوموتیو", "2")
+                                ).SelectedItems(new { Value = "0" })
+                                //.ColSpan(3)
+                                ,
+                       
+                        X.FileUploadField()
+                            .ButtonOnly(true).ButtonText("آپلود فایل اکسل")
+                        //    .ColSpan(6)
+                            .PaddingSpec("0 29px 0 0")
+                            .DirectEvents(l =>
+                            {
+                                l.Change.Action = "UploadExcelFileMalek";
+                                l.Change.Success = "hideprogressExcelFileMalek();";
+                            })
+                            .Listeners(l => l.Change.Fn = "showFileExcelMalek")
+                            .Icon(Ext.Net.Icon.DiskUpload)
+                    )
+        )
+    )
+)
+<script type="text/javascript">
+
+    var MojazExcelFileMalek = 0;
+    var EndUploadExcelFileMalek = false;
+
+    var CheckExcelFileMalek = setInterval(CheckEndExcelFileMalek, 500);
+
+    function CheckEndExcelFileMalek() {
+        if (EndUploadExcelFileMalek == true) {
+            Ext.MessageBox.hide();
+            clearInterval(CheckEndExcelFileMalek);
+            EndUploadExcelFileMalek = false;
+            Ext.net.Mask.show({ msg: 'فایل با موفقیت آپلود شد. در حال ذخیره سازی....' });
+          Ext.net.DirectMethod.request({
+              url: '/Malek_Vagon/SaveMalekExcel',
+              params:{
+                    TypeM: App.ExcelFileMalek.queryById('CboType').getValue()
+                },
+                success: function (data) {
+                    var ic = Ext.MessageBox.INFO;
+                    if (data.Er == 1)
+                        ic = Ext.MessageBox.ERROR;
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: ic,
+                        buttons: Ext.MessageBox.OK
+                    });
+                    Ext.net.Mask.hide();
+                },
+                timeout: 90000
+            });
+        }
+    }
+
+    var showFileExcelMalek = function (fb, v) {
+        if (v) {
+            showProgressBarExcelFileMalek();
+            if (v.split('.').pop().toLowerCase() == "xls" || v.split('.').pop().toLowerCase() == "xlsx") {
+                MojazExcelFileMalek = 1;
+            }
+        }
+    };
+
+    function hideprogressExcelFileMalek() {
+        if (MojazExcelFileMalek == 1) {
+            EndUploadExcelFileMalek = true;
+        }
+        MojazExcelFileMalek = 0;
+    }
+
+    function showProgressBarExcelFileMalek() {
+        Ext.MessageBox.show({
+            msg: 'لطفاً منتظر باشید',
+            progressText: 'در حال آپلود فایل...',
+            width: 300,
+            wait: true,
+            waitConfig:
+            {
+                interval: 200,
+                text: 'در حال آپلود فایل...',
+                scope: this
+            }
+        });
+    }
+
+</script>

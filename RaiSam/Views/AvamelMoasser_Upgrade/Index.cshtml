@@ -1,0 +1,207 @@
+﻿@model IEnumerable<RaiSam.Models.prs_tblAvamelMoasser_UpgradeSelect>
+@using Ext.Net.MVC;
+@{
+
+    var X = Html.X();
+}
+
+
+
+@(X.Panel().Border(false).Listeners(li => { li.AfterRender.Handler = "AvamelMoasserSetSize();"; })
+.Title("عوامل موثر بر چرخه")
+               .ID("AvamelMoasser")
+            .Closable(true)
+            .AutoScroll(true)
+            .CloseAction(Ext.Net.CloseAction.Destroy)
+            .Items(
+                    X.AntiForgeryField()
+                .ItemID("antiForgeryToken")
+                .Hidden(true),
+                X.Panel().Border(false)
+                .Border(false)
+                .AutoScroll(true)
+                .Items(
+                    X.GridPanel().AutoScroll(true)
+                        .TopBar(
+                        Html.X().Toolbar()
+                        .Items(
+                            X.Button().Text("جدید").Icon(Ext.Net.Icon.Add)
+                                        .Listeners(li => li.Click.Handler = "NewAvamelMoasser();"),
+                            X.Button().Text("ویرایش").Icon(Ext.Net.Icon.Pencil)
+                                        .Listeners(Li => Li.Click.Handler = "EditAvamelMoasser();"),
+                            X.Button().Text("حذف").Icon(Ext.Net.Icon.Delete)
+                                .Listeners(de =>
+                                {
+                                    de.Click.Handler = "DeleteAvamelMoasser();";
+                                })
+                           , X.SplitButton()
+                                    .Text("راهنما")
+                                    .Icon(Ext.Net.Icon.Help)
+                                    .Menu(X.Menu()
+                                    .Items(
+                                    X.MenuItem()
+                                                .Text("راهنما متنی")
+                                                .Icon(Ext.Net.Icon.TextPaddingTop)
+                                                            .Listeners(l => l.Click.Handler = "HelpAvamelMoasser()"),
+                                        X.MenuItem()
+                                                .Text("راهنما تصویری")
+                                                .Icon(Ext.Net.Icon.PlayBlue)
+                                                    .Listeners(l => l.Click.Handler = "showHelp_VideoAvamelMoasser()")
+
+                                )
+                            )
+                        )
+                    )
+                    .ItemID("GridAvamelMoasser")
+                    .BottomBar(X.PagingToolbar())
+                    .Store(
+                        X.StoreForModel()
+                            .Listeners(l => l.BeforeLoad.Handler = "App.AvamelMoasser.queryById('GridAvamelMoasser').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.AvamelMoasser.queryById('antiForgeryToken').getValue());")
+                        .Proxy(Html.X().AjaxProxy()
+                            .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                            .Url(Url.Action("Read"))
+                            .Reader(Html.X().JsonReader().Root("data"))
+
+                        )
+                        .PageSize(20)
+                        .RemoteFilter(true)
+                        .RemotePaging(true)
+                        .Listeners(l => l.DataChanged.Handler = "App.AvamelMoasser.queryById('GridAvamelMoasser').selModel.refresh();")
+                    )
+                    .View(
+                        Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                    )
+                    .Plugins(X.FilterHeader().Remote(true))
+                         .Listeners(l =>
+                         {
+                             l.AfterRender.Handler = "var grid = App.AvamelMoasser.queryById('GridAvamelMoasser');grid.setHeight(App.OperationWin.getHeight() - 83); ";
+
+                         })
+                    .ColumnModel(
+                        Html.X().RowNumbererColumn(),
+                               Html.X().Column().DataIndex(Model, m => m.fldId).Text("کد").Hidden(true).Flex(1),
+                           Html.X().Column().DataIndex(Model, m => m.fldName).Text("نام آیتم").Flex(2),
+                           Html.X().Column().DataIndex(Model, m => m.fldEnglishNameFormul).Text("نام انگلیسی در فرمول").Flex(2),
+                           Html.X().Column().DataIndex(Model, m => m.fldDesc).Text("توضیحات").Flex(10)
+                    )
+                    .SelectionModel(
+                        Html.X().RowSelectionModel()
+                            .Mode(Ext.Net.SelectionMode.Single)
+                    )
+            )
+        )
+)
+
+<script type="text/javascript">
+    function showHelp_VideoAvamelMoasser() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/AvamelMoasser_Upgrade/VideoWinAvamelMoasser',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+
+    }
+    function AvamelMoasserSetSize() {
+        App.AvamelMoasser.setWidth(App.OperationWin.getWidth());
+        var grid = App.AvamelMoasser.queryById('GridAvamelMoasser');
+        grid.setHeight(App.OperationWin.getHeight() - 83);
+        InsertToLog("عوامل موثر بر چرخه",2, true);
+    }
+    function NewAvamelMoasser() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/AvamelMoasser_Upgrade/new',
+            params: {
+                id: 0
+            },
+            success: function () {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+    function EditAvamelMoasser() {
+        var SelectedRow = App.AvamelMoasser.queryById('GridAvamelMoasser').selModel.getLastSelected();
+
+        if (SelectedRow != null) {
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/AvamelMoasser_Upgrade/new',
+                params: {
+                    id: SelectedRow.data.fldId
+                },
+                success: function () {
+                    Ext.net.Mask.hide();
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+
+    function DeleteAvamelMoasser() {
+        var SelectedHeaderRow = App.AvamelMoasser.queryById('GridAvamelMoasser').selModel.getLastSelected();
+        if (SelectedHeaderRow != null) {
+            Ext.MessageBox.show({
+                title: "هشدار",
+                msg: "آیا برای حذف مطمئن هستید؟",
+                icon: Ext.MessageBox.WARNING,
+                buttons: Ext.MessageBox.YESNO,
+                fn: function (btn) {
+                    if (btn == 'yes') {
+                        Ext.net.Mask.show({ msg: 'در حال انجام عملیات...' });
+                        Ext.net.DirectMethod.request({
+                            url: '/AvamelMoasser_Upgrade/Delete',
+                            params: {
+                                id: SelectedHeaderRow.data.fldId,
+                                __RequestVerificationToken: App.AvamelMoasser.queryById('antiForgeryToken').getValue()
+                            },
+                            success: function (data) {
+                                chat.server.reloadLog();
+                                var ic = Ext.MessageBox.INFO;
+                                if (data.Er == 1) {
+                                    ic = Ext.MessageBox.ERROR;
+                                }
+                                Ext.MessageBox.show({
+                                    title: data.MsgTitle,
+                                    msg: data.Msg,
+                                    icon: ic,
+                                    buttons: Ext.MessageBox.OK
+                                });
+                                App.AvamelMoasser.queryById('GridAvamelMoasser').store.load();
+                                Ext.net.Mask.hide();
+                            }
+                        });
+                    }
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+    function HelpAvamelMoasser() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/AvamelMoasser_Upgrade/Help',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+</script>
+
+
+

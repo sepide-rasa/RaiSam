@@ -1,0 +1,77 @@
+﻿@model IEnumerable<RaiSam.Models.prs_SelectVersionInformation>
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@using Ext.Net.Utilities;
+@{
+    var X = Html.X();
+}
+<script src="~/Scripts/jquery-ajax-native.js"></script>
+<script>
+    Ext.net.FilterHeader.behaviour.string[0].match = function (recordValue, matchValue) {
+        return (Ext.net.FilterHeader.behaviour.getStrValue(recordValue) || "").indexOf(matchValue) > -1;
+    };
+
+    Ext.net.FilterHeader.behaviour.string[0].getStrValue = function (value) {
+        return value.toString();
+    };
+
+    Ext.net.FilterHeader.behaviour.string[0].serialize = function (value) {
+        return {
+            type: "string",
+            op: "*",
+            value: value
+        };
+    };
+</script>
+@(Html.X().Window()
+    .Closable(true)
+    .Title("توضیحات ورژن")
+    .ID("DescVersion")
+    .Width(615)
+    .Height(283)
+    .AutoScroll(true)
+    .Modal(true)
+    .Resizable(false)
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Layout(LayoutType.VBox)
+    .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+    .Items(
+         X.AntiForgeryField()
+        .ItemID("antiForgeryToken")
+        .Hidden(true),
+
+                X.GridPanel()//.Frame(true)
+                    .AutoScroll(true)
+                    .Border(true)
+                        .ItemID("GridDescVersion")
+                    .BottomBar(X.PagingToolbar())
+                    .Plugins(X.FilterHeader().Remote(false))
+                    .Width(600)
+                    .Height(250)
+                    .Store(
+                        X.StoreForModel()
+                                .Listeners(l => l.BeforeLoad.Handler = "App.DescVersion.queryById('GridDescVersion').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.DescVersion.queryById('antiForgeryToken').getValue());")
+                                .Listeners(l => l.DataChanged.Handler = "App.DescVersion.queryById('GridDescVersion').selModel.refresh();")
+                            .Proxy(Html.X().AjaxProxy()
+                                .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                     .Url(Url.Action("ReadDetailVersion"))
+                                .Reader(Html.X().JsonReader().Root("data"))
+                                 .ExtraParams(pa => pa.Add(new { VersionId = ViewBag.VersionId }))
+                            )
+                            .PageSize(10)
+                            .RemoteFilter(false)
+                            .RemotePaging(false)
+                    )
+                    .View(
+                        Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                    )
+                    .ColumnModel(
+                        Html.X().RowNumbererColumn(),
+                            Html.X().Column().DataIndex(Model, m => m.fldId).Text("کد").Flex(1).Hidden(true),
+                              Html.X().Column().DataIndex(Model, m => m.fldSharhShow).Text("شرح ورژن").Flex(3).Wrap(true)
+                    )
+        )
+)
+

@@ -1,0 +1,166 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net.Utilities
+@using Ext.Net;
+@{
+
+    var X = Html.X();
+}
+
+<style>
+    .lblredd {
+        color: red;
+    }
+</style>
+
+@(X.Window()
+    .Title("بارگذاری فایل پرژه ها")
+    .Modal(true)
+    .Border(false)
+    .ID("ExcelFileProject")
+    .Closable(true)
+    .AutoScroll(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Width(520)
+    .Layout(LayoutType.Fit)
+    .ButtonAlign(Alignment.Center)
+    .Buttons(
+        X.Button()
+            .Text("خروج")
+            .Icon(Ext.Net.Icon.DoorOut)
+            .OnClientClick("App.ExcelFileProject.destroy()")
+        //    ,
+        //X.Button()
+        //    .Text("تست سامانه ایمنی")
+        //    .Icon(Ext.Net.Icon.DoorOut)
+        //    .Listeners(l=>l.Click.Handler="sendSafety()")
+    )
+    .Items(
+        X.FormPanel()
+            .Border(false)
+            .Layout(LayoutType.VBox)
+            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+            .Items(
+                X.FieldSet()
+                    .Border(true)
+                  //  .Title("انتخاب نوبت پرداخت ارسال معوقه")
+                    .Defaults(new { Margin = 2 })
+                    .Layout(LayoutType.Table)
+                    .LayoutConfig(new TableLayoutConfig { Columns = 4 })
+                    .Items(
+
+                        X.Label("نوع سامانه:"),
+                        X.ComboBox()
+                            .ItemID("CboType")
+                            .Editable(true)
+                            .ForceSelection(true)
+                            .TypeAhead(true)
+                            .AllowBlank(false)
+                            .BlankText("لطفا نوع را انتخاب کنید.")
+                            .QueryMode(DataLoadMode.Local)
+                            .TriggerAction(TriggerAction.All)
+                            .Items(
+                                new ListItem("باری", "0"),
+                                    new ListItem("مسافری", "1"),
+                                    new ListItem("لکوموتیو", "2")
+                                ).SelectedItems(new { Value = "0" })
+                                //.ColSpan(3)
+                                ,
+                                 X.Label("کاربری واگن:"),
+                        X.ComboBox()
+                                .ItemID("CboKarbari")
+                            .Editable(true)
+                            .ForceSelection(true)
+                            .TypeAhead(true)
+                            .AllowBlank(false)
+                            .BlankText("لطفا نوع را انتخاب کنید.")
+                            .QueryMode(DataLoadMode.Local)
+                            .TriggerAction(TriggerAction.All)
+                            .Items(
+                                new ListItem("باری", "0"),
+                                    new ListItem("مسافری", "1")
+                                ).SelectedItems(new { Value = "0" })
+                                ,
+                        X.FileUploadField()
+                            .ButtonOnly(true).ButtonText("آپلود فایل اکسل")
+                            .ColSpan(6)
+                            .PaddingSpec("0 29px 0 0")
+                            .DirectEvents(l =>
+                            {
+                                l.Change.Action = "UploadExcelFileProject";
+                                l.Change.Success = "hideprogressExcelFileProject();";
+                            })
+                            .Listeners(l => l.Change.Fn = "showFileExcelProject")
+                            .Icon(Ext.Net.Icon.DiskUpload)
+                    )
+        )
+    )
+)
+<script type="text/javascript">
+
+    var MojazExcelFileProject = 0;
+    var EndUploadExcelFileProject = false;
+
+    var CheckExcelFileProject = setInterval(CheckEndExcelFileProject, 500);
+
+    function CheckEndExcelFileProject() {
+        if (EndUploadExcelFileProject == true) {
+            Ext.MessageBox.hide();
+            clearInterval(CheckEndExcelFileProject);
+            EndUploadExcelFileProject = false;
+            Ext.net.Mask.show({ msg: 'فایل با موفقیت آپلود شد. در حال ذخیره سازی....' });
+          Ext.net.DirectMethod.request({
+              url: '/contract_project/SaveProjectExcel',
+              params:{
+                  KarbariVagon: App.ExcelFileProject.queryById('CboKarbari').getValue(),
+                  TypeSamane: App.ExcelFileProject.queryById('CboType').getValue()
+                },
+                success: function (data) {
+                    var ic = Ext.MessageBox.INFO;
+                    if (data.Er == 1)
+                        ic = Ext.MessageBox.ERROR;
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: ic,
+                        buttons: Ext.MessageBox.OK
+                    });
+                    Ext.net.Mask.hide();
+                },
+                timeout: 90000
+            });
+        }
+    }
+
+    var showFileExcelProject = function (fb, v) {
+        if (v) {
+            showProgressBarExcelFileProject();
+            if (v.split('.').pop().toLowerCase() == "xls" || v.split('.').pop().toLowerCase() == "xlsx") {
+                MojazExcelFileProject = 1;
+            }
+        }
+    };
+
+    function hideprogressExcelFileProject() {
+        if (MojazExcelFileProject == 1) {
+            EndUploadExcelFileProject = true;
+        }
+        MojazExcelFileProject = 0;
+    }
+
+    function showProgressBarExcelFileProject() {
+        Ext.MessageBox.show({
+            msg: 'لطفاً منتظر باشید',
+            progressText: 'در حال آپلود فایل...',
+            width: 300,
+            wait: true,
+            waitConfig:
+            {
+                interval: 200,
+                text: 'در حال آپلود فایل...',
+                scope: this
+            }
+        });
+    }
+
+</script>

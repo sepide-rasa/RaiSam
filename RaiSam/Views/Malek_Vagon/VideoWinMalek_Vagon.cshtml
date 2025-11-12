@@ -1,0 +1,28 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+
+@using Ext.Net.MVC;
+
+@(
+ Html.X().Window().Listeners(l => l.BeforeClose.Handler = "CloseVideoMalek_Vagon()")
+             .Height(565)
+         .Width(1000)
+                        .ID("VideoMalek_Vagon")
+        .Closable(true)
+            .Title("راهنمای تصویری مالکان واگن")
+        .AutoScroll(true)
+        .Closable(true)
+            .Maximizable(true)
+        .Content(@<video width="100%;" id="AmozeshVideoMalek_Vagon" controls="true" autoplay="true" controls><source src='@Url.Action("DownloadFileVideoMalek_Vagon", "Malek_Vagon")' type="video/mp4"></video>)
+
+)
+<script type="text/javascript">
+    function CloseVideoMalek_Vagon() {
+        $('#AmozeshVideoMalek_Vagon')[0].pause();
+    }
+
+</script>

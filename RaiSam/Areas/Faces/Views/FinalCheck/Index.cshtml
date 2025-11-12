@@ -1,0 +1,176 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@using Ext.Net.Utilities
+@{
+
+    var X = Html.X();
+}
+
+@(X.Window()
+        // .Height(300)
+    .Width(530)
+    .Modal(true)
+    .ID("NewFinalCheckWin")
+    .Listeners(l=>l.AfterRender.Handler="FormLoadFinal()")
+    .Title("ارسال برای بررسی")
+    .Icon(Ext.Net.Icon.PageAdd)
+    .Closable(true)
+    .Border(false)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Layout(Ext.Net.LayoutType.Fit)
+    .ButtonAlign(Ext.Net.Alignment.Center)
+    .Buttons(
+        Html.X().Button()
+            .Text("ارسال")
+            .ItemID("btnErsal")
+            .Icon(Icon.Disk)
+            .Listeners(l => l.Click.Handler = "SaveNewFinalCheck();"),
+        Html.X().Button()
+            .Text("خروج")
+            .Icon(Icon.BulletCross)
+            .Listeners(l => l.Click.Handler = "App.NewFinalCheckWin.destroy()")
+    )
+        .Items(
+            X.Panel()
+                .MarginSpec("10px 0 10px 0")
+                .ItemID("PnlNewFinalCheck")
+                .Border(false)
+                .Layout(LayoutType.VBox)
+                    .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+                    .Defaults(new { Margin = 10 })
+                .Items(
+
+                 X.AntiForgeryField().ItemID("AntiForgeryField"),
+              
+                X.FieldSet()
+                .Title("مشخصات")
+                .ItemID("test")
+                .Height(78)
+                .Defaults(new { Margin = 2 })
+                .Layout(LayoutType.Table)
+                .LayoutConfig(new TableLayoutConfig { Columns = 2 })
+                .Border(true)
+                .Items(
+                            /* X.Label(ViewBag.Title).ColSpan(2).Width(400),*/
+                             X.Label("پروژه:"),
+                            X.ComboBox()
+                        .ItemID("cboProject").ReadOnly(true)
+                            .Editable(false).Width(400)
+                            .AllowBlank(false)
+                                    .BlankText("لطفاً پروژه را انتخاب نمایید.")
+                            .TypeAhead(true)
+                            .LabelAlign(Ext.Net.LabelAlign.Right)
+                            .QueryMode(Ext.Net.DataLoadMode.Local)
+                            .DisplayField("Name")
+                            .ValueField("ID")
+                                    .EmptyText("پروژه")
+                            .Store(
+                                X.Store()
+                         .Listeners(l => l.Load.Handler = "setDefaultProj();")
+                              .Listeners(l => l.BeforeLoad.Handler = "App.NewFinalCheckWin.queryById('cboProject').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.NewFinalCheckWin.queryById('AntiForgeryField').getValue());")
+                                    .Model(X.Model()
+                                        .IDProperty("ID")
+                                        .Fields(
+                                            new Ext.Net.ModelField("ID", Ext.Net.ModelFieldType.String) { Mapping = "Id" },
+                                            new Ext.Net.ModelField("Name", Ext.Net.ModelFieldType.String) { Mapping = "Name" }))
+                                        .Proxy(X.AjaxProxy()
+                                            .ActionMethods(l => l.Read = HttpMethod.POST)
+                                                .Url(Url.Action("GetProject"))
+                                    .Reader(X.JsonReader().Root("data")))
+                        )
+                        ,
+                            X.Label("ارسال به:"),
+                            X.ComboBox()
+                        .ItemID("cboCharkhe")
+                            .Editable(false).Width(400).ReadOnly(true)
+                            .AllowBlank(false)
+                                    .BlankText("لطفاً چرخه را انتخاب نمایید.")
+                            .TypeAhead(true)
+                            .LabelAlign(Ext.Net.LabelAlign.Right)
+                            .QueryMode(Ext.Net.DataLoadMode.Local)
+                            .DisplayField("Name")
+                            .ValueField("ID")
+                                .EmptyText("چرخه")
+                            .Store(
+                                X.Store()
+                         .Listeners(l => l.Load.Handler = "setDefaulta();")
+                          .Listeners(l => l.BeforeLoad.Handler = "App.NewFinalCheckWin.queryById('cboCharkhe').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.NewFinalCheckWin.queryById('AntiForgeryField').getValue());")
+                                    .Model(X.Model()
+                                        .IDProperty("ID")
+                                        .Fields(
+                                            new Ext.Net.ModelField("ID", Ext.Net.ModelFieldType.String) { Mapping = "Id" },
+                                            new Ext.Net.ModelField("Name", Ext.Net.ModelFieldType.String) { Mapping = "Name" }))
+                                        .Proxy(X.AjaxProxy()
+                                            .ActionMethods(l => l.Read = HttpMethod.POST)
+                                            .Url(Url.Action("GetCharkhe"))
+                                    .Reader(X.JsonReader().Root("data")))
+                        )
+       
+                                
+                            
+
+                )
+                )
+)
+)
+<script>
+    function FormLoadFinal() {
+        if ('@ViewBag.IsInClient' == 0)
+            App.NewFinalCheckWin.queryById('btnErsal').setDisabled(true);
+    }
+    function setDefaulta() {
+        var cboCharkhe = App.NewFinalCheckWin.queryById('cboCharkhe');
+        cboCharkhe.select(cboCharkhe.store.getAt(0));
+    }
+    function setDefaultProj() {
+        var cboProject = App.NewFinalCheckWin.queryById('cboProject');
+        cboProject.select(cboProject.store.getAt(0));
+    }
+
+    function SaveNewFinalCheck() {
+        var cboCharkhe = App.NewFinalCheckWin.queryById('cboCharkhe');
+        var cboProject = App.NewFinalCheckWin.queryById('cboProject');
+
+        Ext.MessageBox.show({
+            title: "هشدار",
+            msg: "آیا برای ارسال پروژه مورد نظر اطمینان دارید؟",
+            icon: Ext.MessageBox.WARNING,
+            buttons: Ext.MessageBox.YESNO,
+            fn: function (btn) {
+                if (btn == 'yes') {
+                    Ext.net.Mask.show({ msg: 'در حال ورود...' });
+                    Ext.net.DirectMethod.request({
+                        url: "/Faces/FinalCheck/SaveEnterCycles",
+                        params: {
+                            ContractId: cboProject.getValue(),
+                            CharkheId: cboCharkhe.getValue(),
+                            __RequestVerificationToken: App.NewFinalCheckWin.queryById('AntiForgeryField').getValue()
+                        },
+                        success: function (data) {
+                            var ic = Ext.MessageBox.INFO;
+                            if (data.MsgTitle == "خطا") {
+                                ic = Ext.MessageBox.ERROR;
+                            }
+                            Ext.MessageBox.show({
+                                title: data.MsgTitle,
+                                msg: data.Msg,
+                                icon: ic,
+                                buttons: Ext.MessageBox.OK
+                            });
+                            Ext.net.Mask.hide();
+                            if (data.MsgTitle != "خطا") {
+                                App.NewFinalCheckWin.destroy();
+                                location.reload();
+                            }
+                            Ext.net.Mask.hide();
+                        }
+                    });
+                }
+            }
+        });
+        
+    }
+
+
+</script>

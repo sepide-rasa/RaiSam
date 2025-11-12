@@ -1,0 +1,15 @@
+﻿@using Ext.Net.MVC;
+
+@(
+ Html.X().Window()
+                         .ID("HelpTicketFormatFile")
+    .Modal(true)
+    .Width(1000)
+    .Height(600)
+    .Title("راهنمای فرمت های مجاز تیکت")
+    .AutoScroll(true)
+    .Closable(true)
+        //.Maximized(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+                                         .Html("<center><object class='se-pre-con' style='width: 100%;height: 565px;border: 1px solid #ccc;' type='application/pdf' data='/TicketFormatFile/ShowHelpTicketFormatFile" + "'></object></center>")
+)

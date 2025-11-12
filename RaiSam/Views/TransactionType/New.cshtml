@@ -1,0 +1,396 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+<style>
+    #fieldsetfilett legend {
+        text-align: right;
+        font-family: Tahoma !important;
+    }
+
+    #DeleteTransTypeFileimg:hover {
+        cursor: pointer;
+    }
+</style>
+
+@(Html.X().Window().Modal(true).Listeners(li => { li.Render.Fn = "addKeyMapTransactionType"; li.AfterRender.Handler = "LoadTransactionType();"; })
+.Width(580)//.Height(300)
+    .Title("تعریف نوع تراکنش")
+          .ID("NewTransactionType")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+        .ButtonAlign(Ext.Net.Alignment.Center)
+        .Buttons(X.Button().Text("ذخیره").Icon(Ext.Net.Icon.Disk)
+                    .Listeners(l =>
+                    {
+                        l.Click.Handler = "SaveTransactionType();";
+
+                    })
+                            .ItemID("btnSaveTransactionType")
+                    ,
+                    X.Button().Text("خروج").Icon(Ext.Net.Icon.DoorOut).ToolTip("کلید میانبر Esc")
+                            .OnClientClick("App.NewTransactionType.hide();"))
+    .Items(
+         X.AntiForgeryField()
+                .ItemID("antiForgeryToken").Hidden(true),
+            X.Panel().Border(false)
+            .Items(
+                X.FieldSet().Border(true).Title("نوع تراکنش")
+                .Center()
+                .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 4 })
+                .Defaults(new { Margin = 2 })
+                .Items(
+                X.Hidden().ItemID("fldId"),
+                     X.Label("عنوان گروه تراکنش:"),
+                     X.TextField()
+                     .Width(200)
+                     .ItemID("txtTitle")
+                    .MaxLength(100)
+                    .EnforceMaxLength(true)
+                    .AllowBlank(false)//.MaskRe("[1-9 ,),(,ا-ی-آ-ئ-ء]")
+                    .BlankText("لطفا عنوان را وارد کنید.")
+                    .AutoFocus(true)
+                    , X.Label("گروه تراکنش:"),
+                        X.ComboBox()
+                            .ItemID("CboTranGroup")
+                            .TypeAhead(true)
+                            .Editable(true)
+                            .ForceSelection(true)
+                            .QueryMode(DataLoadMode.Local)
+                            .TriggerAction(TriggerAction.All)
+                            .AllowBlank(false)
+                            .BlankText("لطفا گروه تراکنش را انتخاب کنید.")
+                            .DisplayField("fldName")
+                            .ValueField("fldId")
+                            .EmptyText("گروه تراکنش...")
+        //.Width(300)
+                            .Store(X.Store()
+        // .Listeners(l => l.Load.Handler = "LoadTransactionType();")
+                                .Model(X.Model()
+                                    .IDProperty("fldId")
+                                    .Fields(
+                                        new ModelField("fldId", ModelFieldType.String) { Mapping = "fldId" },
+                                        new ModelField("fldName", ModelFieldType.String) { Mapping = "fldName" }
+                                        )
+                                )
+                                                .Listeners(l => l.BeforeLoad.Handler = "App.NewTransactionType.queryById('CboTranGroup').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.NewTransactionType.queryById('antiForgeryToken').getValue());")
+                                .Proxy(Html.X().AjaxProxy()
+                                .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                        .Url(Url.Action("GetTransactionGroup"))
+                                    .Reader(X.JsonReader().Root("data"))
+                                )
+                        ),
+                        X.FieldSet()
+                            .Border(true)
+                            .AutoScroll(true)
+                            .ColSpan(4)
+                            .Title("انتخاب فایل(حداکثر حجم مجاز: 300KB)")
+                            .ID("fieldsetfilett")
+                            .Layout(LayoutType.HBox)
+                            .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Middle })
+                            .Items(
+                                X.FormPanel()
+                                    .Border(false)
+                                    .Layout(LayoutType.HBox)
+                                    .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Middle })
+                                    .Width(430)
+                                    .Items(
+                                        X.FileUploadField()
+                                            .MarginSpec("0 10px 10px 0")
+                                            .Icon(Ext.Net.Icon.DiskUpload)
+                                            .ButtonOnly(true)
+                                            .ButtonText("انتخاب فایل")
+                                            .DirectEvents(l =>
+                                            {
+                                                l.Change.Action = "Upload";
+                                                l.Change.Delay = 1000;
+                                                l.Change.Before = "if(GotoServertt==false){return false;}";
+                                                l.Change.Success = "hideprogresstt";
+                                            })
+                                            .Listeners(l => l.Change.Fn = "showFilett"),
+                                        X.Container()
+                                            .Content(@<div id="fi-button-msgtt" class="Wrap-label" style="width:310px;height:auto;text-align:right;"><b>فایل انتخاب شده:</b></div>)
+                                        ),
+                                X.Panel()
+                                    .Border(false)
+                                    .Layout(LayoutType.VBox)
+                                    .LayoutConfig(new VBoxLayoutConfig { Align=VBoxAlign.Center})
+                                    .Items(
+                                        X.Label("پیش نمایش"),
+                                        X.Panel()
+                                            .Frame(true)
+                                            .MarginSpec("3px 0 0 0")
+                                            .Layout(LayoutType.Fit)
+                                            .Items(
+                                                X.Image()
+                                                    .ItemID("Image")
+                                                    .MarginSpec("3px 0 0 0")
+                                                    .Flex(1)
+                                                    .ImageUrl("/Content/icon/Blank.jpg")
+                                                    .Width(40)
+                                                    .Height(40)
+                                                    .Border(true)
+                                                    .Frame(true)
+                                            )
+                                        )
+                            )
+                        )
+
+                )
+                    .Layout(Ext.Net.LayoutType.VBox)
+                    .LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Center })
+        )
+)
+<script type="text/javascript">
+    var EndUploadtt = false;
+    var FileId = 0;
+    var GotoServertt = false;
+
+    var hideprogresstt = function (Responsdtxt, ResponseObj) {
+        if (ResponseObj.IsValid == true) {
+            EndUploadtt = true;
+        }
+        else {
+            var el = Ext.get('fi-button-msgtt');
+            GotoServertt = false;
+            clearInterval(CheckEndtt);
+            EndUploadtt = false;
+            el.update('<b>فایل انتخاب شده:</b> ');
+            App.NewTransactionType.queryById('Image').setImageUrl("/Content/icon/Blank.jpg");
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: ResponseObj.Message,
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    };
+    var Check = setInterval(CheckEndtt, 500);
+
+    function CheckEndtt() {
+        if (EndUploadtt == true) {
+            Ext.net.DirectMethod.request({
+                url: '/TransactionType/ShowPicUpload',
+                params: {
+                    __RequestVerificationToken: App.NewTransactionType.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+                    value = "data:image/gif;base64," + data.image;
+                    App.NewTransactionType.queryById('Image').setImageUrl(value);
+                }
+            });
+            Ext.MessageBox.hide();
+            GotoServertt = false;
+            Ext.Msg.alert('عملیات موفق', 'فایل با موفقیت آپلود شد.');
+            clearInterval(CheckEndtt);
+            EndUploadtt = false;
+        }
+    }
+
+    var showFilett = function (fb, v) {
+        var id = fb.fileInputEl.dom.id;
+        var el = Ext.get('fi-button-msgtt');
+        if (v) {
+            showProgressBartt();
+            if (v.split('.').pop().toLowerCase() == "jpg" || v.split('.').pop().toLowerCase() == "png" || v.split('.').pop().toLowerCase() == "jpeg"
+                || v.split('.').pop().toLowerCase() == "tif" || v.split('.').pop().toLowerCase() == "tiff" || v.split('.').pop().toLowerCase() == "gif"
+                || v.split('.').pop().toLowerCase() == "bmp") {
+                if (document.getElementById(id).files[0].size <= 307200) {
+                    GotoServertt = true;
+                    el.update('<b>فایل انتخاب شده: ' + v + '</b>' + "&nbsp;&nbsp;" + '<img id="DeleteTransTypeFileimg"  title="حذف فایل" src="/Content/cancel.png" style="width:15px;height:15px;margin-bottom: -4px;" onclick="javascript:DeleteFilett()" />');
+                }
+                else {
+                    clearInterval(CheckEndtt);
+                    el.update('<b>فایل انتخاب شده:</b>');
+                    App.NewTransactionType.queryById('Image').setImageUrl("/Content/icon/Blank.jpg");
+                    Ext.MessageBox.show({
+                        title: "خطا",
+                        msg: "حجم فایل انتخاب شده غیرمجاز است.",
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK
+                    });
+                }
+
+                if (!el.isVisible()) {
+                    el.slideIn('t', {
+                        duration: .2,
+                        easing: 'easeIn',
+                        callback: function () {
+                            el.highlight();
+                        }
+                    });
+                } else {
+                    el.highlight();
+                }
+            }
+            else {
+                clearInterval(CheckEndtt);
+                el.update('<b>فایل انتخاب شده:</b>');
+                App.NewTransactionType.queryById('Image').setImageUrl("/Content/icon/Blank.jpg");
+                Ext.MessageBox.show({
+                    title: "خطا",
+                    msg: "فایل انتخاب شده غیرمجاز است.",
+                    icon: Ext.MessageBox.ERROR,
+                    buttons: Ext.MessageBox.OK
+                });
+            }
+        }
+    };
+
+    function showProgressBartt() {
+        Ext.MessageBox.show({
+            msg: 'لطفاً منتظر باشید',
+            progressText: 'در حال آپلود فایل...',
+            width: 300,
+            wait: true,
+            waitConfig:
+            {
+                interval: 200,
+                text: 'در حال آپلود فایل...',
+                scope: this
+            }
+        });
+    }
+
+    var DeleteFile = false;
+    function DeleteFilett() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/TransactionType/DeleteSessionFile',
+            success: function (data) {
+                DeleteFile = true;
+                App.NewTransactionType.queryById('Image').setImageUrl("/Content/icon/Blank.jpg");
+                var el = Ext.get('fi-button-msgtt');
+                el.update('<b>فایل انتخاب شده:</b>');
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+    function LoadTransactionType() {
+        ReplaceArabic();
+        if ('@ViewBag.Id' != '0') {
+            App.NewTransactionType.body.mask("در حال بارگذاری...");
+            Ext.net.DirectMethod.request({
+                url: '/TransactionType/Details',
+                params: {
+                    Id: '@ViewBag.Id',
+                    __RequestVerificationToken: App.NewTransactionType.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+
+                    var txtTitle = App.NewTransactionType.queryById('txtTitle');
+                    txtTitle.setValue(data.fldTitle);
+                    var Id = App.NewTransactionType.queryById('fldId');
+                    Id.setValue(data.fldId);
+                    var CboTranGroup = App.NewTransactionType.queryById('CboTranGroup');
+                    CboTranGroup.setValue(data.fldTransactionGroupId);
+                    FileId = data.fldFileId;
+
+                    if (data.NameFile != "") {
+                        var fldfile = "data:image/gif;base64," + data.fldIcon;
+                        App.NewTransactionType.queryById('Image').setImageUrl(fldfile);
+                        Ext.get('fi-button-msgtt').update('<b>فایل انتخاب شده: ' + data.NameFile + '</b>' + "&nbsp;&nbsp;" + '<img id="DeleteTransTypeFileimg" title="حذف فایل" src="/Content/cancel.png" style="width:15px;height:15px;margin-bottom: -4px;" onclick="javascript:DeleteFilett()" />');
+                    }
+                    else {
+                        App.NewTransactionType.queryById('Image').setImageUrl("/Content/icon/Blank.jpg");
+                        Ext.get('fi-button-msgtt').update('<b>فایل انتخاب شده:</b>');
+                    }
+                    App.NewTransactionType.body.mask().hide();
+                }
+            });
+        }
+        else {
+            App.NewTransactionType.queryById('CboTranGroup').validate();
+            App.NewTransactionType.queryById('txtTitle').validate();
+        }
+
+    }
+
+    function SaveTransactionType() {
+        var txtTitle = App.NewTransactionType.queryById('txtTitle');
+        var CboTranGroup = App.NewTransactionType.queryById('CboTranGroup');
+        var Id = App.NewTransactionType.queryById('fldId');
+            var er = false;
+            if (txtTitle.getValue().length < 2) {
+                Ext.MessageBox.show({
+                    Name: "خطا",
+                    msg: "تعداد کاراکتر عنوان وارد شده کمتر از حد مجاز میباشد.",
+                    icon: Ext.MessageBox.ERROR,
+                    buttons: Ext.MessageBox.OK
+                });
+                er = true;
+            }
+            if (txtTitle.validate() == false) {
+                er = true;
+            }
+            if (er == true)
+                return;
+            App.NewTransactionType.body.mask("در حال ذخیره سازی");
+            Ext.net.DirectMethod.request({
+                url: '/TransactionType/Save',
+                params: {
+                    DeleteFile: DeleteFile,
+                    fldFileId: FileId,
+                    fldId: Id.getValue(),
+                    fldName: txtTitle.getValue(),
+                    fldTransactionGroupId: CboTranGroup.getValue(),
+                    __RequestVerificationToken: App.NewTransactionType.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+
+                    var ic = Ext.MessageBox.INFO;
+                    if (data.Er == 1) {
+                        ic = Ext.MessageBox.ERROR;
+                    }
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: ic,
+                        buttons: Ext.MessageBox.OK
+                    });
+
+                    App.TransactionType.queryById('GridTransactionType').store.load();
+                    if (data.Er != 1)
+                        ClearTransactionType();
+                    App.NewTransactionType.body.mask().hide();
+                }
+
+            });
+        }
+    function ClearTransactionType() {
+        App.NewTransactionType.queryById('txtTitle').setValue("");
+        App.NewTransactionType.queryById('fldId').setValue(0);
+        FileId = 0;
+        App.NewTransactionType.queryById('Image').setImageUrl("/Content/icon/Blank.jpg");
+        Ext.get('fi-button-msgtt').update('<b>فایل انتخاب شده:</b>');
+    }
+
+    var addKeyMapTransactionType = function (cmp) {
+        this.keyMap = new Ext.util.KeyMap({
+            target: cmp.getEl(),
+            binding: [{
+                key: [13, 9], /*Ext.EventObject.ENTER,*/
+                fn: function (key, e) {
+                    if (e.getKey() == 9) {
+                        e.stopEvent();
+                    }
+                    var keyfield = App.NewTransactionType.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+                    var nextfld;
+                    if (keyfield.itemId == "txtTitle") {
+                        nextfld = App.NewTransactionType.queryById('btnSaveTransactionType');
+                        SaveTransactionType();
+                        return;
+                    }
+                    else {
+                        nextfld = keyfield.nextSibling().nextSibling();
+                    }
+                    nextfld.focus();
+                    nextfld.selectText();
+                }
+            }]
+        });
+    }
+</script>

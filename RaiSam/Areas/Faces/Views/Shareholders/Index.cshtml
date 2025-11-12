@@ -1,0 +1,653 @@
+﻿@model IEnumerable<RaiSam.Models.prs_tblShareholderSelect>
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@using Ext.Net.Utilities
+
+@{var X = Html.X();}
+<style>
+    .row-imagecommand {
+        margin: 1px 1px 0 10px !important;
+    }
+</style>
+<script>
+    var template = '<img src={0} alt="" title={1} />';
+
+    var Color = function (value) {
+        var Pic = "@Url.Content("~/Content/icon/mini/عدمتاییدصلاحیت.png")";
+        var ToolTip = "عدم" + '&nbsp;' + "تایید" + '&nbsp;' + "صلاحیت";
+        if (value == "1") {
+            Pic = "@Url.Content("~/Content/icon/mini/گفتگو1.png")";
+            ToolTip = "گفتگو";
+        }
+        else if (value == "2") {
+            Pic = "@Url.Content("~/Content/icon/mini/تاییدصلاحیت.png")";
+            ToolTip ="تایید" + '&nbsp;' + "صلاحیت";
+        }
+        else if (value == "4") {
+            Pic = "@Url.Content("~/Content/icon/mini/تاییدرتبه.png")";
+            ToolTip ="تایید" + '&nbsp;' + "رتبه"+'&nbsp;'+"بندی";
+        }
+        else if (value == "5") {
+            Pic = "@Url.Content("~/Content/icon/mini/عدمتاییدرتبه.png")";
+            ToolTip = "عدم" + '&nbsp;' + "تایید" + '&nbsp;' + "رتبه"+'&nbsp;'+"بندی";
+        }
+        else if (value == "6") {
+            Pic = "@Url.Content("~/Content/state2.png")";
+            ToolTip = "درحال" + '&nbsp;' + "بررسی";
+        }
+
+        return Ext.String.format(template, Pic, ToolTip);
+    };
+    var templateMsg = '<img src={0} alt="" title={1} style="cursor: pointer;"/>';
+    var showChatStatus=function (value,p,record) {
+        var Pic = "@Url.Content("~/Content/icon/mini/بازطوسی.png")";
+        var ToolTip = "فاقد" + '&nbsp;' + "پیام";
+        var Func;
+        if (value == "1") {
+            Pic = "@Url.Content("~/Content/icon/mini/بستهزرد.png")";
+            ToolTip = "پیام" + '&nbsp;' + "خوانده" + '&nbsp;' +"نشده";
+        }
+        else if (value == "2") {
+            Pic = "@Url.Content("~/Content/icon/mini/باززرد.png")";
+            ToolTip ="پیام" + '&nbsp;' + "خوانده" + '&nbsp;' +"شده";
+        }
+        return Ext.String.format(templateMsg, Pic, ToolTip);
+    };
+</script>
+@(X.Window()
+    .ID("Shareholders")
+    .AutoScroll(true)
+    .Title("سهامداران")
+    .Width(910)
+    .Border(false)
+    .Modal(true)
+    .Height(550)
+    .Layout(Ext.Net.LayoutType.VBox)
+    .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Stretch })
+    .Items(
+        X.Panel()
+            .Border(false)
+            .Layout(Ext.Net.LayoutType.VBox)
+            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+                .Items(
+                     X.AntiForgeryField().ItemID("AntiForgeryField"),
+                X.FieldSet()
+                    .Title("اطلاعیه مهم")
+                    .AutoScroll(true)
+                    .Height(100)
+                    .ItemID("ShareholdersInNotification")
+                    .Width(850)
+                    .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 1 })
+                    .Defaults(new { Margin = 5 })
+                    .Items(
+                        X.Label()
+                            .ItemID("lblMatnHtmlShareholdersIn")
+                            .Cls("lblInfo")
+                            .Listeners(l => l.Render.Handler = "loadMatnHtmlShareholdersIn()")
+                            )),
+        X.Panel()
+            .Border(false)
+            .AutoScroll(true)
+            .Layout(Ext.Net.LayoutType.Fit)
+        //.KeyMap(Html.X().KeyMap()
+        //    .ID("ShareholdersMap")
+        //    .Target("={Ext.isGecko ? Ext.getDoc() : Ext.getBody()}")
+        //    .Binding(b =>
+        //    {
+        //        b.Add(Html.X().KeyBinding()
+        //            .KeysString(((int)Ext.Net.KeyCode.F8).ToString())
+        //            //.Handler("if(App.ShareholdersTab.activeTab.itemId=='GridPanel')NewShareholders(); ")
+        //        );
+        //        b.Add(Html.X().KeyBinding()
+        //            .KeysString(((int)Ext.Net.KeyCode.F2).ToString())
+        //            .Handler("EditShareholders(); ")
+        //        );
+        //        b.Add(Html.X().KeyBinding()
+        //            .KeysString(((int)Ext.Net.KeyCode.F9).ToString())
+        //            .Handler("DeleteShareholders(); ")
+        //        );
+        //    }))
+            .Items(
+                X.GridPanel()
+                    .Listeners(l => l.ItemClick.Handler = "ReloadButton();")
+                    .AutoScroll(true)
+                    .TopBar(
+                        Html.X().Toolbar()
+                            .Items(
+                                X.Button()
+                                    .Text("جدید")
+                                    .Icon(Ext.Net.Icon.Add)//.ToolTip("کلید میانبر F8")
+                                         .ItemID("InsertNewShareholders")
+                                        .Listeners(li => { li.AfterRender.Handler = "CheckSentToAdmin()"; })
+                                    .Menu(X.Menu()
+                                    .Items(
+                                        X.MenuItem()
+                                            .Text("حقیقی")
+                                            .Icon(Ext.Net.Icon.Add)
+                                                .Listeners(li => li.Click.Handler = "NewShareholders();")
+                                       .Disabled(@ViewBag.IsInClient == 0),
+                                        X.MenuItem()
+                                            .Icon(Ext.Net.Icon.Add)
+                                            .Text("حقوقی خصوصی")
+                                                .Listeners(li => li.Click.Handler = "NewHoghoghiKhososi();")
+                                           .Disabled(@ViewBag.IsInClient == 0),
+                                        X.MenuItem()
+                                            .Icon(Ext.Net.Icon.Add)
+                                            .Text("حقوقی غیر خصوصی")
+                                                .Listeners(li => li.Click.Handler = "NewHoghoghiGheyrKhososi();")
+                                           .Disabled(@ViewBag.IsInClient == 0)
+                                )
+                                    ),
+                                X.Button()
+                                    .ItemID("UpdateSahamdar")
+                                    .Text("ویرایش")
+                                    .Icon(Ext.Net.Icon.Pencil)//.ToolTip("کلید میانبر F2")
+                                        .Listeners(Li => Li.Click.Handler = "EditShareholders();")
+                                   .Disabled(@ViewBag.IsInClient == 0),
+                                X.Button()
+                                    .Text("حذف")
+                                    .ItemID("DeSahamdar")
+                                    .Icon(Ext.Net.Icon.Delete)//.ToolTip("کلید میانبر F9")
+                                    .Listeners(de =>
+                                    {
+                                        de.Click.Handler = "if (App.Shareholders.queryById('GridShareholders').selModel.getLastSelected() == null) {Ext.MessageBox.show({ title: 'خطا', msg: 'لطفا یک سطر را انتخاب کنید',icon: Ext.MessageBox.ERROR,buttons: Ext.MessageBox.OK});return false;}else DeleteShareholders();";
+                                    })
+                               .Disabled(@ViewBag.IsInClient == 0)
+                                   /* ,
+                                           X.SplitButton()
+                                    .Text("راهنما")
+                                    .Icon(Ext.Net.Icon.Help)
+                                    .Menu(X.Menu()
+                                    .Items(
+                                    X.MenuItem()
+                                                .Text("راهنما متنی")
+                                                .Icon(Ext.Net.Icon.TextPaddingTop)
+                                                .Listeners(l => l.Click.Handler = "showHelpShareholders()")
+                                                .ItemID("btnshowHelpShareholders"),
+                                        X.MenuItem()
+                                                .Text("راهنما تصویری")
+                                                .Icon(Ext.Net.Icon.PlayBlue)
+                                                    .Listeners(l => l.Click.Handler = "showHelp_VideoShareholders()")
+
+                                )
+                            )*/
+
+                    )
+                )
+                    .ItemID("GridShareholders")
+                    .BottomBar(X.PagingToolbar())
+                    .Store(
+                        X.StoreForModel()
+                        .Listeners(l => l.BeforeLoad.Handler = "App.Shareholders.queryById('GridShareholders').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.Shareholders.queryById('AntiForgeryField').getValue());")
+                        .Proxy(Html.X().AjaxProxy()
+                        .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                        .Url(Url.Action("Read"))
+                            .Reader(Html.X().JsonReader().Root("data"))
+                                                                .ExtraParams(l => l.Add(new { ReqId = ViewBag.ReqId, FirstId = ViewBag.FirstId }))
+
+                        )
+                        .Listeners(l => l.Load.Handler = "App.Shareholders.queryById('GridShareholders').selModel.refresh();")
+                        .PageSize(25)
+                        .RemoteFilter(true)
+                        .RemotePaging(true)
+                    )
+                    .View(
+                        Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                    )
+                    .Plugins(X.FilterHeader().Remote(true))
+                    .ColumnModel(
+                         Html.X().RowNumbererColumn(),
+                           // Html.X().Column().DataIndex(Model, m => m.fldUnReadChat_Client).Text("وضعیت پیام").Filterable(false).Flex(3).Renderer("showChatStatus"),
+                            Html.X().Column().DataIndex(Model, m => m.fldId).Text("کد").Hidden(true).Flex(2),
+                        Html.X().Column().DataIndex(Model, m => m.fldAshkhasId).Text("کد پرسنل").Hidden(true).Hideable(false),
+                            Html.X().Column().DataIndex(Model, m => m.fldCompanyProfileId).Text("کد شرکت").Hidden(true).Hideable(false),
+                        Html.X().Column().DataIndex(Model, m => m.fldOrganId).Text("کد سازمان").Hidden(true).Hideable(false),
+                        Html.X().Column().DataIndex(Model, m => m.fldName).Text("نام و نام خانوادگی").Flex(7),
+                        Html.X().Column().DataIndex(Model, m => m.fldCodeMeli).Text("کد ملی").Flex(3),
+                            Html.X().Column().DataIndex(Model, m => m.fldOrgan_Company).Text("نام شرکت").Flex(5),
+                        Html.X().Column().DataIndex(Model, m => m.fldTypeName).Text("نوع سهامدار").Flex(5),
+                        Html.X().Column().DataIndex(Model, m => m.fldTarikhSaham).Text("تاریخ سهام").Flex(3),
+                        Html.X().Column().DataIndex(Model, m => m.fldTypeId).Text("کد نوع سهامدار").Flex(2).Hidden(true).Hideable(false),
+                       // Html.X().Column().DataIndex(Model, m => m.fldStatus).Text("وضعیت").Flex(1).Filterable(false).Renderer("Color"),
+                       // Html.X().Column().DataIndex(Model, m => m.fldIsInClient).Text("").Flex(2).Hidden(true),//.Hideable(false),//مربوط به مخفی کردن دکمه های گرید
+                      //  Html.X().Column().DataIndex(Model, m => m.fldStatusRequest).Text("").Flex(2).Hidden(true).Hideable(false),
+                        Html.X().ImageCommandColumn().PrepareCommand("prepareCommandShareholder")
+                        .Listeners(l => l.Command.Fn = "ShowInfoShareholder")
+                        .Flex(3).Commands(Html.X().ImageCommand().CommandName("InfoShareholder").Icon(Ext.Net.Icon.Information).ToolTip(tt => tt.Text = "نمایش اطلاعات")
+                            , Html.X().ImageCommand().CommandName("EditCommandShareholders").Icon(Ext.Net.Icon.PageEdit).ToolTip(tt => tt.Text = "ویرایش").Disabled(@ViewBag.IsInClient == 0)
+                            , Html.X().ImageCommand().CommandName("DeleteCommandShareholders").Icon(Ext.Net.Icon.Delete).ToolTip(tt => tt.Text = "حذف").Disabled(@ViewBag.IsInClient == 0))
+                     )
+                )
+        )
+)
+
+
+<script type="text/javascript">
+    function CheckSentToAdmin() {
+        if ('@ViewBag.SentToAdmin' == 1)
+            App.Shareholders.queryById('InsertNewShareholders').disable(true);
+        else
+            App.Shareholders.queryById('InsertNewShareholders').enable(true);
+    }
+
+    function showHelp_VideoShareholders() {
+        /*window.location.href = 'Url.Content("~/Shareholders/DownloadV?")' ;
+        App.NewDL.destroy();
+        Ext.net.Mask.hide();*/
+        var nameVideo = "Shareholders.mp4";
+        window = Ext.widget('window', {
+            renderTo: Ext.getBody(),
+            width: 710,
+            height: 420,
+            html: '<video width="700" controls><source src="/Uploaded/Help/' + nameVideo + '" type="video/mp4"><source src="/Uploaded/Help/' + nameVideo + '" type="video/ogg"></video>'
+        }).show();
+    }
+    var prepareCommandShareholder = function (grid, command, record, row) {
+        if (command.command == 'EditCommandShareholders') {
+            if (record.data.fldIsInClient == false) {
+                command.hidden = true;
+                command.hideMode = 'visibility';
+            }
+            else if (record.data.fldIsInClient == true && (record.data.fldStatus == "2" || record.data.fldStatus == "4" || record.data.fldStatus == "5")) {
+                command.hidden = true;
+                command.hideMode = 'visibility';
+            }
+            else {
+                command.hidden = false;
+                command.hideMode = 'visibility';
+            }
+        }
+        if (command.command == 'DeleteCommandShareholders') {
+            if (record.data.fldIsInClient == false) {
+                command.hidden = true;
+                command.hideMode = 'visibility';
+            }
+            else if (record.data.fldIsInClient == true && (record.data.fldStatus == "2" /*|| record.data.fldStatus == "4" || record.data.fldStatus == "5"*/)) {
+                command.hidden = true;
+                command.hideMode = 'visibility';
+            }
+            else {
+                command.hidden = false;
+                command.hideMode = 'visibility';
+            }
+        }
+    };
+    function ShareholdersMap() {
+        ReplaceArabic();
+        var k = new Ext.KeyMap(
+            document,
+            [{
+                target: Ext.get('Shareholders'),
+                scope: this,
+                key: [119],
+                fn: function (key, event) {
+                    if (App.Shareholders && App.NewShareholders) {
+                        if (App.NewShareholders.active == false)
+                            NewShareholders();
+                    }
+                    else if (App.Shareholders && !App.NewShareholders)
+                        NewShareholders();
+                }
+            },
+            {
+                target: App.Shareholders.getTargetEl(),
+                scope: this,
+                key: [113],
+                fn: function (key, event) {
+                    if (App.Shareholders && App.NewShareholders) {
+                        if (App.Shareholders.active == false)
+                            EditShareholders();
+                    }
+                    else if (App.Shareholders && !App.NewShareholders)
+                        EditShareholders();
+                }
+            },
+            {
+                target: App.Shareholders.getTargetEl(),
+                scope: this,
+                key: [120],
+                fn: function (key, event) {
+                    if (App.Shareholders && App.NewShareholders) {
+                        if (App.NewShareholders.active == false)
+                            DeleteShareholders();
+                    }
+                    else if (App.Shareholders && !App.NewShareholders)
+                        DeleteShareholders();
+                }
+            }]
+            )
+    }
+
+    function loadMatnHtmlShareholdersIn() {
+        var lblMatnHtmlShareholdersIn = App.Shareholders.queryById("lblMatnHtmlShareholdersIn");
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Faces/Shareholders/MatnHtmlShareholdersIn',
+            params: {
+                ReqId: '@ViewBag.ReqId'
+            },
+            success: function (data) {
+                if (data.MatnHtmlShareholdersIn != "") {
+                    lblMatnHtmlShareholdersIn.setText(data.MatnHtmlShareholdersIn, false);
+                    App.Shareholders.queryById('GridShareholders').setHeight(405);
+                }
+                else {
+                    App.Shareholders.queryById('ShareholdersInNotification').hide();
+                    App.Shareholders.queryById('GridShareholders').setHeight(515);
+                }
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+    function ReloadButton() {
+        var SelectedRow = App.Shareholders.queryById('GridShareholders').selModel.getLastSelected();
+        if (SelectedRow.data.fldIsInClient == false) {
+            App.Shareholders.queryById('DeSahamdar').disable(true);
+            App.Shareholders.queryById('UpdateSahamdar').disable(true);
+        }
+        else {
+            if (SelectedRow.data.fldIsInClient == true && (SelectedRow.data.fldStatus == "4" || SelectedRow.data.fldStatus == "5" || SelectedRow.data.fldStatus == "2")) {
+                App.Shareholders.queryById('UpdateSahamdar').disable(true);
+            }
+            else {
+                App.Shareholders.queryById('UpdateSahamdar').enable(true);
+            }
+            if (SelectedRow.data.fldIsInClient == true && (/*SelectedRow.data.fldStatus == "4" || SelectedRow.data.fldStatus == "5" ||*/ SelectedRow.data.fldStatus == "2")) {
+                App.Shareholders.queryById('DeSahamdar').disable(true);
+            }
+            else {
+                App.Shareholders.queryById('DeSahamdar').enable(true);
+            }
+        }
+    }
+    function ShowInfoShareholder(grid, command, record, row) {
+        /*var Id = record.data.fldId;*/
+        if (command == 'EditCommandShareholders') {
+            if (record.data.fldTypeId == 1) {
+                Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+                Ext.net.DirectMethod.request({
+                    url: '/Faces/Shareholders/New',
+                    params: {
+                        id: record.data.fldId,
+                        FirstId: '@ViewBag.FirstId',
+                        ReqId: '@ViewBag.ReqId'
+                    },
+                    success: function () {
+                        Ext.net.Mask.hide();
+                    }
+                });
+            }
+            else if (record.data.fldTypeId == 2) {
+                Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+                Ext.net.DirectMethod.request({
+                    url: '/Faces/Shareholders/NewHoghoghiKhososi',
+                    params: {
+                        id: record.data.fldId,
+                        FirstId: '@ViewBag.FirstId',
+                        ReqId: '@ViewBag.ReqId'
+                    },
+                    success: function () {
+                        Ext.net.Mask.hide();
+                    }
+                });
+            }
+            else if (record.data.fldTypeId == 3) {
+                Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+                Ext.net.DirectMethod.request({
+                    url: '/Faces/Shareholders/NewHoghoghiGheyrKhososi',
+                    params: {
+                        id: record.data.fldId,
+                        FirstId: '@ViewBag.FirstId',
+                        ReqId: '@ViewBag.ReqId'
+                    },
+                    success: function () {
+                        Ext.net.Mask.hide();
+                    }
+                });
+            }
+
+        }
+        else if (command == 'DeleteCommandShareholders') {
+            Ext.MessageBox.show({
+                title: "هشدار",
+                msg: "آیا برای حذف مطمئن هستید؟",
+                icon: Ext.MessageBox.WARNING,
+                buttons: Ext.MessageBox.YESNO,
+                fn: function (btn) {
+                    if (btn == 'yes') {
+                        Ext.net.DirectMethod.request({
+                            url: '/Faces/Shareholders/Delete',
+                            params: {
+                                id: record.data.fldId,
+                                __RequestVerificationToken: App.Shareholders.queryById('AntiForgeryField').getValue()
+                            },
+                            success: function (data1) {
+                                var ic = Ext.MessageBox.INFO;
+                                if (data1.Er == 1)
+                                    ic = Ext.MessageBox.ERROR;
+                                Ext.MessageBox.show({
+                                    title: data1.MsgTitle,
+                                    msg: data1.Msg,
+                                    icon: ic,
+                                    buttons: Ext.MessageBox.OK
+                                });
+                                App.Shareholders.queryById('GridShareholders').store.load()
+                            }
+                        });
+
+                    }
+                }
+            });
+        }
+        else if (command == 'InfoShareholder') {
+            var Id = record.data.fldId;
+            var fldCompanyPersonalId = record.data.fldAshkhasId;
+            var fldCompanyId = record.data.fldCompanyProfileId;
+            var fldOrganId = record.data.fldOrganId;
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/Faces/Shareholders/ShowInfoShareholders',
+                params: {
+                    Status: "",
+                    Id: record.data.fldId,
+                    CompanyPersonalId: fldCompanyPersonalId,
+                    CompanyId: fldCompanyId,
+                    OrganId: fldOrganId,
+                    EnterSicleIds: "",
+                    contractId: "",
+                    FirstId: '@ViewBag.FirstId'
+                }
+            });
+        }
+    }
+    /*function ShowInfoShareholder(Record) {
+        var Id = Record.data.fldId;
+        var fldCompanyPersonalId = Record.data.fldAshkhasId;
+        var fldCompanyId = Record.data.fldCompanyProfileId;
+        var fldOrganId = Record.data.fldOrganId;
+
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Shareholders/ShowInfoShareholders',
+            params: {
+                Id: Record.data.fldId,
+                CompanyPersonalId: fldCompanyPersonalId,
+                CompanyId: fldCompanyId,
+                OrganId: fldOrganId
+            }
+        });
+    }*/
+
+    function NewHoghoghiGheyrKhososi() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Faces/Shareholders/NewHoghoghiGheyrKhososi',
+            params: {
+                id: 0,
+                FirstId: '@ViewBag.FirstId',
+                ReqId: '@ViewBag.ReqId'
+            },
+            success: function () {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+    function NewShareholders() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Faces/Shareholders/New',
+            params: {
+                id: 0,
+                FirstId: '@ViewBag.FirstId',
+                ReqId: '@ViewBag.ReqId'
+            },
+            success: function () {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+    function NewHoghoghiKhososi() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Faces/Shareholders/NewHoghoghiKhososi',
+            params: {
+                id: 0,
+                FirstId: '@ViewBag.FirstId',
+                ReqId: '@ViewBag.ReqId'
+            },
+            success: function () {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+    function EditShareholders() {
+        var SelectedRow = App.Shareholders.queryById('GridShareholders').selModel.getLastSelected();
+
+        if (SelectedRow != null) {
+            if (SelectedRow.data.fldTypeId == 1) {
+                Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+                Ext.net.DirectMethod.request({
+                    url: '/Faces/Shareholders/New',
+                    params: {
+                        id: SelectedRow.data.fldId,
+                        FirstId: '@ViewBag.FirstId',
+                        ReqId: '@ViewBag.ReqId'
+                    },
+                    success: function () {
+                        Ext.net.Mask.hide();
+                    }
+                });
+            }
+            else if (SelectedRow.data.fldTypeId == 2) {
+                Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+                Ext.net.DirectMethod.request({
+                    url: '/Faces/Shareholders/NewHoghoghiKhososi',
+                    params: {
+                        id: SelectedRow.data.fldId,
+                        FirstId: '@ViewBag.FirstId',
+                        ReqId: '@ViewBag.ReqId'
+                    },
+                    success: function () {
+                        Ext.net.Mask.hide();
+                    }
+                });
+            }
+            else if (SelectedRow.data.fldTypeId == 3) {
+                Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+                Ext.net.DirectMethod.request({
+                    url: '/Faces/Shareholders/NewHoghoghiGheyrKhososi',
+                    params: {
+                        id: SelectedRow.data.fldId,
+                        FirstId: '@ViewBag.FirstId',
+                        ReqId: '@ViewBag.ReqId'
+                    },
+                    success: function () {
+                        Ext.net.Mask.hide();
+                    }
+                });
+            }
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+
+    function DeleteShareholders() {
+        var SelectedHeaderRow = App.Shareholders.queryById('GridShareholders').selModel.getLastSelected();
+        if (SelectedHeaderRow != null) {
+            Ext.MessageBox.show({
+                title: "هشدار",
+                msg: "آیا برای حذف مطمئن هستید؟",
+                icon: Ext.MessageBox.WARNING,
+                buttons: Ext.MessageBox.YESNO,
+                fn: function (btn) {
+                    if (btn == 'yes') {
+                        Ext.net.DirectMethod.request({
+                            url: '/Faces/Shareholders/Delete',
+                            params: {
+                                id: SelectedHeaderRow.data.fldId,
+                                ReqId: '@ViewBag.ReqId',
+                                __RequestVerificationToken: App.Shareholders.queryById('AntiForgeryField').getValue()
+                            },
+                            success: function (data1) {
+                                var ic = Ext.MessageBox.INFO;
+                                if (data1.Er == 1)
+                                    ic = Ext.MessageBox.ERROR;
+                                Ext.MessageBox.show({
+                                    title: data1.MsgTitle,
+                                    msg: data1.Msg,
+                                    icon: ic,
+                                    buttons: Ext.MessageBox.OK
+                                });
+                                App.Shareholders.queryById('GridShareholders').store.load()
+                            }
+                        });
+                    }
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+    function showHelpShareholders() {
+        Ext.net.DirectMethod.request({
+            url: '/Faces/Home/HelpHtml',
+            params: {
+                TableId: 4
+            },
+            success: function (result) {
+                var mybr = document.createElement('br');
+
+                Ext.net.Notification.show({
+                    alignToCfg: {
+                        offset: [150, -30],
+                        position: 'bl-bl',
+                    },
+                    pinned: true,
+                    showPin: true,
+                    modal: true,
+                    bringToFront: true,
+                    pinEvent: 'click',
+                    height: 520,
+                    width: 700,
+                    html: result.HelpHtml,
+                    autoScroll: true,
+                    title: 'راهنمای ثبت سهامداران'
+                });
+            }
+        });
+    }
+</script>

@@ -1,0 +1,463 @@
+﻿@model IEnumerable<RaiSam.Models.prs_tblRulesSelect>
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+
+@{
+    var X = Html.X();
+}
+
+<script>
+    Ext.net.FilterHeader.behaviour.string[0].match = function (recordValue, matchValue) {
+        return (Ext.net.FilterHeader.behaviour.getStrValue(recordValue) || "").indexOf(matchValue) > -1;
+    };
+
+    Ext.net.FilterHeader.behaviour.string[0].getStrValue = function (value) {
+        return value.toString();
+    };
+
+    Ext.net.FilterHeader.behaviour.string[0].serialize = function (value) {
+        return {
+            type: "string",
+            op: "*",
+            value: value
+        };
+    };
+</script>
+
+@(X.Panel()
+    .Title("قوانین چرخه")
+    .Border(false)
+    .ID("Rules")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .AutoScroll(true)
+    .Listeners(li => li.AfterRender.Handler = "setHeightRules();")
+    .Items(
+            X.AntiForgeryField()
+            .ItemID("antiForgeryToken").Hidden(true),
+        X.Panel()
+            .Border(false)
+            .AutoScroll(true)
+            .Layout(Ext.Net.LayoutType.VBox)
+            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Stretch })
+            .Items(
+                X.GridPanel()
+                    .AutoScroll(true)
+                    .ItemID("GridRulesHeader")
+        //.Listeners(li => li.ItemClick.Handler = "loadGridRulesDetail()")
+                    .BottomBar(X.PagingToolbar())
+                    .TopBar(
+                        Html.X().Toolbar()
+                            .Items(
+                                X.Button()
+                                    .Text("جدید")
+                                    .Icon(Ext.Net.Icon.Add)
+                                    .Listeners(li => li.Click.Handler = "NewRulesHeader();"),
+                                X.Button()
+                                    .Text("ویرایش")
+                                    .Icon(Ext.Net.Icon.Pencil)
+                                    .Listeners(li => li.Click.Handler = "EditRulesHeader();"),
+                                X.Button()
+                                    .Text("حذف")
+                                    .Icon(Ext.Net.Icon.Delete)
+                                    .Listeners(li => li.Click.Handler = "DeleteRulesHeader();"),
+                                        X.SplitButton()
+                                        .Text("راهنما")
+                                        .Icon(Ext.Net.Icon.Help)
+                                        .Menu(X.Menu()
+                                        .Items(
+                                        X.MenuItem()
+                                                    .Text("راهنما متنی")
+                                                    .Icon(Ext.Net.Icon.TextPaddingTop)
+                                                                .Listeners(l => l.Click.Handler = "HelpRule()"),
+                                            X.MenuItem()
+                                                    .Text("راهنما تصویری")
+                                                    .Icon(Ext.Net.Icon.PlayBlue)
+                                                        .Listeners(l => l.Click.Handler = "showHelp_VideoRule()")
+
+                                    )
+                                )
+        //X.Button()
+        //    .Text("راهنما")
+        //    .Icon(Ext.Net.Icon.Help)
+        //    .Listeners(li => li.Click.Handler = "HelpRule();")
+                        )
+                    )
+                    .Store(
+                        X.StoreForModel()
+                            .Listeners(l => l.DataChanged.Handler = "App.Rules.queryById('GridRulesHeader').selModel.refresh();")
+                                .Listeners(l => l.BeforeLoad.Handler = "App.Rules.queryById('GridRulesHeader').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.Rules.queryById('antiForgeryToken').getValue());")
+                                .Proxy(Html.X().AjaxProxy()
+                                .ActionMethods(l => l.Read = HttpMethod.POST)
+                                .Url(Url.Action("Read"))
+                                .Reader(Html.X().JsonReader().Root("data"))
+                        )
+                            .PageSize(20)
+                            .RemoteFilter(false)
+                            .RemotePaging(false)
+                    )
+                    .View(
+                        Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                    )
+                    .Plugins(X.FilterHeader().Remote(false))
+                    .ColumnModel(
+                            Html.X().RowNumbererColumn(),
+                                Html.X().Column().DataIndex(Model, m => m.fldTimeStamp).Text("").Hidden(true).Flex(1),
+                            Html.X().Column().DataIndex(Model, m => m.fldId).Text("کد").Hidden(true).Flex(1),
+                        Html.X().Column().DataIndex(Model, m => m.fldTarikhEjra).Text("تاریخ اجرا").Flex(3),
+                            Html.X().Column().DataIndex(Model, m => m.fldNameCharkhe).Text("عنوان چرخه").Flex(3),
+                        Html.X().Column().DataIndex(Model, m => m.fldDesc).Text("توضیحات").Wrap(true).Flex(8)
+        //Html.X().ComponentColumn().ID("ColFormulaMaker").Flex(2).Component(Html.X().Button().Icon(Icon.Calculator).Text("فرمول ساز")
+        //    .Listeners(l => l.Click.Handler = "GotoFormulaMaker();")).Filterable(false),
+        //Html.X().ComponentColumn().ID("ColFormulaWriter").Flex(2).Component(Html.X().Button().Icon(Icon.PageWhiteCode).Text("فرمول نویس")
+        //    .Listeners(l => l.Click.Handler = "GotoFormulaWriter();")).Filterable(false)
+                    )
+                    .SelectionModel(
+                        Html.X().RowSelectionModel()
+                            .Mode(Ext.Net.SelectionMode.Single)
+                    )
+        //),
+        //X.GridPanel()
+        //    .AutoScroll(true)
+        //    .ItemID("GridRulesDetail")
+        //    .BottomBar(X.PagingToolbar().HideRefresh(true))
+        //    .Title("ثبت فرمول")
+        //    .Store(
+        //        X.StoreFor(Model.RulesDetails)
+        //            .AutoLoad(false)
+        //            .Listeners(l => l.DataChanged.Handler = "App.Rules.queryById('GridRulesDetail').selModel.refresh();")
+        //            .Proxy(Html.X().AjaxProxy()
+        //                .Url(Url.Action("ReadDetail"))
+        //                .Reader(Html.X().JsonReader().Root("data"))
+        //            )
+        //            .PageSize(20)
+        //            .RemoteFilter(false)
+        //            .RemotePaging(false)
+        //    )
+        //    .View(
+        //        Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+        //    )
+        //    .Plugins(X.FilterHeader().Remote(false))
+        //    .ColumnModel(
+        //        Html.X().RowNumbererColumn(),
+        //        Html.X().Column().DataIndex(Model.RulesDetails, m => m.fldId).Text("کد").Hidden(true).Flex(1),
+        //        Html.X().Column().DataIndex(Model.RulesDetails, m => m.fldTitle).Text("عنوان پایه").Flex(6),
+        //        Html.X().ComponentColumn().ID("ColFormulaMaker").Flex(1).Component(Html.X().Button().Icon(Icon.Calculator).Text("فرمول ساز")
+        //            .Listeners(l => l.Click.Handler = "GotoFormulaMaker();")).Filterable(false),
+        //        Html.X().ComponentColumn().ID("ColFormulaWriter").Flex(1).Component(Html.X().Button().Icon(Icon.PageWhiteCode).Text("فرمول نویس")
+        //            .Listeners(l => l.Click.Handler = "GotoFormulaWriter();")).Filterable(false)
+        //    )
+        //    .SelectionModel(
+        //        Html.X().RowSelectionModel()
+        //            .Mode(Ext.Net.SelectionMode.Single)
+        //    )
+            )
+        )
+)
+
+<script type="text/javascript">
+    function HelpRule() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Rules/Help',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+
+    }
+    function showHelp_VideoRule() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Rules/VideoWinRules',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+
+    }
+    function setHeightRules() {
+        App.Rules.queryById('GridRulesHeader').setHeight(App.OperationWin.getHeight() - 83);
+        /*App.Rules.queryById('GridRulesDetail').setHeight((App.OperationWin.getHeight() - 83) / 2);*/
+        Ext.net.Mask.hide();
+        InsertToLog("قوانین چرخه",2, true);
+    }
+
+    function GotoFormulaMaker() {
+        var record = App.ColFormulaMaker.activeRecord.record;
+        /*var SelectedRow = App.Rules.queryById('GridRulesHeader').getSelectionModel().getLastSelected();*/
+        if (record.data.fldFormulId != 0) {
+            Ext.MessageBox.show({
+                title: "هشدار",
+                msg: "برای سطر انتخاب شده در قسمت فرمول نویس، فرمولی ثبت شده است. در صورت ثبت فرمول در قسمت فرمول ساز، فرمول قبلی حذف خواهد شد. آیا مایل به ادامه عملیات هستید؟",
+                icon: Ext.MessageBox.WARNING,
+                buttons: Ext.MessageBox.YESNO,
+                fn: function (btn) {
+                    if (btn == 'yes') {
+                        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+                        Ext.net.DirectMethod.request({
+                            url: '/Rules/FormulSaz',
+                            params: {
+                                /*HeaderId: SelectedRow.data.fldId,
+                                PayeId: record.data.fldPayeId,
+                                FormulId: record.data.fldFormulId,*/
+                                fldId: record.data.fldId
+                            },
+                            success: function () {
+                                Ext.net.Mask.hide();
+                            }
+                        });
+                    }
+                }
+            });
+        }
+        else {
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/Rules/FormulSaz',
+                params: {
+                    /*HeaderId: SelectedRow.data.fldId,
+                    PayeId: record.data.fldPayeId,
+                    FormulId: 0,*/
+                    fldId: record.data.fldId
+                },
+                success: function () {
+                    Ext.net.Mask.hide();
+                }
+            });
+        }
+    }
+
+    function GotoFormulaWriter() {
+        var record = App.ColFormulaWriter.activeRecord.record;
+        /*var SelectedRow = App.Rules.queryById('GridRulesHeader').getSelectionModel().getLastSelected();*/
+        if (record.data.fldFormul != "") {
+            Ext.MessageBox.show({
+                title: "هشدار",
+                msg: "برای سطر انتخاب شده در قسمت فرمول ساز، فرمولی ثبت شده است. در صورت ثبت فرمول در قسمت فرمول نویس، فرمول قبلی حذف خواهد شد. آیا مایل به ادامه عملیات هستید؟",
+                icon: Ext.MessageBox.WARNING,
+                buttons: Ext.MessageBox.YESNO,
+                fn: function (btn) {
+                    if (btn == 'yes') {
+                        openWindowWithPost("/ComputationFormula/Formul", {
+                            Id: record.data.fldId,
+                            FieldName: "FormulRules",
+                            FormulId: record.data.fldFormulId,
+                            Name: "فرمول چرخه " + record.data.fldNameCharkhe/*"ارتقاء به " + record.data.fldTitle,*/
+                            /*HeaderId: SelectedRow.data.fldId
+                            PayeId: record.data.fldPayeId*/
+                        });
+                    }
+                }
+            });
+        }
+        else {
+            openWindowWithPost("/ComputationFormula/Formul", {
+                ID: record.data.fldId,
+                FieldName: "FormulRules",
+                FormulId: record.data.fldFormulId,
+                Name: "فرمول چرخه " + record.data.fldNameCharkhe /*"ارتقاء به " + record.data.fldTitle*/
+                /*HeaderId: SelectedRow.data.fldId,
+                PayeId: record.data.fldPayeId*/
+            });
+        }
+    }
+
+    function openWindowWithPost(url, data) {
+        var form = document.createElement("form");
+        form.target = "_blank";
+        form.method = "POST";
+        form.action = url;
+        form.style.display = "none";
+        for (var key in data) {
+            var input = document.createElement("input");
+            input.type = "hidden";
+            input.name = key;
+            input.value = data[key];
+            form.appendChild(input);
+        }
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
+    }
+
+
+
+    /*function loadGridRulesDetail() {
+        var SelectedRow = App.Rules.queryById('GridRulesHeader').getSelectionModel().getLastSelected();
+        if (SelectedRow != null) {
+            App.Rules.queryById('GridRulesDetail').getStore().getProxy().setExtraParam("HeaderId", SelectedRow.data.fldId);
+            App.Rules.queryById('GridRulesDetail').store.load();
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }*/
+
+    @*document.addEventListener("visibilitychange", function () {
+        alert();
+        if (document.hidden) {
+
+        }
+        else {
+            if (App.Rules != undefined) {
+                App.Rules.queryById('GridRulesHeader').store.load();
+                /*var SelectedRow = App.Rules.queryById('GridRulesHeader').getSelectionModel().getLastSelected();
+                if (SelectedRow != null) {
+                    App.Rules.queryById('GridRulesDetail').getStore().getProxy().setExtraParam("HeaderId", SelectedRow.data.fldId);
+                    App.Rules.queryById('GridRulesDetail').store.load();
+                }*/
+            }
+        }
+    }, false);*@
+
+    function EditRulesHeader() {
+        var SelectedRow = App.Rules.queryById('GridRulesHeader').selModel.getLastSelected();
+        if (SelectedRow != null) {
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/Rules/New',
+                params: {
+                    HeaderId: SelectedRow.data.fldId
+                },
+                success: function () {
+                    Ext.net.Mask.hide();
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+
+    function NewRulesHeader() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Rules/New',
+            params: {
+                HeaderId: 0
+            },
+            success: function () {
+                /*Ext.net.Mask.hide();*/
+            }
+        });
+    }
+
+    function DeleteRulesHeader() {
+        var SelectedRow = App.Rules.queryById('GridRulesHeader').selModel.getLastSelected();
+        if (SelectedRow != null) {
+            Ext.MessageBox.show({
+                title: "هشدار",
+                msg: "آیا برای حذف مطمئن هستید؟",
+                icon: Ext.MessageBox.WARNING,
+                buttons: Ext.MessageBox.YESNO,
+                fn: function (btn) {
+                    if (btn == 'yes') {
+                        Ext.net.Mask.show({ msg: 'در حال انجام عملیات...' });
+                        Ext.net.DirectMethod.request({
+                            url: '/Rules/Delete',
+                            params: {
+                                HeaderId: SelectedRow.data.fldId,
+                                TimeStamp: SelectedRow.data.fldTimeStamp,
+                                __RequestVerificationToken: App.Rules.queryById('antiForgeryToken').getValue()
+                            },
+                            success: function (data) {
+                                chat.server.reloadLog();
+                                if (data.Er == 1 && data.Change == 1) {/*vaghti TimeStamp==0*/
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.WARNING,
+                                        buttons: Ext.MessageBox.OK,
+                                        fn: function (btn) {
+                                            if (btn == 'ok') {
+                                                App.Rules.queryById('GridRulesHeader').store.load();
+                                            }
+                                        }
+                                    });
+                                }
+                                else if (data.Er == 1 && data.Change == 2) {/*vaghti TimeStamp==2*/
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.ERROR,
+                                        buttons: Ext.MessageBox.OK,
+                                        fn: function (btn) {
+                                            if (btn == 'ok') {
+                                                App.Rules.queryById('GridRulesHeader').store.load();
+                                            }
+                                        }
+                                    });
+                                }
+                                else if (data.Er == 1) {
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.ERROR,
+                                        buttons: Ext.MessageBox.OK
+                                    });
+                                }
+                                else {
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.INFO,
+                                        buttons: Ext.MessageBox.OK
+                                    });
+                                    App.Rules.queryById('GridRulesHeader').store.load();
+                                }
+                                Ext.net.Mask.hide();
+                            }
+                        });
+                    }
+                            /*},
+                            success: function (data) {
+                                var ic = Ext.MessageBox.INFO;
+                                if (data.Er == 1) {
+                                    ic = Ext.MessageBox.ERROR;
+                                }
+                                Ext.MessageBox.show({
+                                    title: data.MsgTitle,
+                                    msg: data.Msg,
+                                    icon: ic,
+                                    buttons: Ext.MessageBox.OK
+                                });
+                                App.Rules.queryById('GridRulesHeader').store.load();
+                                Ext.net.Mask.hide();
+                            }
+                        });
+                    }*/
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+
+    function HelpFactorsAffectingValues() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/FactorsAffectingValues/Help',
+            success: function () {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+</script>

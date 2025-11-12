@@ -1,0 +1,108 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Report ScriptLanguage="CSharp" ReportInfo.Created="03/27/2018 11:59:05" ReportInfo.Modified="01/08/2024 11:03:52" ReportInfo.CreatorVersion="2023.2.17.0">
+  <Styles>
+    <Style Name="Style1" Fill.Color="232, 244, 255" Font="Arial, 10pt"/>
+  </Styles>
+  <Dictionary>
+    <TableDataSource Name="RptGeneralKartabl" ReferenceName="raiSamDataSet.RptGeneralKartabl" DataType="System.Int32" Enabled="true">
+      <Column Name="fldIdVorood" DataType="System.Int32"/>
+      <Column Name="fldContractId" DataType="System.Int32"/>
+      <Column Name="fldCharkheId" DataType="System.Int32"/>
+      <Column Name="DefaultOperationId" DataType="System.Int32"/>
+      <Column Name="DefaultOperation_CharkheEghdam" DataType="System.Int32"/>
+      <Column Name="fldNameCharkhe" DataType="System.String"/>
+      <Column Name="fldActionId" DataType="System.Int32"/>
+      <Column Name="fldTarikhVorood" DataType="System.String"/>
+      <Column Name="fldCount" DataType="System.Int32"/>
+      <Column Name="fldNameAction" DataType="System.String"/>
+      <Column Name="fldTitleHadaf" DataType="System.String"/>
+      <Column Name="fldRequestId" DataType="System.Int32"/>
+      <Column Name="fldTypeVagonName" DataType="System.String"/>
+      <Column Name="fldTitleContract" DataType="System.String"/>
+      <Column Name="fldTedad" DataType="System.Int32"/>
+      <Column Name="fldFullName" DataType="System.String"/>
+      <Column Name="fldTarikhDarkhast" DataType="System.String"/>
+      <Column Name="fldHadafId" DataType="System.Int32"/>
+    </TableDataSource>
+    <TableDataSource Name="prs_tblSettingSelect" ReferenceName="raiSamDataSet.prs_tblSettingSelect" DataType="System.Int32" Enabled="true">
+      <Column Name="fldId" DataType="System.Int32"/>
+      <Column Name="fldTitle" DataType="System.String"/>
+      <Column Name="fldFile" DataType="System.Byte[]" BindableControl="Picture"/>
+      <Column Name="flddesc" DataType="System.String"/>
+      <Column Name="fldCompanyFromService" DataType="System.Boolean" BindableControl="CheckBox"/>
+    </TableDataSource>
+    <Parameter Name="UserName" DataType="System.String" AsString=""/>
+    <Parameter Name="ReportName" DataType="System.String" AsString=""/>
+    <Parameter Name="Name" DataType="System.String" AsString=""/>
+    <Parameter Name="Tarikh" DataType="System.String" AsString=""/>
+    <Parameter Name="Saat" DataType="System.String" AsString=""/>
+  </Dictionary>
+  <ReportPage Name="Page1" Landscape="true" PaperWidth="297" PaperHeight="210" RawPaperSize="9" LeftMargin="5" TopMargin="5" RightMargin="5" BottomMargin="5" Watermark.Font="Arial, 60pt" FirstPageSource="15">
+    <PageHeaderBand Name="PageHeader1" Width="1084.86" Height="173.39">
+      <TableObject Name="Table8" Left="4.42" Top="1.14" Width="1076.02" Height="122.04">
+        <TableColumn Name="Column10" Width="220.48"/>
+        <TableColumn Name="Column11" Width="410.8"/>
+        <TableColumn Name="Column57" Width="279.92"/>
+        <TableColumn Name="Column58" Width="164.82"/>
+        <TableRow Name="Row11" Height="32.15">
+          <TableCell Name="Cell30" Text="تاریخ چاپ: [Tarikh]" AutoShrink="FontSize" VertAlign="Center" RightToLeft="true" Font="RasaFont, 10pt"/>
+          <TableCell Name="Cell31" Text="[prs_tblSettingSelect.fldTitle]&#13;&#10;[ReportName]" HorzAlign="Center" VertAlign="Center" RightToLeft="true" Font="RasaFont, 13pt, style=Bold" ColSpan="2" RowSpan="4">
+            <Formats>
+              <GeneralFormat/>
+              <GeneralFormat/>
+            </Formats>
+          </TableCell>
+          <TableCell Name="Cell32" Font="Arial, 10pt"/>
+          <TableCell Name="Cell87" Font="Arial, 10pt" RowSpan="2">
+            <PictureObject Name="Picture1" Left="44.23" Top="0.76" Width="75.6" Height="64.63" DataColumn="prs_tblSettingSelect.fldFile"/>
+          </TableCell>
+        </TableRow>
+        <TableRow Name="Row12" Height="31.41">
+          <TableCell Name="Cell35" Text="ساعت چاپ: [Saat]" AutoShrink="FontSize" VertAlign="Center" RightToLeft="true" Font="RasaFont, 10pt"/>
+          <TableCell Name="Cell84" Font="Arial, 10pt"/>
+          <TableCell Name="Cell85" Font="Arial, 10pt"/>
+          <TableCell Name="Cell88" Font="Arial, 10pt"/>
+        </TableRow>
+        <TableRow Name="Row13" Height="29.54">
+          <TableCell Name="Cell86" Text="کاربر چاپ کننده: [UserName]" AutoShrink="FontSize" VertAlign="Center" RightToLeft="true" Font="RasaFont, 10pt"/>
+          <TableCell Name="Cell42" HorzAlign="Center" VertAlign="Center" RightToLeft="true" Font="RasaFont, 11pt, style=Bold"/>
+          <TableCell Name="Cell41" HorzAlign="Center" VertAlign="Center" RightToLeft="true" Font="RasaFont, 9pt, style=Bold"/>
+          <TableCell Name="Cell89" Text="وزارت راه و شهرسازی &#13;&#10;شرکت راه آهن جمهوری اسلامی ایران&#13;&#10;(سهامی خاص)" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 9pt, style=Bold" RowSpan="2"/>
+        </TableRow>
+        <TableRow Name="Row14" Height="28.94">
+          <TableCell Name="Cell45" Text="صفحه [Page#] از [TotalPages#]" AutoShrink="FontSize" VertAlign="Center" RightToLeft="true" Font="RasaFont, 10pt"/>
+          <TableCell Name="Cell46" Font="Arial, 10pt"/>
+          <TableCell Name="Cell47" Font="Arial, 10pt"/>
+          <TableCell Name="Cell90" Font="Arial, 10pt"/>
+        </TableRow>
+      </TableObject>
+      <TableObject Name="Table2" Left="59.1" Top="147.98" Width="966.65" Height="25.18" Border.Lines="All">
+        <TableColumn Name="Column6" Width="347.13"/>
+        <TableColumn Name="Column7" Width="207.14"/>
+        <TableColumn Name="Column8" Width="201.85"/>
+        <TableColumn Name="Column68" Width="210.53"/>
+        <TableRow Name="Row5" Height="25.18">
+          <TableCell Name="Cell19" Border.Lines="Left" Fill="Glass" Fill.Color="SkyBlue" Fill.Blend="0.2" Fill.Hatch="true" Text="عنوان درخواست" HorzAlign="Center" VertAlign="Center" RightToLeft="true" Font="RasaFont, 11pt, style=Bold"/>
+          <TableCell Name="Cell20" Border.Lines="Left" Fill="Glass" Fill.Color="SkyBlue" Fill.Blend="0.2" Fill.Hatch="true" Text="آخرین زمان ورود" HorzAlign="Center" VertAlign="Center" RightToLeft="true" Font="RasaFont, 11pt, style=Bold"/>
+          <TableCell Name="Cell21" Border.Lines="Left" Fill="Glass" Fill.Color="SkyBlue" Fill.Blend="0.2" Fill.Hatch="true" Text="عنوان چرخه" HorzAlign="Center" VertAlign="Center" RightToLeft="true" Font="RasaFont, 11pt, style=Bold"/>
+          <TableCell Name="Cell100" Border.Lines="Left" Fill="Glass" Fill.Color="SkyBlue" Fill.Blend="0.2" Fill.Hatch="true" Text="نام شرکت" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 11pt, style=Bold"/>
+        </TableRow>
+      </TableObject>
+    </PageHeaderBand>
+    <DataBand Name="Data1" Top="177.99" Width="1084.86" Height="33.69" DataSource="RptGeneralKartabl">
+      <TableObject Name="Table9" Left="59.1" Top="-0.95" Width="966.65" Height="34.61" Border.Lines="All">
+        <TableColumn Name="Column69" Width="347.13"/>
+        <TableColumn Name="Column70" Width="207.14"/>
+        <TableColumn Name="Column71" Width="201.85"/>
+        <TableColumn Name="Column72" Width="210.53"/>
+        <TableRow Name="Row15" Height="34.61">
+          <TableCell Name="Cell101" Border.Lines="Left" Fill="Glass" Fill.Color="Transparent" Fill.Blend="0.2" Fill.Hatch="true" Text="[RptGeneralKartabl.fldTitleContract]" HorzAlign="Center" VertAlign="Center" RightToLeft="true" Font="RasaFont, 11pt"/>
+          <TableCell Name="Cell102" Border.Lines="Left" Fill="Glass" Fill.Color="Transparent" Fill.Blend="0.2" Fill.Hatch="true" Text="[RptGeneralKartabl.fldTarikhVorood]" HorzAlign="Center" VertAlign="Center" RightToLeft="true" Font="RasaFont, 11pt"/>
+          <TableCell Name="Cell103" Border.Lines="Left" Fill="Glass" Fill.Color="Transparent" Fill.Blend="0.2" Fill.Hatch="true" Text="[RptGeneralKartabl.fldNameCharkhe]" HorzAlign="Center" VertAlign="Center" RightToLeft="true" Font="RasaFont, 11pt"/>
+          <TableCell Name="Cell104" Border.Lines="Left" Fill="Glass" Fill.Color="Transparent" Fill.Blend="0.2" Fill.Hatch="true" Text="[RptGeneralKartabl.fldFullName]" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 11pt"/>
+        </TableRow>
+      </TableObject>
+    </DataBand>
+    <ReportSummaryBand Name="ReportSummary1" Top="216.28" Width="1084.86"/>
+  </ReportPage>
+</Report>

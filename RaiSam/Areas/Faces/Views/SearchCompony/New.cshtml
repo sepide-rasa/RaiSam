@@ -1,0 +1,297 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+
+
+@(Html.X().Window()
+    .Modal(true)//.Listeners(li => li.AfterRender.Handler = "LoadCompany();")
+    .Width(450)//.Height(300)
+    .Title("تعریف شرکت جدید")
+    .ID("NewCompany")
+    .Resizable(false)
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .ButtonAlign(Alignment.Center)
+    .Layout(LayoutType.Fit)
+    .Buttons(
+        X.Button()
+            .Text("ذخیره")
+            .Icon(Ext.Net.Icon.Disk)
+            .ToolTip("کلید میانبر F8")
+            .Listeners(l =>
+            {
+                l.Click.Handler = "SaveCompany();";
+            })
+            .ItemID("btnSave"),
+        X.Button()
+            .Text("خروج")
+            .Icon(Ext.Net.Icon.BulletCross)
+            .ToolTip("کلید میانبر Esc")
+            .OnClientClick("App.NewCompany.destroy()"))
+    .Items(
+
+        X.FormPanel()
+            .Border(false)
+            .MarginSpec("10px 0 10px 0")
+            .Layout(Ext.Net.LayoutType.VBox)
+                       .LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Center })
+
+                    .Items(
+                 X.AntiForgeryField().ItemID("AntiForgeryField"),
+                X.FieldSet()
+                            .Title("اطلاعیه مهم")
+                            .AutoScroll(true)
+                            .Height(100)
+                                .ItemID("CompanyNotification")
+        .Width(390)
+                            .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 1 })
+                            .Defaults(new { Margin = 5 })
+                            .Items(
+                                X.Label()
+                                        .ItemID("lblMatnHtmlCompany")
+                                    .Cls("lblInfo")
+                                        .Listeners(l => l.Render.Handler = "loadMatnHtmlCompany()")
+                                        ),
+                X.FieldSet().Border(true)
+                .Title("مشخصات شرکت")
+                .Center()
+                .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 2 })
+                .Defaults(new { Margin = 2 })
+                .Items(
+
+                    X.Hidden().ItemID("fldId"),
+                   X.Label("شناسه ملی شرکت: ")
+                   , X.TextField()
+                        .ItemID("txtShenase")
+                        .AutoFocus(true)
+                        .AllowBlank(false)
+                        .MaskRe("/[0-9]/")
+                        .Plugins(X.InputMask()
+                            .Mask("AAAAAAAAAAA")
+                            .UnmaskOnBlur(true)
+                            .MaskSymbols(ls =>
+                                {
+                                    ls.Add(new MaskSymbol { Name = "A", Regex = "[0-9]", Placeholder = "_".ToCharArray()[0] });
+                                }))
+                    .FieldStyle("direction:ltr;")
+                    .BlankText("لطفا شناسه ملی شرکت را وارد نمایید.")
+                    .MsgTarget(Ext.Net.MessageTarget.Side)
+                    .Width(250)
+                    , X.Label("نام کامل ثبتی شرکت:"), X.TextField()
+                    .ItemID("txtName")
+                    .AllowBlank(false)
+                    .BlankText("لطفا نام کامل ثبتی شرکت را وارد نمایید.")
+                    .MsgTarget(Ext.Net.MessageTarget.Side)
+                    .Width(250)
+                    , X.Label("شماره ثبت:"), X.TextField()
+                    .ItemID("txtShomareSabt")
+                        .MaskRe("/[0-9]/")
+                    .AllowBlank(false)
+                    .FieldStyle("direction:ltr;")
+                    .BlankText("لطفا شماره ثبت شرکت را وارد نمایید.")
+                    .MsgTarget(Ext.Net.MessageTarget.Side)
+                    .Width(250)
+                    , X.Label().Text("تاریخ ثبت:"), X.PDateField()
+                    .ItemID("txtTarikhSabt")
+                    .MsgTarget(Ext.Net.MessageTarget.Side)
+                    .AllowBlank(false)
+                    .Editable(false)
+                    .MaskRe("/[0-9,/]/")
+        //.Editable(false)
+                    .BlankText("لطفا تاریخ ثبت شرکت را انتخاب نمایید.")
+                    .LabelAlign(Ext.Net.LabelAlign.Top)
+                    .Width(250)
+                    , X.Label().Text("نوع ثبتی شرکت: "), X.ComboBox()
+                    .ItemID("cboComType")
+                    .EmptyText("نوع ثبتی شرکت")
+                    .LabelAlign(Ext.Net.LabelAlign.Top)
+                    .TypeAhead(true)
+                    .Editable(true)
+                    .ForceSelection(true)
+                    .AllowBlank(false)
+                        .PaddingSpec("0 0 9px 0")
+                    .BlankText("لطفا نوع ثبتی شرکت را انتخاب نمایید.")
+                    .QueryMode(DataLoadMode.Local)
+                    .ForceSelection(true)
+                    .Width(250)
+                    .TriggerAction(TriggerAction.All)
+                    .DisplayField("fldComName")
+                        .MsgTarget(Ext.Net.MessageTarget.Side)
+                    .ValueField("fldComId")
+                    .Store(X.Store()
+                        .Model(X.Model()
+                                .IDProperty("fldComId")
+                            .Fields(
+                                        new ModelField("fldComId", ModelFieldType.String) { Mapping = "fldComId" },
+                                        new ModelField("fldComName", ModelFieldType.String) { Mapping = "fldComName" })
+                                )
+                        .Proxy(X.AjaxProxy()
+                            .Url(Url.Action("GetCompanyType"))
+                                .Reader(X.JsonReader().Root("data")))
+                                                    .Listeners(li => li.BeforeLoad.Handler = "LoadCompany();")
+                                        )
+                        )
+
+                )
+
+        )
+)
+@(Html.X().KeyMap()
+                 .ID("NewCompanyMap")
+                 .Target("={App.NewCompany.getTargetEl()}")
+            .Binding(b =>
+            {
+                b.Add(Html.X().KeyBinding()
+                .KeysString(((int)Ext.Net.KeyCode.F8).ToString())
+                .Handler("SaveCompany(); ")
+                );
+
+            }))
+<script type="text/javascript">
+    function loadMatnHtmlCompany() {
+        var lblMatnHtmlCompany = App.NewCompany.queryById("lblMatnHtmlCompany");
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Faces/SearchCompony/MatnHtmlCompany',
+            success: function (data) {
+                if (data.MatnHtmlCompany != "") {
+                    lblMatnHtmlCompany.setText(data.MatnHtmlCompany, false);
+                }
+                else {
+                    App.NewCompany.queryById('CompanyNotification').hide();
+                }
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+    function LoadCompany() {
+
+        if ('@ViewBag.Id' != '0') {
+            Ext.net.DirectMethod.request({
+                url: '/Faces/SearchCompony/Details',
+                params: {
+                    Id: '@ViewBag.Id',
+                    __RequestVerificationToken: App.NewCompany.queryById('AntiForgeryField').getValue()
+                },
+                success: function (data) {
+                    var txtShenase = App.NewCompany.queryById('txtShenase');
+                    txtShenase.setValue(data.fldNationalCode);
+                    var txtName = App.NewCompany.queryById('txtName');
+                    txtName.setValue(data.fldFullName);
+                    var txtShomareSabt = App.NewCompany.queryById('txtShomareSabt');
+                    txtShomareSabt.setValue(data.fldSh_Sabt);
+                    var txtTarikhSabt = App.NewCompany.queryById('txtTarikhSabt');
+                    txtTarikhSabt.setValue(data.fldDateSabt);
+                    var cboComType = App.NewCompany.queryById('cboComType');
+                    cboComType.setValue(data.fldTypeCompanyId);
+                    var Id = App.NewCompany.queryById('fldId');
+                    Id.setValue(data.fldId);
+                }
+            });
+        }
+        else {
+            App.NewCompany.queryById('txtShenase').validate();
+            App.NewCompany.queryById('txtName').validate();
+            App.NewCompany.queryById('txtShomareSabt').validate();
+            App.NewCompany.queryById('txtTarikhSabt').validate();
+            App.NewCompany.queryById('cboComType').validate();
+        }
+
+    }
+
+    function SaveCompany() {
+        var txtShenase = App.NewCompany.queryById('txtShenase');
+        var txtName = App.NewCompany.queryById('txtName');
+        var txtShomareSabt = App.NewCompany.queryById('txtShomareSabt');
+        var txtTarikhSabt = App.NewCompany.queryById('txtTarikhSabt');
+        var cboComType = App.NewCompany.queryById('cboComType');
+        var Id = App.NewCompany.queryById('fldId');
+
+            var er = false;
+            if (txtShenase.validate() == false) {
+                er = true;
+            }
+            if (txtName.validate() == false) {
+                er = true;
+            }
+            if (txtShomareSabt.validate() == false) {
+                er = true;
+            }
+            if (txtTarikhSabt.validate() == false) {
+                er = true;
+            }
+            if (cboComType.validate() == false) {
+                er = true;
+            }
+            if (!checkShenaseMeli(txtShenase.getValue())) {
+                alert("شناسه ملی نامعتبراست.");
+                er = true;
+                return;
+            }
+            if (er == true)
+                return;
+
+            Ext.net.DirectMethod.request({
+                url: '/Faces/SearchCompony/Save',
+                params: {
+                    fldId: Id.getValue(),
+                    fldSh_Sabt: txtShomareSabt.getValue(),
+                    fldDateSabt: txtTarikhSabt.rawValue,
+                    fldTypeCompanyId: cboComType.getValue(),
+                    fldNationalCode: txtShenase.getValue(),
+                    fldFullName: txtName.getValue(),
+                    __RequestVerificationToken: App.NewCompany.queryById('AntiForgeryField').getValue()
+                },
+                success: function (data) {
+                    var ic = Ext.MessageBox.INFO;
+                    if (data.Err == 1)
+                        ic = Ext.MessageBox.ERROR;
+                    Ext.MessageBox.show({
+                        Name: data.MsgName,
+                        msg: data.Msg,
+                        icon: ic,
+                        buttons: Ext.MessageBox.OK
+                    });
+                    App.SearchCompany.queryById('GridSearch').store.load();
+                    if (data.Err != 1)
+                        ClearCompany();
+                }
+
+            });
+        }
+    function ClearCompany() {
+        App.NewCompany.queryById('txtShenase').setValue("");
+        App.NewCompany.queryById('txtName').setValue("");
+        App.NewCompany.queryById('txtShomareSabt').setValue("");
+        App.NewCompany.queryById('txtTarikhSabt').setValue("");
+        App.NewCompany.queryById('cboComType').setValue("");
+        App.NewCompany.queryById('fldId').setValue(0);
+    }
+        function EnterNext() {
+            var keyfield = App.NewCompany.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+            var nextfld = keyfield.nextSibling();
+            nextfld.focus();
+            nextfld.selectText();
+        }
+        function checkShenaseMeli(code) {
+
+            var L = code.length;
+
+            if (L < 11 || parseInt(code) == 0) return false;
+
+            if (parseInt(code.substr(3, 6)) == 0) return false;
+            var c = parseInt(code.substr(10, 1));
+            var d = parseInt(code.substr(9, 1)) + 2;
+            var z = new Array(29, 27, 23, 19, 17);
+            var s = 0;
+            for (var i = 0; i < 10; i++)
+                s += (d + parseInt(code.substr(i, 1))) * z[i % 5];
+            s = s % 11; if (s == 10) s = 0;
+            return (c == s);
+
+        }
+</script>

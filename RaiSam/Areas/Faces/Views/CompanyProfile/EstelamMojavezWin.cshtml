@@ -1,0 +1,335 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@using Ext.Net.Utilities;
+
+@{
+    var X = Html.X();
+}
+<style>
+    .titlebold {
+        font-weight: bold;
+        font-size: 12px;
+        color: ThreeDDarkShadow;
+    }
+
+    .wrap-lable {
+        word-wrap: break-word;
+    }
+</style>
+
+@(Html.X().Window()
+    .Modal(true)
+    .Listeners(li => li.AfterRender.Handler = "LoadJavazKasb();")
+    .Width(500)
+        //.Height(500)
+    .AutoScroll(true)
+    .Resizable(false)
+    .Title("نمایش اطلاعات پروانه کسب")
+    .ID("ShowInfo_JavazKasb")
+    .Closable(false)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .ButtonAlign(Ext.Net.Alignment.Center)
+    .Buttons(
+        X.Button()
+            .Text("تایید")
+            .ItemID("btnTaeed")
+            .Disabled(true)
+            .Icon(Ext.Net.Icon.Tick)
+                .OnClientClick("App.ShowInfo_JavazKasb.destroy();")
+            .RTL(true)
+        )
+    .Items(
+        X.FormPanel()
+            .Border(false)
+            .Margin(10)
+            .Layout(LayoutType.VBox)
+            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+                .Items(
+                 X.AntiForgeryField().ItemID("AntiForgeryField"),
+                X.FieldSet()
+                    .Border(true)
+                    .Title("مشخصات")
+                    .Width(450)
+                    .Padding(5)
+                    .Center()
+                    .Layout(LayoutType.VBox)
+                    .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Right })
+                        .Items(
+                        X.FieldSet()
+                            .Layout(LayoutType.HBox)
+                            .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                            .Width(430)
+                            .Border(false)
+                            .Items(
+                            X.Label()
+                            .Text("عنوان:")
+                            .Cls("titlebold"),
+                            X.Label()
+                                .Width(400)
+                                .ItemID("BoardTitle")
+                                .Text("")
+                                .PaddingSpec("0 0 0 5px")
+                                .Height(32)
+                                .Cls("wrap-lable")),
+                            X.FieldSet()
+                                .Layout(LayoutType.HBox)
+                                .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                                .Width(430)
+                                .Border(false)
+                                .Items(
+                                        X.Label()
+                                        .Text("اتحادیه صنف:")
+                                        .Cls("titlebold"),
+                                        X.Label()
+                                        .Width(110)
+                                        .ItemID("UnionName")
+                                        .Text("")
+                                        .PaddingSpec("0 0 0 5px")
+                                        .Height(32)
+                                        .Cls("wrap-lable"),
+                                        X.Label()
+                                        .Text("کدرسته صنفی:")
+                                        .PaddingSpec("0 0 0 30px")
+                                        .Cls("titlebold"),
+                                    X.Label()
+                                        .Width(135)
+                                        .Height(32)
+                                        .ItemID("Isic")
+                                        .Text("")
+                                        .PaddingSpec("0 0 0 5px")
+                                        .Cls("wrap-lable")),
+                            X.FieldSet()
+                                .Layout(LayoutType.HBox)
+                                .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                                .Width(430)
+                                .Border(false)
+                                .Items(
+                                        X.Label()
+                                        .Text("تاریخ صدور:")
+                                    .Cls("titlebold"),
+                                    X.Label()
+                                    .Width(120)
+                                    .ItemID("LicIssueDate")
+                                    .Text("")
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Height(32)
+                                    .Cls("wrap-lable"),
+                                    X.Label()
+                                    .Text("وضعیت:")
+                                    .PaddingSpec("0 0 0 30px")
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(150)
+                                    .Height(32)
+                                            .ItemID("ExpireLetter")
+                                    .Text("")
+                                    .PaddingSpec("0 0 0 5px")
+                                        .Cls("wrap-lable")),
+                        X.FieldSet()
+                            .Layout(LayoutType.HBox)
+                            .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                            .Width(430)
+                            .Border(false)
+                            .Items(
+                                X.Label()
+                                    .Text("نام:")
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(157)
+                                        .ItemID("Name")
+                                    .Text("")
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Height(32)
+                                    .Cls("wrap-lable"),
+                                X.Label()
+                                    .Text("نام خانوادگی:")
+                                    .PaddingSpec("0 0 0 30px")
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(135)
+                                    .Height(32)
+                                        .ItemID("Family")
+                                    .Text("")
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Cls("wrap-lable")),
+                            X.FieldSet()
+                                .Layout(LayoutType.HBox)
+                                .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                                .Width(430)
+                                .Border(false)
+                                .Items(
+                                    X.Label()
+                                        .Text("نام پدر:")
+                                        .Cls("titlebold"),
+                                    X.Label()
+                                        .Width(141)
+                                        .ItemID("Father")
+                                        .Text("")
+                                        .PaddingSpec("0 0 0 5px")
+                                        .Height(32)
+                                        .Cls("wrap-lable"),
+                                    X.Label()
+                                        .Text("کدملی:")
+                                        .PaddingSpec("0 0 0 30px")
+                                        .Cls("titlebold"),
+                                    X.Label()
+                                        .Width(135)
+                                        .Height(32)
+                                        .ItemID("NationalCode")
+                                        .Text("")
+                                        .PaddingSpec("0 0 0 5px")
+                                        .Cls("wrap-lable")),
+                                X.FieldSet()
+                                    .Layout(LayoutType.HBox)
+                                    .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                                    .Width(430)
+                                    .Border(false)
+                                    .Items(
+                                            X.Label()
+                                                .Text("تاریخ تولد:")
+                                            .Cls("titlebold"),
+                                        X.Label()
+                                            .Width(125)
+                                                .ItemID("BirthDate")
+                                            .Text("")
+                                            .PaddingSpec("0 0 0 5px")
+                                            .Height(32)
+                                            .Cls("wrap-lable"),
+                                            X.Label()
+                                                .Text("شماره شناسنامه:")
+                                            .PaddingSpec("0 0 0 30px")
+                                            .Cls("titlebold"),
+                                            X.Label()
+                                            .Width(135)
+                                            .Height(32)
+                                                .ItemID("IdentityNo")
+                                            .Text("")
+                                            .PaddingSpec("0 0 0 5px")
+                                            .Cls("wrap-lable")),
+                                    X.FieldSet()
+                                    .Layout(LayoutType.HBox)
+                                    .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                                    .Width(430)
+                                    .Border(false)
+                                    .Items(
+        /*X.Label()
+            .Text("دین:")
+            .Cls("titlebold"),
+        X.Label()
+            .Width(151)
+            .ItemID("Religion")
+            .Text("")
+            .PaddingSpec("0 0 0 5px")
+            .Height(32)
+            .Cls("wrap-lable"),*/
+                                                X.Label()
+                                                .Text("نظام وظیفه:")
+                                                .Cls("titlebold"),
+                                            X.Label()
+                                                    .Width(120)
+                                                .ItemID("MilitaryState")
+                                                .Text("")
+                                                .PaddingSpec("0 0 0 5px")
+                                                .Height(32)
+                                                .Cls("wrap-lable"),
+                                            X.Label()
+                                                    .Text("کدپستی:")
+                                            .PaddingSpec("0 0 0 30px")
+                                            .Cls("titlebold"),
+                                        X.Label()
+                                            .Width(135)
+                                                .Height(32)
+                                                        .ItemID("PostalCode")
+                                            .Text("")
+                                            .PaddingSpec("0 0 0 5px")
+                                                    .Cls("wrap-lable")),
+
+                                        X.FieldSet()
+                                        .Layout(LayoutType.HBox)
+                                        .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                                        .Width(430)
+                                        .Border(false)
+                                        .Items(
+                                                X.Label()
+                                                    .Text("آدرس:")
+                                                .Cls("titlebold"),
+                                            X.Label()
+                                                    .Width(400)
+                                                        .ItemID("Address")
+                                                .Text("")
+                                                .PaddingSpec("0 0 0 5px")
+                                                .Height(32)
+                                                .Cls("wrap-lable"))
+                            )
+                                )
+            )
+)
+
+<script type="text/javascript">
+
+    function LoadJavazKasb() {
+        App.ShowInfo_JavazKasb.body.mask('در حال بارگذاری...');
+        Ext.net.DirectMethod.request({
+            url: '/CompanyProfile/DetailsEstelamMojavez',
+            params: {
+                Code: '@ViewBag.Code',
+                __RequestVerificationToken: App.ShowInfo_JavazKasb.queryById('AntiForgeryField').getValue()
+            },
+            success: function (result) {
+                App.ShowInfo_JavazKasb.queryById("btnTaeed").setDisabled(false);
+                if (result.Er == 0) {
+                    descMojavez = "عنوان:" + result.BoardTitle + "_" + "اتحادیه صنف:" + result.UnionName + "_" + "کدرسته صنفی:" + result.Isic + "_" + "تاریخ صدور:" + result.LicIssueDate + "_" + "وضعیت:" + result.ExpireLetter + "_" + "نام:" + result.Name + "_" + "نام خانوادگی:" + result.Family + "_" + "نام پدر:" + result.Father + "_" + "کدملی:" + result.NationalCode + "_" + "تاریخ تولد:" + result.BirthDate + "_" + "شماره شناسنامه:" + result.IdentityNo + "_" + "نظام وظیفه:" + result.MilitaryState + "_" + "کدپستی:" + result.PostalCode + "_" + "آدرس:" + result.Address;
+                    EstelamSenf = 1;
+                    App.ShowInfo_JavazKasb.queryById("LicIssueDate").setText(result.LicIssueDate);
+                    App.ShowInfo_JavazKasb.queryById("Address").setText(result.Address);
+                    App.ShowInfo_JavazKasb.queryById("PostalCode").setText(result.PostalCode);
+                    App.ShowInfo_JavazKasb.queryById("UnionName").setText(result.UnionName);
+                    /*App.ShowInfo_JavazKasb.queryById("CorporateIdentity").setText(result.CorporateIdentity);*/
+                    App.ShowInfo_JavazKasb.queryById("Isic").setText(result.Isic);
+                    App.ShowInfo_JavazKasb.queryById("Name").setText(result.Name);
+                    App.ShowInfo_JavazKasb.queryById("Family").setText(result.Family);
+                    App.ShowInfo_JavazKasb.queryById("Father").setText(result.Father);
+                    App.ShowInfo_JavazKasb.queryById("NationalCode").setText(result.NationalCode);
+                    App.ShowInfo_JavazKasb.queryById("BirthDate").setText(result.BirthDate);
+                    App.ShowInfo_JavazKasb.queryById("IdentityNo").setText(result.IdentityNo);
+                    /*App.ShowInfo_JavazKasb.queryById("Religion").setText(result.Religion);*/
+                    App.ShowInfo_JavazKasb.queryById("MilitaryState").setText(result.MilitaryState);
+                    App.ShowInfo_JavazKasb.queryById("ExpireLetter").setText(result.ExpireLetter);
+                    App.ShowInfo_JavazKasb.queryById("BoardTitle").setText(result.BoardTitle);
+                }
+                else {
+                    descMojavez = "";
+                    if (result.Er == 1)
+                        EstelamSenf = 1;
+                    else
+                        EstelamSenf = 0;
+
+                    Ext.MessageBox.show({
+                        Name: "خطا",
+                        msg: result.Message,
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK,
+                        fn: function (btn) {
+                            if (btn == 'ok')
+                                App.ShowInfo_JavazKasb.destroy();
+                        }
+                    });
+                }
+                App.ShowInfo_JavazKasb.body.mask().hide();
+            },
+            failure: function (data) {
+                App.ShowInfo_JavazKasb.body.mask().hide();
+                Ext.MessageBox.show({
+                    Name: "خطا",
+                    msg: "عدم برقراری ارتباط با سرور.",
+                    icon: Ext.MessageBox.ERROR,
+                    buttons: Ext.MessageBox.OK
+                });
+            }
+            , timeout: 7200000
+        });
+    }
+
+
+</script>

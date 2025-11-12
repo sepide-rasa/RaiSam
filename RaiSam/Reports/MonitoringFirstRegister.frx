@@ -1,0 +1,166 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Report ScriptLanguage="CSharp" ReferencedAssemblies="System.dll&#13;&#10;System.Drawing.dll&#13;&#10;System.Windows.Forms.dll&#13;&#10;System.Data.dll&#13;&#10;System.Xml.dll&#13;&#10;MyLib.dll" ReportInfo.Created="12/21/2015 11:25:47" ReportInfo.Modified="01/28/2023 16:23:42" ReportInfo.CreatorVersion="2015.1.2.0">
+  <ScriptText>using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Windows.Forms;
+using System.Drawing;
+using System.Data;
+using FastReport;
+using FastReport.Data;
+using FastReport.Dialog;
+using FastReport.Barcode;
+using FastReport.Table;
+using FastReport.Utils;
+
+namespace FastReport
+{
+  public class ReportScript
+  {
+
+    private void PageHeader1_AfterData(object sender, EventArgs e)
+    {
+      
+    }
+
+    private void Data1_AfterData(object sender, EventArgs e)
+    {
+      string Email=((String)Report.GetColumnValue(&quot;prs_ListCompany_First.fldFlag&quot;));
+      string Sms=((String)Report.GetColumnValue(&quot;prs_ListCompany_First.fldSms&quot;)) ;
+      if(Email==&quot;1&quot;)  {
+        Cell55.Text=&quot;&quot;;                   
+      }
+      else if (Email==&quot;0&quot;){
+        Cell55.Text=&quot;&quot;;
+      }
+      if(Sms==&quot;1&quot;)  {
+        Cell54.Text=&quot;&quot;;                   
+      }
+      else if (Sms==&quot;0&quot;){
+        Cell54.Text=&quot;&quot;;
+      }
+    }
+  }
+}
+</ScriptText>
+  <Styles>
+    <Style Name="Style1" Fill.Color="Silver"/>
+    <Style Name="Style2" Fill.Color="225, 241, 255"/>
+  </Styles>
+  <Dictionary>
+    <TableDataSource Name="prs_GetDate" ReferenceName="raiSamDataSet.prs_GetDate" DataType="System.Int32" Enabled="true">
+      <Column Name="fldDateTime" DataType="System.DateTime"/>
+      <Column Name="fldTarikh" DataType="System.String"/>
+      <Column Name="fldTime" DataType="System.String"/>
+      <Column Name="fldDate" DataType="System.DateTime"/>
+    </TableDataSource>
+    <TableDataSource Name="prs_tblSettingSelect" ReferenceName="raiSamDataSet.prs_tblSettingSelect" DataType="System.Int32" Enabled="true">
+      <Column Name="fldId" DataType="System.Int32"/>
+      <Column Name="fldTitle" DataType="System.String"/>
+      <Column Name="fldFile" DataType="System.Byte[]" BindableControl="Picture"/>
+      <Column Name="flddesc" DataType="System.String"/>
+      <Column Name="fldCompanyFromService" DataType="System.Boolean" BindableControl="CheckBox"/>
+    </TableDataSource>
+    <TableDataSource Name="prs_ListCompany_First" ReferenceName="raiSamDataSet.prs_ListCompany_First" DataType="System.Int32" Enabled="true">
+      <Column Name="fldId" DataType="System.String"/>
+      <Column Name="fldEmail" DataType="System.String"/>
+      <Column Name="fldUserName" DataType="System.String"/>
+      <Column Name="fldMobile" DataType="System.String"/>
+      <Column Name="fldTarikh" DataType="System.String"/>
+      <Column Name="fldTime" DataType="System.String"/>
+      <Column Name="fldFlag" DataType="System.String"/>
+      <Column Name="fldSms" DataType="System.String"/>
+      <Column Name="fldDate" DataType="System.DateTime"/>
+      <Column Name="fldFirstRegisterUser" DataType="System.Int32"/>
+      <Column Name="fldGroupName" DataType="System.String"/>
+    </TableDataSource>
+    <Parameter Name="UserName" DataType="System.String"/>
+    <Parameter Name="AzTarikh" DataType="System.String"/>
+    <Parameter Name="TaTarikh" DataType="System.String"/>
+  </Dictionary>
+  <ReportPage Name="Page1" Landscape="true" PaperWidth="297" PaperHeight="210" RawPaperSize="9" LeftMargin="6.3" TopMargin="6.3" RightMargin="6.3" BottomMargin="6.3" FirstPageSource="15" OtherPagesSource="15" Guides="3.78">
+    <ReportTitleBand Name="ReportTitle1" Width="1075.03"/>
+    <PageHeaderBand Name="PageHeader1" Top="4" Width="1075.03" Height="159.48" AfterDataEvent="PageHeader1_AfterData">
+      <TableObject Name="Table1" Left="18.49" Top="130.21" Width="1038.06" Height="29.27" EvenStyle="Style1">
+        <TableColumn Name="Column1" Width="124.56"/>
+        <TableColumn Name="Column2" Width="121.75"/>
+        <TableColumn Name="Column3" Width="0.24"/>
+        <TableColumn Name="Column4" Width="148.57"/>
+        <TableColumn Name="Column5" Width="150.65"/>
+        <TableColumn Name="Column6" Width="268.35"/>
+        <TableColumn Name="Column7" Width="91.35"/>
+        <TableColumn Name="Column8" Width="82.83"/>
+        <TableColumn Name="Column9" Width="49.76"/>
+        <TableRow Name="Row1" Height="29.27">
+          <TableCell Name="Cell1" Border.Lines="All" Fill="Glass" Fill.Color="SkyBlue" Fill.Blend="0.2" Fill.Hatch="true" Text="زمان" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 12pt, style=Bold"/>
+          <TableCell Name="Cell22" Border.Lines="All" Fill="Glass" Fill.Color="SkyBlue" Fill.Blend="0.2" Fill.Hatch="true" Text="تاریخ" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 12pt, style=Bold"/>
+          <TableCell Name="Cell23" Fill.Color="White" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 12pt, style=Bold"/>
+          <TableCell Name="Cell24" Border.Lines="All" Fill="Glass" Fill.Color="SkyBlue" Fill.Blend="0.2" Fill.Hatch="true" Text="شماره موبایل" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 12pt, style=Bold"/>
+          <TableCell Name="Cell25" Border.Lines="All" Fill="Glass" Fill.Color="SkyBlue" Fill.Blend="0.2" Fill.Hatch="true" Text="نام کاربری" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 12pt, style=Bold"/>
+          <TableCell Name="Cell26" Border.Lines="All" Fill="Glass" Fill.Color="SkyBlue" Fill.Blend="0.2" Fill.Hatch="true" Text="پست الکترونیک" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 12pt, style=Bold"/>
+          <TableCell Name="Cell27" Border.Lines="All" Fill="Glass" Fill.Color="SkyBlue" Fill.Blend="0.2" Fill.Hatch="true" Text="وضعیت پیامک" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 12pt, style=Bold"/>
+          <TableCell Name="Cell28" Border.Lines="All" Fill="Glass" Fill.Color="SkyBlue" Fill.Blend="0.2" Fill.Hatch="true" Text="وضعیت ایمیل" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 12pt, style=Bold"/>
+          <TableCell Name="Cell29" Border.Lines="All" Fill="Glass" Fill.Color="SkyBlue" Fill.Blend="0.2" Fill.Hatch="true" Text="ردیف" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 12pt, style=Bold"/>
+        </TableRow>
+      </TableObject>
+      <TableObject Name="Table8" Left="4.88" Top="4.91" Width="1065.27" Height="97.16">
+        <TableColumn Name="Column39" Width="188.94"/>
+        <TableColumn Name="Column40" Width="444.85"/>
+        <TableColumn Name="Column41" Width="295.76"/>
+        <TableColumn Name="Column49" Width="135.72"/>
+        <TableRow Name="Row8" Height="23.91">
+          <TableCell Name="Cell58" Text="تاریخ چاپ: [prs_GetDate.fldTarikh]" AutoShrink="FontSize" VertAlign="Center" RightToLeft="true" Font="RasaFont, 10pt"/>
+          <TableCell Name="Cell59" Text="[prs_tblSettingSelect.fldTitle]&#13;&#10;گزارش ثبت نام اولیه&#13;&#10;از تاریخ [AzTarikh] تا تاریخ [TaTarikh]" HorzAlign="Center" VertAlign="Center" RightToLeft="true" Font="RasaFont, 12pt, style=Bold" ColSpan="2" RowSpan="4"/>
+          <TableCell Name="Cell60" HorzAlign="Center" VertAlign="Center" RightToLeft="true" Font="RasaFont, 12pt, style=Bold"/>
+          <TableCell Name="Cell71" RowSpan="4">
+            <PictureObject Name="Picture1" Left="55.94" Top="7.56" Width="75.6" Height="75.6" DataColumn="prs_tblSettingSelect.fldFile"/>
+          </TableCell>
+        </TableRow>
+        <TableRow Name="Row2" Height="24.67">
+          <TableCell Name="Cell6" Text="ساعت چاپ: [prs_GetDate.fldTime]" AutoShrink="FontSize" VertAlign="Center" RightToLeft="true" Font="RasaFont, 10pt"/>
+          <TableCell Name="Cell7" RightToLeft="true"/>
+          <TableCell Name="Cell8"/>
+          <TableCell Name="Cell72"/>
+        </TableRow>
+        <TableRow Name="Row3" Height="23.91">
+          <TableCell Name="Cell11" Text="کاربر چاپ کننده: [UserName]" AutoShrink="FontSize" VertAlign="Center" RightToLeft="true" Font="RasaFont, 10pt"/>
+          <TableCell Name="Cell12" RightToLeft="true"/>
+          <TableCell Name="Cell13"/>
+          <TableCell Name="Cell73"/>
+        </TableRow>
+        <TableRow Name="Row9" Height="24.67">
+          <TableCell Name="Cell61" Text="صفحه [Page#] از [TotalPages#]" AutoShrink="FontSize" VertAlign="Center" RightToLeft="true" Font="RasaFont, 10pt"/>
+          <TableCell Name="Cell62" RightToLeft="true"/>
+          <TableCell Name="Cell63"/>
+          <TableCell Name="Cell74"/>
+        </TableRow>
+      </TableObject>
+    </PageHeaderBand>
+    <DataBand Name="Data1" Top="167.48" Width="1075.03" Height="27.03" AfterDataEvent="Data1_AfterData" DataSource="prs_ListCompany_First">
+      <TableObject Name="Table3" Left="18.22" Width="1039.02" Height="27.03" EvenStyle="Style2">
+        <TableColumn Name="Column13" Width="124.75"/>
+        <TableColumn Name="Column14" Width="121.9"/>
+        <TableColumn Name="Column15" Width="0.24"/>
+        <TableColumn Name="Column16" Width="149.32"/>
+        <TableColumn Name="Column17" Width="149.68"/>
+        <TableColumn Name="Column18" Width="268.85"/>
+        <TableColumn Name="Column19" Width="91.14"/>
+        <TableColumn Name="Column20" Width="82.65"/>
+        <TableColumn Name="Column21" Width="50.49"/>
+        <TableRow Name="Row6" Height="27.03">
+          <TableCell Name="Cell48" Border.Lines="All" Text="[prs_ListCompany_First.fldTime]" AutoShrink="FontSize" HorzAlign="Center" VertAlign="Center" RightToLeft="true" Font="RasaFont, 12pt"/>
+          <TableCell Name="Cell49" Border.Lines="All" Text="[prs_ListCompany_First.fldTarikh]" AutoShrink="FontSize" HorzAlign="Center" VertAlign="Center" RightToLeft="true" Font="RasaFont, 12pt"/>
+          <TableCell Name="Cell50" AutoShrink="FontSize" HorzAlign="Center" VertAlign="Center" RightToLeft="true" Font="RasaFont, 12pt"/>
+          <TableCell Name="Cell51" Border.Lines="All" Text="[prs_ListCompany_First.fldMobile]" AutoShrink="FontSize" HorzAlign="Center" VertAlign="Center" RightToLeft="true" Font="RasaFont, 12pt"/>
+          <TableCell Name="Cell52" Border.Lines="All" Text="[prs_ListCompany_First.fldUserName]" AutoShrink="FontSize" HorzAlign="Center" VertAlign="Center" RightToLeft="true" Font="RasaFont, 12pt"/>
+          <TableCell Name="Cell53" Border.Lines="All" Text="[prs_ListCompany_First.fldEmail]" AutoShrink="FontSize" HorzAlign="Center" VertAlign="Center" RightToLeft="true" Font="RasaFont, 12pt"/>
+          <TableCell Name="Cell54" Border.Lines="All" AutoShrink="FontSize" HorzAlign="Center" VertAlign="Center" Font="Webdings, 14pt"/>
+          <TableCell Name="Cell55" Border.Lines="All" AutoShrink="FontSize" HorzAlign="Center" VertAlign="Center" Font="Webdings, 14pt"/>
+          <TableCell Name="Cell56" Border.Lines="All" Text="[Row#]" AutoShrink="FontSize" HorzAlign="Center" VertAlign="Center" RightToLeft="true" Font="RasaFont, 12pt"/>
+        </TableRow>
+      </TableObject>
+    </DataBand>
+    <PageFooterBand Name="PageFooter1" Top="198.51" Width="1075.03"/>
+  </ReportPage>
+</Report>

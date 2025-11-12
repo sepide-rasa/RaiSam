@@ -1,0 +1,107 @@
+﻿@model IEnumerable<RaiSam.Models.prs_tblHelpSelect>
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@using Ext.Net.Utilities;
+@{
+
+    var X = Html.X();
+}
+
+<style>
+    .margincommandInfo {
+        margin: 0 0 0 12px !important;
+    }
+</style>
+@(X.Window()
+    .Maximized(true)
+    .Listeners(l => l.AfterRender.Handler = "TechnicalDocumentationSetSize()")
+    .ID("TechnicalDocumentation")
+    .Closable(true)
+    .Maximizable(true)
+    .Minimizable(true)
+    .Height(500)
+    .Title("راهنمای فرم ها")
+    .AutoScroll(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Items(
+        X.AntiForgeryField()
+        .ItemID("antiForgeryToken")
+        .Hidden(true),
+        X.GridPanel()
+            .AutoScroll(true)
+            .ItemID("GridTechnicalDocumentation")
+            .BottomBar(X.PagingToolbar())
+              .Border(false)
+            .Store(
+                X.StoreForModel()
+                    .Listeners(l => l.BeforeLoad.Handler = "App.TechnicalDocumentation.queryById('GridTechnicalDocumentation').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.TechnicalDocumentation.queryById('antiForgeryToken').getValue());")
+                    .Proxy(Html.X().AjaxProxy()
+                        .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                        .Url(Url.Action("Read"))
+                        .Reader(Html.X().JsonReader().Root("data"))
+                    )
+                    .PageSize(25)
+                    .RemoteFilter(true)
+                    .RemotePaging(true)
+                    .Listeners(l => l.DataChanged.Handler = "App.TechnicalDocumentation.queryById('GridTechnicalDocumentation').selModel.refresh();")
+            )
+            .View(
+                Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+            )
+            .Plugins(X.FilterHeader().Remote(true))
+            .ColumnModel(
+                Html.X().RowNumbererColumn(),
+                Html.X().Column().DataIndex(Model, m => m.fldId).Text("کد").Flex(1).Hidden(true),
+                    Html.X().Column().DataIndex(Model, m => m.fldFilePdfId).Text("کد").Hidden(true).Flex(1),
+                Html.X().Column().DataIndex(Model, m => m.fldFileVideoId).Text("کد").Hidden(true).Flex(1),
+                Html.X().Column().DataIndex(Model, m => m.fldFormName).Text("عنوان").Wrap(true).Flex(4),
+        //Html.X().Column().DataIndex(Model, m => m.fldNamePdf).Text("عنوان فایل pdf").Wrap(true).Flex(4),
+        // Html.X().Column().DataIndex(Model, m => m.fldNameVideo).Text("عنوان فایل ویدئویی").Wrap(true).Flex(4),
+        //Html.X().Column().DataIndex(Model, m => m.fldPasvandPdf).Text("پسوند فایل pdf").Flex(2),
+                        Html.X().Column().DataIndex(Model, m => m.fldFileSize_PDF).Text("<div style='text-align:right'>حجم فایل pdf(MB)</div>").Flex(2),
+        //Html.X().Column().DataIndex(Model, m => m.fldPasvandVideo).Text("پسوند فایل ویدئویی").Flex(2),
+                Html.X().Column().DataIndex(Model, m => m.fldFileSize_Video).Text("حجم فایل ویدئویی(MB)").Flex(2),
+                Html.X().ComponentColumn().ID("ColDownFilePdf").Flex(1).Component(Html.X().Button().IconCls("PdfIcon").Text("مشاهده فایل pdf")
+                .Listeners(l => l.Click.Handler = "DownloadFilePdf();")).Filterable(false),
+                Html.X().ComponentColumn().ID("ColDownFileVideo").Flex(1).Component(Html.X().Button().IconCls("Mp4Icon").Text("مشاهده فایل تصویری")
+                .Listeners(l => l.Click.Handler = "DownloadFileVideo();")).Filterable(false)
+            )
+            )
+)
+
+<script type="text/javascript">
+    function TechnicalDocumentationSetSize() {
+        var grid = App.TechnicalDocumentation.queryById('GridTechnicalDocumentation');
+        grid.setHeight(App.TechnicalDocumentation.height - 35);
+        Ext.net.Mask.hide();
+    }
+    function DownloadFilePdf() {
+        var Id = App.ColDownFilePdf.activeRecord.record.data.fldFilePdfId;
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/TechnicalDocumentation/Print',
+            params: {
+                fldFilePdfId: Id
+            },
+            success: function () {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+    function DownloadFileVideo() {
+        var Id = App.ColDownFileVideo.activeRecord.record.data.fldFileVideoId;
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/TechnicalDocumentation/VideoWin',
+            params: {
+                FileId: Id
+            },
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+
+    }
+</script>

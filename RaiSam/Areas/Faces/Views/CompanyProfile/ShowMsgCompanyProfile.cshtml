@@ -1,0 +1,44 @@
+﻿@using Ext.Net.MVC;
+@{
+
+    var X = Html.X();
+}
+<style>
+    .wrapmessage {
+        word-wrap: break-word;
+        text-justify: auto;
+    }
+</style>
+@(X.Window()
+    .Height(400)
+    .Width(600)
+    .Modal(true)
+    .ID("MsgCP")
+    .Title("نمایش پیام")
+    .Closable(true)
+    .Border(false)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Layout(Ext.Net.LayoutType.Fit)
+    .ButtonAlign(Ext.Net.Alignment.Center)
+    .Buttons(
+        Html.X().Button()
+            .Text("خروج")
+            .Icon(Ext.Net.Icon.BulletCross)
+            .OnClientClick("App.MsgCP.destroy();")
+    )
+    .Items(
+        X.Label()
+            .AutoScroll(true)
+            .MarginSpec("5px 5px 5px 5px")
+            .Cls("wrapmessage")
+            .ItemID("lableMsgCP")
+            .Listeners(l => l.Render.Handler = "FillMsgCP();")
+    )
+)
+
+<script>
+    function FillMsgCP() {
+        App.MsgCP.queryById("lableMsgCP").setText('@ViewBag.Message');
+    }
+
+</script>

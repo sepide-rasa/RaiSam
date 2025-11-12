@@ -1,0 +1,207 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Report ScriptLanguage="CSharp" ReportInfo.Created="07/24/2023 08:14:14" ReportInfo.Modified="08/29/2023 09:15:16" ReportInfo.CreatorVersion="2023.2.17.0">
+  <Styles>
+    <Style Name="title" Font="RasaFont, 14pt, style=Bold"/>
+    <Style Name="rasafont10" Font="RasaFont, 10pt"/>
+    <Style Name="rasafont11" Font="RasaFont, 11pt" ApplyBorder="false" ApplyFill="false" ApplyTextFill="false"/>
+    <Style Name="color" Fill="Glass" Fill.Color="Plum" Fill.Blend="0.2" Fill.Hatch="false" Font="Arial, 10pt" ApplyBorder="false" ApplyTextFill="false" ApplyFont="false"/>
+    <Style Name="color1" Fill="Glass" Fill.Color="Thistle" Fill.Blend="0.2" Fill.Hatch="false" Font="Arial, 10pt" ApplyBorder="false" ApplyTextFill="false" ApplyFont="false"/>
+  </Styles>
+  <Dictionary>
+    <MsSqlDataConnection Name="Connection" ConnectionString="rijcmlqHwzMSgwTFaHpjtG3vsOj8fZULXKsps7Zg7MDBgVV+mo6JB3kBScZsLgR9x+rPoqwjyAEUavfEWXswmUJFU3jp6up3VY1cDxJCsOPoq2owjlzvPvY1VfkKYeQtt3o8dm1rI2/6qcYWn/2pphdeAE8sKIBy4UW5FQSbj7E8xMRxaLqhnDHcaOOrd/gZwoAlD0i+O1DZHE7uzWZCyNSrw5+DS4mUdRs7NHFaVX+XdfH5ec=" ConnectionStringExpression="[conectionstr]">
+      <ProcedureDataSource Name="prs_GetDate" DataType="System.Int32" Enabled="true" TableName="prs_GetDate" SelectCommand="prs_GetDate">
+        <Column Name="fldDateTime" DataType="System.DateTime"/>
+        <Column Name="fldTarikh" DataType="System.String"/>
+        <Column Name="fldTime" DataType="System.String"/>
+        <Column Name="fldDate" DataType="System.DateTime"/>
+      </ProcedureDataSource>
+      <ProcedureDataSource Name="prs_RptName_LogoCompany" DataType="System.Int32" Enabled="true" TableName="prs_RptName_LogoCompany" SelectCommand="prs_RptName_LogoCompany">
+        <Column Name="fldNameCompany" DataType="System.String"/>
+        <Column Name="fldLogo" DataType="System.Byte[]" BindableControl="Picture"/>
+        <Column Name="fldTitleContract" DataType="System.String"/>
+        <ProcedureParameter Name="@IdContract" DataType="8" Expression="[IdContract]" Direction="Input"/>
+      </ProcedureDataSource>
+      <ProcedureDataSource Name="prs_tblRegistrationFirstContract_HaghighiSelect" DataType="System.Int32" Enabled="true" TableName="prs_tblRegistrationFirstContract_HaghighiSelect" SelectCommand="prs_tblRegistrationFirstContract_HaghighiSelect">
+        <Column Name="fldId" DataType="System.Int32"/>
+        <Column Name="fldAshkhasId" DataType="System.Int32"/>
+        <Column Name="fldHeaderId" DataType="System.Int32"/>
+        <Column Name="fldInputId" DataType="System.Int32"/>
+        <Column Name="fldName_Family" DataType="System.String"/>
+        <Column Name="fldHeaderTitle" DataType="System.String"/>
+        <Column Name="fldCodeMeli" DataType="System.String"/>
+        <Column Name="fldMobile" DataType="System.String"/>
+        <ProcedureParameter Name="@fieldname" DataType="12" Expression="[FieldName]" Direction="Input"/>
+        <ProcedureParameter Name="@h" DataType="8" Expression="[h]" Direction="Input"/>
+        <ProcedureParameter Name="@value" DataType="12" Expression="[Value]" Direction="Input"/>
+      </ProcedureDataSource>
+      <ProcedureDataSource Name="prs_tblRegistrationFirstContract_HoghoghiSelect" DataType="System.Int32" Enabled="true" TableName="prs_tblRegistrationFirstContract_HoghoghiSelect" SelectCommand="prs_tblRegistrationFirstContract_HoghoghiSelect">
+        <Column Name="fldId" DataType="System.Int32"/>
+        <Column Name="fldAshkhasHoghoghiId" DataType="System.Int32"/>
+        <Column Name="fldHeaderId" DataType="System.Int32"/>
+        <Column Name="fldTarikhSanad" DataType="System.String"/>
+        <Column Name="fldTedadVagon" DataType="System.Int16"/>
+        <Column Name="fldArzeshRiyali" DataType="System.Int64"/>
+        <Column Name="fldArzeshDolari" DataType="System.Int64"/>
+        <Column Name="fldSanadFileId" DataType="System.Int32"/>
+        <Column Name="fldDaftarcheFileId" DataType="System.Int32"/>
+        <Column Name="fldInputId" DataType="System.Int32"/>
+        <Column Name="fldNameHoghoghi" DataType="System.String"/>
+        <Column Name="fldHeaderTitle" DataType="System.String"/>
+        <ProcedureParameter Name="@fieldname" DataType="12" Expression="[FieldName-hoghoghi]" Direction="Input"/>
+        <ProcedureParameter Name="@h" DataType="8" Expression="[h-hoghoghi]" Direction="Input"/>
+        <ProcedureParameter Name="@value" DataType="12" Expression="[Value-hoghoghi]" Direction="Input"/>
+      </ProcedureDataSource>
+      <ProcedureDataSource Name="prs_RptCompanyInfo_Contract" DataType="System.Int32" Enabled="true" TableName="prs_RptCompanyInfo_Contract" SelectCommand="prs_RptCompanyInfo_Contract">
+        <Column Name="fldNameCompany" DataType="System.String"/>
+        <Column Name="fldNationalCode" DataType="System.String"/>
+        <Column Name="fldShomareSabt" DataType="System.String"/>
+        <Column Name="fldTypeCompany" DataType="System.String"/>
+        <Column Name="fldDateSabt" DataType="System.String"/>
+        <Column Name="fldTitleContract" DataType="System.String"/>
+        <Column Name="fldNameModir" DataType="System.String"/>
+        <ProcedureParameter Name="@IdContract" DataType="8" Expression="[IdContract]" Direction="Input"/>
+      </ProcedureDataSource>
+    </MsSqlDataConnection>
+    <Parameter Name="conectionstr" DataType="System.String" Expression="@&quot;Data Source=192.168.1.34;AttachDbFilename=;Initial Catalog=RaiSam;Integrated Security=False;Persist Security Info=False;User ID=rasasystem;Password=rasasystem!@#&quot;"/>
+    <Parameter Name="FieldName" DataType="System.String" Expression="&quot;&quot;"/>
+    <Parameter Name="Value" DataType="System.Int32" Expression="0"/>
+    <Parameter Name="h" DataType="System.Int32" Expression="10"/>
+    <Parameter Name="IdContract" DataType="System.Int32" Expression="6"/>
+    <Parameter Name="UserName" DataType="System.String" Expression="&quot;مدیر سیستم&quot;"/>
+    <Parameter Name="FieldName-hoghoghi" DataType="System.String" Expression="&quot;&quot;"/>
+    <Parameter Name="Value-hoghoghi" DataType="System.Int32" Expression="0"/>
+    <Parameter Name="h-hoghoghi" DataType="System.Int32" Expression="10"/>
+  </Dictionary>
+  <ReportPage Name="Page1" Guides="0,718.2,143.64,574.56,287.28,430.92,0.03,718.23,143.67,287.31,430.95,574.59,359.1,12.49,730.69,22.88,359.99" Watermark.Font="Arial, 60pt">
+    <PageHeaderBand Name="PageHeader1" Width="718.2" Height="123.7" CanGrow="true" CanShrink="true" CanBreak="true" Guides="0,123.7,37.45,86.24001">
+      <TableObject Name="Table1" Width="718.2" Height="123.7" Dock="Fill">
+        <TableColumn Name="Column1" Width="143.64"/>
+        <TableColumn Name="Column2" Width="143.64"/>
+        <TableColumn Name="Column3" Width="143.64"/>
+        <TableColumn Name="Column4" Width="143.64"/>
+        <TableColumn Name="Column5" Width="143.64"/>
+        <TableRow Name="Row1" Height="37.45">
+          <TableCell Name="Cell1" Text="تاریخ چاپ:  [prs_GetDate.fldTarikh]" VertAlign="Center" RightToLeft="true" Font="RasaFont, 10pt" Style="rasafont10"/>
+          <TableCell Name="Cell2" Font="Arial, 10pt" ColSpan="3"/>
+          <TableCell Name="Cell3" Font="Arial, 10pt"/>
+          <TableCell Name="Cell4" Font="Arial, 10pt"/>
+          <TableCell Name="Cell5" Font="Arial, 10pt" RowSpan="2">
+            <PictureObject Name="Picture1" Width="143.64" Height="86.24" Dock="Fill" DataColumn="prs_RptName_LogoCompany.fldLogo"/>
+          </TableCell>
+        </TableRow>
+        <TableRow Name="Row2" Height="48.79">
+          <TableCell Name="Cell6" Text="ساعت چاپ: [prs_GetDate.fldTime]" VertAlign="Center" RightToLeft="true" Font="RasaFont, 10pt" Style="rasafont10"/>
+          <TableCell Name="Cell7" Text="سامانه  یکپارچه ماده 12 &#13;&#10;گزارش جدول زمان بندی اجرای پروژه" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 14pt, style=Bold" Style="title" ColSpan="3"/>
+          <TableCell Name="Cell8" Font="Arial, 10pt"/>
+          <TableCell Name="Cell9" Font="Arial, 10pt"/>
+          <TableCell Name="Cell10" Font="Arial, 10pt"/>
+        </TableRow>
+        <TableRow Name="Row3" Height="37.45">
+          <TableCell Name="Cell11" Text="کاربر چاپ کننده : [UserName] " AutoShrink="FontSize" VertAlign="Center" RightToLeft="true" Font="RasaFont, 10pt" Style="rasafont10"/>
+          <TableCell Name="Cell12" Font="Arial, 10pt" ColSpan="3"/>
+          <TableCell Name="Cell13" Font="Arial, 10pt"/>
+          <TableCell Name="Cell14" Font="Arial, 10pt"/>
+          <TableCell Name="Cell15" Text="[prs_RptName_LogoCompany.fldNameCompany]" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 10pt" Style="rasafont10"/>
+        </TableRow>
+      </TableObject>
+    </PageHeaderBand>
+    <DataBand Name="Data1" Top="447.36" Width="718.2" Height="27.74" CanGrow="true" CanShrink="true" CanBreak="true" Guides="0,27.73999" DataSource="prs_tblRegistrationFirstContract_HoghoghiSelect">
+      <TableObject Name="Table9" Left="0.03" Width="718.2" Height="27.74" Fill="Glass" Fill.Color="Plum" Fill.Blend="0.2" Fill.Hatch="false" Style="color" EvenStyle="color1" PrintOnParent="true">
+        <TableColumn Name="Column21" Width="143.64"/>
+        <TableColumn Name="Column22" Width="143.64"/>
+        <TableColumn Name="Column23" Width="143.64"/>
+        <TableColumn Name="Column24" Width="143.64"/>
+        <TableColumn Name="Column25" Width="143.64"/>
+        <TableRow Name="Row27" Height="27.74" AutoSize="true">
+          <TableCell Name="Cell94" Border.Lines="All" Text="[prs_tblRegistrationFirstContract_HoghoghiSelect.fldArzeshDolari]" Format="Number" Format.UseLocale="false" Format.DecimalDigits="0" Format.DecimalSeparator="." Format.GroupSeparator="," Format.NegativePattern="1" AutoShrink="FontSize" VertAlign="Center" RightToLeft="true" Font="RasaFont, 10pt, style=Bold"/>
+          <TableCell Name="Cell95" Border.Lines="All" Text="[prs_tblRegistrationFirstContract_HoghoghiSelect.fldArzeshRiyali]" Format="Number" Format.UseLocale="false" Format.DecimalDigits="0" Format.DecimalSeparator="." Format.GroupSeparator="," Format.NegativePattern="1" AutoShrink="FontSize" VertAlign="Center" RightToLeft="true" Font="RasaFont, 10pt, style=Bold"/>
+          <TableCell Name="Cell96" Border.Lines="All" Text="[prs_tblRegistrationFirstContract_HoghoghiSelect.fldTedadVagon]" AutoShrink="FontSize" VertAlign="Center" RightToLeft="true" Font="RasaFont, 10pt, style=Bold"/>
+          <TableCell Name="Cell97" Border.Lines="All" Text="[prs_tblRegistrationFirstContract_HoghoghiSelect.fldTarikhSanad]" AutoShrink="FontSize" VertAlign="Center" RightToLeft="true" Font="RasaFont, 10pt, style=Bold"/>
+          <TableCell Name="Cell98" Border.Lines="All" Text="[prs_tblRegistrationFirstContract_HoghoghiSelect.fldNameHoghoghi]" AutoShrink="FontSize" VertAlign="Center" RightToLeft="true" Font="RasaFont, 10pt, style=Bold"/>
+        </TableRow>
+      </TableObject>
+      <DataHeaderBand Name="DataHeader1" Top="128.64" Width="718.2" Height="313.78" CanGrow="true" CanShrink="true" CanBreak="true" Guides="0,231.02,59.86,258.3,313.78,286.04">
+        <TableObject Name="Table2" Width="718.2" Height="231.02" PrintOnParent="true">
+          <TableColumn Name="Column6" Width="718.2"/>
+          <TableRow Name="Row4" Height="59.86">
+            <TableCell Name="Cell16" Text="مدیریت محترم دفتر سرمایه گذاری شرکت راه آهن ج.ا.ا&#13;&#10;موضوع : استفاده از تسهیلات ماده 12 قانون رفع موانع تولید رقابت پذیر و ارتقای نظام مالی کشور" VertAlign="Center" RightToLeft="true" Font="RasaFont, 11pt, style=Bold"/>
+          </TableRow>
+          <TableRow Name="Row5" Height="171.16" AutoSize="true">
+            <TableCell Name="Cell21" Text="به استحضار می رساند شرکت [prs_RptCompanyInfo_Contract.fldNameCompany] به شناسه ملی[prs_RptCompanyInfo_Contract.fldNationalCode] و شماره ثبت [prs_RptCompanyInfo_Contract.fldShomareSabt] با سهام  100% به عنوان شرکت [prs_RptCompanyInfo_Contract.fldTypeCompany] که در تاریخ [prs_RptCompanyInfo_Contract.fldDateSabt]تاسیس شده، اقدام به خرید [prs_RptCompanyInfo_Contract.fldTitleContract] از شرکت های زیر، به منظور سرمایه گذاری در بخش توسعه ناوگان نموده است، لذا به منظور استفاده از تسهیلات ماده 12 خواهشمند است دستور مقتضی صادر نمایید. &#13;&#10;ضمنا نمایندگان این شرکت به شرح زیر جهت تهیه، تنظیم و نهایی سازی مستندات مرتبط با پرونده ماده 12 قرارداد فوق الذکر معرفی می گردد. " VertAlign="Center" RightToLeft="true" Font="RasaFont, 11pt">
+              <Formats>
+                <GeneralFormat/>
+                <GeneralFormat/>
+                <GeneralFormat/>
+                <GeneralFormat/>
+                <GeneralFormat/>
+                <GeneralFormat/>
+              </Formats>
+            </TableCell>
+          </TableRow>
+        </TableObject>
+        <TableObject Name="Table8" Top="258.3" Width="718.2" Height="55.48" PrintOnParent="true">
+          <TableColumn Name="Column16" Width="143.64"/>
+          <TableColumn Name="Column17" Width="143.64"/>
+          <TableColumn Name="Column18" Width="143.64"/>
+          <TableColumn Name="Column19" Width="143.64"/>
+          <TableColumn Name="Column20" Width="143.64"/>
+          <TableRow Name="Row24" Height="27.74">
+            <TableCell Name="Cell79" Text="شرکت های تامین کننده:" VertAlign="Center" RightToLeft="true" Font="RasaFont, 12pt, style=Bold" ColSpan="5"/>
+            <TableCell Name="Cell80" VertAlign="Center" Font="RasaFont, 11pt" Style="rasafont11"/>
+            <TableCell Name="Cell81" VertAlign="Center" Font="RasaFont, 11pt" Style="rasafont11"/>
+            <TableCell Name="Cell82" VertAlign="Center" Font="RasaFont, 11pt" Style="rasafont11"/>
+            <TableCell Name="Cell83" VertAlign="Center" Font="RasaFont, 11pt" Style="rasafont11"/>
+          </TableRow>
+          <TableRow Name="Row25" Height="27.74">
+            <TableCell Name="Cell84" Border.Lines="All" Text="ارزش دلاری:" VertAlign="Center" RightToLeft="true" Font="RasaFont, 11pt, style=Bold"/>
+            <TableCell Name="Cell85" Border.Lines="All" Text="ارزش ریالی: " VertAlign="Center" RightToLeft="true" Font="RasaFont, 11pt, style=Bold"/>
+            <TableCell Name="Cell86" Border.Lines="All" Text="تعداد واگن:" VertAlign="Center" RightToLeft="true" Font="RasaFont, 11pt, style=Bold"/>
+            <TableCell Name="Cell87" Border.Lines="All" Text="تاریخ سند:" VertAlign="Center" RightToLeft="true" Font="RasaFont, 11pt, style=Bold"/>
+            <TableCell Name="Cell88" Border.Lines="All" Text="تامین کننده:" VertAlign="Center" RightToLeft="true" Font="RasaFont, 11pt, style=Bold"/>
+          </TableRow>
+        </TableObject>
+      </DataHeaderBand>
+      <DataFooterBand Name="DataFooter1" Top="480.03" Width="718.2" CanGrow="true" CanShrink="true" CanBreak="true"/>
+    </DataBand>
+    <DataBand Name="Data2" Top="558.4" Width="718.2" Height="37.81" Guides="0,37.81" DataSource="prs_tblRegistrationFirstContract_HaghighiSelect">
+      <TableObject Name="Table7" Width="718.2" Height="37.81" PrintOnParent="true">
+        <TableColumn Name="Column14" Width="359.1"/>
+        <TableColumn Name="Column15" Width="359.1"/>
+        <TableRow Name="Row23" Height="37.81">
+          <TableCell Name="Cell77" Text="شماره همراه نماینده: [prs_tblRegistrationFirstContract_HaghighiSelect.fldMobile] " RightToLeft="true" Font="RasaFont, 11pt" Style="rasafont11"/>
+          <TableCell Name="Cell78" Text=" نام و نام خانوادگی نماینده:[prs_tblRegistrationFirstContract_HaghighiSelect.fldName_Family]" RightToLeft="true" Font="RasaFont, 11pt"/>
+        </TableRow>
+      </TableObject>
+      <DataHeaderBand Name="DataHeader2" Top="484.97" Width="718.2" Height="68.49" Guides="0,68.48001,28.78">
+        <TableObject Name="Table5" Width="718.2" Height="68.48" PrintOnParent="true">
+          <TableColumn Name="Column11" Width="718.2"/>
+          <TableRow Name="Row28" Height="28.78">
+            <TableCell Name="Cell99" Font="Arial, 10pt"/>
+          </TableRow>
+          <TableRow Name="Row19" Height="39.7">
+            <TableCell Name="Cell68" Text="نمایندگان: " VertAlign="Center" RightToLeft="true" Font="RasaFont, 11pt, style=Bold"/>
+          </TableRow>
+        </TableObject>
+      </DataHeaderBand>
+      <DataFooterBand Name="DataFooter2" Top="601.15" Width="718.2" Height="75.47" Guides="0.1599731,75.46997,29.46997,34.06,71.67999">
+        <TableObject Name="Table6" Left="12.49" Top="0.16" Width="718.2" Height="75.31">
+          <TableColumn Name="Column13" Width="718.2"/>
+          <TableRow Name="Row29" Height="29.31">
+            <TableCell Name="Cell100" Font="Arial, 10pt"/>
+          </TableRow>
+          <TableRow Name="Row21" Height="46">
+            <TableCell Name="Cell75" Font="Arial, 10pt">
+              <TextObject Name="Text1" Left="10.39" Top="4.59" Width="337.11" Height="37.62" Text="[prs_RptCompanyInfo_Contract.fldNameModir]&#13;&#10;مدیر عامل شرکت [prs_RptCompanyInfo_Contract.fldNameCompany]" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 11pt">
+                <Formats>
+                  <GeneralFormat/>
+                  <GeneralFormat/>
+                </Formats>
+              </TextObject>
+            </TableCell>
+          </TableRow>
+        </TableObject>
+      </DataFooterBand>
+    </DataBand>
+    <PageFooterBand Name="PageFooter1" Top="681.56" Width="718.2" Height="18.9"/>
+  </ReportPage>
+</Report>

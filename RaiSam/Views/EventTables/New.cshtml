@@ -1,0 +1,275 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+
+@(Html.X()
+    .Window()
+    .Modal(true)
+    .Listeners(li =>
+    {
+        li.Render.Fn = "addKeyMapEventTables";
+        //li.AfterRender.Handler = "LoadEventTables()";
+    })
+    .Width(490)
+    .Title("ثبت رویدادهای جداول")
+    .ID("NewEventTables")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Layout(LayoutType.Fit)
+    .ButtonAlign(Ext.Net.Alignment.Center)
+    .Buttons(
+        X.Button()
+            .Text("ذخیره")
+            .Icon(Ext.Net.Icon.Disk)
+            .Listeners(l => l.Click.Handler = "SaveEventTables();"),
+        X.Button()
+            .Text("خروج")
+            .Icon(Ext.Net.Icon.DoorOut)
+            .ToolTip("کلید میانبر Esc")
+            .OnClientClick("App.NewEventTables.destroy();"))
+    .Items(
+         X.AntiForgeryField()
+                .ItemID("antiForgeryToken").Hidden(true),
+        X.Panel()
+            .Border(false)
+            .Layout(LayoutType.VBox)
+            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+            .Items(
+                X.FieldSet()
+                    .Title("مشخصات رویداد")
+                    .Border(true)
+                    .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 4 })
+                    .Defaults(new { Margin = 2 })
+                    .Items(
+                        X.Hidden().ItemID("fldId"),
+                            X.Label("نام جدول:"),
+                    X.ComboBox()
+                        .ItemID("CboTable")
+                        .TypeAhead(true)
+                        .Editable(false)
+                        .AutoFocus(true)
+                            .ForceSelection(true)
+                            .QueryMode(DataLoadMode.Local)
+                            .TriggerAction(TriggerAction.All)
+                            .AllowBlank(false)
+                            .BlankText("لطفا جدول را انتخاب کنید.")
+                            .DisplayField("fldName")
+                            .ValueField("fldId")
+                            .EmptyText("...")
+                            .Store(X.Store()
+                                     .Listeners(l => l.Load.Handler = "setDefaultCboTable();")
+                                .Model(X.Model()
+
+                                    .IDProperty("fldId")
+                                    .Fields(
+                                        new ModelField("fldId", ModelFieldType.Int) { Mapping = "fldId" },
+                                        new ModelField("fldName", ModelFieldType.String) { Mapping = "fldName" }
+                                        )
+                                )
+                                 .Listeners(l => l.BeforeLoad.Handler = "App.NewEventTables.queryById('CboTable').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.NewEventTables.queryById('antiForgeryToken').getValue());")
+                                .Proxy(Html.X().AjaxProxy()
+                                .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                    .Timeout(200000000)
+                                        .Url(Url.Action("GetNametable"))
+                                    .Reader(X.JsonReader().Root("data"))
+                                )
+                                )
+                        .Listeners(l =>
+                        {
+                            l.AfterRender.Handler = "LoadEventTables()";
+                        }),
+                        X.Label("عنوان رویداد:"),
+                        X.ComboBox()
+                                .ItemID("CboEventType")
+                            .TypeAhead(true)
+                            .Editable(false)
+                            .ForceSelection(true)
+                            .QueryMode(DataLoadMode.Local)
+                            .TriggerAction(TriggerAction.All)
+                            .AllowBlank(false)
+                            .BlankText("لطفا نوع تراکنش را انتخاب کنید.")
+                            .DisplayField("fldName")
+                            .ValueField("fldId")
+                            .EmptyText("...")
+                            .Store(X.Store()
+                                    .Listeners(l => l.Load.Handler = "setDefaultCboEventType();")
+                                .Model(X.Model()
+                                    .IDProperty("fldId")
+                                    .Fields(
+                                        new ModelField("fldId", ModelFieldType.Int) { Mapping = "fldId" },
+                                        new ModelField("fldName", ModelFieldType.String) { Mapping = "fldName" }
+                                        )
+                                )
+                                         .Listeners(l => l.BeforeLoad.Handler = "App.NewEventTables.queryById('CboEventType').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.NewEventTables.queryById('antiForgeryToken').getValue());")
+                                    .Proxy(Html.X().AjaxProxy()
+                                    .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                    .Timeout(200000000)
+                                            .Url(Url.Action("GetEventType"))
+                                    .Reader(X.JsonReader().Root("data"))
+                                    )
+
+                        ),
+
+                            X.Label("نحوه اجرا:"),
+
+                                    X.ComboBox()
+                                        .ItemID("CboFlag")
+                                        .TypeAhead(true)
+                                        .Editable(false)
+                                        .QueryMode(DataLoadMode.Local)
+
+                                        .ForceSelection(true)
+                                        .TriggerAction(TriggerAction.All)
+                                        .Items(
+                                                new ListItem("در Thread اصلی", "0"),
+                                                new ListItem("در Thread جداگانه", "1")
+                                        )
+                                        .Listeners(l =>
+                                        {
+                                            l.AfterRender.Handler = "SetDefaultCboFlag()";
+                                        })
+        //,X.Label("توضیحات:"),
+        //X.TextField()
+        //    .ItemID("txtDesc")
+        //.ColSpan(4)
+        //.Width(331)
+                     )
+                )
+        )
+)
+<script type="text/javascript">
+
+    function setDefaultCboEventType() {
+        if ('@ViewBag.Id' == "0") {
+            App.NewEventTables.queryById('CboEventType').select(App.NewEventTables.queryById('CboEventType').store.getAt(0));
+        }
+    }
+    function setDefaultCboTable() {
+        if ('@ViewBag.Id' == "0") {
+            App.NewEventTables.queryById('CboTable').select(App.NewEventTables.queryById('CboTable').store.getAt(0));
+        }
+    }
+    function SetDefaultCboFlag() {
+        if ('@ViewBag.Id' == "0") {
+            App.NewEventTables.queryById('CboFlag').select("0");
+        }
+    }
+
+    function LoadEventTables() {
+        ReplaceArabic();
+        if ('@ViewBag.Id' != '0') {
+            App.NewEventTables.body.mask("در حال بارگذاری...");
+            Ext.net.DirectMethod.request({
+                url: '/EventTables/Details',
+                params: {
+                    Id: '@ViewBag.Id',
+                    __RequestVerificationToken: App.NewEventTables.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+                    var CboFlag = App.NewEventTables.queryById('CboFlag');
+                    CboFlag.setValue(data.fldFlag);
+                    var CboEventType = App.NewEventTables.queryById('CboEventType');
+                    CboEventType.setValue(data.fldEventTypeId);
+                    var CboTable = App.NewEventTables.queryById('CboTable');
+                    CboTable.setValue(data.fldNameTablesId);
+                    /*var txtDesc = App.NewEventTables.queryById('txtDesc');
+                    txtDesc.setValue(data.fldDesc);*/
+                    var Id = App.NewEventTables.queryById('fldId');
+                    Id.setValue(data.fldId);
+                    App.NewEventTables.body.mask().hide();
+                }
+            });
+        }
+        else {
+            App.NewEventTables.queryById('CboEventType').validate();
+            App.NewEventTables.queryById('CboTable').validate();
+            App.NewEventTables.queryById('CboFlag').validate();
+        }
+
+    }
+
+    function SaveEventTables() {
+        var CboEventType = App.NewEventTables.queryById('CboEventType');
+        var CboTable = App.NewEventTables.queryById('CboTable');
+        var CboFlag = App.NewEventTables.queryById('CboFlag');
+        /*var txtDesc = App.NewEventTables.queryById('txtDesc');*/
+        var Id = App.NewEventTables.queryById('fldId');
+        var er = false;
+        if (CboEventType.validate() == false) {
+            er = true;
+        }
+        if (CboTable.validate() == false) {
+            er = true;
+        }
+        if (CboFlag.validate() == false) {
+            er = true;
+        }
+        if (er == true)
+            return;
+
+        var flag=true;
+        if(CboFlag.getValue()=="0")
+            flag=false;
+
+        App.NewEventTables.body.mask("در حال ذخیره سازی");
+        Ext.net.DirectMethod.request({
+            url: '/EventTables/Save',
+            params: {
+                fldId: Id.getValue(),
+                fldEventTypeId: CboEventType.getValue(),
+                fldNameTablesId: CboTable.getValue(),
+                /*fldDesc: txtDesc.getValue(),*/
+                fldFlag: flag,
+                __RequestVerificationToken: App.NewEventTables.queryById('antiForgeryToken').getValue()
+            },
+            success: function (data) {
+                var ic = Ext.MessageBox.INFO;
+                if (data.Er == 1)
+                    ic = Ext.MessageBox.ERROR;
+                Ext.MessageBox.show({
+                    Name: data.MsgName,
+                    msg: data.Msg,
+                    icon: ic,
+                    buttons: Ext.MessageBox.OK
+                });
+                App.EventTables.queryById('GridEventTables').store.load();
+                if (data.Er != 1)
+                    ClearEventTables();
+                App.NewEventTables.body.mask().hide();
+            }
+
+        });
+    }
+    function ClearEventTables() {
+        /*App.NewEventTables.queryById('txtDesc').setValue("");*/
+        App.NewEventTables.queryById('fldId').setValue(0);
+    }
+
+    var addKeyMapEventTables = function (cmp) {
+        this.keyMap = new Ext.util.KeyMap({
+            target: cmp.getEl(),
+            binding: [{
+                key: [13, 9], /*Ext.EventTablesObject.ENTER,*/
+                fn: function (key, e) {
+                    if (e.getKey() == 9) {
+                        e.stopEventTables();
+                    }
+                    var keyfield = App.NewEventTables.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+                    var nextfld;
+                    if (keyfield.itemId == "CboFlag") {
+                        SaveEventTables();
+                        return;
+                    }
+                    else {
+                        nextfld = keyfield.nextSibling().nextSibling();
+                    }
+                    nextfld.focus();
+                    nextfld.selectText();
+                }
+            }]
+        });
+    };
+</script>

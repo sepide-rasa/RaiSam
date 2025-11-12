@@ -1,0 +1,1055 @@
+﻿@model RaiSam.Models.Limitation
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+<script>
+    Ext.net.FilterHeader.behaviour.string[0].match = function (recordValue, matchValue) {
+        return (Ext.net.FilterHeader.behaviour.getStrValue(recordValue) || "").indexOf(matchValue) > -1;
+    };
+
+    Ext.net.FilterHeader.behaviour.string[0].getStrValue = function (value) {
+        return value.toString();
+    };
+
+    Ext.net.FilterHeader.behaviour.string[0].serialize = function (value) {
+        return {
+            type: "string",
+            op: "*",
+            value: value
+        };
+    };
+</script>
+<style>
+    .custom-NewLimitation {
+        margin-right: 125px !important;
+    }
+</style>
+
+@(Html.X()
+    .Window()
+    .Modal(true)
+    .Listeners(li =>
+    {
+        li.Render.Fn = "addKeyMapNewLimitation";
+        li.AfterRender.Handler = "LoadLimitation()";
+    })
+    .Title("ثبت محدودیت")
+    .ID("NewLimitation")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Layout(LayoutType.Fit)
+    .ButtonAlign(Ext.Net.Alignment.Center)
+    .Buttons(
+        X.Button()
+            .Text("خروج")
+            .Icon(Ext.Net.Icon.DoorOut)
+            .OnClientClick("App.NewLimitation.destroy()"))
+    .Items(
+        X.AntiForgeryField()
+                .ItemID("antiForgeryToken")
+                .Hidden(true),
+        X.Panel()
+            .Border(false)
+            .Layout(LayoutType.VBox)
+            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+            .Items(
+                X.Hidden().ItemID("fldId"),
+                X.Hidden().ItemID("UserId"),
+                X.FieldSet()
+                    .Border(true)
+                    .Title("مشخصات محدودیت")
+                    .Defaults(new { Margin = 2 })
+                    .Layout(LayoutType.Table)
+                    .LayoutConfig(new TableLayoutConfig { Columns = 4 })
+                    .Items(
+                        X.Label("کاربر:"),
+                        X.TextField()
+                            .ItemID("txtUserName")
+        //.Icon(Icon.UserAdd)
+                            .AllowBlank(false)
+                            .BlankText("لطفا کاربر مورد نظر را وارد کنید.")
+                            .ReadOnly(true)
+        //.AutoFocus(true)
+                            .FieldStyle("padding-right:5px;")
+                            .Listeners(l =>
+                            {
+                                l.Change.Handler = "LoadLimitationGrids()";
+                                //l.SpecialKey.Handler = "SelectLimitedUser(e.getKey());";
+                                //l.IconClick.Handler = "SelectLimitedUserIcon()";
+                                //l.AfterRender.Handler = "App.NewLimitation.queryById('txtUserName').icon.dom.classList.add('custom-NewLimitation');";
+                            }),
+                        X.Label("نوع محدودیت:"),
+                        X.ComboBox()
+                            .AutoFocus(true)
+                            .ItemID("CboLimitation")
+                            .Editable(false)
+                            .TypeAhead(true)
+                            .QueryMode(DataLoadMode.Local)
+                            .TriggerAction(TriggerAction.All)
+                            .Listeners(l =>
+                            {
+                                l.Change.Handler = "HandleGrid()";
+                                l.AfterRender.Handler = "App.NewLimitation.queryById('CboLimitation').setValue('1')";
+                            })
+                            .AllowBlank(false)
+                            .BlankText("لطفا نوع محدودیت را انتخاب کنید.")
+                            .EmptyText("نوع محدودیت...")
+                            .Items(
+                                new ListItem("محدودیت زمانی", "1"),
+                                new ListItem("محدودیت سخت افزاری", "2"),
+                                new ListItem("محدودیت IP", "3")
+                                ),
+                        X.Label("روز:").ItemID("lblDay"),
+                        X.ComboBox()
+                            .ItemID("CboDay")
+                            .Editable(false)
+                            .TypeAhead(true)
+                            .AllowBlank(false)
+                            .BlankText("لطفا روز را انتخاب کنید.")
+                            .QueryMode(DataLoadMode.Local)
+                            .TriggerAction(TriggerAction.All)
+                            .Items(
+                                    new ListItem("شنبه", "شنبه"),
+                                    new ListItem("یکشنبه", "یکشنبه"),
+                                    new ListItem("دوشنبه", "دوشنبه"),
+                                    new ListItem("سه شنبه", "سه شنبه"),
+                                    new ListItem("چهارشنبه", "چهارشنبه"),
+                                    new ListItem("پنجشنبه", "پنجشنبه"),
+                                    new ListItem("جمعه", "جمعه")
+                            )
+                            .SelectedItems(new { Value = "شنبه" }),
+                        X.FieldSet()
+                            .Layout(LayoutType.HBox)
+                            .PaddingSpec("0 0 0 19px")
+                            .Defaults(new { Margin = 2 })
+                            .Border(false)
+                            .ColSpan(2)
+                            .ItemID("TimeFieldSet")
+                            .Items(
+                                X.Label("از ساعت:").ItemID("lblAzSaat"),
+                                X.TextField()
+                                    .AllowBlank(false)
+                                    .BlankText("لطفا ساعت شروع را وارد کنید.")
+                                    .Listeners(l =>
+                                    {
+                                        l.Change.Handler = "CheckValidTime(App.NewLimitation.queryById('txtAzSaat'))";
+                                        l.Blur.Handler = "CheckDiffTimes(App.NewLimitation.queryById('txtAzSaat'))";
+                                    })
+                                    .Width(44)
+                                    .ItemID("txtAzSaat")
+                                    .Plugins(X.InputMask()
+                                        .Mask("AA:AA")
+                                        .MaskSymbols(ls =>
+                                        {
+                                            ls.Add(new MaskSymbol { Name = "A", Regex = "[0-9]", Placeholder = "_".ToCharArray()[0] });
+                                        })),
+                                X.Label("تا ساعت:").ItemID("lblTaSaat"),
+                                X.TextField()
+                                    .AllowBlank(false)
+                                    .BlankText("لطفا ساعت پایان را وارد کنید.")
+                                    .Listeners(l =>
+                                    {
+                                        l.Change.Handler = "CheckValidTime(App.NewLimitation.queryById('txtTaSaat'))";
+                                        l.Blur.Handler = "CheckDiffTimes(App.NewLimitation.queryById('txtTaSaat'))";
+                                    })
+                                    .Width(44)
+                                    .ItemID("txtTaSaat")
+                                    .Plugins(X.InputMask()
+                                        .Mask("AA:AA")
+                                        .MaskSymbols(ls =>
+                                        {
+                                            ls.Add(new MaskSymbol { Name = "A", Regex = "[0-9]", Placeholder = "_".ToCharArray()[0] });
+                                        }))
+                            ),
+                        X.Label("IP:").ItemID("lblIP"),
+                        X.TextField()
+                            .ItemID("txtIP")
+                            .Regex("^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\-+([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))?$")
+                            .MaskRe("/[0-9,.,-]/")
+                            .AllowBlank(false)
+                            .EmptyText("Example:192.168.1.1 or 192.168.1.1-10")
+                            .MaxLength(19)
+                            .MinLength(7)
+                            .EnforceMaxLength(true)
+                            .BlankText("لطفا IP(های) معتبر را وارد کنید.")
+                            .FieldStyle("direction:ltr")
+                            .Width(368)
+                            .ColSpan(3),
+                        X.Label("MAC Address:").ItemID("lblMac"),
+                        X.TextField()
+                            .ItemID("txtMac")
+                            .Regex("^([0-9A-Fa-f]{2}[-]){5}([0-9A-Fa-f]{2})$")
+                            .MaxLength(17)
+                            .MinLength(17)
+                            .EnforceMaxLength(true)
+                            .MaskRe("[0-9,a-z,A-Z,-]")
+                            .Plugins(X.InputMask()
+                                .Mask("AA-AA-AA-AA-AA-AA")
+                                .MaskSymbols(ls =>
+                                {
+                                    ls.Add(new MaskSymbol { Name = "A", Regex = "[0-9,a-z,A-Z,-]", Placeholder = "_".ToCharArray()[0] });
+                                }))
+                            .FieldStyle("direction:ltr")
+                            .AllowBlank(false)
+                            .BlankText("لطفا MAC Address مورد نظر را وارد کنید.")
+                            .Width(368)
+                            .ColSpan(3),
+                        X.Label("توضیحات:"),
+                        X.TextField()
+                            .ItemID("txtDesc")
+                            .Width(368)
+                            .ColSpan(3),
+                        X.FieldSet()
+                            .Layout(LayoutType.VBox)
+                            .Border(false)
+                            .ColSpan(4)
+                            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+                            .Width(424)
+                            .Items(
+                                X.Button()
+                                    .Text("ذخیره")
+                                    .Icon(Icon.Disk)
+                                    .Listeners(l => l.Click.Handler = "SaveLimitation()")
+                            )
+                    ),
+                X.Panel()
+                    .Layout(LayoutType.Accordion)
+                    .LayoutConfig(new Ext.Net.AccordionLayoutConfig { OriginalHeader = true, Animate = true, ActiveOnTop = true })
+                    .Border(true)
+                    .Frame(true)
+                    .ID("AccordionPnl")
+                    .AutoScroll(true)
+                    .Items(
+                        X.GridPanel()
+                            .AutoScroll(true)
+                            .Border(true)
+                            .ItemID("GridLimitTime")
+                            .BottomBar(X.PagingToolbar())
+                            .Title("محدودیت های زمانی")
+                            .Store(
+                                    X.StoreFor(Model.LimitTime)
+                                    .Listeners(l => l.BeforeLoad.Handler = "App.NewLimitation.queryById('GridLimitTime').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.NewLimitation.queryById('antiForgeryToken').getValue());")
+                                    .AutoLoad(false)
+                                    .Listeners(l => l.DataChanged.Handler = "App.NewLimitation.queryById('GridLimitTime').selModel.refresh();")
+                                    .Proxy(Html.X().AjaxProxy()
+                                         .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                        .Url(Url.Action("ReadLimitationTime"))
+                                        .Reader(Html.X().JsonReader().Root("data"))
+                                    )
+                                    .Parameters(ps => ps.Add(new StoreParameter("UserId", "App.NewLimitation.queryById('UserId').getValue()", ParameterMode.Raw)))
+                                    .PageSize(20)
+                                    .RemoteFilter(false)
+                                    .RemotePaging(false)
+                            )
+                            .View(
+                                Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                            )
+                            .Plugins(X.FilterHeader().Remote(false))
+                            .ColumnModel(
+                                Html.X().RowNumbererColumn(),
+                                Html.X().ImageCommandColumn().Align(Alignment.Center).Listeners(l => l.Command.Fn = "ActionsLimitTime").Flex(1)
+                                    .Commands(
+                                        Html.X().ImageCommand().CommandName("EditLimitTime").Icon(Ext.Net.Icon.PageEdit).ToolTip(tt => tt.Text = "ویرایش"),
+                                        Html.X().ImageCommand().CommandName("DeleteLimitTime").Icon(Ext.Net.Icon.Delete).ToolTip(tt => tt.Text = "حذف")
+                                    ),
+                                     Html.X().Column().DataIndex(Model.LimitTime, m => m.fldTimestamp).Text("کد").Hidden(true).Flex(1),
+                                Html.X().Column().DataIndex(Model.LimitTime, m => m.fldId).Text("کد").Hidden(true).Flex(1),
+                                Html.X().Column().DataIndex(Model.LimitTime, m => m.fldRoozHafte).Text("روز هفته").Flex(2),
+                                Html.X().Column().DataIndex(Model.LimitTime, m => m.fldAzSaat).Text("از ساعت").Flex(2),
+                                Html.X().Column().DataIndex(Model.LimitTime, m => m.fldTaSaat).Text("تا ساعت").Flex(2),
+                                Html.X().Column().DataIndex(Model.LimitTime, m => m.fldDesc).Text("توضیحات").Flex(4).Wrap(true)
+                            )
+                            .SelectionModel(
+                                Html.X().RowSelectionModel()
+                                    .Mode(Ext.Net.SelectionMode.Single)
+                            ),
+                        X.GridPanel()
+                            .AutoScroll(true)
+                            .Border(true)
+                            .ItemID("GridLimitIP")
+                            .BottomBar(X.PagingToolbar())
+                            .Title("محدودیت های IP")
+                            .Store(
+                                X.StoreFor(Model.LimitIP)
+                                        .Listeners(l => l.BeforeLoad.Handler = "App.NewLimitation.queryById('GridLimitIP').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.NewLimitation.queryById('antiForgeryToken').getValue());")
+                                    .AutoLoad(false)
+                                    .Listeners(l => l.DataChanged.Handler = "App.NewLimitation.queryById('GridLimitIP').selModel.refresh();")
+                                    .Proxy(Html.X().AjaxProxy()
+                                         .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                        .Url(Url.Action("ReadLimitationIP"))
+                                        .Reader(Html.X().JsonReader().Root("data"))
+                                    )
+                                    .Parameters(ps => ps.Add(new StoreParameter("UserId", "App.NewLimitation.queryById('UserId').getValue()", ParameterMode.Raw)))
+                                    .PageSize(20)
+                                    .RemoteFilter(false)
+                                    .RemotePaging(false)
+                            )
+                            .View(
+                                Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                            )
+                            .Plugins(X.FilterHeader().Remote(false))
+                            .ColumnModel(
+                                Html.X().RowNumbererColumn(),
+                                    Html.X().ImageCommandColumn().Align(Alignment.Center).Listeners(l => l.Command.Fn = "ActionsLimitIP").Flex(1)
+                                    .Commands(
+                                        Html.X().ImageCommand().CommandName("EditLimitIP").Icon(Ext.Net.Icon.PageEdit).ToolTip(tt => tt.Text = "ویرایش"),
+                                        Html.X().ImageCommand().CommandName("DeleteLimitIP").Icon(Ext.Net.Icon.Delete).ToolTip(tt => tt.Text = "حذف")
+                                    ),
+                                Html.X().Column().DataIndex(Model.LimitTime, m => m.fldTimestamp).Text("کد").Hidden(true).Flex(1),
+                                Html.X().Column().DataIndex(Model.LimitIP, m => m.fldId).Text("کد").Hidden(true).Flex(1),
+                                Html.X().Column().DataIndex(Model.LimitIP, m => m.fldIPValid).Text("IP").Flex(2),
+                                Html.X().Column().DataIndex(Model.LimitIP, m => m.fldDesc).Text("توضیحات").Flex(5).Wrap(true)
+                            )
+                            .SelectionModel(
+                                Html.X().RowSelectionModel()
+                                    .Mode(Ext.Net.SelectionMode.Single)
+                            ),
+                        X.GridPanel()
+                            .AutoScroll(true)
+                            .Border(true)
+                            .ItemID("GridLimitMac")
+                            .BottomBar(X.PagingToolbar())
+                            .Title("محدودیت های سخت افزاری")
+                            .Store(
+                                X.StoreFor(Model.LimitMac)
+                                        .Listeners(l => l.BeforeLoad.Handler = "App.NewLimitation.queryById('GridLimitMac').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.NewLimitation.queryById('antiForgeryToken').getValue());")
+                                    .AutoLoad(false)
+                                    .Listeners(l => l.DataChanged.Handler = "App.NewLimitation.queryById('GridLimitMac').selModel.refresh();")
+                                    .Proxy(Html.X().AjaxProxy()
+                                         .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                        .Url(Url.Action("ReadLimitationMac"))
+                                        .Reader(Html.X().JsonReader().Root("data"))
+                                    )
+                                    .Parameters(ps => ps.Add(new StoreParameter("UserId", "App.NewLimitation.queryById('UserId').getValue()", ParameterMode.Raw)))
+                                    .PageSize(20)
+                                    .RemoteFilter(false)
+                                    .RemotePaging(false)
+                            )
+                            .View(
+                                Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                            )
+                            .Plugins(X.FilterHeader().Remote(false))
+                            .ColumnModel(
+                                Html.X().RowNumbererColumn(),
+                                    Html.X().ImageCommandColumn().Align(Alignment.Center).Listeners(l => l.Command.Fn = "ActionsLimitMac").Flex(1)
+                                    .Commands(
+                                        Html.X().ImageCommand().CommandName("EditLimitMac").Icon(Ext.Net.Icon.PageEdit).ToolTip(tt => tt.Text = "ویرایش"),
+                                        Html.X().ImageCommand().CommandName("DeleteLimitMac").Icon(Ext.Net.Icon.Delete).ToolTip(tt => tt.Text = "حذف")
+                                    ),
+                                Html.X().Column().DataIndex(Model.LimitMac, m => m.fldId).Text("کد").Hidden(true).Flex(1),
+                                Html.X().Column().DataIndex(Model.LimitMac, m => m.fldMacValid).Text("MAC Address").Flex(2),
+                                Html.X().Column().DataIndex(Model.LimitMac, m => m.fldDesc).Text("توضیحات").Flex(5).Wrap(true)
+                            )
+                            .SelectionModel(
+                                Html.X().RowSelectionModel()
+                                    .Mode(Ext.Net.SelectionMode.Single)
+                            )
+                    )
+                )
+
+        )
+)
+<script type="text/javascript">
+    var fldTimeStampIP = 0; var LimitIP_Id = 0;
+    var fldTimeStampTime = 0; var LimitTime_Id = 0;
+    function LoadLimitTime(Id) {
+        Ext.net.DirectMethod.request({
+            url: '/Limitation/DetailsTime',
+            params: {
+                Id: Id,
+                __RequestVerificationToken: App.NewLimitation.queryById('antiForgeryToken').getValue()
+            },
+            success: function (data) {
+                App.NewLimitation.queryById('CboLimitation').setValue("1").disable();
+                App.NewLimitation.queryById('CboDay').setValue(data.fldRoozHafte).focus();
+                App.NewLimitation.queryById('txtAzSaat').setValue(data.fldAzSaat);
+                App.NewLimitation.queryById('txtTaSaat').setValue(data.fldTaSaat);
+                App.NewLimitation.queryById('fldId').setValue(data.fldId);
+                App.NewLimitation.queryById('txtDesc').setValue(data.fldDesc);
+                fldTimeStampTime = data.fldTimestamp;
+                App.NewLimitation.body.mask().hide();
+            }
+        });
+    }
+    function ActionsLimitTime(grid, command, record, row) {
+
+        if (command == 'EditLimitTime') {
+            LimitTime_Id = record.data.fldId;
+            App.NewLimitation.body.mask("در حال بارگذاری...");
+            Ext.net.DirectMethod.request({
+                url: '/Limitation/DetailsTime',
+                params: {
+                    Id: record.data.fldId,
+                    __RequestVerificationToken: App.NewLimitation.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+                    App.NewLimitation.queryById('CboLimitation').setValue("1").disable();
+                    App.NewLimitation.queryById('CboDay').setValue(data.fldRoozHafte).focus();
+                    App.NewLimitation.queryById('txtAzSaat').setValue(data.fldAzSaat);
+                    App.NewLimitation.queryById('txtTaSaat').setValue(data.fldTaSaat);
+                    App.NewLimitation.queryById('fldId').setValue(data.fldId);
+                    App.NewLimitation.queryById('txtDesc').setValue(data.fldDesc);
+                    fldTimeStampTime = data.fldTimestamp;
+                    App.NewLimitation.body.mask().hide();
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "هشدار",
+                msg: "آیا برای حذف مطمئن هستید؟",
+                icon: Ext.MessageBox.WARNING,
+                buttons: Ext.MessageBox.YESNO,
+                fn: function (btn) {
+                    if (btn == 'yes') {
+                        App.NewLimitation.body.mask("در حال انجام عملیات...");
+                        Ext.net.DirectMethod.request({
+                            url: '/Limitation/DeleteTime',
+                            params: {
+                                Id: record.data.fldId,
+                                TimeStamp: record.data.fldTimestamp,
+                                __RequestVerificationToken: App.NewLimitation.queryById('antiForgeryToken').getValue()
+                            },
+                            success: function (data) {
+                                var ic = Ext.MessageBox.INFO;
+                                if (data.Er == 1) {
+                                    ic = Ext.MessageBox.ERROR;
+                                }
+                                if (data.Er == 1 && data.Change == 1) {/*vaghti TimeStamp==0*/
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.WARNING,
+                                        buttons: Ext.MessageBox.OK,
+                                        fn: function (btn) {
+                                            if (btn == 'ok') {
+                                                App.NewLimitation.queryById('GridLimitTime').getStore().load();
+                                            }
+                                        }
+                                    });
+                                }
+                                else if (data.Er == 1 && data.Change == 2) {/*vaghti TimeStamp==2*/
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.ERROR,
+                                        buttons: Ext.MessageBox.OK,
+                                        fn: function (btn) {
+                                            if (btn == 'ok') {
+                                                App.NewLimitation.queryById('GridLimitTime').getStore().load();
+                                            }
+                                        }
+                                    });
+                                }
+                                else if (data.Er == 1) {
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.ERROR,
+                                        buttons: Ext.MessageBox.OK
+                                    });
+                                }
+                                else {
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: ic,
+                                        buttons: Ext.MessageBox.OK,
+                                        fn: function (btn) {
+                                            if (btn == "ok") {
+                                                App.NewLimitation.queryById('CboLimitation').focus();
+                                            }
+                                        }
+                                    });
+                                    App.NewLimitation.queryById('GridLimitTime').getStore().load();
+                                }
+
+                                App.Users.queryById('GridUsers').getStore().load();
+                                /*App.Limitation.queryById('GridLimitation').getStore().load();*/
+                                App.NewLimitation.body.mask().hide();
+                            }
+                        });
+                    }
+                }
+            });
+        }
+    }
+    function LoadLimitIP(Id) {
+        Ext.net.DirectMethod.request({
+            url: '/Limitation/DetailsIP',
+            params: {
+                Id: Id,
+                __RequestVerificationToken: App.NewLimitation.queryById('antiForgeryToken').getValue()
+            },
+            success: function (data) {
+                App.NewLimitation.queryById('CboLimitation').setValue("3").disable();
+                App.NewLimitation.queryById('txtIP').setValue(data.fldIPValid).focus();
+                App.NewLimitation.queryById('fldId').setValue(data.fldId);
+                App.NewLimitation.queryById('txtDesc').setValue(data.fldDesc);
+                fldTimeStampIP = data.fldTimestamp;
+                App.NewLimitation.body.mask().hide();
+            }
+        });
+    }
+    function ActionsLimitIP(grid, command, record, row) {
+        if (command == 'EditLimitIP') {
+            LimitIP_Id = record.data.fldId;
+            App.NewLimitation.body.mask("در حال بارگذاری...");
+            Ext.net.DirectMethod.request({
+                url: '/Limitation/DetailsIP',
+                params: {
+                    Id: record.data.fldId,
+                    __RequestVerificationToken: App.NewLimitation.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+                    App.NewLimitation.queryById('CboLimitation').setValue("3").disable();
+                    App.NewLimitation.queryById('txtIP').setValue(data.fldIPValid).focus();
+                    App.NewLimitation.queryById('fldId').setValue(data.fldId);
+                    App.NewLimitation.queryById('txtDesc').setValue(data.fldDesc);
+                    fldTimeStampIP= data.fldTimestamp;
+                    App.NewLimitation.body.mask().hide();
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "هشدار",
+                msg: "آیا برای حذف مطمئن هستید؟",
+                icon: Ext.MessageBox.WARNING,
+                buttons: Ext.MessageBox.YESNO,
+                fn: function (btn) {
+                    if (btn == 'yes') {
+                        App.NewLimitation.body.mask("در حال انجام عملیات...");
+                        Ext.net.DirectMethod.request({
+                            url: '/Limitation/DeleteIP',
+                            params: {
+                                Id: record.data.fldId,
+                                TimeStamp: record.data.fldTimestamp,
+                                __RequestVerificationToken: App.NewLimitation.queryById('antiForgeryToken').getValue()
+                            },
+                            success: function (data) {
+                                var ic = Ext.MessageBox.INFO;
+                                if (data.Er == 1) {
+                                    ic = Ext.MessageBox.ERROR;
+                                }
+                                if (data.Er == 1 && data.Change == 1) {/*vaghti TimeStamp==0*/
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.WARNING,
+                                        buttons: Ext.MessageBox.OK,
+                                        fn: function (btn) {
+                                            if (btn == 'ok') {
+                                                App.NewLimitation.queryById('GridLimitIP').getStore().load();
+                                            }
+                                        }
+                                    });
+                                }
+                                else if (data.Er == 1 && data.Change == 2) {/*vaghti TimeStamp==2*/
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.ERROR,
+                                        buttons: Ext.MessageBox.OK,
+                                        fn: function (btn) {
+                                            if (btn == 'ok') {
+                                                App.NewLimitation.queryById('GridLimitIP').getStore().load();
+                                            }
+                                        }
+                                    });
+                                }
+                                else if (data.Er == 1) {
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.ERROR,
+                                        buttons: Ext.MessageBox.OK
+                                    });
+                                }
+                                else {
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: ic,
+                                        buttons: Ext.MessageBox.OK,
+                                        fn: function (btn) {
+                                            if (btn == "ok") {
+                                                App.NewLimitation.queryById('CboLimitation').focus();
+                                            }
+                                        }
+                                    });
+                                    App.NewLimitation.queryById('GridLimitIP').getStore().load();
+                                }
+                                App.Users.queryById('GridUsers').getStore().load();
+                                /*App.Limitation.queryById('GridLimitation').getStore().load();*/
+                                App.NewLimitation.body.mask().hide();
+                            }
+                        });
+                    }
+                }
+            });
+        }
+    }
+
+    function ActionsLimitMac(grid, command, record, row) {
+        if (command == 'EditLimitMac') {
+            App.NewLimitation.body.mask("در حال بارگذاری...");
+            Ext.net.DirectMethod.request({
+                url: '/Limitation/DetailsMac',
+                params: {
+                    Id: record.data.fldId,
+                    __RequestVerificationToken: App.NewLimitation.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+                    App.NewLimitation.queryById('CboLimitation').setValue("2").disable();
+                    App.NewLimitation.queryById('txtMac').setValue(data.fldMacValid).focus();
+                    App.NewLimitation.queryById('fldId').setValue(data.fldId);
+                    App.NewLimitation.queryById('txtDesc').setValue(data.fldDesc);
+                    App.NewLimitation.body.mask().hide();
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "هشدار",
+                msg: "آیا برای حذف مطمئن هستید؟",
+                icon: Ext.MessageBox.WARNING,
+                buttons: Ext.MessageBox.YESNO,
+                fn: function (btn) {
+                    if (btn == 'yes') {
+                        App.NewLimitation.body.mask("در حال انجام عملیات...");
+                        Ext.net.DirectMethod.request({
+                            url: '/Limitation/DeleteMac',
+                            params: {
+                                Id: record.data.fldId,
+                                __RequestVerificationToken: App.NewLimitation.queryById('antiForgeryToken').getValue()
+                            },
+                            success: function (data) {
+                                var ic = Ext.MessageBox.INFO;
+                                if (data.Er == 1) {
+                                    ic = Ext.MessageBox.ERROR;
+                                }
+                                Ext.MessageBox.show({
+                                    title: data.MsgTitle,
+                                    msg: data.Msg,
+                                    icon: ic,
+                                    buttons: Ext.MessageBox.OK,
+                                    fn: function (btn) {
+                                        if (btn == "ok") {
+                                            App.NewLimitation.queryById('CboLimitation').focus();
+                                        }
+                                    }
+                                });
+                                App.NewLimitation.queryById('GridLimitMac').getStore().load();
+                                App.Users.queryById('GridUsers').getStore().load();
+                                /*App.Limitation.queryById('GridLimitation').getStore().load();*/
+                                App.NewLimitation.body.mask().hide();
+                            }
+                        });
+                    }
+                }
+            });
+        }
+    }
+
+    @*function SelectLimitedUser(key) {
+        if (key == 45 && '@ViewBag.UserId'=="0") {
+            App.NewLimitation.body.mask("در حال بارگذاری...");
+            Ext.net.DirectMethod.request({
+                url: '/SearchUser/index',
+                params: {
+                    State: 1
+                },
+                success: function () {
+                    App.NewLimitation.body.mask().hide();
+                }
+            });
+        }
+    }
+
+    function SelectLimitedUserIcon() {
+        App.NewLimitation.body.mask("در حال بارگذاری...");
+        Ext.net.DirectMethod.request({
+            url: '/SearchUser/index',
+            params: {
+                State: 1
+            },
+            success: function () {
+                App.NewLimitation.body.mask().hide();
+            }
+        });
+    }*@
+
+    function CheckValidTime(Fieldd) {
+        var t = Fieldd.getValue();
+        if (t.substring(0, 2) > 23 || t.substring(3, 5) > 59) {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "زمان وارد شده نامعتبر است",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK,
+                fn: function (btn) {
+                    if (btn == "ok") {
+                        Fieldd.focus();
+                    }
+                }
+            });
+            Fieldd.setValue("");
+        }
+    }
+
+    function HandleGrid() {
+        var CboLimitation = App.NewLimitation.queryById("CboLimitation");
+        if (CboLimitation.getValue() == "1") {
+            App.NewLimitation.queryById('TimeFieldSet').show();
+            App.NewLimitation.queryById('CboDay').show();
+            App.NewLimitation.queryById('lblDay').show();
+            App.NewLimitation.queryById('txtIP').hide();
+            App.NewLimitation.queryById('lblIP').hide();
+            App.NewLimitation.queryById('txtMac').hide();
+            App.NewLimitation.queryById('lblMac').hide();
+            App.NewLimitation.queryById('GridLimitTime').expand();
+        }
+        else if (CboLimitation.getValue() == "2") {
+            App.NewLimitation.queryById('TimeFieldSet').hide();
+            App.NewLimitation.queryById('CboDay').hide();
+            App.NewLimitation.queryById('lblDay').hide();
+            App.NewLimitation.queryById('txtIP').hide();
+            App.NewLimitation.queryById('lblIP').hide();
+            App.NewLimitation.queryById('txtMac').show();
+            App.NewLimitation.queryById('lblMac').show();
+            App.NewLimitation.queryById('GridLimitMac').expand();
+        }
+        else {
+            App.NewLimitation.queryById('TimeFieldSet').hide();
+            App.NewLimitation.queryById('CboDay').hide();
+            App.NewLimitation.queryById('lblDay').hide();
+            App.NewLimitation.queryById('txtIP').show();
+            App.NewLimitation.queryById('lblIP').show();
+            App.NewLimitation.queryById('txtMac').hide();
+            App.NewLimitation.queryById('lblMac').hide();
+            App.NewLimitation.queryById('GridLimitIP').expand();
+        }
+    }
+
+    function LoadLimitationGrids() {
+        App.NewLimitation.queryById('GridLimitMac').getStore().load();
+        App.NewLimitation.queryById('GridLimitTime').getStore().load();
+        App.NewLimitation.queryById('GridLimitIP').getStore().load();
+        InsertToLog("محدودیت ورود کاربران",2, true);
+    }
+
+    function CheckDiffTimes(Field) {
+        var txtAzSaat = App.NewLimitation.queryById("txtAzSaat");
+        var txtTaSaat = App.NewLimitation.queryById("txtTaSaat");
+        if (txtAzSaat.getValue() != "" && txtTaSaat.getValue() != "") {
+            var er = false;
+            if (txtAzSaat.getValue().substring(0, 2) > txtTaSaat.getValue().substring(0, 2)) {
+                er = true;
+            }
+            if ((txtAzSaat.getValue().substring(0, 2) == txtTaSaat.getValue().substring(0, 2)) && (txtAzSaat.getValue().substring(3, 5) > txtTaSaat.getValue().substring(3, 5))) {
+                er = true;
+            }
+            if (er) {
+                Ext.MessageBox.show({
+                    title: "خطا",
+                    msg: "ساعت شروع باید قبل از ساعت پایان باشد.",
+                    icon: Ext.MessageBox.ERROR,
+                    buttons: Ext.MessageBox.OK,
+                    fn: function (btn) {
+                        if (btn == "ok") {
+                            Field.focus();
+                        }
+                    }
+                });
+                Field.setValue("");
+                return 0;
+            }
+        }
+        return 1;
+    }
+
+    function LoadLimitation() {
+        App.NewLimitation.setWidth(Ext.getBody().getViewSize().width - 670);
+        App.AccordionPnl.setSize(Ext.getBody().getViewSize().width - 700, Ext.getBody().getViewSize().height - 350);
+        App.NewLimitation.queryById('UserId').setValue('@ViewBag.UserId');
+        App.NewLimitation.queryById('txtUserName').setValue('@ViewBag.UserName');
+        @*if('@ViewBag.UserName'!=""){
+            App.NewLimitation.queryById('txtUserName').icon.hide();
+        }*@
+        App.NewLimitation.queryById('txtUserName').validate();
+        App.NewLimitation.queryById('txtAzSaat').validate();
+        App.NewLimitation.queryById('txtTaSaat').validate();
+        App.NewLimitation.queryById('txtIP').validate();
+        App.NewLimitation.queryById('txtIP').hide();
+        App.NewLimitation.queryById('lblIP').hide();
+        App.NewLimitation.queryById('txtMac').validate();
+        App.NewLimitation.queryById('txtMac').hide();
+        App.NewLimitation.queryById('lblMac').hide();
+        Ext.net.Mask.hide();
+    }
+
+    function SaveLimitation() {
+        var CboLimitation = App.NewLimitation.queryById('CboLimitation');
+        var txtUserName = App.NewLimitation.queryById('txtUserName');
+        var txtAzSaat = App.NewLimitation.queryById('txtAzSaat');
+        var txtTaSaat = App.NewLimitation.queryById('txtTaSaat');
+        var txtIP = App.NewLimitation.queryById('txtIP');
+        var txtMac = App.NewLimitation.queryById('txtMac');
+        var CboDay = App.NewLimitation.queryById('CboDay');
+        var txtDesc = App.NewLimitation.queryById('txtDesc');
+        var Id = App.NewLimitation.queryById('fldId');
+        var UserId = App.NewLimitation.queryById('UserId');
+        var url = '/Limitation/SaveTime';
+        var fldTimestamp = fldTimeStampTime;
+        var er = false;
+
+        if (CboLimitation.validate() == false) {
+            er = true;
+        }
+        if (txtUserName.validate() == false || UserId.getValue()==0) {
+            er = true;
+        }
+        if (CboLimitation.getValue() == "1") {
+            if (CboDay.validate() == false) {
+                er = true;
+            }
+            if (txtAzSaat.validate() == false) {
+                er = true;
+            }
+            if (txtTaSaat.validate() == false) {
+                er = true;
+            }
+        }
+        else if (CboLimitation.getValue() == "2") {
+            url = '/Limitation/SaveMac';
+            if (txtMac.validate() == false) {
+                er = true;
+            }
+        }
+        else {
+            url = '/Limitation/SaveIP';
+            fldTimestamp = fldTimeStampIP;
+            if (txtIP.validate() == false) {
+                er = true;
+            }
+        }
+        if (er == true)
+            return;
+
+        App.NewLimitation.body.mask("در حال ذخیره سازی...");
+        Ext.net.DirectMethod.request({
+            url: url,
+            params: {
+                fldId: Id.getValue(),
+                fldUserLimId: UserId.getValue(),
+                fldRoozHafte: CboDay.getValue(),
+                fldAzSaat: txtAzSaat.getValue(),
+                fldTaSaat: txtTaSaat.getValue(),
+                fldIPValid: txtIP.getValue(),
+                fldMacValid: txtMac.getValue(),
+                fldDesc: txtDesc.getValue(),
+                fldTimestamp: fldTimestamp,
+                __RequestVerificationToken: App.NewLimitation.queryById('antiForgeryToken').getValue()
+            },
+            success: function (data) {
+                chat.server.reloadLog();
+                var ic = Ext.MessageBox.INFO;
+                if (data.Er == 1) {
+                    ic = Ext.MessageBox.ERROR;
+                }
+                if (CboLimitation.getValue() == "3") {
+                    if (data.Er == 1 && data.Change == 1) {/*vaghti TimeStamp==0*/
+                        Ext.MessageBox.show({
+                            title: data.MsgTitle,
+                            msg: data.Msg,
+                            icon: Ext.MessageBox.WARNING,
+                            buttons: Ext.MessageBox.OK,
+                            fn: function (btn) {
+                                if (btn == 'ok') {
+                                    LoadLimitIP(LimitIP_Id);
+                                }
+                            }
+                        });
+                    }
+                    else if (data.Er == 1 && data.Change == 2) {/*vaghti TimeStamp==2*/
+                        Ext.MessageBox.show({
+                            title: data.MsgTitle,
+                            msg: data.Msg,
+                            icon: Ext.MessageBox.ERROR,
+                            buttons: Ext.MessageBox.OK,
+                            fn: function (btn) {
+                                if (btn == 'ok') {
+                                    App.NewLimitation.destroy();
+                                }
+                            }
+                        });
+
+                    }
+                    else if (data.Er == 1) {
+                        Ext.MessageBox.show({
+                            title: data.MsgTitle,
+                            msg: data.Msg,
+                            icon: Ext.MessageBox.ERROR,
+                            buttons: Ext.MessageBox.OK,
+
+                        });
+                    }
+                    else {
+                        Ext.MessageBox.show({
+                            title: data.MsgTitle,
+                            msg: data.Msg,
+                            icon: ic,
+                            buttons: Ext.MessageBox.OK,
+                            defaultFocus: 'ok',
+                            fn: function (btn) {
+                                if (btn == "ok") {
+                                    App.NewLimitation.queryById('CboLimitation').focus();
+                                }
+                            }
+                        });
+                    }
+                }
+                else if (CboLimitation.getValue() == "3") {
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: ic,
+                        buttons: Ext.MessageBox.OK,
+                        defaultFocus: 'ok',
+                        fn: function (btn) {
+                            if (btn == "ok") {
+                                App.NewLimitation.queryById('CboLimitation').focus();
+                            }
+                        }
+                    });
+                }
+                else {
+                    if (data.Er == 1 && data.Change == 1) {/*vaghti TimeStamp==0*/
+                        Ext.MessageBox.show({
+                            title: data.MsgTitle,
+                            msg: data.Msg,
+                            icon: Ext.MessageBox.WARNING,
+                            buttons: Ext.MessageBox.OK,
+                            fn: function (btn) {
+                                if (btn == 'ok') {
+                                    LoadLimitTime(LimitTime_Id);
+                                }
+                            }
+                        });
+                    }
+                    else if (data.Er == 1 && data.Change == 2) {/*vaghti TimeStamp==2*/
+                        Ext.MessageBox.show({
+                            title: data.MsgTitle,
+                            msg: data.Msg,
+                            icon: Ext.MessageBox.ERROR,
+                            buttons: Ext.MessageBox.OK,
+                            fn: function (btn) {
+                                if (btn == 'ok') {
+                                    App.NewLimitation.destroy();
+                                }
+                            }
+                        });
+
+                    }
+                    else if (data.Er == 1) {
+                        Ext.MessageBox.show({
+                            title: data.MsgTitle,
+                            msg: data.Msg,
+                            icon: Ext.MessageBox.ERROR,
+                            buttons: Ext.MessageBox.OK,
+
+                        });
+                    }
+                    else {
+                        Ext.MessageBox.show({
+                            title: data.MsgTitle,
+                            msg: data.Msg,
+                            icon: ic,
+                            buttons: Ext.MessageBox.OK,
+                            defaultFocus: 'ok',
+                            fn: function (btn) {
+                                if (btn == "ok") {
+                                    App.NewLimitation.queryById('CboLimitation').focus();
+                                }
+                            }
+                        });
+                    }
+                }
+                if (data.Er != 1) {
+                    ClearLimitation();
+                }
+                App.NewLimitation.queryById('GridLimitMac').getStore().load();
+                App.NewLimitation.queryById('GridLimitTime').getStore().load();
+                App.NewLimitation.queryById('GridLimitIP').getStore().load();
+                App.Users.queryById('GridUsers').getStore().load();
+                /*App.Limitation.queryById('GridLimitation').getStore().load();*/
+                App.NewLimitation.body.mask().hide();
+            }
+        });
+    }
+
+    function ClearLimitation() {
+        App.NewLimitation.queryById('txtIP').setValue("");
+        App.NewLimitation.queryById('txtMac').setValue("");
+        App.NewLimitation.queryById('txtAzSaat').setValue("");
+        App.NewLimitation.queryById('txtTaSaat').setValue("");
+        App.NewLimitation.queryById('txtDesc').setValue("");
+        App.NewLimitation.queryById('fldId').setValue(0);
+        App.NewLimitation.queryById('CboLimitation').enable();
+    }
+
+    var addKeyMapNewLimitation = function (cmp) {
+        this.keyMap = new Ext.util.KeyMap({
+            target: cmp.getEl(),
+            binding: [{
+                key: [13, 9], /*Ext.EventObject.ENTER,*/
+                fn: function (key, e) {
+                    if (e.getKey() == 9) {
+                        e.stopEvent();
+                    }
+                    var keyfield = App.NewLimitation.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+                    var nextfld;
+                    if (keyfield.itemId == "CboLimitation") {
+                        if(App.NewLimitation.queryById("CboLimitation").getValue()=="1"){
+                            nextfld = App.NewLimitation.queryById("CboDay");
+                        }
+                        else if (App.NewLimitation.queryById("CboLimitation").getValue() == "2") {
+                            nextfld = App.NewLimitation.queryById("txtMac");
+                        }
+                        else {
+                            nextfld = App.NewLimitation.queryById("txtIP");
+                        }
+                    }
+                    else if (keyfield.itemId == "CboDay") {
+                        nextfld = App.NewLimitation.queryById("txtAzSaat");
+                    }
+                    else if (keyfield.itemId == "txtTaSaat") {
+                        if (CheckDiffTimes(keyfield) == 1) {
+                            nextfld = App.NewLimitation.queryById("txtDesc");
+                        }
+                        else {
+
+                            return;
+                        }
+                    }
+                    else if (keyfield.itemId == "txtIP") {
+                        nextfld = App.NewLimitation.queryById("txtDesc");
+                    }
+                    else if (keyfield.itemId == "txtDesc") {
+                        SaveLimitation();
+                        return;
+                    }
+                    else {
+                        nextfld = keyfield.nextSibling().nextSibling();
+                    }
+                    nextfld.focus();
+                    nextfld.selectText();
+                }
+            }]
+        });
+    }
+</script>

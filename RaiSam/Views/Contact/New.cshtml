@@ -1,0 +1,654 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+
+<style>
+    #fieldsetfileAc legend {
+        text-align: right;
+        font-family: Tahoma !important;
+    }
+
+    #DeleteActionFileimg:hover {
+        cursor: pointer;
+    }
+</style>
+@(Html.X().Window().Modal(true).Listeners(li => { li.Render.Fn = "addKeyMapContact"; })
+.Width(700)//.Height(300)
+    .Title("تماس")
+        .ID("NewContact")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+        .ButtonAlign(Ext.Net.Alignment.Center)
+        .Buttons(X.Button().Text("ذخیره").Icon(Ext.Net.Icon.Disk)
+            .Listeners(l =>
+            {
+                l.Click.Handler = "SaveContact();";
+
+            })
+            .ItemID("btnSaveContact"),
+            X.Button().Text("خروج").Icon(Ext.Net.Icon.DoorOut).ToolTip("کلید میانبر Esc")
+                  .OnClientClick("App.NewContact.destroy();"))
+    .Items(
+        X.AntiForgeryField()
+            .ItemID("antiForgeryToken").Hidden(true),
+            X.FormPanel().Border(false)
+            .Layout(Ext.Net.LayoutType.VBox)
+            .LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Center })
+
+            .Items(
+                X.FieldSet().Border(true).Title("اطلاعات")
+                .Center()
+                .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 4 })
+                .Defaults(new { Margin = 2 })
+                .Items(
+                    X.Hidden().ItemID("fldId"),
+                    X.Hidden().ItemID("fldAshkhasId"),
+                        X.Hidden().ItemID("fldAshkhasHoghughiId"),
+                     X.Label("نوع تماس:"),
+                                X.ComboBox()
+                                    .ItemID("CboContactType")
+                                    .Width(200)
+                                    .EmptyText("نوع تماس...")
+                                    .AllowBlank(false)
+                                    .BlankText("لطفا نوع تماس را انتخاب نمایید.")
+                                    .TypeAhead(true)
+                                    .Editable(false)
+                                    .QueryMode(DataLoadMode.Local)
+                                    .ForceSelection(true)
+                                    .TriggerAction(TriggerAction.All)
+                                    .DisplayField("fldName")
+                                    .ValueField("ID")
+                                    .Listeners(l => l.Change.Handler = "ShowHideMap()")
+                                    .Store(
+                                        X.Store()
+                                            .Listeners(l => l.Load.Handler = "setDefaultContactType();LoadContact();")
+                                            .Model(X.Model()
+                                            .IDProperty("ID")
+                                            .Fields(
+                                                new ModelField("ID", ModelFieldType.String) { Mapping = "ID" },
+                                                new ModelField("fldName", ModelFieldType.String) { Mapping = "fldName" })
+                                            )
+                                                            .Listeners(l => l.BeforeLoad.Handler = "App.NewContact.queryById('CboContactType').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.NewContact.queryById('antiForgeryToken').getValue());")
+                                            .Proxy(X.AjaxProxy()
+                                                .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                                .Url(Url.Action("GetContactType"))
+                                                .Reader(X.JsonReader().Root("data"))
+                                            )
+                                    ),
+
+                    X.Label("وضعیت:"),
+                                    X.ComboBox().Width(200)
+                                    .ItemID("CboStatus")
+                                    .Editable(false)
+                                    .TypeAhead(true)
+                                    .BlankText("لطفا وضعیت را انتخاب کنید.")
+                                    .QueryMode(DataLoadMode.Local)
+                                    .TriggerAction(TriggerAction.All)
+                                    .AllowBlank(false)
+                                    .EmptyText("وضعیت...")
+                                    .Items(
+                                        new ListItem("عمومی", "0"),
+                                        new ListItem("خصوصی", "1"),
+                                        new ListItem("عمومی برای کاربران زیر شاخه", "2")
+                                        )
+                                    .SelectedItems(new { Value = "1" }),
+                     X.Label("نوع:"),
+                                    X.ComboBox().Width(200)
+                                    .ItemID("CboType")
+                                    .Editable(false)
+                                    .TypeAhead(true)
+                                    .BlankText("لطفا وضعیت را انتخاب کنید.")
+                                    .QueryMode(DataLoadMode.Local)
+                                    .TriggerAction(TriggerAction.All)
+                                    .AllowBlank(false)
+                                    .EmptyText("نوع...")
+                                    .Listeners(l => l.Select.Handler = "ChangeType();")
+                                    .Items(
+                                        new ListItem("شخص حقیقی", "0"),
+                                         new ListItem("شخص حقوقی", "1")
+                                        )
+                                    .SelectedItems(new { Value = "0" }),
+                                X.Label("نام و نام خانوادگی:")
+                         .ItemID("lblTypeName"),
+                            X.TextField()
+                                .ItemID("txtTypeName")
+                                .AllowBlank(false)
+                                .ReadOnly(true)
+                                .Width(200)
+                                .FieldStyle("padding-right:20px;")
+                                .Icon(Icon.UserHome)
+                                .BlankText("لطفا یک مورد را وارد کنید.")
+                                .Listeners(l =>
+                                {
+                                    l.SpecialKey.Handler = "SelectAshkhas(e.getKey());";
+                                    l.IconClick.Handler = "SelectAshkhas(45)";
+                                    //l.AfterRender.Handler = "App.NewKarshenasanBehdasht.queryById('txtNameFamily').icon.dom.classList.add('custom-icon');";
+                                }),
+                                X.Label("مقدار:"),
+                         X.TextField().Width(504)
+                     .ItemID("txtValue")
+                    .MaxLength(800)//.MaskRe("[ ,),(,ا-ی-آ-ئ-ء]")
+                    .EnforceMaxLength(true)
+                    .AllowBlank(false)
+                    .BlankText("لطفا مقدار را وارد کنید.")
+                    .AutoFocus(true)
+                    .ColSpan(4)
+                            )
+                            ,
+
+                X.FieldSet().Border(true).Title("نمایش روی نقشه").ItemID("FieldSetMap")
+                .Center()
+                .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 6 })
+                .Defaults(new { Margin = 2 })
+                .Items(
+                    X.Hidden().ItemID("fldId"),
+                           X.Label("استان:"),
+                                     X.ComboBox()
+        //.Width(320)
+                                    .PaddingSpec("0 0 0 15px")
+                                        .ItemID("CboState")
+                                    .TypeAhead(true)
+        //.AutoFocus(true)
+                                    .Editable(true)
+                                    .ForceSelection(true)
+                                    .QueryMode(DataLoadMode.Local)
+                                    .TriggerAction(TriggerAction.All)
+                                    .AllowBlank(false)
+                                    .BlankText("لطفا استان را انتخاب کنید.")
+                                    .DisplayField("fldName")
+                                    .ValueField("fldId")
+                                        .Listeners(l =>
+                                        {
+                                            l.BeforeQuery.Fn = "SearchMatchCombo";
+                                            l.Select.Handler = "App.NewContact.queryById('CboCounty').clearValue(); App.NewContact.queryById('CboCounty').getStore().load()";
+                                        })
+                                    .EmptyText("...")
+                                    .Store(X.Store()
+        //.AutoLoad(false)
+                        .Listeners(l => l.BeforeLoad.Handler = "App.NewContact.queryById('CboState').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.NewContact.queryById('antiForgeryToken').getValue());")
+                                            .Listeners(l => l.Load.Handler = "SetStateDefult()")
+                                        .Model(X.Model()
+                                            .IDProperty("fldId")
+                                            .Fields(
+                                                new ModelField("fldId", ModelFieldType.Int) { Mapping = "fldId" },
+                                                new ModelField("fldName", ModelFieldType.String) { Mapping = "fldName" }
+                                                )
+                                        )
+                                        .Proxy(X.AjaxProxy()
+                                            .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                            .Timeout(200000000)
+                                            .Url(Url.Action("GetState"))
+                                            .Reader(X.JsonReader().Root("data"))
+                                        )
+                                            )
+                                            ,
+
+                               X.Label("شهرستان:"),
+                                            X.ComboBox()
+        //.Width(320)
+                                    .PaddingSpec("0 0 0 15px")
+                                    .ItemID("CboCounty")
+                                    .TypeAhead(true)
+        // .AutoFocus(true)
+                                    .Editable(true)
+                                    .ForceSelection(true)
+                                    .QueryMode(DataLoadMode.Local)
+                                    .TriggerAction(TriggerAction.All)
+                                    .AllowBlank(false)
+                                    .BlankText("لطفا شهرستان را انتخاب کنید.")
+                                    .DisplayField("fldName")
+                                    .ValueField("fldId")
+                                        .Listeners(l =>
+                                        {
+                                            l.BeforeQuery.Fn = "SearchMatchCombo";
+                                            l.Select.Handler = "App.NewContact.queryById('CboShahr').clearValue(); App.NewContact.queryById('CboShahr').getStore().load()";
+                                        })
+                                    .EmptyText("...")
+                                    .Store(X.Store()
+                                                .Listeners(l => l.BeforeLoad.Handler = "App.NewContact.queryById('CboCounty').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.NewContact.queryById('antiForgeryToken').getValue());")
+                                    .AutoLoad(false)
+                                        .Model(X.Model()
+                                            .IDProperty("fldId")
+                                            .Fields(
+                                                new ModelField("fldId", ModelFieldType.Int) { Mapping = "fldId" },
+                                                new ModelField("fldName", ModelFieldType.String) { Mapping = "fldName" }
+                                                )
+                                        )
+                                        .Proxy(X.AjaxProxy()
+                                            .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                            .Timeout(200000000)
+                                                .Url(Url.Action("GetCounty"))
+                                            .Reader(X.JsonReader().Root("data"))
+                                        )
+                                         .Parameters(ps => ps.Add(new StoreParameter("StateId", "App.NewContact.queryById('CboState').getValue()", ParameterMode.Raw)))
+                                            )
+                                                ,
+                                   X.Label("شهر:"),
+                                            X.ComboBox()
+        //  .Width(320)
+                                    .PaddingSpec("0 0 0 15px")
+                                        .ItemID("CboShahr")
+                                    .TypeAhead(true)
+        // .AutoFocus(true)
+                                    .Editable(true)
+                                    .ForceSelection(true)
+                                    .QueryMode(DataLoadMode.Local)
+                                    .TriggerAction(TriggerAction.All)
+                                    .AllowBlank(false)
+                                    .BlankText("لطفا شهر را انتخاب کنید.")
+                                    .DisplayField("fldName")
+                                    .ValueField("fldId")
+                                        .Listeners(l =>
+                                        {
+                                            l.BeforeQuery.Fn = "SearchMatchCombo";
+                                            l.Select.Handler = "ChangeCity();";
+                                        })
+                                    .EmptyText("...")
+                                    .Store(X.Store()
+                                            .Listeners(l => l.BeforeLoad.Handler = "App.NewContact.queryById('CboShahr').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.NewContact.queryById('antiForgeryToken').getValue());")
+                                        .AutoLoad(false)
+                                        .Model(X.Model()
+                                            .IDProperty("fldId")
+                                            .Fields(
+                                                new ModelField("fldId", ModelFieldType.Int) { Mapping = "fldId" },
+                                                new ModelField("fldName", ModelFieldType.String) { Mapping = "fldName" }
+                                                )
+                                        )
+                                        .Proxy(X.AjaxProxy()
+                                            .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                            .Timeout(200000000)
+                                            .Url(Url.Action("GetShahr"))
+                                            .Reader(X.JsonReader().Root("data"))
+                                        )
+                                         .Parameters(ps => ps.Add(new StoreParameter("CountyId", "App.NewContact.queryById('CboCounty').getValue()", ParameterMode.Raw)))
+
+
+                                            ),
+
+                                 X.Container().Content(@<div style="width:650px;height:400px;" id="map"></div>
+                                    ).Width(650).Height(400).ColSpan(6)
+
+
+
+
+        )
+
+                )
+        )
+)
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<script type="text/javascript">
+    /*var myMap = new L.Map('map', {
+        key: 'web.JRCau460QpXQ2QeTe7V5iL6YND0WnaAHomU0VH8m',
+        center: [35.699739, 51.338097],
+        zoom: 14
+    });*/
+
+    var marker2 = null;
+    navigator.geolocation.watchPosition(render);
+
+
+    function render(pos) {
+        if (marker2 == null) {
+            var lat = pos.coords.latitude;
+            var lon = pos.coords.longitude;
+            marker = new L.Marker([lat, lon]);
+            marker2 = marker;
+            myMap.addLayer(marker);
+        }
+    };
+    var Mokhtasat = null;
+    function onMapClick(e) {
+        if (marker2 != null)
+            myMap.removeLayer(marker2);
+        marker = new L.Marker(e.latlng);
+        marker2 = marker;
+        myMap.addLayer(marker);
+        Mokhtasat = e.latlng;
+        marker.bindPopup("<b></b><br />" + e.latlng.toString()).openPopup();
+
+    };
+    /*myMap.on('click', onMapClick);*/
+
+
+    function ChangeCity() {
+        App.NewContact.body.mask("در حال بارگذاری...");
+        Ext.net.DirectMethod.request({
+            url: '/Contact/GetLatLng',
+            params: {
+                CityId: App.NewContact.queryById('CboShahr').getValue(),
+                __RequestVerificationToken: App.NewContact.queryById('antiForgeryToken').getValue()
+            },
+            success: function (data) {
+                myMap.setView(new L.LatLng(data.fldLatitude, data.fldLongitude), 14);
+
+                App.NewContact.body.mask().hide();
+            }
+        });
+    }
+    var SearchMatchCombo = function (record) {
+        return record.query = new RegExp(record.query.replace("(", "[(]").replace(")", "[)]"), 'i');
+    };
+    function SetStateDefult() {
+        if ('@ViewBag.Id' == '0') {
+            App.NewContact.queryById('CboState').setValue(App.NewContact.queryById('CboState').store.getAt(0));
+            App.NewContact.queryById('CboCounty').clearValue(); App.NewContact.queryById('CboCounty').getStore().load();
+        }
+    }
+    function ShowHideMap() {
+       var CboContactType = App.NewContact.queryById('CboContactType');
+      var FieldSetMap = App.NewContact.queryById('FieldSetMap');
+        /*  if (CboContactType.getValue() == 4)
+            FieldSetMap.show();
+        else*/
+            FieldSetMap.hide();
+    }
+    function setDefaultContactType() {
+        if ('@ViewBag.Id' == '0') {
+            App.NewContact.queryById("CboContactType").setValue(App.NewContact.queryById("CboContactType").store.getAt(0));
+        }
+    }
+    function ChangeType() {
+        var CboType = App.NewContact.queryById("CboType").getValue();
+        var lblTypeName = App.NewContact.queryById("lblTypeName");
+        var txtTypeName = App.NewContact.queryById("txtTypeName");
+        txtTypeName.setValue("");
+        var fldAshkhasId = App.NewContact.queryById('fldAshkhasId');
+        fldAshkhasId.setValue("0");
+        var fldAshkhasHoghughiId = App.NewContact.queryById('fldAshkhasHoghughiId');
+        fldAshkhasHoghughiId.setValue("0");
+        if (CboType == "0") {
+            lblTypeName.setText("نام و نام خانوادگی:");
+        }
+        else if (CboType == "1") {
+            lblTypeName.setText("نام شرکت:");
+        }
+    }
+    function SelectAshkhas(Code) {
+        var CboType = App.NewContact.queryById("CboType").getValue();
+        if (CboType == "0") {
+            if (Code == 45) {
+                App.NewContact.body.mask("در حال بارگذاری");
+                Ext.net.DirectMethod.request({
+                    url: '/SearchHuman/Index',
+                    params: {
+                        State: 6,
+                    },
+                    success: function () {
+                        App.NewContact.body.mask().hide();
+                    }
+                });
+            }
+        }
+        else if (CboType == "1") {
+            if (Code == 45) {
+                App.NewContact.body.mask("در حال بارگذاری");
+                Ext.net.DirectMethod.request({
+                    url: '/SearchAshkhasHoghooghi/Index',
+                    params: {
+                        State: 1,
+                    },
+                    success: function () {
+                        App.NewContact.body.mask().hide();
+                    }
+                });
+            }
+        }
+        else if (CboType == "2") {
+            if (Code == 45) {
+                App.NewContact.body.mask("در حال بارگذاری");
+                Ext.net.DirectMethod.request({
+                    url: '/SearchMarakezTeb/Index',
+                    params: {
+                        State: 1,
+                    },
+                    success: function () {
+                        App.NewContact.body.mask().hide();
+                    }
+                });
+            }
+        }
+    }
+    var fldTimeStamp = 0;
+    function LoadContact() {
+        ReplaceArabic();
+        if ('@ViewBag.Id' != '0') {
+            App.NewContact.body.mask("در حال بارگذاری...");
+            Ext.net.DirectMethod.request({
+                url: '/Contact/Details',
+                params: {
+                    Id: '@ViewBag.Id',
+                    __RequestVerificationToken: App.NewContact.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+                    var txtValue = App.NewContact.queryById('txtValue');
+                    txtValue.setValue(data.fldValue);
+                    var CboStatus = App.NewContact.queryById('CboStatus');
+                    CboStatus.setValue(data.fldType);
+                    var CboContactType = App.NewContact.queryById('CboContactType');
+                    CboContactType.setValue(data.fldTypeContactId);
+                    var CboType = App.NewContact.queryById('CboType');
+                    CboType.setValue(data.fldTypeshakhs);
+                    CboType.setReadOnly(true);
+                    var txtTypeName = App.NewContact.queryById('txtTypeName');
+                    if (data.fldTypeshakhs == "0")
+                        txtTypeName.setValue(data.fldname + " " + data.fldfamily);
+                    else
+                        txtTypeName.setValue(data.fldfamily);
+                    var Id = App.NewContact.queryById('fldId');
+                    Id.setValue(data.fldId);
+                    var fldAshkhasId = App.NewContact.queryById('fldAshkhasId');
+                    fldAshkhasId.setValue(data.fldAshkhasId);
+                    var fldAshkhasHoghughiId = App.NewContact.queryById('fldAshkhasHoghughiId');
+                    fldAshkhasHoghughiId.setValue(data.fldAshkhashoghooghi);
+                    fldTimeStamp = data.fldTimeStamp;
+
+                    if (data.lat != "") {
+                        var CboState = App.NewContact.queryById('CboState');
+                        var CboCounty = App.NewContact.queryById('CboCounty');
+                        var CboShahr = App.NewContact.queryById('CboShahr');
+                        CboState.setValue(data.state);
+                        CboCounty.clearValue(); CboCounty.getStore().load();
+                        CboCounty.setValue(data.county);
+                        CboShahr.clearValue(); CboShahr.getStore().load();
+                        CboShahr.setValue(data.shahr);
+
+                        Mokhtasat = L.latLng(data.lat, data.lng);
+                        marker = new L.Marker(Mokhtasat);
+                        marker2 = marker;
+                        myMap.addLayer(marker);
+                        marker.bindPopup("<b></b><br />" + Mokhtasat.toString()).openPopup();
+                    }
+                    App.NewContact.body.mask().hide();
+                }
+            });
+        }
+        else {
+            App.NewContact.queryById('txtValue').validate();
+            App.NewContact.queryById('CboContactType').validate();
+        }
+
+    }
+
+    function SaveContact() {
+        var txtValue = App.NewContact.queryById('txtValue');
+        var Id = App.NewContact.queryById('fldId');
+        var CboStatus = App.NewContact.queryById('CboStatus');
+        var CboContactType = App.NewContact.queryById('CboContactType');
+        var fldAshkhasId = App.NewContact.queryById('fldAshkhasId');
+        var fldAshkhasHoghughiId = App.NewContact.queryById('fldAshkhasHoghughiId');
+        var CboStatus = App.NewContact.queryById('CboStatus');
+        var CboContactType = App.NewContact.queryById('CboContactType');
+            var er = false;
+            if (txtValue.validate() == false) {
+                er = true;
+            }
+            if (CboContactType.validate() == false) {
+                er = true;
+            }
+            if (CboStatus.validate() == false) {
+                er = true;
+            }
+
+            var lat = "";
+            var lng = "";
+            var shahr = 0; var ShahrName = "";
+            /*var CboContactType = App.NewContact.queryById('CboContactType');
+            var CboShahr = App.NewContact.queryById('CboShahr');
+            if (CboContactType.getValue() == 4) {
+                if (Mokhtasat != null) {
+                    if (CboShahr.validate() == false) {
+                        er = true;
+                    }
+                    lat= Mokhtasat.lat;
+                    lng= Mokhtasat.lng;
+                    shahr = CboShahr.getValue();
+                    ShahrName = CboShahr.getDisplayValue();
+                }
+            }*/
+
+            if (er == true)
+                return;
+            App.NewContact.body.mask("در حال بررسی...");
+            Ext.net.DirectMethod.request({
+                url: '/Contact/CheckValidate',
+                params: {
+                    Value: txtValue.getValue(),
+                    ContactTypeId: CboContactType.getValue(),
+                    __RequestVerificationToken: App.NewContact.queryById('antiForgeryToken').getValue()
+                },
+                success: function (result) {
+                    if (result.Er == 1) {
+                        Ext.MessageBox.show({
+                            title: result.MsgTitle,
+                            msg: result.Msg,
+                            icon: Ext.MessageBox.ERROR,
+                            buttons: Ext.MessageBox.OK,
+                        });
+                        App.NewContact.body.mask().hide();
+                    }
+                    else {
+                        if (result.Valid == false) {
+                            Ext.MessageBox.show({
+                                title: "خطا",
+                                msg: "مقدار وارد شده نامعتبر است.",
+                                icon: Ext.MessageBox.ERROR,
+                                buttons: Ext.MessageBox.OK,
+                            });
+                            App.NewContact.body.mask().hide();
+                        }
+                        else {
+                            App.NewContact.body.mask("در حال ذخیره سازی");
+                            Ext.net.DirectMethod.request({
+                                url: '/Contact/Save',
+                                params: {
+                                    fldId: Id.getValue(),
+                                    fldValue: txtValue.getValue(),
+                                    fldType: CboStatus.getValue(),
+                                    fldTyperName: CboStatus.getDisplayValue(),
+                                    fldTypeContactId: CboContactType.getValue(),
+                                    NameTypeContact: CboContactType.getDisplayValue(),
+                                    fldTimeStamp: fldTimeStamp,
+                                    fldAshkhasId: fldAshkhasId.getValue(),
+                                    fldAshkhashoghooghi:fldAshkhasHoghughiId.getValue(),
+                                    fldLatitude: lat,
+                                    fldLongitude: lng,
+                                    fldShahrId: shahr,
+                                    fldShahrName: ShahrName,
+                                    __RequestVerificationToken: App.NewContact.queryById('antiForgeryToken').getValue()
+                                },
+                                success: function (data) {
+                                    chat.server.reloadLog();
+                                    if (data.Er == 1 && data.Change == 1) {/*vaghti TimeStamp==0*/
+                                        Ext.MessageBox.show({
+                                            title: data.MsgTitle,
+                                            msg: data.Msg,
+                                            icon: Ext.MessageBox.WARNING,
+                                            buttons: Ext.MessageBox.OK,
+                                            fn: function (btn) {
+                                                if (btn == 'ok') {
+                                                    LoadContact();
+                                                }
+                                            }
+                                        });
+                                    }
+                                    else if (data.Er == 1 && data.Change == 2) {/*vaghti TimeStamp==2*/
+                                        Ext.MessageBox.show({
+                                            title: data.MsgTitle,
+                                            msg: data.Msg,
+                                            icon: Ext.MessageBox.ERROR,
+                                            buttons: Ext.MessageBox.OK,
+                                            fn: function (btn) {
+                                                if (btn == 'ok') {
+                                                    App.NewContact.destroy();
+                                                }
+                                            }
+                                        });
+
+                                    }
+                                    else if (data.Er == 1) {
+                                        Ext.MessageBox.show({
+                                            title: data.MsgTitle,
+                                            msg: data.Msg,
+                                            icon: Ext.MessageBox.ERROR,
+                                            buttons: Ext.MessageBox.OK,
+                                        });
+                                    }
+                                    else {
+                                        Ext.MessageBox.show({
+                                            title: data.MsgTitle,
+                                            msg: data.Msg,
+                                            icon: Ext.MessageBox.INFO,
+                                            buttons: Ext.MessageBox.OK,
+                                        });
+                                    }
+
+                                    App.ContactForm.queryById('GridContact').store.load();
+
+                                    if (data.Er != 1)
+                                        ClearContact();
+                                    App.NewContact.body.mask().hide();
+                                }
+
+                            });
+                        }
+                    }
+                }
+            });
+        }
+    function ClearContact() {
+        App.NewContact.queryById('txtValue').setValue("");
+        App.NewContact.queryById('fldId').setValue(0);
+
+    }
+    var addKeyMapContact = function (cmp) {
+        this.keyMap = new Ext.util.KeyMap({
+            target: cmp.getEl(),
+            binding: [{
+                key: [13, 9], /*Ext.EventObject.ENTER,*/
+                fn: function (key, e) {
+                    if (e.getKey() == 9) {
+                        e.stopEvent();
+                    }
+                    var keyfield = App.NewContact.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+                    var nextfld;
+                    if (keyfield.itemId == "txtDesc") {
+                        nextfld = App.NewContact.queryById('btnSaveContact');
+                        SaveContact();
+                        return;
+                    }
+                    else {
+                        nextfld = keyfield.nextSibling().nextSibling();
+                        nextfld.selectText();
+                    }
+                    nextfld.focus();
+                    nextfld.selectText();
+                }
+            }]
+        });
+    }
+</script>

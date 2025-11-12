@@ -1,0 +1,712 @@
+﻿@model RaiSam.Models.CharkheAction
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+
+<script>
+    Ext.net.FilterHeader.behaviour.string[0].match = function (recordValue, matchValue) {
+        return (Ext.net.FilterHeader.behaviour.getStrValue(recordValue) || "").indexOf(matchValue) > -1;
+    };
+
+    Ext.net.FilterHeader.behaviour.string[0].getStrValue = function (value) {
+        return value.toString();
+    };
+
+    Ext.net.FilterHeader.behaviour.string[0].serialize = function (value) {
+        return {
+            type: "string",
+            op: "*",
+            value: value
+        };
+    };
+    var ShowIcon_Charkhe = function (value, record) {
+        if (value == null) {
+            return "";
+        }
+        else {
+            pic = "data:image/png;base64," + value;
+            var template = "<img src=" + pic + " style='width:17px;height:17px;' />";
+            return template;
+        }
+    };
+</script>
+<style>
+    .x-grid-group-title {
+        text-align: right !important;
+    }
+</style>
+
+@(X.Panel()
+    .Border(false)
+    .Listeners(li => { li.AfterRender.Handler = "CharkheSetSize();"; })
+    .Title("چرخه")
+    .ID("Charkhe")
+    .Closable(true)
+    .AutoScroll(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Items(
+            X.AntiForgeryField()
+        .ItemID("antiForgeryToken")
+        .Hidden(true),
+        X.Panel()
+            .Border(false)
+            .Layout(Ext.Net.LayoutType.VBox)
+            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Stretch })
+            .AutoScroll(true)
+            .Items(
+                X.GridPanel()
+                    .AutoScroll(true)
+                    .Plugins(
+                        X.RowExpander()
+                            .Listeners(l => l.BeforeExpand.Fn = "loadGridCharkhee_EghdammExpander")
+                            .Component(
+                                X.GridPanel()
+                                    .AutoScroll(true)
+                                    .ItemID("GridCharkhe_Eghdam")
+                                    .Store(
+                                        X.StoreFor(Model.Charkhe_Eghdam)
+
+                                            .AutoLoad(false)
+                                            .Proxy(Html.X().AjaxProxy()
+                                                .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                                .Url(Url.Action("ReadDetail"))
+                                                .Reader(Html.X().JsonReader().Root("data"))
+                                            )
+                                            .PageSize(100)
+                                            .RemoteFilter(false)
+                                            .RemotePaging(false)
+                                    )
+                                    .View(
+                                        Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                                    )
+                                    .ColumnModel(
+                                        Html.X().RowNumbererColumn(),
+                                        Html.X().ImageCommandColumn().Align(Ext.Net.Alignment.Center).Width(30).Listeners(l => l.Command.Fn = "GotoAction_CharkheEghdam")
+                                            .Commands(
+                                                Html.X().ImageCommand().CommandName("ShowAction_CharkheEghdam").Icon(Icon.Information).ToolTip(tt => tt.Text = "مشاهده اکشن ها")
+                                            ),
+                                        Html.X().Column().DataIndex(Model.Charkhe_Eghdam, m => m.fldId).Text("کد").Hidden(true).Flex(1),
+                                        Html.X().Column().DataIndex(Model.Charkhe_Eghdam, m => m.FileAction).Text("").Align(Ext.Net.Alignment.Center).Filterable(false).Renderer("ShowIcon_Charkhe").Flex(1),
+                                        Html.X().Column().DataIndex(Model.Charkhe_Eghdam, m => m.fldNameEghdam).Text("نام اقدام").Flex(5),
+                                        Html.X().Column().DataIndex(Model.Charkhe_Eghdam, m => m.fldActiveName).Text("وضعیت").Flex(2),
+                                        Html.X().Column().DataIndex(Model.Charkhe_Eghdam, m => m.fldNameKartabl).Text("نام کارتابل").Flex(15)
+                                    )
+                                    .SelectionModel(
+                                        Html.X().RowSelectionModel()
+                                            .Mode(Ext.Net.SelectionMode.Single)
+                                    )
+                            )
+                )
+                .TopBar(
+                    Html.X().Toolbar()
+                        .Items(
+                            X.Button()
+                                .Text("جدید")
+                                .Icon(Ext.Net.Icon.Add)
+                                .Listeners(li => li.Click.Handler = "NewCharkhe();"),
+                            X.Button()
+                                .Text("ویرایش")
+                                .Icon(Ext.Net.Icon.Pencil)
+                                .Listeners(Li => Li.Click.Handler = "EditCharkhe();"),
+                            X.Button()
+                                .Text("حذف")
+                                .Icon(Ext.Net.Icon.Delete)
+                                .Listeners(de => de.Click.Handler = "DeleteCharkhe();"),
+                            X.Button()
+                                .Text("کپی چرخه")
+                                .Icon(Ext.Net.Icon.PageCopy)
+                                .Listeners(Li => Li.Click.Handler = "CopyFromCharkhe();"),
+                            X.SplitButton()
+                                .Text("راهنما")
+                                .Icon(Ext.Net.Icon.Help)
+                                .Menu(X.Menu()
+                                    .Items(
+                                        X.MenuItem()
+                                            .Text("راهنما متنی")
+                                            .Icon(Ext.Net.Icon.TextPaddingTop)
+                                            .Listeners(l => l.Click.Handler = "HelpCharkhe()"),
+                                        X.MenuItem()
+                                            .Text("راهنما تصویری")
+                                            .Icon(Ext.Net.Icon.PlayBlue)
+                                            .Listeners(l => l.Click.Handler = "showHelp_VideoCharkhe()")
+
+                                    )
+                                )
+                        )
+                )
+                .ItemID("GridCharkhe")
+                .Listeners(li => li.Select.Handler = "loadGridCharkheDetail()")
+                .BottomBar(X.PagingToolbar())
+                .Store(
+                    X.StoreFor(Model.Charkhe)
+                        .Listeners(l => l.Load.Handler = "ExpandFirstRowGrid1()")
+                            .Listeners(l => l.BeforeLoad.Handler = "App.Charkhe.queryById('GridCharkhe').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.Charkhe.queryById('antiForgeryToken').getValue());")
+                        .Proxy(Html.X().AjaxProxy()
+                            .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                            .Url(Url.Action("Read"))
+                            .Reader(Html.X().JsonReader().Root("data"))
+                        )
+                        .PageSize(20)
+                        .RemoteFilter(true)
+                        .RemotePaging(true)
+                        .Listeners(l => l.DataChanged.Handler = "App.Charkhe.queryById('GridCharkhe').selModel.refresh();")
+                    )
+                    .View(
+                        Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                    )
+                    .Plugins(X.FilterHeader().Remote(true))
+                    .ColumnModel(
+                        Html.X().RowNumbererColumn(),
+                        Html.X().Column().DataIndex(Model.Charkhe, m => m.fldFile).Text("").Filterable(false).Renderer("ShowIcon_Charkhe").Align(Ext.Net.Alignment.Center).Flex(1),
+                        Html.X().Column().DataIndex(Model.Charkhe, m => m.fldHelpId).Text(" هلپ کد").Hidden(true).Flex(1),
+                        Html.X().Column().DataIndex(Model.Charkhe, m => m.fldFilePdfId).Text("pdf").Hidden(true).Flex(1),
+                        Html.X().Column().DataIndex(Model.Charkhe, m => m.fldFileVideoId).Text("video").Hidden(true).Flex(1),
+                        Html.X().Column().DataIndex(Model.Charkhe, m => m.fldId).Text("کد").Hidden(true).Flex(1),
+                        Html.X().Column().DataIndex(Model.Charkhe, m => m.ExistsEnter).Text("ورود به چرخه").Hidden(true).Flex(1),
+                        Html.X().Column().DataIndex(Model.Charkhe, m => m.fldName).Text("نام چرخه").Flex(2).Wrap(true),
+                        Html.X().Column().DataIndex(Model.Charkhe, m => m.fldAnvaGhabelCharkheshName).Text("عامل قابل چرخش").Flex(2).Wrap(true),
+                        Html.X().Column().DataIndex(Model.Charkhe, m => m.fldNameOpertion).Text("اکشن پیش فرض").Flex(2).Wrap(true),
+                        Html.X().Column().DataIndex(Model.Charkhe, m => m.fldStatusName).Text("وضعیت").Flex(1),
+                        Html.X().Column().DataIndex(Model.Charkhe, m => m.fldDesc).Text("توضیحات").Flex(7).Wrap(true),
+                        Html.X().ComponentColumn().ID("ColEdgdamm").Width(100).Component(Html.X().Button().Icon(Ext.Net.Icon.TabAdd).Text("تعیین اقدامات")
+                           .Listeners(l => l.Click.Handler = "GotoEhgdamm();")).Filterable(false),
+                            Html.X().ComponentColumn().Hidden(!RaiSam.Models.Permission.haveAccess(149, "tblCharkhe", "0")).ID("ColRules").Width(100).Component(Html.X().Button().IconCls("referralRuls").Text("قوانین ارجاع")
+                                .Listeners(l => l.Click.Handler = "GotoRules();")).Filterable(false)//,
+                        //Html.X().ComponentColumn().Listeners(l => l.Bind.Fn = "CheckEnable").Hidden(!MedicalExaminations.Models.Permission.haveAccess(290)).ID("ColVorud").Width(100).Component(Html.X().Button().IconCls("minVorudBeMoayenat").Text("ورود به چرخه")
+                        //        .Listeners(l => l.Click.Handler = "GotoVorud();")).Filterable(false),
+                        //    Html.X().ComponentColumn().Listeners(l => l.Bind.Fn = "CheckEnableEnter").Hidden(!MedicalExaminations.Models.Permission.haveAccess(290)).ID("ColEnter").Width(110).Component(Html.X().Button().IconCls("minCharkheEnter").Text("موارد داخل چرخه")
+                        //    .Listeners(l => l.Click.Handler = "GotoEnter();")).Filterable(false)
+                    )
+                    .SelectionModel(
+                        Html.X().RowSelectionModel()
+                            .Mode(Ext.Net.SelectionMode.Single)
+                    ),
+                X.TabPanel()
+                    .ID("tabpanel_CharkheDetail")
+                    .Padding(0)
+                    .Items(
+                        X.Panel()
+                            .Padding(0)
+                            .Border(false)
+                            .Title("نمایه براساس گروه بندی کارتابل")
+                            .Items(
+                                X.GridPanel()
+                                    .AutoScroll(true)
+                                    .ItemID("GridCharkheDetail")
+                                    .BottomBar(X.PagingToolbar())
+                                    .Border(false)
+                                    .Store(
+                                        X.StoreFor(Model.Charkhe_Eghdam)
+                                                .Listeners(l => l.BeforeLoad.Handler = "App.Charkhe.queryById('GridCharkheDetail').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.Charkhe.queryById('antiForgeryToken').getValue());")
+                                            .GroupField("fldNameKartabl").GroupDir(Ext.Net.SortDirection.ASC)
+                                            .AutoLoad(false)
+                                            .Proxy(Html.X().AjaxProxy()
+                                                .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                                .Url(Url.Action("ReadDetail"))
+                                                .Reader(Html.X().JsonReader().Root("data"))
+                                            )
+                                            .PageSize(10)
+                                            .RemoteFilter(false)
+                                            .RemotePaging(false)
+                                            .Listeners(l => l.DataChanged.Handler = "App.Charkhe.queryById('GridCharkheDetail').selModel.refresh();")
+                                    )
+                                    .Features(X.Grouping().EnableGroupingMenu(true).StartCollapsed(false).GroupHeaderTplString("عنوان کارتابل: {name}"))
+                                    .View(
+                                        Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                                    )
+                                    .Plugins(X.FilterHeader().Remote(false))
+                                    .ColumnModel(
+                                        Html.X().RowNumbererColumn(),
+                                        Html.X().Column().DataIndex(Model.Charkhe_Eghdam, m => m.fldId).Text("کد").Hidden(true).Flex(1),
+                                        Html.X().Column().DataIndex(Model.Charkhe_Eghdam, m => m.FileAction).Text("").Filterable(false).Align(Ext.Net.Alignment.Center).Renderer("ShowIcon_Charkhe").Flex(1),
+                                        Html.X().Column().DataIndex(Model.Charkhe_Eghdam, m => m.fldNameEghdam).Text("نام اقدام").Flex(5),
+                                        Html.X().Column().DataIndex(Model.Charkhe_Eghdam, m => m.fldActiveName).Text("وضعیت").Flex(1),
+                                        Html.X().Column().DataIndex(Model.Charkhe_Eghdam, m => m.fldOpertionId_DefulteName).Text("اکشن پیش فرض").Flex(2),
+                                            Html.X().ComponentColumn().ID("ColCartableAssign").Flex(1).Hidden(RaiSam.Models.Permission.haveAccess(121, "tblCharkhe_Eghdam", "0")).Component(Html.X().Button().Icon(Ext.Net.Icon.PageAttach).Text("اختصاص کارتابل")
+                                            .Listeners(l => l.Click.Handler = "GotoCartableAssign();")).Filterable(false),
+                                                Html.X().ComponentColumn().ID("ColAction").Flex(1).Hidden(!RaiSam.Models.Permission.haveAccess(147, "tblCharkhe_Eghdam", "0")).Component(Html.X().Button().Icon(Ext.Net.Icon.PageWhiteText).Text("اکشن")
+                                            .Listeners(l => l.Click.Handler = "GotoAction_Charkhe();")).Filterable(false),
+                                                        Html.X().ComponentColumn().ID("ColDefaultOP_CharkheEghdam").Flex(1).Hidden(!RaiSam.Models.Permission.haveAccess(147, "tblCharkhe_Eghdam", "0")).Component(Html.X().Button().Icon(Ext.Net.Icon.KeyAdd).Text("اکشن پیش فرض")
+                                                .Listeners(l => l.Click.Handler = "GotoDefaultOP_CharkheEghdam();")).Filterable(false),
+                                                                        Html.X().ComponentColumn().ID("ColDynamic_CharkheEghdam").Listeners(l => l.Bind.Fn = "CheckEnableDynamic").Flex(1).Hidden(!RaiSam.Models.Permission.haveAccess(247, "tblTitleRatingDynamic_CharkheEghdam", "0")).Component(Html.X().Button().Icon(Ext.Net.Icon.KeyAdd).Text("مدارک لازم")
+                                                    .Listeners(l => l.Click.Handler = "GotoDynamic_CharkheEghdam();")).Filterable(false)
+                                    )
+                                    .SelectionModel(
+                                        Html.X().RowSelectionModel()
+                                            .Mode(Ext.Net.SelectionMode.Single)
+                                    )
+                                ),
+                            X.Panel()
+                                .Border(false)
+                                .Padding(0)
+                                .Title("نمایه براساس ترتیب اقدامات")
+                                .Items(
+                                    X.GridPanel().AutoScroll(true)
+                                        .ItemID("GridCharkheDetail_Order")
+                                        .BottomBar(X.PagingToolbar())
+                                        .Border(false)
+                                        .Store(
+                                            X.StoreFor(Model.Charkhe_Eghdam)
+                                                .Listeners(l => l.BeforeLoad.Handler = "App.Charkhe.queryById('GridCharkheDetail_Order').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.Charkhe.queryById('antiForgeryToken').getValue());")
+                                                .AutoLoad(false)
+                                                .Proxy(Html.X().AjaxProxy()
+                                                    .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                                    .Url(Url.Action("ReadDetail"))
+                                                    .Reader(Html.X().JsonReader().Root("data"))
+                                                )
+                                                .PageSize(10)
+                                                .RemoteFilter(false)
+                                                .RemotePaging(false)
+                                                .Listeners(l => l.DataChanged.Handler = "App.Charkhe.queryById('GridCharkheDetail_Order').selModel.refresh();")
+                                        )
+                                        .View(
+                                            Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                                        )
+                                        .Plugins(X.FilterHeader().Remote(false))
+                                        .ColumnModel(
+                                            Html.X().RowNumbererColumn(),
+                                            Html.X().Column().DataIndex(Model.Charkhe_Eghdam, m => m.fldId).Text("کد").Hidden(true).Flex(1),
+                                            Html.X().Column().DataIndex(Model.Charkhe_Eghdam, m => m.fldNoeGhabelCharkheshId).Text("نوع قابل چرخش").Hidden(true).Flex(1),
+                                           // Html.X().Column().DataIndex(Model.Charkhe_Eghdam, m => m.fldAnvaMoayenatId).Text("انواع معاینه").Hidden(true).Flex(1),
+                                            Html.X().Column().DataIndex(Model.Charkhe_Eghdam, m => m.FileAction).Text("").Filterable(false).Align(Ext.Net.Alignment.Center).Renderer("ShowIcon_Charkhe").Flex(1),
+                                            Html.X().Column().DataIndex(Model.Charkhe_Eghdam, m => m.fldNameEghdam).Text("نام اقدام").Flex(3),
+                                            Html.X().Column().DataIndex(Model.Charkhe_Eghdam, m => m.fldActiveName).Text("وضعیت").Flex(1),
+                                            Html.X().Column().DataIndex(Model.Charkhe_Eghdam, m => m.fldOpertionId_DefulteName).Text("اکشن پیش فرض").Flex(2),
+                                            Html.X().Column().DataIndex(Model.Charkhe_Eghdam, m => m.fldNameKartabl).Text("نام کارتابل").Flex(2),
+                                                Html.X().ComponentColumn().ID("ColCartableAssign_Order").Flex(1).Hidden(!RaiSam.Models.Permission.haveAccess(121, "tblCharkhe_Eghdam", "0")).Component(Html.X().Button().Icon(Ext.Net.Icon.PageAttach).Text("اختصاص کارتابل")
+                                                .Listeners(l => l.Click.Handler = "GotoCartableAssign_Order();")).Filterable(false),
+                                                    Html.X().ComponentColumn().ID("ColAction_Order").Flex(1).Hidden(!RaiSam.Models.Permission.haveAccess(147, "tblCharkhe_Eghdam", "0")).Component(Html.X().Button().Icon(Ext.Net.Icon.PageWhiteText).Text("اکشن")
+                                                .Listeners(l => l.Click.Handler = "GotoAction_Charkhe_Order();")).Filterable(false),
+                                                    Html.X().ComponentColumn().ID("ColDefaultOP_CharkheEghdam_Order").Flex(1).Hidden(!RaiSam.Models.Permission.haveAccess(147, "tblCharkhe_Eghdam", "0")).Component(Html.X().Button().Icon(Ext.Net.Icon.KeyAdd).Text("اکشن پیش فرض")
+                                                    .Listeners(l => l.Click.Handler = "GotoDefaultOP_CharkheEghdam_Order();")).Filterable(false),
+                                                                            Html.X().ComponentColumn().ID("ColDynamic_CharkheEghdam_Order").Listeners(l => l.Bind.Fn = "CheckEnableDynamic").Flex(1).Hidden(!RaiSam.Models.Permission.haveAccess(247, "tblTitleRatingDynamic_CharkheEghdam", "0")).Component(Html.X().Button().Icon(Ext.Net.Icon.KeyAdd).Text("مدارک لازم")
+                                                            .Listeners(l => l.Click.Handler = "GotoDynamic_CharkheEghdam_Order();")).Filterable(false)
+                                        )
+                                        .SelectionModel(
+                                            Html.X().RowSelectionModel()
+                                                .Mode(Ext.Net.SelectionMode.Single)
+                                        )
+                                )
+                        )
+                )
+        )
+)
+
+<script type="text/javascript">
+
+    var CheckEnable = function (columnn, component, record, rowIndex) {
+        if (record.data.fldTypeVorood == true) {
+            component.disable();
+        }
+    };
+    var CheckEnableEnter = function (columnn, component, record, rowIndex) {
+        if (record.data.ExistsEnter == false) {
+            component.disable();
+        }
+    };
+    var CheckEnableDynamic = function (columnn, component, record, rowIndex) {
+        if (record.data.ExistsItemDynamic == '') {
+            component.disable();
+        }
+    };
+
+    function GotoAction_CharkheEghdam(grid, command, record, row) {;
+        if (command == 'ShowAction_CharkheEghdam') {
+            App.Charkhe.body.mask("در حال بارگذاری...");
+            Ext.net.DirectMethod.request({
+                url: '/Charkhe/ShowAction_CharkheEghdam',
+                params: {
+                    Charkhe_EghdamId: record.data.fldId
+                },
+                success: function () {
+                    App.Charkhe.body.mask().hide();
+                }
+            });
+        }
+    }
+
+    function GotoCartableAssign(grid, command, record, row) {
+        App.Charkhe.body.mask("در حال بارگذاری...");
+        Ext.net.DirectMethod.request({
+            url: '/Charkhe/CartableAssign',
+            params: {
+                CharkheEghdamId: App.ColCartableAssign.activeRecord.record.data.fldId,
+                CharkheName: App.ColCartableAssign.activeRecord.record.data.fldNameCharkhe,
+                EghdamName: App.ColCartableAssign.activeRecord.record.data.fldNameEghdam,
+                CharkheEghdamName: App.ColCartableAssign.activeRecord.record.data.fldNameEghdam + " (چرخه " + App.ColCartableAssign.activeRecord.record.data.fldNameCharkhe + ")",
+                CartablId: App.ColCartableAssign.activeRecord.record.data.fldKartablId
+            },
+            success: function () {
+                App.Charkhe.body.mask().hide();
+            }
+        });
+    }
+
+    function GotoCartableAssign_Order(grid, command, record, row) {
+        App.Charkhe.body.mask("در حال بارگذاری...");
+        Ext.net.DirectMethod.request({
+            url: '/Charkhe/CartableAssign',
+            params: {
+                CharkheEghdamId: App.ColCartableAssign_Order.activeRecord.record.data.fldId,
+                CharkheName: App.ColCartableAssign_Order.activeRecord.record.data.fldNameCharkhe,
+                EghdamName: App.ColCartableAssign_Order.activeRecord.record.data.fldNameEghdam,
+                CharkheEghdamName: App.ColCartableAssign_Order.activeRecord.record.data.fldNameEghdam + " (چرخه " + App.ColCartableAssign_Order.activeRecord.record.data.fldNameCharkhe + ")",
+                CartablId: App.ColCartableAssign_Order.activeRecord.record.data.fldKartablId
+            },
+            success: function () {
+                App.Charkhe.body.mask().hide();
+            }
+        });
+    }
+
+    function CharkheSetSize() {
+        App.Charkhe.queryById('GridCharkhe').setHeight((App.OperationWin.getHeight() - 111) / 2);
+        App.Charkhe.queryById('GridCharkheDetail').setHeight((App.OperationWin.getHeight() - 111) / 2);
+        App.Charkhe.queryById('GridCharkheDetail_Order').setHeight((App.OperationWin.getHeight() - 111) / 2);
+        App.tabpanel_CharkheDetail.setActiveTab(1);
+        App.tabpanel_CharkheDetail.setActiveTab(0);
+        InsertToLog("چرخه", 2, true);
+    }
+
+    var loadGridCharkhee_EghdammExpander = function (rowExpanderr, record) {
+        rowExpanderr.component.setSize(App.OperationWin.width - 800, App.OperationWin.height - 500);
+        rowExpanderr.component.getStore().getProxy().setExtraParam("CharkheId", record.data.fldId);
+        rowExpanderr.component.getStore().getProxy().setExtraParam('__RequestVerificationToken', App.Charkhe.queryById('antiForgeryToken').getValue());
+        rowExpanderr.component.getStore().load();
+    };
+
+    function ExpandFirstRowGrid1() {
+        if (App.Charkhe.queryById('GridCharkhe').store.count() > 0) {
+            App.Charkhe.queryById('GridCharkhe').getRowExpander().expandRow(0);
+            App.Charkhe.queryById('GridCharkhe').getRowExpander().collapseRow(0);
+        }
+    }
+
+    var FirstLoadGridCharkheDetail = 0;
+    function loadGridCharkheDetail() {
+        var SelectedRow = App.Charkhe.queryById('GridCharkhe').getSelectionModel().getLastSelected();
+        if (SelectedRow != null) {
+            App.Charkhe.queryById('GridCharkheDetail').getStore().getProxy().setExtraParam("CharkheId", SelectedRow.data.fldId);
+            App.Charkhe.queryById('GridCharkheDetail').store.load();
+
+            App.Charkhe.queryById('GridCharkheDetail_Order').getStore().getProxy().setExtraParam("CharkheId", SelectedRow.data.fldId);
+            App.Charkhe.queryById('GridCharkheDetail_Order').store.load();
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+        if (FirstLoadGridCharkheDetail == 0) {
+            App.tabpanel_CharkheDetail.setActiveTab(1);
+            App.tabpanel_CharkheDetail.setActiveTab(0);
+            FirstLoadGridCharkheDetail = 1;
+        }
+    }
+
+    function GotoAction_Charkhe() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/SearchOperation/Index',
+            params: {
+                state: 1,
+                Charkhe_EghdamId: App.ColAction.activeRecord.record.data.fldId,
+                NoeGhebelCharkheshId: App.ColAction.activeRecord.record.data.fldNoeGhabelCharkheshId,
+                /*AnvaMoayenatId: App.ColAction.activeRecord.record.data.fldAnvaMoayenatId*/
+            },
+            success: function () {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+    function GotoAction_Charkhe_Order() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/SearchOperation/Index',
+            params: {
+                state: 1,
+                Charkhe_EghdamId: App.ColAction_Order.activeRecord.record.data.fldId,
+                NoeGhebelCharkheshId: App.ColAction_Order.activeRecord.record.data.fldNoeGhabelCharkheshId,
+              /*  AnvaMoayenatId: App.ColAction_Order.activeRecord.record.data.fldAnvaMoayenatId*/
+            },
+            success: function () {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+    function GotoDefaultOP_CharkheEghdam_Order() {
+        var SelectedRow = App.Charkhe.queryById('GridCharkhe').selModel.getLastSelected();
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Charkhe/DefaulOP_Ac_CharkheEghdam',
+            params: {
+                Charkhe_EghdamId: App.ColDefaultOP_CharkheEghdam_Order.activeRecord.record.data.fldId,
+                DefaultOP: App.ColDefaultOP_CharkheEghdam_Order.activeRecord.record.data.fldOpertionId_Defulte,
+                CharkheId:SelectedRow.data.fldId
+            },
+            success: function () {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+    function GotoDefaultOP_CharkheEghdam() {
+        var SelectedRow = App.Charkhe.queryById('GridCharkhe').selModel.getLastSelected();
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Charkhe/DefaulOP_Ac_CharkheEghdam',
+            params: {
+                Charkhe_EghdamId: App.ColDefaultOP_CharkheEghdam.activeRecord.record.data.fldId,
+                DefaultOP: App.ColDefaultOP_CharkheEghdam.activeRecord.record.data.fldOpertionId_Defulte,
+                CharkheId: SelectedRow.data.fldId
+            },
+            success: function () {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+    function GotoDynamic_CharkheEghdam() {
+        var SelectedRow = App.Charkhe.queryById('GridCharkhe').selModel.getLastSelected();
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/SearchDynamicItem_CharkheEghdam/Index',
+            params: {
+                Charkhe_EghdamId: App.ColDynamic_CharkheEghdam.activeRecord.record.data.fldId,
+                GeneralRatingId: App.ColDynamic_CharkheEghdam.activeRecord.record.data.ExistsItemDynamic,
+                CharkheId: SelectedRow.data.fldId
+            },
+            success: function () {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+    function GotoDynamic_CharkheEghdam_Order() {
+        var SelectedRow = App.Charkhe.queryById('GridCharkhe').selModel.getLastSelected();
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/SearchDynamicItem_CharkheEghdam/Index',
+            params: {
+                Charkhe_EghdamId: App.ColDynamic_CharkheEghdam_Order.activeRecord.record.data.fldId,
+                GeneralRatingId: App.ColDynamic_CharkheEghdam_Order.activeRecord.record.data.ExistsItemDynamic,
+                CharkheId: SelectedRow.data.fldId
+            },
+            success: function () {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+    function GotoEhgdamm() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Charkhe/TaainEghdamat',
+            params: {
+                CharkheId: App.ColEdgdamm.activeRecord.record.data.fldId,
+                NoeGhabelCharkheshId: App.ColEdgdamm.activeRecord.record.data.fldNoeGhebelCharkheshId,
+            },
+            success: function () {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+    function GotoRules() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Charkhe/ReferralRules',
+            params: {
+                id: App.ColRules.activeRecord.record.data.fldId,
+                Name: App.ColRules.activeRecord.record.data.fldName
+            },
+            success: function () {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+    function GotoEnter() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Charkhe/ListAskhasCharkhe',
+            params: {
+                CharkheId: App.ColEnter.activeRecord.record.data.fldId,
+                Name: App.ColEnter.activeRecord.record.data.fldName,
+
+            },
+            success: function () {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+    function GotoVorud() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/VorudBeMoayenat/New',
+            params: {
+                IdCharkhe: App.ColVorud.activeRecord.record.data.fldId
+            },
+            success: function () {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+    function NewCharkhe() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Charkhe/new',
+            params: {
+                id: 0
+            },
+            success: function () {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+    function EditCharkhe() {
+        var SelectedRow = App.Charkhe.queryById('GridCharkhe').selModel.getLastSelected();
+        if (SelectedRow != null) {
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/Charkhe/new',
+                params: {
+                    id: SelectedRow.data.fldId
+                },
+                success: function () {
+                    Ext.net.Mask.hide();
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+
+    function CopyFromCharkhe() {
+        var SelectedRow = App.Charkhe.queryById('GridCharkhe').selModel.getLastSelected();
+        if (SelectedRow != null) {
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/Charkhe/CopyCharkhe',
+                params: {
+                    Id: SelectedRow.data.fldId,
+                    NoeGhebelCharkheshId: SelectedRow.data.fldNoeGhebelCharkheshId
+                },
+                success: function () {
+                    Ext.net.Mask.hide();
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+
+    function DeleteCharkhe() {
+        var SelectedHeaderRow = App.Charkhe.queryById('GridCharkhe').selModel.getLastSelected();
+        if (SelectedHeaderRow != null) {
+            Ext.MessageBox.show({
+                title: "هشدار",
+                msg: "آیا برای حذف مطمئن هستید؟",
+                icon: Ext.MessageBox.WARNING,
+                buttons: Ext.MessageBox.YESNO,
+                fn: function (btn) {
+                    if (btn == 'yes') {
+                        Ext.net.Mask.show({ msg: 'در حال انجام عملیات...' });
+                        Ext.net.DirectMethod.request({
+                            url: '/Charkhe/Delete',
+                            params: {
+                                id: SelectedHeaderRow.data.fldId,
+                                TimeStamp: SelectedHeaderRow.data.fldtimeStamp,
+                                __RequestVerificationToken: App.Charkhe.queryById('antiForgeryToken').getValue()
+                            },
+                            success: function (data) {
+                                chat.server.reloadLog();
+                                if (data.Er == 1 || data.outTimeStamp == 2) {
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.ERROR,
+                                        buttons: Ext.MessageBox.OK
+                                    });
+                                }
+                                else if (data.outTimeStamp == 0) {
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.WARNING,
+                                        buttons: Ext.MessageBox.OK
+                                    });
+                                }
+                                else {
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.INFO,
+                                        buttons: Ext.MessageBox.OK
+                                    });
+                                }
+                                App.Charkhe.queryById('GridCharkhe').store.load();
+                                App.Charkhe.queryById('GridCharkheDetail').getStore().getProxy().setExtraParam("CharkheId", 0);
+                                App.Charkhe.queryById('GridCharkheDetail').store.load();
+                                App.Charkhe.queryById('GridCharkheDetail_Order').getStore().getProxy().setExtraParam("CharkheId", 0);
+                                App.Charkhe.queryById('GridCharkheDetail_Order').store.load();
+                                Ext.net.Mask.hide();
+                            }
+                        });
+                    }
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+
+    function HelpCharkhe() {
+        
+                Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+                Ext.net.DirectMethod.request({
+                    url: '/Charkhe/Help',
+                    success: function () {
+                        Ext.net.Mask.hide();
+                    }
+                });
+          
+    }
+    function showHelp_VideoCharkhe() {
+                Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+                Ext.net.DirectMethod.request({
+                    url: '/Charkhe/VideoWinCharkhe',
+                    success: function () {
+                        Ext.net.Mask.hide();
+                    }
+                });
+    }
+</script>
+
+
+

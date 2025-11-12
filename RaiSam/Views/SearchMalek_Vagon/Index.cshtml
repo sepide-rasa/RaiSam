@@ -1,0 +1,110 @@
+﻿@model IEnumerable<RaiSam.Models.prs_tblMalek_VagonInfoSelect>
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+
+    var X = Html.X();
+}
+@(Html.X().Window()
+    .Modal(true)
+    .Width(650)
+    .Height(320)
+    .Title("لیست مالکان")
+    .ID("SearchMalek")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+        //    .Listeners(l => { l.Destroy.Handler = "if(state==2){App.NewAnvaMaharat_Ashkhas.queryById('txtName').focus();}else if(state==3){App.NewGroupMaharat.queryById('txtName').focus();}"; l.AfterRender.Handler = "LoadSearchAshkhas()"; })
+    .Layout(LayoutType.Fit)
+    .Items(
+        X.AntiForgeryField()
+            .ItemID("antiForgeryToken")
+            .Hidden(true),
+        X.Panel()
+            .Border(false)
+            .AutoScroll(true)
+            .Layout(LayoutType.Fit)
+            .Items(
+                X.GridPanel()
+                    .AutoScroll(true)
+                    .Border(false)
+                    .ItemID("GridSearchMalek")
+                    .BottomBar(X.PagingToolbar())
+                        
+                    .Store(
+                        X.StoreForModel()
+                            .Listeners(l => l.BeforeLoad.Handler = "App.SearchMalek.queryById('GridSearchMalek').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.SearchMalek.queryById('antiForgeryToken').getValue());")
+                            .Proxy(Html.X().AjaxProxy()
+                                .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                .Url(Url.Action("Read"))
+                                .Reader(Html.X().JsonReader().Root("data"))
+                                .ExtraParams(x => x.Add(new { state = @ViewBag.state }))
+                        )
+                        .PageSize(10)
+                        .RemoteFilter(true)
+                        .RemotePaging(true)
+                    )
+                    .View(
+                        Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                    )
+                          .Listeners(a => a.CellDblClick.Handler = "NextSearchMalek();")
+                    .Plugins(X.FilterHeader().Remote(true))
+                    .ColumnModel(
+                        Html.X().RowNumbererColumn(),
+                        Html.X().Column().DataIndex(Model, m => m.fldId).Text("کد").Flex(1).Hidden(true),
+                            Html.X().Column().DataIndex(Model, m => m.fldNameCompany).Text("نام مالک").Wrap(true).Flex(3),
+                            Html.X().Column().DataIndex(Model, m => m.fldCodeEghtasadi).Text("کداقتصادی").Wrap(true).Flex(5),
+                            Html.X().Column().DataIndex(Model, m => m.fldShenaseMeli).Text("شناسه ملی").Wrap(true).Flex(3),
+                            Html.X().Column().DataIndex(Model, m => m.fldTypeSamaneName).Text("نوع سامانه").Flex(3)
+        //Html.X().Column().DataIndex(Model, m => m.fldDesc).Text("توضیحات").Flex(8)
+                    )
+
+                    .SelectionModel(
+                        Html.X().RowSelectionModel()
+                            .Mode(Ext.Net.SelectionMode.Single)
+                    )
+            )
+        )
+)
+
+<script type="text/javascript">
+    var state = '@ViewBag.state';
+    function LoadSearchAshkhas() {
+     
+            App.SearchMalek.queryById('txtCodeEnhesari').show();
+            App.SearchMalek.queryById('btnLoader').show();
+        
+    }
+    var addKeyMaptxtCodeEnhesari3 = function (a, b) {
+        if (b.getKey() == 13) {
+            showandReloadPerson();
+        }
+    };
+
+   
+
+    function NextSearchMalek() {
+        var SelectedRow = App.SearchMalek.queryById('GridSearchMalek').selModel.getLastSelected();
+        if (SelectedRow != null) {
+            if (state == 1) {
+                App.NewMalekVagon.queryById('fldMalekVagonId').setValue(SelectedRow.data.fldId);
+                App.NewMalekVagon.queryById('txtMalek').setValue(SelectedRow.data.fldNameCompany);
+            }
+            else if (state == 2) {
+                App.NewContract_Project.queryById('fldMalekId').setValue(SelectedRow.data.fldId);
+                App.NewContract_Project.queryById('txtMalek').setValue(SelectedRow.data.fldNameCompany);
+            }
+
+           
+            App.SearchMalek.destroy();
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک شرکت مالک را انتخاب کنید",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+</script>

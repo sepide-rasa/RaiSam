@@ -1,0 +1,260 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+
+
+@(Html.X().Window()
+    .Modal(true)
+    .Listeners(l => l.AfterRender.Handler = "LoadSetting()")
+    .Width(470)
+    .Title("تنظیمات")
+    .ID("Setting")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .ButtonAlign(Ext.Net.Alignment.Center)
+    .Buttons(
+        X.Button()
+            .Text("ذخیره")
+            .Icon(Ext.Net.Icon.Disk)
+            .Listeners(l => l.Click.Handler = "SaveSetting();"),
+        X.Button()
+            .Text("خروج")
+            .Icon(Ext.Net.Icon.DoorOut)
+            .ToolTip("کلید میانبر Esc")
+            .OnClientClick("App.Setting.destroy()"))
+    .Items(
+        X.FormPanel()
+            .Border(false)
+            .PaddingSpec("0 10px 0 10px")
+            .Items(
+                X.FieldSet()
+                    .Border(true)
+                    .Title("تنظیمات")
+                    .Center()
+                    .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 2 })
+                    .Defaults(new { Margin = 2 })
+                    .Items(
+                        X.Hidden().ItemID("fldId"),
+                        X.Label("عنوان:"),
+                        X.TextField()
+                            .Width(375)
+                            .ItemID("txtTitle")
+                            .AllowBlank(false)
+                            .BlankText("لطفا عنوان را وارد کنید.")
+                            .AutoFocus(true)
+                            ,X.FieldSet().ColSpan(2)
+                            .Border(false)
+                    .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 2 })
+                    .Defaults(new { Margin = 1 })
+                    .Items(
+                                 X.Checkbox().ItemID("CheckCompanyFromService")
+                            ,X.Label("بارگذاری اطلاعات شرکت ها از وب سرویس")
+                            )
+                    ),
+                X.FieldSet()
+                    .Border(true)
+                    .Title("انتخاب عکس")
+                    .Height(115)
+                    .Layout(LayoutType.Table)
+                    .LayoutConfig(new TableLayoutConfig { Columns = 2 })
+                    .Items(
+                        X.FieldSet()
+                            .Border(false)
+                            .Height(80)
+                            .Width(330)
+                            .Layout(Ext.Net.LayoutType.VBox)
+                            .LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Right })
+                            .Padding(0)
+                            .Items(
+                                X.FileUploadField()
+                                    .ButtonOnly(true)
+                                    .ButtonText("انتخاب عکس(حداکثر 100 کیلوبایت)")
+                                    .Icon(Ext.Net.Icon.DiskUpload)
+                                    .DirectEvents(l =>
+                                        {
+                                            l.Change.Action = "Upload";
+                                            l.Change.Success = "hideprogressSetting();";
+                                        }
+                                    )
+                                    .Listeners(l => l.Change.Fn = "showFileSetting"),
+                                X.Button()
+                                    .Text("حذف عکس")
+                                    .Listeners(l => l.Click.Handler = "DeleteFileSetting()")
+                                    .Icon(Ext.Net.Icon.Delete),
+                                X.Container().PaddingSpec("5px 0 0 0").Content(@<div id="fi-button-msgSetting" style="display:none;width:280px;text-align:right;"></div>)
+                            ),
+                        X.FieldSet()
+                            .Border(false)
+                            .Layout(Ext.Net.LayoutType.VBox)
+                            .LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Center })
+                            .Defaults(new { Margin = 3 })
+                            .Items(X.Image().ItemID("Image").ImageUrl("~/Content/icon/Blank.jpg").Width(80).Height(90).Border(true))
+                            )
+                )
+        )
+)
+
+<script type="text/javascript">
+    var MojazSetting = 0;
+    var sizeeSetting = 0;
+    var EndUploadSetting = false;
+    var IsDel = 0;
+
+    function DeleteFileSetting() {
+        App.Setting.queryById('Image').setImageUrl("/Content/icon/Blank.jpg");
+        Ext.get('fi-button-msgSetting').update('');
+        IsDel = 1;
+    }
+
+    var Check = setInterval(CheckEndSetting, 500);
+
+    function CheckEndSetting() {
+        if (EndUploadSetting == true) {
+            Ext.net.DirectMethod.request({
+                url: '/Home/ShowPicUpload',
+                success: function (data) {
+                    value = "data:image/gif;base64," + data.image;
+                    App.Setting.queryById('Image').setImageUrl(value);
+                    Ext.MessageBox.hide();
+                    Ext.Msg.alert('عملیات موفق', 'فایل با موفقیت آپلود شد.');
+                    clearInterval(CheckEndSetting);
+                    EndUploadSetting = false;
+                }
+            });
+        }
+    }
+
+    var showFileSetting = function (fb, v) {
+        var id = fb.fileInputEl.dom.id;
+        var el = Ext.get('fi-button-msgSetting');
+        if (v) {
+            showProgressBarSetting();
+            if (v.split('.').pop().toLowerCase() == "jpg" || v.split('.').pop().toLowerCase() == "png" || v.split('.').pop().toLowerCase() == "gif") {
+                MojazSetting = 1;
+                if (document.getElementById(id).files[0].size <= 102400) {
+                    sizeeSetting = 1;
+                }
+                if (sizeeSetting == 1) {
+                    el.update('<b>فایل انتخاب شده:</b> ' + v);
+                    IsDel = 0;
+                }
+                else {
+                    el.update('');
+                    App.Setting.queryById('Image').setImageUrl("/Content/icon/Blank.jpg");
+                }
+
+                if (!el.isVisible()) {
+                    el.slideIn('t', {
+                        duration: .2,
+                        easing: 'easeIn',
+                        callback: function () {
+                            el.highlight();
+                        }
+                    });
+                }
+                else {
+                    el.highlight();
+                }
+            }
+            else {
+                el.update('');
+                App.Setting.queryById('Image').setImageUrl("/Content/icon/Blank.jpg");
+            }
+        }
+    };
+
+    function hideprogressSetting() {
+        if (MojazSetting == 1 && sizeeSetting == 1) {
+            EndUploadSetting = true;
+        }
+        MojazSetting = 0;
+        sizeeSetting = 0;
+    }
+
+    function showProgressBarSetting() {
+        Ext.MessageBox.show({
+            msg: 'لطفاً منتظر باشید',
+            progressText: 'در حال آپلود فایل...',
+            width: 300,
+            wait: true,
+            waitConfig:
+            {
+                interval: 200,
+                text: 'در حال آپلود فایل...',
+                scope: this
+            }
+        });
+    }
+
+    function LoadSetting() {
+        Ext.net.DirectMethod.request({
+            url: '/Home/DetailSetting',
+            params: {
+                id: 1
+            },
+            success: function (data) {
+                
+                var txtTitle = App.Setting.queryById('txtTitle');
+                txtTitle.setValue(data.fldTitle);
+                var Id = App.Setting.queryById('fldId');
+                Id.setValue(data.fldId);
+                var CheckCompanyFromService = App.Setting.queryById('CheckCompanyFromService');
+                CheckCompanyFromService.setValue(data.fldCompanyFromService);
+                if (data.fldFile != "") {
+                    var fldfile = "data:image/gif;base64," + data.fldFile;
+                    App.Setting.queryById('Image').setImageUrl(fldfile);
+                }
+                else {
+                    App.Setting.queryById('Image').setImageUrl("/Content/icon/Blank.jpg");
+                }
+            }
+        });
+    }
+
+    function SaveSetting() {
+        var txtTitle = App.Setting.queryById('txtTitle');
+        var Id = App.Setting.queryById('fldId');
+        var CheckCompanyFromService = App.Setting.queryById('CheckCompanyFromService');
+        var er = false;
+
+        if (txtTitle.validate() == false) {
+            er = true;
+        }
+
+        if (er == true)
+            return;
+        Ext.net.Mask.show({ msg: 'در حال ذخیره سازی...' });
+        Ext.net.DirectMethod.request({
+            url: '/Home/SaveSetting',
+            params: {
+                fldTitle: txtTitle.getValue(),
+                fldId: Id.getValue(),
+                IsDel: IsDel,
+                fldCompanyFromService: CheckCompanyFromService.getValue(),
+            },
+            success: function (data) {
+                var ic = Ext.MessageBox.INFO;
+                if (data.Er == 1) {
+                    ic = Ext.MessageBox.ERROR;
+                }
+                Ext.MessageBox.show({
+                    title: data.MsgTitle,
+                    msg: data.Msg,
+                    icon: ic,
+                    buttons: Ext.MessageBox.OK
+                });
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+    function EnterNext() {
+        var keyfield = App.NewSetting.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+        var nextfld = keyfield.nextSibling();
+        nextfld.focus();
+        nextfld.selectText();
+    }
+</script>

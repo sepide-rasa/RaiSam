@@ -1,0 +1,387 @@
+﻿@model IEnumerable<RaiSam.Models.prs_tblPersonalInfoSelect>
+<script src="~/Scripts/jquery-ajax-native.js"></script>
+@using Ext.Net.MVC;
+@{
+
+    var X = Html.X();
+}
+
+<style>
+    .borderrPersonInf {
+        border-radius: 20px;
+        border-width: 3px;
+    }
+</style>
+
+<script>
+    var ShowIconIsMovazaf = function (value, record) {
+        var template1 = '<img src={0} alt="" title={1} style="width:17px;height:17px" />';
+        if (value == 1) {
+            var Pic = "@Url.Content("~/Content/icon/BasicInf/mini/موظف.png")";
+            var ToolTip = "موظف";
+        }
+        else {
+            var Pic = "@Url.Content("~/Content/icon/BasicInf/mini/غیرموظف.png")";
+            var ToolTip = "غیر" + '&nbsp;' + "موظف";
+        }
+        return Ext.String.format(template1, Pic, ToolTip);
+    };
+
+</script>
+
+@(X.Panel().Border(false).Listeners(li => { li.AfterRender.Handler = "PersonalInfoSetSize();"; })
+.Title("اطلاعات پرسنل")
+             .ID("PersonalInfo")
+            .Closable(true)
+            .AutoScroll(true)
+            .CloseAction(Ext.Net.CloseAction.Destroy)
+            .Items(
+                    X.AntiForgeryField()
+                .ItemID("antiForgeryToken")
+                .Hidden(true),
+                X.Panel()
+                .Border(false)
+                .AutoScroll(true)
+                .Items(
+                    X.GridPanel().AutoScroll(true)
+                        .TopBar(
+                        Html.X().Toolbar()
+                        .Items(
+                              /* X.Button().Text("کد انحصاری جدید").Icon(Ext.Net.Icon.Add)
+                                    .Listeners(li => li.Click.Handler = "NewPersonel();"),
+                                    X.Button()
+                                        .Text("واکشی از ثبت")
+                                        .Icon(Ext.Net.Icon.DiskDownload)
+                                            .Listeners(li => li.Click.Handler = "UploadPic();"),*/
+
+                //X.Button().Text("تمامی پرسنل").Icon(Ext.Net.Icon.DatabaseRefresh)
+        //    .Listeners(li => li.Click.Handler = "AllPerson();"),
+        //X.Button().Text("بارگذاری").Icon(Ext.Net.Icon.DatabaseRefresh)
+        //.Listeners(li => li.Click.Handler = "UploadDataPersonalInfo();"),
+        //X.Button()
+        //.Text("ویرایش محل خدمت")
+        //.Listeners(l => l.Click.Handler = "EditPerson()")
+        //.Icon(Ext.Net.Icon.Pencil),
+        // X.Button()
+        //.Text("فایل Excel پرسنل نامعتبر")
+        //.Icon(Ext.Net.Icon.PageExcel)
+        //.Hidden(!RaiKM.Models.Permission.haveAccess(1, 180))
+        //.Listeners(Li => Li.Click.Handler = "DownloadExcelNotValid();"),
+                            X.SplitButton()
+                                    .Text("راهنما")
+                                    .Icon(Ext.Net.Icon.Help)
+                                    .Menu(X.Menu()
+                                    .Items(
+                                    X.MenuItem()
+                                                .Text("راهنما متنی")
+                                                .Icon(Ext.Net.Icon.TextPaddingTop)
+                                                        .Listeners(l => l.Click.Handler = "HelpInfoPersonal()")
+                                                .ItemID("btnshowHelpDirectorate"),
+                                        X.MenuItem()
+                                                .Text("راهنما تصویری")
+                                                .Icon(Ext.Net.Icon.PlayBlue)
+                                                    .Listeners(l => l.Click.Handler = "showHelp_VideoInfoPersonal()")
+
+                                )
+                            )
+                        )
+                    )
+                     .ItemID("GridPersonalInfo")
+                    .BottomBar(X.PagingToolbar())
+                    .Store(
+                        X.StoreForModel()
+                          .Listeners(l => l.BeforeLoad.Handler = "App.PersonalInfo.queryById('GridPersonalInfo').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.PersonalInfo.queryById('antiForgeryToken').getValue());")
+                        .Proxy(Html.X().AjaxProxy()
+                            .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                            .Timeout(200000)
+                            .Url(Url.Action("Read"))
+                            .Reader(Html.X().JsonReader().Root("data"))
+
+                        )
+                        .PageSize(20)
+                        .RemoteFilter(true)
+                        .RemotePaging(true)
+                                          .Listeners(l => l.DataChanged.Handler = "App.PersonalInfo.queryById('GridPersonalInfo').selModel.refresh();")
+                    )
+                    .View(
+                        Html.X().GridView()
+                        .Listeners(l => l.Render.Fn = "createTooltipPersonInfo")
+                        .LoadingText("در حال بارگذاری...").RTL(true)
+                    )
+                    .Plugins(X.FilterHeader().Remote(true))
+        //.Listeners(l =>
+        //{
+        //    l.AfterRender.Handler = "var grid = App.PersonalInfo.queryById('GridPersonalInfo');grid.setHeight(App.BasicInfWin.getHeight() - 83); ";
+
+                         //})
+                    .ColumnModel(
+                        Html.X().RowNumbererColumn(),
+                        Html.X().ImageCommandColumn().Align(Ext.Net.Alignment.Center)
+                            .Listeners(l => l.Command.Fn = "ActionsInGrid")
+                            .Flex(1).Commands(
+                                    Html.X().ImageCommand().CommandName("ReloadFromServer").Icon(Ext.Net.Icon.Reload).ToolTip(tt => tt.Text = "بارگذاری از سرور")
+                            ),
+        //Html.X().ImageCommandColumn().Listeners(l => l.Command.Fn = "GotoDetailsKilometrazhPerson").Flex(1).Commands(
+        //    Html.X().ImageCommand().CommandName("ShowDetailssPerson").Icon(Ext.Net.Icon.ArrowOutLonger).ToolTip(tt => tt.Text = "مشاهده جزئیات کیلومتراژ")),
+                            Html.X().Column().DataIndex(Model, m => m.fldId).Text("کد").Hidden(true).Flex(1),
+                            Html.X().Column().DataIndex(Model, m => m.fldShakhsId).Text("کد").Hidden(true).Flex(1),
+                        Html.X().Column().DataIndex(Model, m => m.fldMahalSazmaniId).Text("کد محل خدمت").Hidden(true).Flex(1),
+                        Html.X().Column().DataIndex(Model, m => m.fldStationId).Text("کد ایستگاه").Hidden(true).Flex(1),
+        //Html.X().Column().DataIndex(Model, m => m.fldIsMovazaf).Filterable(false).Text("").Flex(1).Renderer("ShowIconIsMovazaf"),
+        //Html.X().Column().DataIndex(Model, m => m.fldIsMovazafName).Text("نوع مأمور").Flex(1),
+        //Html.X().Column().DataIndex(Model, m => m.fldName_Family).Text("نام خانوادگی_نام").Flex(4).Wrap(true),
+                            Html.X().Column().DataIndex(Model, m => m.fldFamily).Text("نام خانوادگی").Flex(3).Wrap(true),
+                            Html.X().Column().DataIndex(Model, m => m.fldName).Text("نام").Flex(2).Wrap(true),
+        //Html.X().Column().DataIndex(Model, m => m.fldName).Text("نام").Flex(2).Wrap(true),
+        //Html.X().Column().DataIndex(Model, m => m.fldFamily).Text("نام خانوادگی").Flex(2).Wrap(true),
+                        Html.X().Column().DataIndex(Model, m => m.fldFatherName).Text("نام پدر").Flex(2).Wrap(true),
+                        Html.X().Column().DataIndex(Model, m => m.fldCodeMeli).Text("کد ملی").Flex(2).Wrap(true),
+                                Html.X().Column().DataIndex(Model, m => m.fldTarikhTavalod).Text("تاریخ تولد").Flex(2).Wrap(true),
+
+
+                            Html.X().Column().DataIndex(Model, m => m.fldEmploymentStatusTitle).Text("وضعیت اشتغال").Flex(2).Wrap(true),
+                            Html.X().Column().DataIndex(Model, m => m.fldCodeEnhesari).Text("کد انحصاری").Flex(2).Wrap(true),
+                Html.X().Column().DataIndex(Model, m => m.TypeEstekhdam).Text("نوع استخدام").Flex(2).Wrap(true),
+                        Html.X().Column().DataIndex(Model, m => m.fldDescPost).Text("شرح پست").Flex(4).Wrap(true),
+        Html.X().Column().DataIndex(Model, m => m.fldNameCompany).Text("نام شرکت").Flex(4).Wrap(true),
+                            Html.X().Column().DataIndex(Model, m => m.fldTitel_MaleSazemani).Text("محل سازمانی").Flex(4).Wrap(true)
+
+                        //Html.X().Column().DataIndex(Model, m => m.fldDateServer).Text("تاریخ آخرین ویرایش").Flex(4).Wrap(true)
+
+
+                    )
+                    .SelectionModel(
+                        Html.X().RowSelectionModel()
+                            .Mode(Ext.Net.SelectionMode.Single)
+                    )
+            )
+        )
+)
+<script type="text/javascript">
+    function UploadPic() {
+        var SelectedRow = App.PersonalInfo.queryById('GridPersonalInfo').selModel.getLastSelected();
+        if (SelectedRow != null) {
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/Human/UpdateBySabt',
+                params: {
+                    Id: SelectedRow.data.fldShakhsId,
+                    __RequestVerificationToken: App.PersonalInfo.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+                    var ic = Ext.MessageBox.INFO;
+                    if (data.Er == 1)
+                        ic = Ext.MessageBox.ERROR;
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: ic,
+                        buttons: Ext.MessageBox.OK
+                    });
+                    Ext.net.Mask.hide();
+
+                    App.PersonalInfo.queryById('GridPersonalInfo').store.load();
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک شخص را انتخاب کنید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+    function showHelp_VideoInfoPersonal() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/PersonalInfo/VideoWinPersonalInfo',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+
+    }
+    var AllPersonCount = '@ViewBag.AllPersonCount';
+    function PersonalInfoSetSize() {
+        App.PersonalInfo.setWidth(App.BasicInfWin.getWidth());
+        var grid = App.PersonalInfo.queryById('GridPersonalInfo');
+        grid.setHeight(App.BasicInfWin.getHeight() - 82);
+    }
+
+
+    function DownloadExcelNotValid() {
+        var Checked = "fldCodeEnhesari;fldName_Family;fldCodeMeli;fldFatherName;fldDescPost;fldDescType;fldTitle";
+        $.ajax({
+            type: "POST",
+            dataType: 'native',
+            url: "/PersonalInfo/ExcelPersonNotValid",
+            xhrFields: {
+                responseType: 'blob'
+            },
+            data: {
+                Checked: Checked,
+                __RequestVerificationToken: App.Announcement.queryById('antiForgeryToken').getValue()
+            },
+            success: function (blob) {
+                var link = document.createElement('a');
+                link.href = window.URL.createObjectURL(blob);
+                link.download = "DownloadFile";
+                link.click();
+            }
+        });
+        /*window.location.href = '/PersonalInfo/ExcelPersonNotValid?Checked=' + Checked;*/
+    }
+
+    function ActionsInGrid(grid, command, record, row) {
+        if (command == 'ReloadFromServer') {
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/PersonalInfo/GetOnePersonelInfo',
+                params: {
+                    CodeEnhesari: record.data.fldCodeEnhesari,
+                    __RequestVerificationToken: App.PersonalInfo.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+                    var ic = Ext.MessageBox.INFO;
+                    if (data.Er == 1)
+                        ic = Ext.MessageBox.ERROR;
+                    Ext.MessageBox.show({
+                        Name: data.MsgName,
+                        msg: data.Msg,
+                        icon: ic,
+                        buttons: Ext.MessageBox.OK
+                    });
+                    App.PersonalInfo.queryById('GridPersonalInfo').store.load();
+                    Ext.net.Mask.hide();
+                }
+            });
+        }
+    }
+
+    var createTooltipPersonInfo = function (view) {
+        view.tip = Ext.create('Ext.tip.ToolTip', {
+            target: view.el,
+            delegate: view.itemSelector,
+            trackMouse: true,
+            renderTo: Ext.getBody(),
+            /*anchorToTarget: true,*/
+            anchorOffset: 25,
+            anchorSize: {
+                width: 58,
+                height: 20
+            },
+            dismissDelay: 1000000,
+            autohide: false,
+            /*baseCls:"test",*/
+            anchor: 'top',
+            shadow: true,
+            listeners: {
+                beforeshow: function (tip) {
+                    Ext.net.DirectMethod.request({
+                        url: '/PersonalInfo/getAx',
+                        params: {
+                            id: view.getRecord(tip.triggerElement).get('fldId'),
+                            __RequestVerificationToken: App.PersonalInfo.queryById('antiForgeryToken').getValue()
+                        },
+                        success: function (data) {
+                            if (view.getRecord(tip.triggerElement) != undefined) {
+                                tip.update("<div style=' display: flex;'><div style='margin-top:15px;margin-left:20px;'><img class='borderrPersonInf' style='width:120px;height:150px;' src='data:image/jpeg;base64," + data.image + "'/></div><div style='display: inline-block';><p><strong>نام و نام خانوادگی: " +
+                                    view.getRecord(tip.triggerElement).get('fldName_Family') + "</strong></p><p><strong>نام پدر: " + view.getRecord(tip.triggerElement).get('fldFatherName') +
+                                    "</strong></p>" + "<p><strong>کد انحصاری: " + view.getRecord(tip.triggerElement).get('fldCodeEnhesari') + "</strong></p><p><strong>کد ملی: " + view.getRecord(tip.triggerElement).get('fldCodeMeli') +
+                                    "</strong></p><p><strong>شماره موبایل: " + view.getRecord(tip.triggerElement).get('fldMobile') + "</strong></p><p><strong>نوع استخدام: " + view.getRecord(tip.triggerElement).get('fldDescType') + "</strong></p><p><strong>اداره کل محل خدمت: " + view.getRecord(tip.triggerElement).get('fldTitel_MaleSazemani')
+                                    +/*"</strong></p><p><strong>دپوی محل خدمت: " + view.getRecord(tip.triggerElement).get('fldStationName') + "</strong></p><p><strong>پایه: " + view.getRecord(tip.triggerElement).get('fldPayeName') +*/ "</strong></p></div></div>");
+                            }
+                        }
+                    });
+                }
+            }
+        });
+        Ext.QuickTips.init();
+    };
+    function AllPerson() {
+        App.PersonalInfo.body.mask("در حال بارگذاری...");
+        Ext.net.DirectMethod.request({
+            url: '/PersonalInfo/GetAllPersonelInfo',
+            success: function (data) {
+                var ic = Ext.MessageBox.INFO;
+                if (data.Er == 1) {
+                    ic = Ext.MessageBox.ERROR;
+                }
+                Ext.MessageBox.show({
+                    Name: data.MsgName,
+                    msg: data.Msg,
+                    icon: ic,
+                    buttons: Ext.MessageBox.OK
+                });
+                if (data.Er == 0) {
+                    if ('@ViewBag.state' == 1)
+                        App.PersonalInfo.queryById('GridPersonalInfo').store.load();
+                }
+                App.PersonalInfo.body.mask().hide();
+            }
+        });
+    }
+    function UploadDataPersonalInfo() {
+        App.PersonalInfo.body.mask("در حال بارگذاری...");
+        End = 0;
+        var i = 1;
+         while (End<1) {
+        /*for (var i = 1; i < 2; i++) {*/
+            Ext.net.DirectMethod.request({
+                url: '/PersonalInfo/GetOnePersonelInfo?num=' + i,
+                params:{
+                    __RequestVerificationToken: App.PersonalInfo.queryById('antiForgeryToken').getValue()
+                },
+                success: function (result) {
+                    App.PersonalInfo.queryById('GridPersonalInfo').getStore().load();
+                    i = parseInt(i) + 1;
+                    End = result.End;
+                }
+            });
+        }
+        App.PersonalInfo.body.mask().hide();
+      /*  for (var i = AllPersonCount;i=0;i--){
+            Ext.net.DirectMethod.request({
+                url: '/PersonalInfo/ReloadGrid?num='+i,
+                success: function (result) {
+                    App.PersonalInfo.queryById('GridPersonalInfo').getStore().load();
+                    if (i-1 == 0)
+                        App.PersonalInfo.body.mask().hide();
+                }
+            });
+        }*/
+
+        /*App.PersonalInfo.body.mask("در حال بارگذاری...");
+        Ext.net.DirectMethod.request({
+            url: '/PersonalInfo/ReloadGrid',
+            success: function (result) {
+                App.PersonalInfo.queryById('GridPersonalInfo').getStore().loadData(result.data);
+                App.PersonalInfo.body.mask().hide();
+            }
+        });*/
+    }
+
+    function NewPersonel() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/PersonalInfo/New',
+            params: {
+                state: 1
+            },
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+    function HelpInfoPersonal() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/PersonalInfo/Help',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+</script>

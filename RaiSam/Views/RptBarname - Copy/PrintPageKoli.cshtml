@@ -1,0 +1,29 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+
+@(
+ Html.X().Panel()
+    .Title("پیش نمایش گزارش کلی بارنامه")
+    .AutoScroll(true)
+            .ID("RptPrintBarnameKoli")
+    .Closable(true)
+        .CloseAction(Ext.Net.CloseAction.Destroy)
+                               .Listeners(l => l.BeforeRender.Handler = "App.RptPrintBarnameKoli.setHeight(App.ReportRaiSamWin.getHeight() - 83);")
+                    .Listeners(l => l.AfterRender.Handler = "LoadRptPrintBarnameKoli();")
+        // .Html("<center><object class='se-pre-con' style='width: 100%;height: 100%;border: 1px solid #ccc;' type='application/pdf' data='/Personeli/Reports/GeneratePDFCoveredPeople'></object></center>")
+)
+
+<script>
+    function LoadRptPrintBarnameKoli() {
+        var height = App.ReportRaiSamWin.getHeight() - 87;
+        /*App.RptAfradTP.setHeight(App.PersoneliWin.getHeight() - 150);*/
+        App.RptPrintBarnameKoli.update("<center><object class='se-pre-con' style='width: 100%;height:" + height + "px;border: 1px solid #ccc;' type='application/pdf' data='/RptBarname/GeneratePDFKoli?StartDate=" + '@ViewBag.StartDate' + "&EndDate=" + '@ViewBag.EndDate' + "&MalekId=" + '@ViewBag.MalekId' + "&ContractId=" + '@ViewBag.ContractId' + "&ShVagon=" + '@ViewBag.ShVagon' + "&AzVagon=" + '@ViewBag.AzVagon' + "&TaVagon=" + '@ViewBag.TaVagon' +"'></object></center>");
+        /*var a = $('object');
+        var h = App.RptAfradTP.height;
+        a.height(h-35);*/
+    }
+</script>

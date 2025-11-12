@@ -1,0 +1,99 @@
+﻿@model IEnumerable<RaiSam.Models.prs_tblUserSelect>
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+<style>
+    #UserTree .x-tree-icon {
+        cursor: pointer;
+    }
+</style>
+
+@(Html.X().Window()
+    .Closable(true)
+    .CloseAction(CloseAction.Destroy)
+        .Listeners(l => l.Destroy.Handler = "setFocustxtSearchableUser()")
+    .Layout(LayoutType.Fit)
+    .Modal(true)
+    .Width(600)
+    .Height(500)
+    .ID("ShowUserTree")
+    .Title("ساختار درختی کاربران")
+    .Items(
+                X.AntiForgeryField()
+            .ItemID("antiForgeryToken").Listeners(l => l.AfterRender.Handler = "App.UserTree.store.load();setTimeout(function(){App.UserTree.expandAll();},1000);")
+                .Hidden(true),
+        X.Panel()
+            .Border(false)
+            .Layout(LayoutType.Fit)
+            .Items(
+                X.TreePanel()
+                    .ID("UserTree")
+                    .AutoScroll(true)
+                    .Border(false)
+                    .RootVisible(false)
+                    .Expand(true)
+        //.SingleExpand(true)
+        //.UseArrows(true)
+            .Listeners(l => l.ItemDblClick.Handler = "SetUserInfo()")
+                    .Store(
+                        X.TreeStore()
+                            .Proxy(
+                                Html.X().AjaxProxy()
+                                        .Url(Url.Action("NodeLoadGroupTreeUser"))
+                                        .ActionMethods(l => l.Read = HttpMethod.POST)
+                                    )
+                                .Listeners(l => l.BeforeLoad.Fn = "GetParamUserTree")
+                        )
+                        .Listeners(l =>
+                    {
+                        //l.ItemClick.Fn = "ShowUserGroups";
+                        l.AfterRender.Handler = "App.UserTree.expandAll(); ";
+                    })
+                        .Root(Html.X().Node().NodeID("0").Text("گروه کاربری")
+        //.Expanded(true)
+                       .EmptyChildren(true))
+            )
+    )
+)
+<script type="text/javascript">
+
+    function SetUserInfo() {
+        if ('@ViewBag.State' == "2") {
+            App.UserLog.queryById('SearchableUserId').setValue(App.UserTree.getSelectionModel().getLastSelected().data.id);
+            App.UserLog.queryById('txtSearchableUser').setValue(App.UserTree.getSelectionModel().getLastSelected().data.text);
+            App.ShowUserTree.destroy();
+        }
+    }
+
+    function setFocustxtSearchableUser() {
+        if ('@ViewBag.State' == "2") {
+            App.UserLog.queryById('txtSearchableUser').focus();
+        }
+    }
+
+    var GetParamUserTree = function (store, operation, eOpts) {
+        var nodeId = operation.node.getId();
+        operation.params.nod = nodeId;
+        operation.params.__RequestVerificationToken = App.ShowUserTree.queryById('antiForgeryToken').getValue();
+    };
+
+    var ShowUserGroups = function (treeModel, record, item, index, e, eOpts) {
+        var iconElClicked = e.getTarget('.x-tree-icon');
+        if (iconElClicked) {
+            App.ShowUserTree.body.mask("در حال بارگذاری");
+            Ext.net.DirectMethod.request({
+                url: '/User/ShowUserGroup',
+                params: {
+                    UserId: record.data.id,
+                    Name: record.data.text,
+                },
+                success: function () {
+                    App.ShowUserTree.body.mask().hide();
+                }
+            });
+        }
+    };
+</script>

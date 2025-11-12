@@ -1,0 +1,397 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+<style>
+    #fieldsetfile legend {
+        text-align: right;
+        font-family: Tahoma !important;
+    }
+
+    #DeleteActionFileimg6:hover {
+        cursor: pointer;
+    }
+
+    .custom-icon-city {
+        margin-right: 124px !important;
+    }
+
+    .infoPanelSuccess {
+        border: solid 1px #d6e9c6 !important;
+        background: #dff0d8 !important;
+        border-radius: 4px !important;
+        box-shadow: 0 0 10px #ccc !important;
+    }
+
+    .infoPanelError {
+        border: solid 1px #ebccd1 !important;
+        background: #f2dede !important;
+        border-radius: 4px !important;
+        box-shadow: 0 0 10px #ccc !important;
+    }
+
+    .x-infopanel-danger .x-infopanel-body {
+        background: #f2dede !important;
+        color: #a94442 !important;
+    }
+
+    .x-infopanel-success .x-infopanel-body {
+        background: #dff0d8 !important;
+        color: #3c763d !important;
+    }
+</style>
+
+@(Html.X()
+    .Window()
+    .Modal(true)
+    .Listeners(li =>
+    {
+        li.Render.Fn = "addKeyMapNewHuman";
+        li.AfterRender.Handler = "LoadHuman();";
+    })
+    .Width(520)
+    .Title("ثبت شخص جدید")
+    .ID("NewHuman")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Layout(LayoutType.Fit)
+    .ButtonAlign(Ext.Net.Alignment.Center)
+    .Buttons(
+        X.Button()
+            .Text("ذخیره")
+            .Icon(Ext.Net.Icon.Disk)
+            .Listeners(l => l.Click.Handler = "SaveHuman();"),
+        X.Button()
+            .Text("خروج")
+            .Icon(Ext.Net.Icon.DoorOut)
+                .OnClientClick("App.NewHuman.destroy();"))
+    .Items(
+        X.AntiForgeryField()
+        .ItemID("antiForgeryToken").Hidden(true),
+        X.Panel()
+        //.Padding(5)
+            .Border(false)
+            .Layout(LayoutType.VBox)
+            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+            .Items(
+                X.FieldSet()
+                    .Border(true)
+                    .Title("مشخصات شخص")
+                    .Defaults(new { Margin = 2 })
+                    .Layout(LayoutType.Table)
+                    .LayoutConfig(new TableLayoutConfig { Columns = 4 })
+                    .Items(
+                        X.Hidden().ItemID("fldId"),
+                        X.Label("کد ملی:"),
+                        X.TextField()
+                            .ItemID("txtCodeMeli")
+        //.Listeners(l => l.Blur.Handler = "Estelam()")
+                            .MaskRe("/[0-9]/")
+                            .AutoFocus(true)
+                            .AllowBlank(false)
+                            .BlankText("لطفا کد ملی شخص را وارد کنید.")
+                            .MinLength(10)
+                            .MaxLength(10)
+                            .EnforceMaxLength(true),
+                        X.Label("تاریخ تولد:"),
+                        X.FieldSet()
+                            .Padding(0)
+                            .Border(false)
+                            .Layout(LayoutType.HBox)
+                            .Items(
+                                X.PDateField()
+                                    .ItemID("txtBirthDate")
+        //.Listeners(l => l.Change.Handler = "Estelam()")
+                                    .AllowBlank(true)
+                                    .BlankText("لطفا تاریخ تولد شخص را وارد کنید.")
+                                    .Editable(true)
+                                    .MaskRe("/[0-9/]/")
+                                    .MaxLength(10)
+                                    .MinLength(10)
+                                    .EnforceMaxLength(true),
+                                X.Button()
+                                    .Icon(Icon.ArrowRefresh)
+                                    .MarginSpec("0 0 0 3px")
+                                    .Listeners(l => l.Click.Handler = "Estelam()")
+                                    .ToolTip("استعلام از ثبت احوال")
+                                ),
+                        X.Label("نام:"),
+                        X.TextField()
+                            .ItemID("txtName")
+                            .AllowBlank(false)
+                            .MaskRe("[أ-ئ,ا-ی, ,آ]")
+                            .BlankText("لطفا نام شخص را وارد کنید.")
+                            .MaxLength(100)
+                            .EnforceMaxLength(true),
+                        X.Label("نام خانوادگی:"),
+                        X.TextField()
+                            .ItemID("txtFamily")
+                            .AllowBlank(false)
+                            .MaskRe("[أ-ئ,ا-ی, ,آ]")
+                            .BlankText("لطفا نام خانوادگی شخص را وارد کنید.")
+                            .MaxLength(150)
+                            .EnforceMaxLength(true),
+                        X.Label("نام پدر:"),
+                        X.TextField()
+                            .ItemID("txtFatherName")
+                            .AllowBlank(false)
+                            .MaskRe("[أ-ئ,ا-ی, ]")
+                            .BlankText("لطفا نام پدر را وارد کنید.")
+                            .MaxLength(100)
+                            .EnforceMaxLength(true),
+                        X.Label("شماره شناسنامه:"),
+                        X.TextField()
+                            .ItemID("txtSh_Shenasnameh")
+                            .AllowBlank(true)
+                                .EnableKeyEvents(true)
+                           // .Listeners(l => l.KeyUp.Fn = "onInitializeToEnSh_Shenasnameh")
+                            .EnforceMaxLength(true)
+                            .MaxLength(10)
+                            .MaskRe("/[0-9]/")
+                            .BlankText("لطفا شماره شناسنامه را وارد کنید."),
+                        
+                        X.Label("جنسیت:"),
+                        X.ComboBox()
+                            .ItemID("CboGender")
+                            .Editable(false)
+                            .TypeAhead(true)
+                            .BlankText("لطفا جنسیت را انتخاب کنید.")
+                            .QueryMode(DataLoadMode.Local)
+                            .TriggerAction(TriggerAction.All)
+                            .Listeners(l => l.AfterRender.Handler = "setDefaultCboGender();")
+                            .AllowBlank(false)
+                            .EmptyText("وضعیت...")
+                            .Items(
+                                new ListItem("مرد", "1"),
+                                new ListItem("زن", "0")
+                                )
+                    )
+                        )
+
+                )
+)
+<script type="text/javascript">
+   
+ 
+   
+
+    var IsEstelam = false;
+
+    function setDefaultCboGender() {
+        if ('@ViewBag.Id' == '0') {
+            App.NewHuman.queryById('CboGender').setValue("1");
+        }
+    }
+    function Estelam() {
+        var txtCodeMeli = App.NewHuman.queryById('txtCodeMeli');
+        var txtBirthDate = App.NewHuman.queryById('txtBirthDate');
+
+        if (txtBirthDate.getRawValue() != "" && txtCodeMeli.validate() && txtBirthDate.validate() ) {
+            App.NewHuman.body.mask('در حال استعلام از ثبت احوال...');
+            Ext.net.DirectMethod.request({
+                url: '/Faces/CompanyProfile/EstelamSitaad',
+                params: {
+                    BirthDate: txtBirthDate.getRawValue(),
+                    NationalCode: txtCodeMeli.getValue(),
+                    __RequestVerificationToken: App.NewHuman.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+
+                    if (data.Er != 0) {
+                        IsEstelam = false;
+                        App.NewHuman.queryById('txtName').setValue("").setReadOnly(false);
+                        App.NewHuman.queryById('CboGender').setValue("1").setReadOnly(false);
+                        App.NewHuman.queryById('txtFamily').setValue("").setReadOnly(false);
+                        App.NewHuman.queryById('txtFatherName').setValue("").setReadOnly(false);
+                        App.NewHuman.queryById('txtSh_Shenasnameh').setValue("").setReadOnly(false);
+                        if (data.Er == 3) {
+                            txtCodeMeli.setValue("");
+                            txtBirthDate.setRawValue("");
+                        }
+
+                        Ext.MessageBox.show({
+                            title: "خطا",
+                            msg: data.Message,
+                            icon: Ext.MessageBox.ERROR,
+                            buttons: Ext.MessageBox.OK,
+                            fn: function (btn) {
+                                if (btn == "ok") {
+                                    txtCodeMeli.focus().selectText();
+                                }
+                            }
+                        });
+                    }
+                    else {
+                        IsEstelam = true;
+                        var txtName = App.NewHuman.queryById('txtName');
+                        txtName.setValue(data.Name).setReadOnly(true);
+
+                        var CboGender = App.NewHuman.queryById('CboGender');
+                        CboGender.setValue(data.Gender).setReadOnly(true);
+
+                        var txtFamily = App.NewHuman.queryById('txtFamily');
+                        txtFamily.setValue(data.Family).setReadOnly(true);
+
+                        var txtFatherName = App.NewHuman.queryById('txtFatherName');
+                        txtFatherName.setValue(data.FatherName).setReadOnly(true);
+
+                        var txtSh_Shenasnameh = App.NewHuman.queryById('txtSh_Shenasnameh');
+                        txtSh_Shenasnameh.setValue(data.ShenasnameNo).setReadOnly(true);
+                        
+                    }
+                    App.NewHuman.body.mask().hide();
+                }
+            });
+        }
+    }
+    var State = 0;
+    function LoadHuman() {
+        var txtBirthDate = App.NewHuman.queryById('txtBirthDate');
+        txtBirthDate.setRawValue('@ViewBag.BDate');
+
+        var txtCodeMeli = App.NewHuman.queryById('txtCodeMeli');
+        txtCodeMeli.setValue('@ViewBag.CodeMeli');
+
+        State = '@ViewBag.State';
+
+        App.NewHuman.queryById('txtName').setReadOnly(true);
+        App.NewHuman.queryById('txtFamily').setReadOnly(true);
+        App.NewHuman.queryById('txtFatherName').setReadOnly(true);
+        App.NewHuman.queryById('txtSh_Shenasnameh').setReadOnly(true);
+        App.NewHuman.queryById('CboGender').setReadOnly(true);
+    }
+
+
+
+    function SaveHuman() {
+        var txtName = App.NewHuman.queryById('txtName');
+        var CboGender = App.NewHuman.queryById('CboGender');
+        var txtFamily = App.NewHuman.queryById('txtFamily');
+        var txtFatherName = App.NewHuman.queryById('txtFatherName');
+        
+        var txtSh_Shenasnameh = App.NewHuman.queryById('txtSh_Shenasnameh');
+        var txtCodeMeli = App.NewHuman.queryById('txtCodeMeli');
+        var txtBirthDate = App.NewHuman.queryById('txtBirthDate');
+        var Id = App.NewHuman.queryById('fldId');
+
+        var er = false;
+
+        if (txtName.validate() == false) {
+            er = true;
+        }
+        if (CboGender.validate() == false) {
+            er = true;
+        }
+        if (txtFamily.validate() == false) {
+            er = true;
+        }
+        if (txtFatherName.validate() == false) {
+            er = true;
+        }
+        if (txtCodeMeli.validate() == false) {
+            er = true;
+        }
+        
+        if (er == true)
+            return;
+        var jenseyat = null;
+        if (CboGender.getValue() == "1")
+            jenseyat = true;
+        else if (CboGender.getValue() == "0")
+            jenseyat = false;
+
+
+        App.NewHuman.body.mask("در حال ذخیره سازی");
+        Ext.net.DirectMethod.request({
+            url: '/Faces/SearchAshkhas/SaveAshkhas',
+            params: {
+                fldId: Id.getValue(),
+                fldName: txtName.getValue(),
+                fldFamily: txtFamily.getValue(),
+                fldCodeMeli: txtCodeMeli.getValue(),
+                fldFatherName: txtFatherName.getValue(),
+                fldTarikhTavalod: txtBirthDate.getRawValue(),
+                fldSh_Shenasname: txtSh_Shenasnameh.getValue(),
+                fldJensiyat: jenseyat,
+                __RequestVerificationToken: App.NewHuman.queryById('antiForgeryToken').getValue()
+            },
+            success: function (data) {
+             if (data.Er == 1) {
+                   Ext.MessageBox.show({
+                       title: data.MsgTitle,
+                       msg: data.Msg,
+                       icon: Ext.MessageBox.ERROR,
+                       buttons: Ext.MessageBox.OK,
+                   });
+               }
+               else {
+                 if (State == 1) {
+                     CompanyPersonalId = data.AshkhasId;
+                     App.NewShareholders.queryById('txtName2').setValue(txtName.getValue());
+                     App.NewShareholders.queryById('txtFamily2').setValue(txtFamily.getValue());
+                     App.NewShareholders.queryById('txtCodeMeli').setValue(txtCodeMeli.getValue());
+                     App.NewHuman.destroy();
+                 }
+                 if (State == 2) {
+                     CompanyPersonalId = data.AshkhasId;
+                     App.NewGieyrKhososi.queryById('txtName_Family').setValue(txtName.getValue() + ' ' + txtFamily.getValue());
+                     App.NewGieyrKhososi.queryById('txtCodeMeli').setValue(txtCodeMeli.getValue());
+                     App.NewHuman.destroy();
+                 }
+                 if (State == 3) {
+                     CompanyPersonalId = data.AshkhasId;
+                     App.NewHoghoghiKhososi.queryById('txtName_Family').setValue(txtName.getValue() + ' ' + txtFamily.getValue());
+                     App.NewHoghoghiKhososi.queryById('txtCodeMeli').setValue(txtCodeMeli.getValue());
+                     App.NewHuman.destroy();
+                 }
+                 if (State == 4) {
+                     var grid = App.NewProject.queryById("GridNamayande");
+                     grid.store.insert(grid.store.count(), {
+                         fldId: 0, fldAshkhasId: data.AshkhasId, fldName_Family: txtName.getValue() + ' ' + txtFamily.getValue(), fldCodeMeli: txtCodeMeli.getValue(), fldMobile: ""
+                     });
+
+                     App.NewHuman.destroy();
+                 }
+               }
+                App.NewHuman.body.mask().hide();
+            }
+        });
+    }
+
+    function ClearHuman() {
+        App.NewHuman.queryById('txtName').setValue("");
+        App.NewHuman.queryById('CboGender').setValue("1");
+        App.NewHuman.queryById('txtFamily').setValue("");
+        App.NewHuman.queryById('txtFatherName').setValue("");
+        App.NewHuman.queryById('txtSh_Shenasnameh').setValue("");
+        App.NewHuman.queryById('txtCodeMeli').setValue("");
+        App.NewHuman.queryById('fldId').setValue(0);
+        App.NewHuman.queryById("txtBirthDate").setRawValue("");
+    }
+
+    var addKeyMapNewHuman = function (cmp) {
+        this.keyMap = new Ext.util.KeyMap({
+            target: cmp.getEl(),
+            binding: [{
+                key: [13, 9], /*Ext.EventObject.ENTER,*/
+                fn: function (key, e) {
+                    if (e.getKey() == 9) {
+                        e.stopEvent();
+                    }
+                    var keyfield = App.NewHuman.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+                    var nextfld;
+                    if (keyfield.itemId == "CboGender") {
+                        return;
+                    }
+                    else {
+                        nextfld = keyfield.nextSibling().nextSibling();
+                    }
+                    nextfld.focus();
+                    nextfld.selectText();
+                }
+            }]
+        });
+    }
+</script>

@@ -1,0 +1,28 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+
+@using Ext.Net.MVC;
+
+@(
+ Html.X().Window().Listeners(l => l.BeforeClose.Handler = "CloseVideoPersonalInfo()")
+             .Height(565)
+         .Width(1000)
+                        .ID("VideoPersonalInfo")
+        .Closable(true)
+            .Title("راهنمای اطلاعات پرسنل")
+        .AutoScroll(true)
+        .Closable(true)
+            .Maximizable(true)
+        .Content(@<video width="100%;" id="AmozeshVideoPersonalInfo" controls="true" autoplay="true" controls><source src='@Url.Action("DownloadFileVideoPersonalInfo", "PersonalInfo")' type="video/mp4"></video>)
+
+)
+<script type="text/javascript">
+    function CloseVideoPersonalInfo() {
+        $('#AmozeshVideoPersonalInfo')[0].pause();
+    }
+
+</script>

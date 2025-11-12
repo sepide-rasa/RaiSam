@@ -1,0 +1,432 @@
+﻿@model RaiSam.Models.BazgashtBeGhabl
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+<script>
+    Ext.net.FilterHeader.behaviour.string[0].match = function (recordValue, matchValue) {
+        return (Ext.net.FilterHeader.behaviour.getStrValue(recordValue) || "").indexOf(matchValue) > -1;
+    };
+
+    Ext.net.FilterHeader.behaviour.string[0].getStrValue = function (value) {
+        return value.toString();
+    };
+
+    Ext.net.FilterHeader.behaviour.string[0].serialize = function (value) {
+        return {
+            type: "string",
+            op: "*",
+            value: value
+        };
+    };
+</script>
+<style>
+    .titlebold {
+        font-weight: bold;
+        font-size: 12px;
+        color: ThreeDDarkShadow;
+    }
+
+    .wrap-lable {
+        word-wrap: break-word;
+    }
+</style>
+@(Html.X().Window()
+    .Modal(true)
+    .ID("BazgashtBeMarhaleGhablWin")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Layout(LayoutType.Fit)
+        .Listeners(l =>
+        {
+            l.AfterRender.Handler = "SetSizeBazgashtBeMarhaleGhabl()";
+            //l.Render.Fn = "addKeyMapBazgashtBeMarhaleGhabl";
+        })
+        //    .Title("تایید مرحله(نام اقدام: " + @ViewBag.EghdamTitle + " )")
+                         .Title("بازگشت به مرحله قبل")
+                .ButtonAlign(Ext.Net.Alignment.Center)
+    .Buttons(X.Button().Text("تایید").Icon(Ext.Net.Icon.Disk)
+                .Listeners(l =>
+                {
+                    l.Click.Handler = "BeforeSave();";
+
+                })
+                                            .ItemID("btnSaveBazgashtBeMarhaleGhabl")
+                ,
+                X.Button().Text("خروج").Icon(Ext.Net.Icon.DoorOut).ToolTip("کلید میانبر Esc")
+                                                    .OnClientClick("App.BazgashtBeMarhaleGhablWin.hide();")
+                                                    )
+    .Items(
+        X.AntiForgeryField().ItemID("antiForgeryToken").Hidden(true),
+        X.Panel()
+            .Border(false)
+            .AutoScroll(true)
+            .Layout(LayoutType.VBox)
+            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+            .Items(
+             X.FieldSet()
+                        .Border(false)
+                    .Defaults(new { Margin = 2 })
+                        .Layout(LayoutType.HBox)
+                       .Items(
+                            X.Label("با تایید در این مرحله، پرونده به مرحله انتخاب شده ارسال می شود.").ItemID("lblHeader")
+                            )
+                    ,
+                            X.FieldSet()
+                                .ItemID("Etelaat")
+                                    .Border(true)
+                                    .Title("مشخصات اقدام")
+                                    .Center()
+                                    .Layout(LayoutType.HBox)
+                                    .Items(
+                                        X.FieldSet()
+                                            .Border(false)
+                                            .Center()
+                                            .Width(800)
+                                            .Padding(0)
+                                            .Margin(0)
+                                            .Layout(LayoutType.VBox)
+                                            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Right })
+                                            .Items(
+                                                X.FieldSet()
+                                                    .Layout(LayoutType.HBox)
+                                                    .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                                                    .Border(false)
+                                                    .Padding(0)
+                                                    .Width(750)
+                                                    .Items(
+                                                        X.Label()
+                                                            .Text("نام کارتابل:")
+                                                            .Cls("titlebold"),
+                                                        X.Label()
+                                                            .Width(250)
+                                                            .Text(@ViewBag.cartableTitle)
+                                                            .PaddingSpec("0 0 0 5px")
+                                                            .Height(18)
+                                                                .Cls("wrap-lable"),
+                                                            X.Label()
+                                                                .Text("نام اقدام:")
+                                                                .Cls("titlebold"),
+                                                            X.Label()
+                                                                .Width(180)
+                                                                    .Text(@ViewBag.EghdamTitle)
+                                                                .Height(18)
+                                                                .PaddingSpec("0 0 0 5px")
+                                                                .Cls("wrap-lable"),
+                                                            X.Label().Hidden(@ViewBag.NameCharkhe == "")
+                                                            .Text("نام چرخه:")
+                                                            .Cls("titlebold"),
+                                                            X.Label().Hidden(@ViewBag.NameCharkhe == "")
+                                                            .Width(210)
+                                                            .Text(@ViewBag.NameCharkhe)
+                                                            .Height(18)
+        // .PaddingSpec("0 0 0 5px")
+                                                            .Cls("wrap-lable")
+                                                        )
+                                                        )
+                                                        ),
+                                            X.FieldSet()
+                                .Border(true)
+                                    .Title("مشخصات درخواست")
+                                              .ItemID("SingleP")
+                                .Center()
+                                .Layout(LayoutType.HBox)
+                                    .Items(
+                                        X.FieldSet()
+                                            .Border(false)
+                                            .Center()
+                                            .Width(800)
+                                            .Padding(0)
+                                            .Margin(0)
+                                            .Layout(LayoutType.VBox)
+                                            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Right })
+                                            .Items(
+                                                X.FieldSet()
+                                                    .Layout(LayoutType.HBox)
+                                                    .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                                                    .Border(false)
+                                                    .Padding(0)
+                                                    .Width(725)
+                                                    .Items(
+                                                        X.Label()
+                                                            .Text("عنوان:")
+                                                            .Cls("titlebold"),
+                                                        X.Label()
+                                                            .Width(410)
+                                                            .ItemID("NameRequest")
+                                                            .Text("")
+                                                            .PaddingSpec("0 0 0 5px")
+                                                            .Height(18)
+                                                            .Cls("wrap-lable")
+                                                        )
+
+                                            )
+                                            ),
+                                X.FieldSet()
+                                .ItemID("GroupP")
+                                .Border(true)
+                                    .Title("درخواست ها")
+        //.Defaults(new { Margin = 2 })
+                                .Layout(LayoutType.Fit)
+                            .Items(
+                                     X.GridPanel()
+                                .AutoScroll(true)
+                                .Frame(true)
+                                .ItemID("GridListRequest")
+                                .Listeners(l => l.AfterRender.Handler = "LoadSelectedRequest()")
+                                .Store(
+                                        X.StoreFor(Model.Contract)
+                                    .AutoLoad(false)
+                                        .Proxy(Html.X().AjaxProxy()
+                                                .Url(Url.Action("ReadRequest"))
+                                            .Reader(Html.X().JsonReader().Root("data"))
+        // .ExtraParams(ex => ex.Add(new { PersonalLocoId = @ViewBag.PersonalLocoId }))
+                                    )
+                                    .PageSize(20000)
+                                    .RemoteFilter(false)
+                                    .RemotePaging(false)
+                                                .Listeners(l => l.DataChanged.Handler = "App.BazgashtBeMarhaleGhablWin.queryById('GridListRequest').selModel.refresh();")
+                                )
+                                     .View(
+                                        Html.X().GridView()
+                                        .LoadingText("در حال بارگذاری...").RTL(true)
+                                    )
+                                .Plugins(X.FilterHeader().Remote(false))
+                                .ColumnModel(
+                                        Html.X().RowNumbererColumn(),
+                                            Html.X().Column().DataIndex(Model.Contract, m => m.fldId).Text("ContractId").Flex(1).Hidden(true),
+                                                        Html.X().Column().DataIndex(Model.Contract, m => m.fldRequestId).Text("firstکد").Flex(1).Hidden(true),
+                                             Html.X().Column().DataIndex(Model.Contract, m => m.fldTitle).Text("عنوان").Flex(5).Wrap(true)
+                                )
+                                .SelectionModel(
+                                    Html.X().RowSelectionModel()
+                                        .Mode(Ext.Net.SelectionMode.Single)
+                                )
+                                )
+                                     ,
+                            X.FieldSet()
+                            .ItemID("FieldSetEghdamat")
+                            .Border(true)
+                                .Title("اقدامات انجام شده قبلی")
+        //.Defaults(new { Margin = 2 })
+                            .Layout(LayoutType.Fit)
+                        .Items(
+                                        X.GridPanel()
+                                             .Width(700)
+                                             .Height(200)
+                            .AutoScroll(true)
+                            .Frame(true)
+                            .ItemID("GridEghdamat")
+                                .Store(
+                                         X.StoreFor(Model.Request_Action)
+
+                                    .Listeners(l => l.BeforeLoad.Handler = "App.BazgashtBeMarhaleGhablWin.queryById('GridEghdamat').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.BazgashtBeMarhaleGhablWin.queryById('antiForgeryToken').getValue());")
+                                         .Listeners(l => l.Load.Handler = "SetLable();")
+                                        .Proxy(Html.X().AjaxProxy()
+
+                                        .Url(Url.Action("ReadEghdamatGhabli"))
+                                            .ActionMethods(l => l.Read = HttpMethod.POST)
+                                        .Reader(Html.X().JsonReader().Root("data"))
+                                    .ExtraParams(ex => ex.Add(new { OneEnterSicleId = @ViewBag.OneEnterSicleId }))
+                                    )
+                                .PageSize(20000)
+                                .RemoteFilter(false)
+                                .RemotePaging(false)
+                                .Listeners(l => l.DataChanged.Handler = "App.BazgashtBeMarhaleGhablWin.queryById('GridEghdamat').selModel.refresh();")
+                            )
+                                    .View(
+                                    Html.X().GridView()
+                                    .LoadingText("در حال بارگذاری...").RTL(true)
+                                )
+                            .Plugins(X.FilterHeader().Remote(false))
+                            .ColumnModel(
+                                Html.X().RowNumbererColumn(),
+                                            Html.X().Column().DataIndex(Model.Request_Action, m => m.fldCharkheEhdamId).Text("fldCharkheEhdamId").Flex(1).Hidden(true),
+                                    Html.X().Column().DataIndex(Model.Request_Action, m => m.fldActionId).Text("fldActionId").Flex(1).Hidden(true),
+                                    Html.X().Column().DataIndex(Model.Request_Action, m => m.fldName).Text("نام اقدام").Flex(3)
+                            )
+                            .SelectionModel(
+                                Html.X().RowSelectionModel()
+                                    .Mode(Ext.Net.SelectionMode.Single)
+                            )
+                            )
+                        ,
+                X.FieldSet()
+                .ItemID("FieldSetDesc")
+                    .Border(true)
+                    .Title("توضیحات")
+        //  .Defaults(new { Margin = 2 })
+                        .Layout(LayoutType.Fit)
+                    .Items(
+                            X.TextArea().Width(330)
+                            .ItemID("txtDesc").AutoFocus(true)
+                                    .Listeners(l => l.Focus.Handler = "App.BazgashtBeMarhaleGhablWin.queryById('txtDesc').el.swallowEvent(['keypress', 'keydown']);")
+                    )
+
+
+            )
+        )
+)
+
+
+<script type="text/javascript">
+    function SetSizeBazgashtBeMarhaleGhabl() {
+        App.BazgashtBeMarhaleGhablWin.setSize(870, Ext.getBody().getViewSize().height - 200);
+        /*App.BazgashtBeMarhaleGhablWin.setSize(Ext.getBody().getViewSize().width - 730, Ext.getBody().getViewSize().height - 200);*/
+        App.BazgashtBeMarhaleGhablWin.queryById("txtDesc").setSize(800);
+        App.BazgashtBeMarhaleGhablWin.queryById("GridListRequest").setSize(800, 150);
+        App.BazgashtBeMarhaleGhablWin.queryById("GridEghdamat").setSize(800, 150);
+
+        if ('@ViewBag.IsGroup' == "True") {
+            App.BazgashtBeMarhaleGhablWin.queryById("SingleP").hide();
+        }
+        else {
+            App.BazgashtBeMarhaleGhablWin.queryById("GroupP").hide();
+            LoadPersonInf();
+        }
+
+        if ('@ViewBag.State' == 1)
+            App.BazgashtBeMarhaleGhablWin.queryById("GridEghdamat").setSize(800, 150);
+        else {
+            App.BazgashtBeMarhaleGhablWin.queryById("FieldSetEghdamat").hide();
+        }
+    }
+    function LoadPersonInf() {
+
+
+        App.BazgashtBeMarhaleGhablWin.queryById("NameRequest").setText('@ViewBag.TitleContract');
+
+    }
+
+    function SetLable() {
+        if ('@ViewBag.State' == 1) {
+            var grid = App.BazgashtBeMarhaleGhablWin.queryById('GridEghdamat').store;
+            if (grid.count()>0)
+            App.BazgashtBeMarhaleGhablWin.queryById("lblHeader").setText("با تایید در این مرحله، پرونده به مرحله " + grid.data.items[0].data.fldName + " ارسال می شود.");
+        }
+    }
+  
+    function LoadSelectedRequest() {
+        Ext.net.DirectMethod.request({
+            url: '/TaiidMarhale/LoadSelectedRequest',
+            params: {
+                EnterSicleIds: '@ViewBag.EnterSicleIds',
+                __RequestVerificationToken: App.BazgashtBeMarhaleGhablWin.queryById('antiForgeryToken').getValue()
+            },
+            success: function (result) {
+                App.BazgashtBeMarhaleGhablWin.queryById('GridListRequest').store.loadData(result.ListLoco);
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+    function BeforeSave() {
+        if ('@ViewBag.State' == 1) {
+            var SelectedRow = App.BazgashtBeMarhaleGhablWin.queryById('GridEghdamat').selModel.getLastSelected();
+            if (SelectedRow != null) {
+                Ext.MessageBox.show({
+                    title: "هشدار",
+                    msg: "آیا برای بازگشت مطمئن هستید؟",
+                    icon: Ext.MessageBox.WARNING,
+                    buttons: Ext.MessageBox.YESNO,
+                    fn: function (btn) {
+                        if (btn == 'yes') {
+                            SaveBazgashtBeMarhaleGhabl(SelectedRow.data.fldActionId);
+                        }
+                    }
+                });
+            }
+            else {
+                Ext.MessageBox.show({
+                    title: "خطا",
+                    msg: "لطفا یک اقدام را برای بازگشت انتخاب کنید.",
+                    icon: Ext.MessageBox.ERROR,
+                    buttons: Ext.MessageBox.OK
+                });
+            }
+        }
+        else {
+            var grid=App.BazgashtBeMarhaleGhablWin.queryById('GridEghdamat').store;
+            Ext.MessageBox.show({
+                title: "هشدار",
+                msg: "آیا برای بازگشت مطمئن هستید؟",
+                icon: Ext.MessageBox.WARNING,
+                buttons: Ext.MessageBox.YESNO,
+                fn: function (btn) {
+                    if (btn == 'yes') {
+                        SaveBazgashtBeMarhaleGhabl(grid.data.items[0].data.fldActionId);
+                    }
+                }
+            });
+        }
+    }
+    function SaveBazgashtBeMarhaleGhabl(ActionId) {
+        var txtDesc = App.BazgashtBeMarhaleGhablWin.queryById('txtDesc');
+      
+           var grid = App.BazgashtBeMarhaleGhablWin.queryById('GridListRequest').getSelectionModel().getStore();
+        var ListArray = new Array();
+        if ('@ViewBag.IsGroup' == "True") {
+            for (var i = 0; i < grid.count() ; i++) {
+                ListArray.push({
+                    "fldEnterCycleId": grid.data.items[i].data.fldId,
+                    "fldDesc": txtDesc.getValue()
+                });
+            }
+        }
+        else {
+            ListArray.push({
+                "fldEnterCycleId": '@ViewBag.EnterSicleIds',
+                "fldDesc": txtDesc.getValue()
+            });
+        }
+
+        App.BazgashtBeMarhaleGhablWin.body.mask("در حال انجام عملیات");
+        $.ajax({
+            type: "POST",
+            url: '/BazgashtBeGhabl/SaveBazgashtBeGhabl',
+            datatype: "json",
+            data: {
+                Data: JSON.stringify(ListArray),
+                EghdamId: '@ViewBag.EghdamId',
+                EnterSicleIds: '@ViewBag.EnterSicleIds',
+                ActionId: ActionId,
+                cartableId:'@ViewBag.cartableId',
+                State: '@ViewBag.State',
+                fldDesc: txtDesc.getValue(),
+                __RequestVerificationToken: App.BazgashtBeMarhaleGhablWin.queryById('antiForgeryToken').getValue()
+            },
+            /*contentType: 'application/json',*/
+            success: function (result) {
+                var ic = Ext.MessageBox.INFO;
+                if (result.Er == 1) {
+                    ic = Ext.MessageBox.ERROR;
+                }
+                Ext.MessageBox.show({
+                    title: result.MsgTitle,
+                    msg: result.Msg,
+                    icon: ic,
+                    buttons: Ext.MessageBox.OK,
+                    fn: function (btn) {
+                        if (btn == 'ok') {
+                            if (result.Er != 1) {
+                                SearchSK();
+                                ReloadCountTree();
+                                App.BazgashtBeMarhaleGhablWin.destroy();
+                                /*App.BazgashtBeMarhaleGhablWin.queryById('GridListLocos').getStore().load();*/
+                            }
+                        }
+                    }
+                });
+
+                App.BazgashtBeMarhaleGhablWin.body.mask().hide();
+            },
+            failure: function () {
+            }
+        });
+
+    }
+   
+
+ 
+</script>

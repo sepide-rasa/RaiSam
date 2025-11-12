@@ -1,0 +1,152 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Report ScriptLanguage="CSharp" ReportInfo.Created="10/26/2023 10:35:27" ReportInfo.Modified="10/28/2023 10:25:38" ReportInfo.CreatorVersion="2023.2.17.0">
+  <Styles>
+    <Style Name="Style1" Font="RasaFont, 10pt, style=Bold" ApplyTextFill="false"/>
+  </Styles>
+  <Dictionary>
+    <MsSqlDataConnection Name="Connection" ConnectionString="rijcmlqHwzMSgwTFaHpjtG3vsOj8fZULXKsps7Zg7MDBgVV+mo6JB3kBScZsLgR9x+rPoqwjyAEUavfEWXswmUJFU3jp6up3VY1cDxJCsOPoq2owjlzvPvY1VfkKYeQtt3o8dm1rI2/6qcYWn/2pphdeAE8sKIBy4UW5FQSbj7E8xMRxaLqhnDHcaOOrd/gZwoAlD0i+O1DZHE7uzWZCyNSrw5+DT+yLpv26KFyA8LB3zPF6c0=" ConnectionStringExpression="[ConectionStr]">
+      <ProcedureDataSource Name="prs_RptSalaneAmalkard" DataType="System.Int32" Enabled="true" TableName="prs_RptSalaneAmalkard" SelectCommand="prs_RptSalaneAmalkard">
+        <Column Name="SumTon" DataType="System.Double"/>
+        <Column Name="malekid" DataType="System.Int32"/>
+        <Column Name="gh" DataType="System.Int32"/>
+        <Column Name="az" DataType="System.Int32"/>
+        <Column Name="ta" DataType="System.Int32"/>
+        <Column Name="s" DataType="System.Int32"/>
+        <Column Name="e" DataType="System.Int32"/>
+        <Column Name="nameGh" DataType="System.String"/>
+        <Column Name="TarikhGhrardad" DataType="System.String"/>
+        <Column Name="sal" DataType="System.Int32"/>
+        <Column Name="mah" DataType="System.Int32"/>
+        <Column Name="ShomareGharadad" DataType="System.String"/>
+        <Column Name="Sh_Vagon" DataType="System.String"/>
+        <Column Name="fldFasl" DataType="System.String"/>
+        <Column Name="fldNameMah" DataType="System.String"/>
+        <ProcedureParameter Name="@azsal" DataType="8" Expression="[azsal]" Direction="Input"/>
+        <ProcedureParameter Name="@tasal" DataType="8" Expression="[tasal]" Direction="Input"/>
+      </ProcedureDataSource>
+    </MsSqlDataConnection>
+    <Parameter Name="ConectionStr" DataType="System.String" Expression="@&quot;Data Source=192.168.1.34;AttachDbFilename=;Initial Catalog=RaiSam;Integrated Security=False;Persist Security Info=False;User ID=rasasystem;Password=rasasystem!@#&quot;"/>
+    <Parameter Name="azsal" DataType="System.Int32" Expression="1398"/>
+    <Parameter Name="tasal" DataType="System.Int32" Expression="1401"/>
+  </Dictionary>
+  <ReportPage Name="Page1" Guides="0,661.5,94.5,189" Watermark.Font="Arial, 60pt" UnlimitedWidth="true">
+    <ReportTitleBand Name="ReportTitle1" Width="718.2" Height="41.58"/>
+    <DataBand Name="Data1" Top="46.52" Width="718.2" Height="75.6" Guides="0,75.59999,56.7,18.9">
+      <AdvMatrixObject Name="Matrix1" Width="661.5" Height="75.6" Border.Lines="All" RepeatHeaders="false" DataSource="prs_RptSalaneAmalkard" Style="Blue">
+        <Columns>
+          <Descriptor Expression="[prs_RptSalaneAmalkard.sal]" DisplayText="عملکرد سال [prs_RptSalaneAmalkard.sal] تن-کیلومتر" Sort="None">
+            <Descriptor Expression="[prs_RptSalaneAmalkard.fldFasl]" Sort="None">
+              <Descriptor Expression="[prs_RptSalaneAmalkard.fldNameMah]" Sort="None"/>
+              <Descriptor DisplayText="جمع"/>
+            </Descriptor>
+          </Descriptor>
+          <Descriptor DisplayText="جمع"/>
+        </Columns>
+        <Rows>
+          <Descriptor Expression="[prs_RptSalaneAmalkard.nameGh]">
+            <Descriptor Expression="[prs_RptSalaneAmalkard.Sh_Vagon]">
+              <Descriptor Expression="[prs_RptSalaneAmalkard.ShomareGharadad]">
+                <Descriptor Expression="[prs_RptSalaneAmalkard.TarikhGhrardad]"/>
+              </Descriptor>
+            </Descriptor>
+          </Descriptor>
+        </Rows>
+        <TableColumn Name="Column1" Width="94.5"/>
+        <TableColumn Name="Column2" Width="94.5"/>
+        <TableColumn Name="Column3" Width="94.5"/>
+        <TableColumn Name="Column4" Width="94.5"/>
+        <TableColumn Name="Column5" Width="94.5"/>
+        <TableColumn Name="Column6" Width="94.5"/>
+        <TableColumn Name="Column7" Width="94.5"/>
+        <TableRow Name="Row1" AutoSize="true">
+          <TableCell Name="Cell1" Border.Lines="All" Border.Color="White" Fill.Color="151, 189, 253" Text="نام شرکت عامل صرفه جویی" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 10pt" RowSpan="3"/>
+          <TableCell Name="Cell2" Border.Lines="All" Border.Color="White" Fill.Color="151, 189, 253" Text="شماره سریال&#13;&#10; واگن ها" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 10pt" RowSpan="3"/>
+          <TableCell Name="Cell5" Border.Lines="All" Border.Color="White" Fill.Color="151, 189, 253" Text="شماره قرارداد" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 10pt" RowSpan="3"/>
+          <TableCell Name="Cell7" Border.Lines="All" Border.Color="White" Fill.Color="151, 189, 253" Text="تاریخ قرارداد" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 10pt" RowSpan="3"/>
+          <TableCell Name="Cell9" Border.Lines="All" Border.Color="White" Fill.Color="151, 189, 253" Text="[prs_RptSalaneAmalkard.sal]" AllowExpressions="false" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 10pt" ColSpan="2"/>
+          <TableCell Name="Cell21" Font="Arial, 10pt"/>
+          <TableCell Name="Cell25" Border.Lines="All" Border.Color="White" Fill.Color="151, 189, 253" Text="جمع" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 10pt" RowSpan="3"/>
+        </TableRow>
+        <TableRow Name="Row2" AutoSize="true">
+          <TableCell Name="Cell3" Border.Lines="All" Border.Color="White" Fill.Color="151, 189, 253" HorzAlign="Center" VertAlign="Center" Font="Arial, 10pt"/>
+          <TableCell Name="Cell4" Border.Lines="All" Border.Color="White" Fill.Color="151, 189, 253" HorzAlign="Center" VertAlign="Center" Font="Arial, 10pt"/>
+          <TableCell Name="Cell6" Border.Lines="All" Border.Color="White" Fill.Color="151, 189, 253" HorzAlign="Center" VertAlign="Center" Font="Arial, 10pt"/>
+          <TableCell Name="Cell8" Border.Lines="All" Border.Color="White" Fill.Color="151, 189, 253" HorzAlign="Center" VertAlign="Center" Font="Arial, 10pt"/>
+          <TableCell Name="Cell10" Border.Lines="All" Border.Color="White" Fill.Color="151, 189, 253" Text="[prs_RptSalaneAmalkard.fldFasl]" AllowExpressions="false" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 10pt" ColSpan="2"/>
+          <TableCell Name="Cell22" Font="Arial, 10pt"/>
+          <TableCell Name="Cell26" Font="Arial, 10pt"/>
+        </TableRow>
+        <TableRow Name="Row3" AutoSize="true">
+          <TableCell Name="Cell11" Border.Lines="All" Border.Color="White" Fill.Color="151, 189, 253" HorzAlign="Center" VertAlign="Center" Font="Arial, 10pt"/>
+          <TableCell Name="Cell12" Border.Lines="All" Border.Color="White" Fill.Color="151, 189, 253" HorzAlign="Center" VertAlign="Center" Font="Arial, 10pt"/>
+          <TableCell Name="Cell13" Border.Lines="All" Border.Color="White" Fill.Color="151, 189, 253" HorzAlign="Center" VertAlign="Center" Font="Arial, 10pt"/>
+          <TableCell Name="Cell14" Border.Lines="All" Border.Color="White" Fill.Color="151, 189, 253" HorzAlign="Center" VertAlign="Center" Font="Arial, 10pt"/>
+          <TableCell Name="Cell15" Border.Lines="All" Border.Color="White" Fill.Color="151, 189, 253" Text="[prs_RptSalaneAmalkard.fldNameMah]" AllowExpressions="false" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 10pt"/>
+          <TableCell Name="Cell23" Border.Lines="All" Border.Color="White" Fill.Color="151, 189, 253" Text="جمع" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 10pt"/>
+          <TableCell Name="Cell27" Font="Arial, 10pt"/>
+        </TableRow>
+        <TableRow Name="Row4" AutoSize="true">
+          <TableCell Name="Cell16" Border.Lines="All" Border.Color="White" Fill.Color="151, 189, 253" Text="[prs_RptSalaneAmalkard.nameGh]" AllowExpressions="false" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 10pt"/>
+          <TableCell Name="Cell17" Border.Lines="All" Border.Color="White" Fill.Color="151, 189, 253" Text="[prs_RptSalaneAmalkard.Sh_Vagon]" AllowExpressions="false" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 10pt"/>
+          <TableCell Name="Cell18" Border.Lines="All" Border.Color="White" Fill.Color="151, 189, 253" Text="[prs_RptSalaneAmalkard.ShomareGharadad]" AllowExpressions="false" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 10pt"/>
+          <TableCell Name="Cell19" Border.Lines="All" Border.Color="White" Fill.Color="151, 189, 253" Text="[prs_RptSalaneAmalkard.TarikhGhrardad]" AllowExpressions="false" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 10pt"/>
+          <TableCell Name="Cell20" Border.Lines="All" Border.Color="White" Fill.Color="186, 211, 254" Text="[Sum([prs_RptSalaneAmalkard.SumTon])]" AllowExpressions="false" Format="Number" Format.UseLocale="false" Format.DecimalDigits="2" Format.DecimalSeparator="." Format.GroupSeparator="," Format.NegativePattern="1" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 10pt"/>
+          <TableCell Name="Cell24" Border.Lines="All" Border.Color="White" Fill.Color="186, 211, 254" Text="[Sum([prs_RptSalaneAmalkard.SumTon])]" AllowExpressions="false" Format="Number" Format.UseLocale="false" Format.DecimalDigits="2" Format.DecimalSeparator="." Format.GroupSeparator="," Format.NegativePattern="1" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 10pt"/>
+          <TableCell Name="Cell28" Border.Lines="All" Border.Color="White" Fill.Color="186, 211, 254" Text="[Sum([prs_RptSalaneAmalkard.SumTon])]" AllowExpressions="false" Format="Number" Format.UseLocale="false" Format.DecimalDigits="2" Format.DecimalSeparator="." Format.GroupSeparator="," Format.NegativePattern="1" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 10pt"/>
+        </TableRow>
+      </AdvMatrixObject>
+    </DataBand>
+  </ReportPage>
+  <ReportPage Name="Page2" Guides="0,567,94.5,189,283.5,472.5,378" Watermark.Font="Arial, 60pt" UnlimitedWidth="true">
+    <ReportTitleBand Name="ReportTitle2" Width="718.2" Height="37.8"/>
+    <DataBand Name="Data2" Top="42.74" Width="718.2" Height="56.7" Guides="0,56.7,37.8,18.9">
+      <AdvMatrixObject Name="Matrix2" Width="567" Height="56.7" Border.Lines="All" RepeatHeaders="false" DataSource="prs_RptSalaneAmalkard" Style="Blue">
+        <Columns>
+          <Descriptor Expression="[prs_RptSalaneAmalkard.sal]" DisplayText="عملکرد سال [prs_RptSalaneAmalkard.sal] تن-کیلومتر" Sort="None">
+            <Descriptor Expression="[prs_RptSalaneAmalkard.fldFasl]" Sort="None"/>
+            <Descriptor DisplayText="جمع"/>
+          </Descriptor>
+          <Descriptor DisplayText="جمع"/>
+        </Columns>
+        <Rows>
+          <Descriptor Expression="[prs_RptSalaneAmalkard.nameGh]">
+            <Descriptor Expression="[prs_RptSalaneAmalkard.Sh_Vagon]">
+              <Descriptor Expression="[prs_RptSalaneAmalkard.ShomareGharadad]"/>
+            </Descriptor>
+          </Descriptor>
+        </Rows>
+        <TableColumn Name="Column8" Width="94.5"/>
+        <TableColumn Name="Column9" Width="94.5"/>
+        <TableColumn Name="Column10" Width="94.5"/>
+        <TableColumn Name="Column11" Width="94.5"/>
+        <TableColumn Name="Column12" Width="94.5"/>
+        <TableColumn Name="Column13" Width="94.5"/>
+        <TableRow Name="Row5" AutoSize="true">
+          <TableCell Name="Cell29" Border.Lines="All" Border.Color="White" Fill.Color="151, 189, 253" Text="نام شرکت عامل صرفه جویی" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 10pt" RowSpan="2"/>
+          <TableCell Name="Cell30" Border.Lines="All" Border.Color="White" Fill.Color="151, 189, 253" Text="شماره سریال&#13;&#10; واگن ها" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 10pt" RowSpan="2"/>
+          <TableCell Name="Cell31" Border.Lines="All" Border.Color="White" Fill.Color="151, 189, 253" Text="شماره قرارداد" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 10pt" RowSpan="2"/>
+          <TableCell Name="Cell32" Border.Lines="All" Border.Color="White" Fill.Color="151, 189, 253" Text="[prs_RptSalaneAmalkard.sal]" AllowExpressions="false" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 10pt" ColSpan="2"/>
+          <TableCell Name="Cell33" Font="Arial, 10pt"/>
+          <TableCell Name="Cell34" Border.Lines="All" Border.Color="White" Fill.Color="151, 189, 253" Text="جمع" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 10pt" RowSpan="2"/>
+        </TableRow>
+        <TableRow Name="Row6" AutoSize="true">
+          <TableCell Name="Cell35" Border.Lines="All" Border.Color="White" Fill.Color="151, 189, 253" HorzAlign="Center" VertAlign="Center" Font="Arial, 10pt"/>
+          <TableCell Name="Cell36" Border.Lines="All" Border.Color="White" Fill.Color="151, 189, 253" HorzAlign="Center" VertAlign="Center" Font="Arial, 10pt"/>
+          <TableCell Name="Cell37" Border.Lines="All" Border.Color="White" Fill.Color="151, 189, 253" HorzAlign="Center" VertAlign="Center" Font="Arial, 10pt"/>
+          <TableCell Name="Cell38" Border.Lines="All" Border.Color="White" Fill.Color="151, 189, 253" Text="[prs_RptSalaneAmalkard.fldFasl]" AllowExpressions="false" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 10pt"/>
+          <TableCell Name="Cell39" Border.Lines="All" Border.Color="White" Fill.Color="151, 189, 253" Text="جمع" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 10pt"/>
+          <TableCell Name="Cell40" Font="Arial, 10pt"/>
+        </TableRow>
+        <TableRow Name="Row7" AutoSize="true">
+          <TableCell Name="Cell41" Border.Lines="All" Border.Color="White" Fill.Color="151, 189, 253" Text="[prs_RptSalaneAmalkard.nameGh]" AllowExpressions="false" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 10pt"/>
+          <TableCell Name="Cell42" Border.Lines="All" Border.Color="White" Fill.Color="151, 189, 253" Text="[prs_RptSalaneAmalkard.Sh_Vagon]" AllowExpressions="false" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 10pt"/>
+          <TableCell Name="Cell43" Border.Lines="All" Border.Color="White" Fill.Color="151, 189, 253" Text="[prs_RptSalaneAmalkard.ShomareGharadad]" AllowExpressions="false" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 10pt"/>
+          <TableCell Name="Cell44" Border.Lines="All" Border.Color="White" Fill.Color="186, 211, 254" Text="[Sum([prs_RptSalaneAmalkard.SumTon])]" AllowExpressions="false" Format="Number" Format.UseLocale="true" Format.DecimalDigits="2" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 10pt"/>
+          <TableCell Name="Cell45" Border.Lines="All" Border.Color="White" Fill.Color="186, 211, 254" Text="[Sum([prs_RptSalaneAmalkard.SumTon])]" AllowExpressions="false" Format="Number" Format.UseLocale="false" Format.DecimalDigits="2" Format.DecimalSeparator="." Format.GroupSeparator="," Format.NegativePattern="1" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 10pt"/>
+          <TableCell Name="Cell46" Border.Lines="All" Border.Color="White" Fill.Color="186, 211, 254" Text="[Sum([prs_RptSalaneAmalkard.SumTon])]" AllowExpressions="false" Format="Number" Format.UseLocale="false" Format.DecimalDigits="2" Format.DecimalSeparator="." Format.GroupSeparator="," Format.NegativePattern="1" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 10pt"/>
+        </TableRow>
+      </AdvMatrixObject>
+    </DataBand>
+    <PageFooterBand Name="PageFooter2" Top="104.38" Width="718.2" Height="18.9"/>
+  </ReportPage>
+</Report>

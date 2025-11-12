@@ -1,0 +1,765 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@using Ext.Net.Utilities;
+<script src="~/Scripts/jquery-ajax-native.js"></script>
+
+@{
+    var X = Html.X();
+}
+<style>
+    .titlebold {
+        font-weight: bold;
+        font-size: 12px;
+        color: ThreeDDarkShadow;
+    }
+
+    .removePad {
+        padding: 0;
+    }
+
+    .wrap-lable {
+        height: auto;
+        text-align: right;
+    }
+    
+</style>
+
+@(Html.X().Window()
+    .Modal(true)
+    .Listeners(li => li.AfterRender.Handler = "LoadDetailCompanyProfile2();")
+    .Width(800)
+    .Height(600)
+    .AutoScroll(true)
+    .Resizable(false)
+    .ID("ShowInfo_CompanyProfile2")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .ButtonAlign(Ext.Net.Alignment.Center)
+    .Buttons(
+        X.Button()
+            .Text("ثبت قطعی")
+            .Icon(Ext.Net.Icon.Accept)
+            .Listeners(l => l.Click.Handler = "DefinitRegistration();")
+        //.Disabled(true)
+                .ItemID("btnSaveCompanyPersonal"),
+            X.Button()
+                .Text("بازگشت")
+                .Icon(Ext.Net.Icon.ArrowUndo)
+                .Listeners(l => l.Click.Handler = "BackToClientPanel();")
+        //.Disabled(true)
+                .ItemID("btnBackCompanyPersonal"),
+        X.Button()
+            .Text("خروج")
+            .Icon(Ext.Net.Icon.DoorOut)
+                .OnClientClick("Ext.net.Mask.hide();App.ShowInfo_CompanyProfile2.destroy();")
+            .RTL(true)
+        )
+    .Items(
+        X.FormPanel()
+            .Width(750)
+            .Border(false)
+            .Margin(10)
+            .Layout(LayoutType.VBox)
+            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+            .Items(
+                X.Hidden()
+                    .ItemID("FirstRegisterId"),
+                X.FieldSet()
+                    .Border(true)
+                    .Title("هدف از ثبت نام")
+                    .Width(750)
+                    .Padding(5)
+                    .Center()
+                    .Layout(LayoutType.VBox)
+                    .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Right })
+                    .Items(
+                        X.FieldSet()
+                            .Layout(LayoutType.HBox)
+                            .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                            .Width(730)
+                            .Border(false)
+                            .Items(
+        /*X.Label()
+            .Text("هدف از ثبت نام:")
+            .Cls("titlebold"),*/
+                                X.Label()
+                                    .Width(640)
+                                    .ItemID("PerposeCompanyProfile2")
+                                    .Text("")
+                                    .PaddingSpec("0 0 0 5px")
+                                        .Cls("wrap-lable")
+                                            )),
+                X.FieldSet()
+                    .Border(true)
+                    .ItemID("InfoNamayande")
+                    .Title("مشخصات نماینده شرکت")
+                    .Width(750)
+                    .Padding(5)
+                    .Center()
+                    .Layout(LayoutType.VBox)
+                    .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Right })
+                    .Items(
+                        X.FieldSet()
+                            .Layout(LayoutType.HBox)
+                            .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                            .Width(730)
+                            .Border(false)
+                            .Items(
+                                X.Label()
+                                    .Text("نام:")
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(280)
+                                    .ItemID("NameCompanyProfile2")
+                                    .Text("")
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Cls("wrap-lable"),
+                                X.Label()
+                                    .Text("نام خانوادگی:")
+                                    .PaddingSpec("0 0 0 30px")
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(310)
+                                    .ItemID("LastNameCompanyProfile2")
+                                    .Text("")
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Cls("wrap-lable"))
+                               , X.FieldSet()
+                            .Layout(LayoutType.HBox)
+                            .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                            .Width(730)
+                            .Border(false)
+                            .Items(
+                                X.Label()
+                                    .Text("تلفن همراه:")
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(270)
+                                    .ItemID("TelNamayande")
+                                    .Text("")
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Cls("wrap-lable"),
+
+                                    X.Label()
+                                        .Text("ایمیل:")
+        //   .PaddingSpec("0 0 0 5px")
+                                        .Cls("titlebold"),
+                                    X.Label()
+                                        .Width(280)
+                                        .ItemID("EmailNamayande")
+                                        .Text("")
+                                        .PaddingSpec("0 0 0 5px")
+                                        .Cls("wrap-lable")
+                              )
+                                    ),
+                X.FieldSet()
+                    .Border(true)
+                    .Title("مشخصات مدیرعامل شرکت")
+                    .Width(750)
+                    .Padding(5)
+                    .ItemID("InfoModirAmel")
+                    .Center()
+                    .Layout(LayoutType.VBox)
+                    .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Right })
+                    .Items(
+                        X.FieldSet()
+                            .Layout(LayoutType.HBox)
+                            .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                            .Width(730)
+                            .Border(false)
+                            .Items(
+                                X.Label()
+                                    .Text("نام:")
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(280)
+                                    .ItemID("NameMCompanyProfile2")
+                                    .Text("")
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Cls("wrap-lable"),
+                                X.Label()
+                                    .Text("نام خانوادگی:")
+                                    .PaddingSpec("0 0 0 30px")
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(310)
+                                    .ItemID("LastNameMCompanyProfile2")
+                                    .Text("")
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Cls("wrap-lable")
+                                    )),
+           
+                X.FieldSet()
+                    .Border(true)
+                    .Title("مشخصات شرکت")
+                    .Width(750)
+                    .ItemID("InfoCompany")
+                    .Padding(5)
+                    .Center()
+                //.Layout(LayoutType.VBox)
+                //.LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Right })
+                    .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 2 })
+                    .Items(
+        //X.FieldSet()
+        //    .Border(false)
+        //    .Width(730)
+        //    .Center()
+        //    .Layout(LayoutType.HBox)
+        //    .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Top })
+        //    .Items(
+                            X.FieldSet()
+                            .Border(false)
+                                
+        //.Height(158)
+                            .Width(650)
+                            .Padding(0)
+        // .Center()
+                            .Layout(LayoutType.VBox)
+                            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Right })
+                            .Items(
+                                X.FieldSet()
+                                .Layout(LayoutType.HBox)
+                                .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                                .Width(600)
+                                .Border(false)
+                                .Items(
+                                    X.Label()
+                                    .Text("نام کامل ثبتی شرکت:")
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(520)
+                                    .Text("")
+                                    .Height(32)
+                                    .ItemID("FullNameCompanyProfile2")
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Cls("wrap-lable")
+                                        ),
+                        X.FieldSet()
+                            .Layout(LayoutType.HBox)
+                            .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                            .Width(600)
+                            .Border(false)
+                            .Items(
+                                X.Label()
+                                    .Text("نام اختصاری:")
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(235)
+                                    .Text("")
+                                    .ItemID("NickNameCompanyProfile2")
+                                    .Height(32)
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Cls("wrap-lable"),
+                                X.Label()
+                                    .Text("شناسه ملی شرکت:")
+                                    .PaddingSpec("0 0 0 30px")
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(90)
+                                    .Text("")
+                                    .ItemID("ShenaseMelliCompanyProfile2")
+                                    .Height(32)
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Cls("wrap-lable")),
+                        X.FieldSet()
+                            .Layout(LayoutType.HBox)
+                            .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                            .Width(600)
+                            .Border(false)
+                            .Items(
+                                X.Label()
+                                    .Text("تاریخ تأسیس:")
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(233)
+                                    .Text("")
+                                    .Height(32)
+                                    .ItemID("DateTasisCompanyProfile2")
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Cls("wrap-lable"),
+                                X.Label()
+                                    .Text("شماره ثبت:")
+                                    .PaddingSpec("0 0 0 30px")
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(35)
+                                    .Text("")
+                                    .ItemID("Sh_SabtCompanyProfile2")
+                                    .Height(32)
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Cls("wrap-lable")),
+                        X.FieldSet()
+                            .Layout(LayoutType.HBox)
+                            .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                            .Width(615)
+                            .Border(false)
+                            .Height(20)
+                            .Items(
+                                X.Label()
+                                    .Text("تاریخ ثبت:")
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(250)
+                                    .Text("")
+                                    .Height(32)
+                                    .ItemID("Date_SabtCompanyProfile2")
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Cls("wrap-lable"),
+                                X.Label()
+                                    .Text("نوع ثبتی شرکت:")
+                                    .PaddingSpec("0 0 0 30px")
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(180)
+                                    .Text("")
+                                    .ItemID("NoeSabtiCompanyProfile2")
+                                    .Height(32)
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Cls("wrap-lable"))
+        ////////////////////////////////////////////////
+                                        ), X.Image().ItemID("Image2").ImageUrl("~/Content/Blank.jpg").Width(70).Height(70).Border(true),
+        //  ),
+                        X.FieldSet()
+                            .Layout(LayoutType.HBox)
+                            .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+        //.Width(630)
+                            .Border(false)
+                            .Items(
+                                X.Label()
+                                    .Text("کد اقتصادی:")
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(240)
+                                    .Text("")
+                                    .ItemID("CodeEghtesadiCompanyProfile2")
+        //.Height(32)
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Cls("wrap-lable"),
+                                X.Label()
+                                    .Text("محل ثبت(کشور/استان/شهر):")
+                                    .PaddingSpec("0 0 0 30px")
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(230)
+                                    .Text("")
+                                    .ItemID("MahalSabtCompanyProfile2")
+        //.Height(32)
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Cls("wrap-lable")).ColSpan(2)
+                                    ),
+                X.FieldSet()
+                    .Border(true)
+                    .Title("مشخصات محل شرکت")
+                        .ItemID("FieldSetTitle")
+                    .Width(750)
+                    .Padding(5)
+                    .Center()
+                    .Layout(LayoutType.VBox)
+                    .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Right })
+                    .Items(
+                        X.FieldSet()
+                            .Layout(LayoutType.HBox)
+                            .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                            .Width(730)
+                            .Border(false)
+                            .Items(
+                                X.Label()
+                                    .Text("کد پستی :")
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(247)
+                                    .Text("")
+                                    .ItemID("CodePostiCompanyProfile2")
+                                    .Height(32)
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Cls("wrap-lable"),
+                                X.Label()
+                                    .Text("تلفن :")
+                                    .PaddingSpec("0 0 0 30px")
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(325)
+                                    .Text("")
+                                    .Height(32)
+                                    .ItemID("TelephonCompanyProfile2")
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Cls("wrap-lable")),
+                        X.FieldSet()
+                            .Layout(LayoutType.HBox)
+                            .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                            .Width(730)
+                            .Border(false)
+                            .Items(
+                                X.Label()
+                                    .Text("تلفن همراه مدیرعامل:")
+                                    .ItemID("MobileModirAmel")
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(192)
+                                    .Text("")
+                                    .ItemID("MobileCompanyProfile2")
+                                    .Height(32)
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Cls("wrap-lable"),
+                                X.Label()
+                                    .Text("نمابر:")
+                                    .PaddingSpec("0 0 0 30px")
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(325)
+                                    .Text("")
+                                    .Height(32)
+                                    .ItemID("FaxCompanyProfile2")
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Cls("wrap-lable")),
+                        X.FieldSet()
+                            .Layout(LayoutType.HBox)
+                            .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                            .Width(730)
+                            .Border(false)
+                            .Items(
+                                X.Label()
+                                    .Text("محل(کشور/استان/شهر):")
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(550)
+                                    .Text("")
+                                    .ItemID("MahalCompanyProfile2")
+                                    .Height(32)
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Cls("wrap-lable")),
+                        X.FieldSet()
+                            .Layout(LayoutType.HBox)
+                            .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                            .Width(730)
+                            .Border(false)
+                            .Items(
+                                X.Label()
+                                    .Text("آخرین آدرس ثبتی:")
+                                    .ItemID("lblAddress")
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(630)
+                                    .Text("")
+                                    .ItemID("AddressCompanyProfile2")
+                                    .Height(37)
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Cls("wrap-lable")),
+                        X.FieldSet()
+                            .Layout(LayoutType.HBox)
+                            .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                            .Width(730)
+                            .Border(false)
+                            .Items(
+                                X.Label()
+                                    .Text("آدرس وب سایت:")
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(219)
+                                    .Text("")
+        //.Height(32)
+                                    .ItemID("WebAddressCompanyProfile2")
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Cls("wrap-lable"),
+                                X.Label()
+                                    .Text("پست الکترونیک اول:")
+                                    .PaddingSpec("0 0 0 30px")
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(270)
+                                    .Text("")
+                                    .ItemID("Email1CompanyProfile2")
+        //.Height(32)
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Cls("wrap-lable")),
+                        X.FieldSet()
+                            .Layout(LayoutType.HBox)
+                            .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                            .Width(730)
+                            .Hidden(true)
+                            .ItemID("fieldsetOtherEmail")
+                            .Border(false)
+                            .Items(
+                                X.Label()
+                                    .Text("پست الکترونیک دوم:")
+                                    .Hidden(true)
+                                    .ItemID("lblEmail2")
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(200)
+                                    .Text("")
+                                    .Hidden(true)
+                                    .ItemID("Email2CompanyProfile2")
+        //.Height(32)
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Cls("wrap-lable"),
+                                X.Label()
+                                    .Text("پست الکترونیک سوم:")
+                                    .Hidden(true)
+                                    .PaddingSpec("0 0 0 30px")
+                                    .ItemID("lblEmail3")
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(265)
+                                    .Hidden(true)
+                                    .Text("")
+        //.Cls("style='text-align:left;'")
+                                    .ItemID("Email3CompanyProfile2")
+        //.Height(32)
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Cls("wrap-lable"))),
+                X.FieldSet()
+                    .Border(true)
+                    .Title("مشخصات سهام")
+                    .ItemID("InfoSaham")
+                    .Width(750)
+                    .Padding(5)
+                    .Center()
+                    .Layout(LayoutType.VBox)
+                    .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Right })
+                    .Items(
+                        X.FieldSet()
+                            .Layout(LayoutType.HBox)
+                            .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                            .Width(730)
+                            .Border(false)
+                            .Items(
+                                X.Label()
+                                    .Text("تعداد کل سهام:")
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(225)
+                                    .Text("")
+                                    .ItemID("TotalCountCompanyProfile2")
+        //.Height(32)
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Cls("wrap-lable"),
+                                X.Label()
+                                    .Text("مبلغ هر سهم(ریال):")
+                                    .PaddingSpec("0 0 0 30px")
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(263)
+                                    .Text("")
+                                    .ItemID("MablaghCompanyProfile2")
+        //.Height(32)
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Cls("wrap-lable"))),
+                        X.Panel()
+                            .Layout(LayoutType.HBox)
+                            .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                            .Width(750)
+                            .Border(false)
+                            .Items(
+                                X.Label()
+                                .ItemID("lblDl")
+                                    .Text("")
+                                    .PaddingSpec("0 0 0 13px")
+                                    .Cls("titlebold"),
+                                X.Button()
+                                    .Text("دانلود")
+                                    .Icon(Icon.DiskDownload)
+                                    .Listeners(l => l.Click.Handler = "DownloadFileCompanyProfile2();")
+                                    .ItemID("btnDownloadCompanyProfile2")
+                                    .PaddingSpec("0 0 0 5px")
+                                    ,
+                                    X.Label()
+                                    .Text("کدمجوز:")
+                                    .ItemID("lblCodeMojavez")
+                                    .PaddingSpec("0 0 0 190px")
+                                    .Cls("titlebold"),
+                                X.Label()
+        //  .Width(100)
+                                    .Text("")
+                                    .ItemID("CodeMojavez")
+        //.Height(32)
+                                    .PaddingSpec("0 0 0 5px")
+                                        .Cls("wrap-lable")
+                                        ,
+                                    X.Button()
+        // .Text("استعلام")
+                                        .Icon(Icon.Reload).ToolTip("استعلام")
+                                        .Listeners(l => l.Click.Handler = "EstelamMojavez();")
+                                        .ItemID("btnEstelamMojavez")
+                                        .PaddingSpec("0 0 0 5px")
+                                    )
+                                )
+            )
+)
+
+<script type="text/javascript">
+    var fileId = 0;
+    var LogoFileId = 0;
+    var username = "";
+    var password = "";
+    var CodeMojavez = "";
+
+    function EstelamMojavez() {
+        App.ShowInfo_CompanyProfile2.body.mask('در حال بارگذاری...');
+        Ext.net.DirectMethod.request({
+            url: '/CompanyProfile/EstelamMojavezWin',
+            params: {
+                Code: CodeMojavez
+            },
+            success: function (data) {
+                App.ShowInfo_CompanyProfile2.body.mask().hide();
+            }
+        });
+    }
+    function LoadDetailCompanyProfile2() {
+        if ('@ViewBag.state' == "2") {
+            App.ShowInfo_CompanyProfile2.queryById("btnSaveCompanyPersonal").hide(true);
+            App.ShowInfo_CompanyProfile2.queryById("btnBackCompanyPersonal").hide(true);
+        }
+        else {
+            App.ShowInfo_CompanyProfile2.queryById("btnSaveCompanyPersonal").show(true);
+            App.ShowInfo_CompanyProfile2.queryById("btnBackCompanyPersonal").show(true);
+        }
+
+        Ext.net.DirectMethod.request({
+            url: '/MonitoringRegisterComplete/DetailsCompanyProfile',
+            params: {
+                Id: '@ViewBag.CompanyProfileId',
+                Type:'@ViewBag.PersonType'
+            },
+            success: function (result) {
+              
+                    App.ShowInfo_CompanyProfile2.queryById("CodeMojavez").hide();
+                    App.ShowInfo_CompanyProfile2.queryById("lblCodeMojavez").hide();
+                    App.ShowInfo_CompanyProfile2.queryById("btnEstelamMojavez").hide();
+                    App.ShowInfo_CompanyProfile2.queryById("lblDl").setText("دانلود فایل اساسنامه:");
+                    App.ShowInfo_CompanyProfile2.setTitle("نمایش اطلاعات ثبت نام کننده حقوقی");
+                    App.ShowInfo_CompanyProfile2.queryById("PerposeCompanyProfile2").setText(result.fldGroupName);
+                    App.ShowInfo_CompanyProfile2.queryById("FirstRegisterId").setValue(result.fldFirstRegisterId);
+                    App.ShowInfo_CompanyProfile2.queryById("NameCompanyProfile2").setText(result.fldName);
+                    App.ShowInfo_CompanyProfile2.queryById("LastNameCompanyProfile2").setText(result.fldFamily);
+                    App.ShowInfo_CompanyProfile2.queryById("NameMCompanyProfile2").setText(result.fldNameModirAmel);
+                    App.ShowInfo_CompanyProfile2.queryById("TelNamayande").setText(result.TelNamayande);
+                    App.ShowInfo_CompanyProfile2.queryById("EmailNamayande").setText(result.EmailNamayande);
+                    App.ShowInfo_CompanyProfile2.queryById("LastNameMCompanyProfile2").setText(result.fldFamilyModirAmel);
+                    App.ShowInfo_CompanyProfile2.queryById("ShenaseMelliCompanyProfile2").setText(result.fldNationalCode);
+                    App.ShowInfo_CompanyProfile2.queryById("FullNameCompanyProfile2").setText(result.fldFullName);
+                    App.ShowInfo_CompanyProfile2.queryById("NickNameCompanyProfile2").setText(result.fldNickName);
+                    App.ShowInfo_CompanyProfile2.queryById("DateTasisCompanyProfile2").setText(result.fldDateTasis);
+                    App.ShowInfo_CompanyProfile2.queryById("Sh_SabtCompanyProfile2").setText(result.fldSh_Sabt);
+                    App.ShowInfo_CompanyProfile2.queryById("Date_SabtCompanyProfile2").setText(result.fldDateSabt);
+                    App.ShowInfo_CompanyProfile2.queryById("NoeSabtiCompanyProfile2").setText(result.fldTypeCompanyName);
+                    App.ShowInfo_CompanyProfile2.queryById("MahalSabtCompanyProfile2").setText(result.fldCountryName + " - " + result.fldStateName + " - " + result.fldCityName);
+                    App.ShowInfo_CompanyProfile2.queryById("CodeEghtesadiCompanyProfile2").setText(result.fldCodeEghtesadi);
+                    App.ShowInfo_CompanyProfile2.queryById("CodePostiCompanyProfile2").setText(result.fldCodePosti);
+                    App.ShowInfo_CompanyProfile2.queryById("TelephonCompanyProfile2").setText(result.fldPishShomare_Tel + "-" + result.fldTelphon);
+                    App.ShowInfo_CompanyProfile2.queryById("MobileCompanyProfile2").setText(result.fldMobileModir);
+                    App.ShowInfo_CompanyProfile2.queryById("FaxCompanyProfile2").setText(result.fldPishShomare_Namabar + "-" + result.fldNamabar);
+                    App.ShowInfo_CompanyProfile2.queryById("MahalCompanyProfile2").setText(result.fldCountryName + " - " + result.fldStateName + " - " + result.fldCityName);
+                    App.ShowInfo_CompanyProfile2.queryById("AddressCompanyProfile2").setText(result.fldAddress);
+                    App.ShowInfo_CompanyProfile2.queryById("Email1CompanyProfile2").setText(result.fldEmail1);
+                    App.ShowInfo_CompanyProfile2.queryById("TotalCountCompanyProfile2").setText(result.fldTedadKolSaham);
+                    App.ShowInfo_CompanyProfile2.queryById("MablaghCompanyProfile2").setText(result.fldMablaghSaham.toLocaleString());
+                    fileId = result.FileId;
+                    LogoFileId = result.LogoFileId;
+                    username = result.Username;
+                    password = result.Password;
+
+                    if (result.LogoFileId != null) {
+                        var antiCachePart = (new Date()).getTime();
+                        var url = '/MonitoringRegisterComplete/ShowLogo';
+                        var g = url + '?dc=' + antiCachePart + '&FileId=' + result.LogoFileId;
+                        var k = App.ShowInfo_CompanyProfile2.queryById('Image2');
+                        k.setImageUrl(g);
+                    }
+
+                    if (result.fldAddressWebSite != "") {
+                        App.ShowInfo_CompanyProfile2.queryById("WebAddressCompanyProfile2").setText(result.fldAddressWebSite);
+                    }
+                    else {
+                        App.ShowInfo_CompanyProfile2.queryById("WebAddressCompanyProfile2").setText("ندارد");
+                    }
+                    if (result.fldEmail2 != "") {
+                        App.ShowInfo_CompanyProfile2.queryById("Email1CompanyProfile2").setHeight(32);
+                        App.ShowInfo_CompanyProfile2.queryById("fieldsetOtherEmail").show();
+                        App.ShowInfo_CompanyProfile2.queryById("Email2CompanyProfile2").show();
+                        App.ShowInfo_CompanyProfile2.queryById("lblEmail2").show();
+                        App.ShowInfo_CompanyProfile2.queryById("Email2CompanyProfile2").setText(result.fldEmail2);
+                    }
+                    if (result.fldEmail3 != "") {
+                        if (result.fldEmail2 == "") {
+                            App.ShowInfo_CompanyProfile2.queryById("lblEmail3").getEl().dom.style = "padding:0;";
+                        }
+                        App.ShowInfo_CompanyProfile2.queryById("Email1CompanyProfile2").setHeight(32);
+                        App.ShowInfo_CompanyProfile2.queryById("fieldsetOtherEmail").show();
+                        App.ShowInfo_CompanyProfile2.queryById("Email3CompanyProfile2").show();
+                        App.ShowInfo_CompanyProfile2.queryById("lblEmail3").show();
+                        App.ShowInfo_CompanyProfile2.queryById("Email3CompanyProfile2").setText(result.fldEmail3);
+                    }
+                
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+    function DownloadFileCompanyProfile2() {
+        if (fileId != 0) {
+            /*window.location.href = 'Url.Content("/faces/MonitoringRegisterComplete/DownloadAsasnameh?FileId=")' + fileId + "&UserName=" + username + "&Password=" + password;*/
+            $.ajax({
+                type: "POST",
+                dataType: 'native',
+                url: "/MonitoringRegisterComplete/DownloadAsasnameh",
+                xhrFields: {
+                    responseType: 'blob'
+                },
+                data: {
+                    FileId: fileId,
+                    UserName: username,
+                    Password: password
+
+                },
+                success: function (blob) {
+                    x = blob;
+                    var link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = "DownloadFile";
+                    link.click();
+                }
+            });
+        }
+    }
+
+    function DefinitRegistration() {
+        if ('@ViewBag.Final_Sabt' == "0") {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "شرکت انتخاب شده هنوز اطلاعات خود را ثبت قطعی نکرده است.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+        else {
+            App.ShowInfo_CompanyProfile2.body.mask('در حال بارگذاری...');
+            Ext.net.DirectMethod.request({
+                url: '/MonitoringRegisterComplete/ShowRelativeStakeholders',
+                params: {
+                    FirstRegisterIdd: App.ShowInfo_CompanyProfile2.queryById("FirstRegisterId").getValue(),
+                    CompanyProfileIdd: '@ViewBag.CompanyProfileId',
+                    PersonType: '@ViewBag.PersonType'
+                },
+                success: function () {
+                    /*App.ShowInfo_CompanyProfile2.body.mask().hide();*/
+                }
+            });
+        }
+    }
+    function BackToClientPanel() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/MonitoringRegisterComplete/BackToClientPanel',
+            params: {
+                CompanyProfileId: '@ViewBag.CompanyProfileId',
+                PersonType: '@ViewBag.PersonType'
+            },
+            success: function () {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+</script>

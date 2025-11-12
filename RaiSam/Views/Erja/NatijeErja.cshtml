@@ -1,0 +1,543 @@
+﻿@model IEnumerable<RaiSam.Models.prs_tblNatijeErjaSelect>
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@using Ext.Net.Utilities;
+@{
+    var X = Html.X();
+}
+<script src="~/Scripts/jquery-ajax-native.js"></script>
+<script>
+    Ext.net.FilterHeader.behaviour.string[0].match = function (recordValue, matchValue) {
+        return (Ext.net.FilterHeader.behaviour.getStrValue(recordValue) || "").indexOf(matchValue) > -1;
+    };
+
+    Ext.net.FilterHeader.behaviour.string[0].getStrValue = function (value) {
+        return value.toString();
+    };
+
+    Ext.net.FilterHeader.behaviour.string[0].serialize = function (value) {
+        return {
+            type: "string",
+            op: "*",
+            value: value
+        };
+    };
+</script>
+@(Html.X().Window()
+        .Listeners(li => { li.Render.Fn = "addKeyMapNatijeErja"; })
+    .Closable(true)
+    .Title("نتیجه ارجاع")
+    .ID("NatijeErja")
+    .Width(670)
+    .Height(500)
+    .AutoScroll(true)
+    .Modal(true)
+    .Resizable(false)
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Layout(LayoutType.VBox)
+    .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+    .Items(
+         X.AntiForgeryField()
+        .ItemID("antiForgeryToken")
+        .Hidden(true),
+        X.FieldSet()
+            .Border(true)
+            .Title("نتیجه ارجاع")
+            .Layout(LayoutType.Table)
+            .Defaults(new { Margin = 2 })
+            .LayoutConfig(new TableLayoutConfig { Columns = 6 })
+            .Items(
+                X.Hidden().ItemID("fldId"),
+               X.Label("تاریخ انجام:"),
+                        X.PDateField()
+                        .AutoFocus(true)
+                            .ItemID("txtTarikhNatije")
+                                    .Listeners(l => l.AfterRender.Handler = "setDateTarikhNatije()")
+                            .AllowBlank(false)
+                            .BlankText("لطفا تاریخ انجام را وارد کنید.")
+                            .Editable(true)
+                            .MaskRe("/[0-9/]/")
+                            .MaxLength(10)
+                            .MinLength(10)
+                            .EnforceMaxLength(true),
+                            X.Label("ساعت:"),
+                                X.TextField().Width(70)
+                            .MaskRe("/[0-9/]/")
+                            .FieldStyle("direction:ltr;")
+                            .EmptyText("مثال: 730")
+                            .MaxLength(4)
+                            .MinLength(3)
+                            .ItemID("txtSaatAnjam")
+                            .AllowBlank(false)
+                            .BlankText("لطفا ساعت را وارد کنید.")
+                                .Listeners(l =>
+                                {
+                                    l.Blur.Handler = "CheckSaatAnjam()";
+                                }),
+                             X.Label("نتیجه:"),
+                        X.ComboBox().Width(100)
+                            .ItemID("CboNatijeErja")
+                            .Editable(false)
+                            .TypeAhead(true)
+                            .BlankText("لطفا نتیجه را انتخاب کنید.")
+                            .QueryMode(DataLoadMode.Local)
+                            .TriggerAction(TriggerAction.All)
+                            .AllowBlank(false)
+                            .EmptyText("نتیجه...")
+                            .Items(
+                                new ListItem("بسته", "1"),
+                                new ListItem("باز", "0")
+                                )
+                            .SelectedItems(new { Value = "1" })
+                                , X.Label("شرح نتیجه:"),
+                            X.TextArea().Width(400)
+                            .BlankText("لطفا شرح نتیجه را انتخاب کنید.")
+                            .AllowBlank(false)
+                            .ColSpan(6)
+                        .ItemID("txtSharhNatije")
+                              .Listeners(l => l.Focus.Handler = "App.NatijeErja.queryById('txtSharhNatije').el.swallowEvent(['keypress', 'keydown']);")
+                ),
+        X.FieldSet()
+            .LayoutConfig(new TableLayoutConfig { Columns = 6 })
+            .Defaults(new { Margin = 2 })
+            .Border(false)
+            .Items(
+                X.Button()
+                    .Text("ذخیره")
+                    .Icon(Ext.Net.Icon.Disk)
+                        .Listeners(l => l.Click.Handler = "SaveNatijeErja()"),
+                X.Button()
+                    .Text("خروج")
+                    .Icon(Ext.Net.Icon.DoorOut)
+                    .OnClientClick("App.NatijeErja.destroy();")
+            ),
+                X.GridPanel()
+                    .AutoScroll(true)
+                    .TopBar(
+                        X.Toolbar()
+                            .Items(
+                                X.Button()
+                                    .Text("ویرایش")
+                                    .Icon(Ext.Net.Icon.Pencil)
+                                    .Listeners(l => l.Click.Handler = "EditNatijeErja()"),
+                                X.Button()
+                                    .Text("حذف")
+                                    .Icon(Ext.Net.Icon.Delete)
+                                        .Listeners(l => l.Click.Handler = "DeleteNatijeErja()")
+                            )
+                    )
+                    .Border(true)
+                        .ItemID("GridNatijeErja")
+                    .BottomBar(X.PagingToolbar())
+                    .Plugins(X.FilterHeader().Remote(false))
+                    .Width(630)
+                    .Height(310)
+                    .Store(
+                        X.StoreForModel()
+                                .Listeners(l => l.BeforeLoad.Handler = "App.NatijeErja.queryById('GridNatijeErja').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.NatijeErja.queryById('antiForgeryToken').getValue());")
+                                .Listeners(l => l.DataChanged.Handler = "App.NatijeErja.queryById('GridNatijeErja').selModel.refresh();")
+                            .Proxy(Html.X().AjaxProxy()
+                                .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                    .Url(Url.Action("ReadNatijeErja"))
+                                .Reader(Html.X().JsonReader().Root("data"))
+                                 .ExtraParams(pa => pa.Add(new { ErjaId = ViewBag.ErjaId }))
+                            )
+                            .PageSize(10)
+                            .RemoteFilter(false)
+                            .RemotePaging(false)
+                    )
+                    .View(
+                        Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                    )
+                         .Listeners(a => a.CellDblClick.Handler = "GotoShowVersion();")
+                    .ColumnModel(
+                        Html.X().RowNumbererColumn(),
+                            Html.X().Column().DataIndex(Model, m => m.fldTimeStamp).Text("").Flex(1).Hidden(true),
+                        Html.X().Column().DataIndex(Model, m => m.fldFileId).Text("کدفایل").Flex(1).Hidden(true),
+                        Html.X().Column().DataIndex(Model, m => m.fldId).Text("کد").Flex(1).Hidden(true),
+                        Html.X().Column().DataIndex(Model, m => m.fldTarikhAnjam).Text("تاریخ انجام").Flex(3),
+                        Html.X().Column().DataIndex(Model, m => m.fldTime).Text("ساعت").Flex(2),
+                        Html.X().Column().DataIndex(Model, m => m.fldNatijeName).Text("نتیجه").Flex(2).Wrap(true),
+                        Html.X().Column().DataIndex(Model, m => m.fldSharh).Text("شرح نتیجه").Flex(8).Wrap(true),
+                        Html.X().Column().DataIndex(Model, m => m.fldsharhVersion).Text("شرح ورژن").Flex(8).Wrap(true),
+                        Html.X().ComponentColumn().ItemID("buttonDownloadShowVersion").Listeners(l => l.Bind.Fn = "CheckEnableShowVersion").Text("دانلود").Filterable(false).Flex(3)
+                        .Component(Html.X().Button().ItemID("btnDownloadShowVersion").Text("دانلود فایل").Listeners(l => l.Click.Handler = "DownloadShowVersion()"))
+                    )
+        )
+)
+
+<script type="text/javascript">
+    var fldTimeStampNatije = 0; var NatijeID = 0;
+
+    function CheckSaatAnjam() {
+        var txtSaatAnjam = App.NatijeErja.queryById("txtSaatAnjam");
+        if (txtSaatAnjam.getValue().length == 3) {
+            App.NatijeErja.queryById("txtSaatAnjam").setValue("0" + App.NatijeErja.queryById("txtSaatAnjam").getValue());
+        }
+        if (txtSaatAnjam.getValue() > 2359) {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "ساعت ارجاع معتبر نمی باشد.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+            txtSaatAnjam.setValue("");
+        }
+        if (txtSaatAnjam.getValue().length == 3) {
+            if (txtSaatAnjam.getValue().substring(1, 3) > 59) {
+                Ext.MessageBox.show({
+                    title: "خطا",
+                    msg: "ساعت ارجاع معتبر نمی باشد.",
+                    icon: Ext.MessageBox.ERROR,
+                    buttons: Ext.MessageBox.OK
+                });
+                txtSaatAnjam.setValue("");
+            }
+        }
+        else if (txtSaatAnjam.getValue().length == 4) {
+            if (txtSaatAnjam.getValue().substring(2, 4) > 59 || txtSaatAnjam.getValue().substring(0, 2) > 23) {
+                Ext.MessageBox.show({
+                    title: "خطا",
+                    msg: "ساعت ارجاع معتبر نمی باشد.",
+                    icon: Ext.MessageBox.ERROR,
+                    buttons: Ext.MessageBox.OK
+                });
+                txtSaatAnjam.setValue("");
+            }
+        }
+    }
+    var CheckEnableShowVersion = function (columnn, component, record, rowIndex) {
+        if (record.data.fldFileId == 0) {
+            component.disable();
+        }
+    };
+    function DownloadShowVersion() {
+        var fldFileId = App.NatijeErja.queryById("buttonDownloadShowVersion").activeRecord.record.data.fldFileId;
+        $.ajax({
+            type: "POST",
+            dataType: 'native',
+            url: "/Erja/DownloadShowVersion",
+            xhrFields: {
+                responseType: 'blob'
+            },
+            data: {
+                FileIdMostanad: fldFileId,
+                __RequestVerificationToken: App.NatijeErja.queryById('antiForgeryToken').getValue()
+            },
+            success: function (blob) {
+                var link = document.createElement('a');
+                link.href = window.URL.createObjectURL(blob);
+                link.download = "DownloadFile";
+                link.click();
+            }
+        });
+    }
+    function setDateTarikhNatije() {
+        if (NatijeID == 0) {
+            var txtTarikh = App.NatijeErja.queryById('txtTarikhNatije');
+            var Maxdate = '@ViewBag.Tarikh';
+            txtTarikh.setMaxValue(Maxdate);
+            txtTarikh.maxText = "تاریخ ارجاع نمی تواند بزرگتر از تاریخ روز باشد.";
+        }
+    }
+    function GotoShowVersion() {
+        var SelectedRow = App.NatijeErja.queryById('GridNatijeErja').selModel.getLastSelected();
+        if (SelectedRow != null) {
+            App.NatijeErja.body.mask("در حال بارگذاری...");
+            Ext.net.DirectMethod.request({
+                url: '/ShowVersion/New',
+                params: {
+                    NatijeId: SelectedRow.data.fldId,
+                },
+                success: function (data) {
+                    App.NatijeErja.body.mask().hide();
+                }
+            });
+        }
+    }
+    function SaveNatijeErja() {
+        var txtTarikhNatije = App.NatijeErja.queryById('txtTarikhNatije');
+        var Id = App.NatijeErja.queryById('fldId');
+        var CboNatijeErja = App.NatijeErja.queryById('CboNatijeErja');
+        var txtSharhNatije = App.NatijeErja.queryById('txtSharhNatije');
+        var txtSaatAnjam = App.NatijeErja.queryById("txtSaatAnjam");
+
+        var er = false;
+        if (txtSharhNatije.validate() == false) {
+            er = true;
+        }
+        if (CboNatijeErja.validate() == false) {
+            er = true;
+        }
+        if (txtTarikhNatije.validate() == false) {
+            er = true;
+        }
+        if (txtSaatAnjam.validate() == false) {
+            er = true;
+        }
+        if (er == true)
+            return;
+
+        var SaatAnjam = "";
+
+        SaatAnjam = txtSaatAnjam.getValue().substring(0, 2) + ":" + txtSaatAnjam.getValue().substring(2, 4);
+
+        var NatijeErja = false;
+        if (CboNatijeErja.getValue() == "1")
+            NatijeErja = true;
+        App.NatijeErja.body.mask("در حال ذخیره سازی");
+        Ext.net.DirectMethod.request({
+            url: '/Erja/SaveNatijeErja',
+            params: {
+                fldId: Id.getValue(),
+                fldSharh: txtSharhNatije.getValue(),
+                fldTarikhAnjam: txtTarikhNatije.rawValue,
+                fldErjaId: '@ViewBag.ErjaId',
+                fldNameErjaDahande: '@ViewBag.NameErjadahande',
+                fldTimeStamp: fldTimeStampNatije,
+                fldNatije: NatijeErja,
+                fldNatijeName: CboNatijeErja.getDisplayValue(),
+                fldTime:SaatAnjam,
+                __RequestVerificationToken: App.NatijeErja.queryById('antiForgeryToken').getValue()
+            },
+            success: function (data) {
+                chat.server.reloadLog();
+                if (data.Er == 1 && data.Change == 1) {/*vaghti TimeStamp==0*/
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: Ext.MessageBox.WARNING,
+                        buttons: Ext.MessageBox.OK,
+                        fn: function (btn) {
+                            if (btn == 'ok') {
+                                LoadNatije(NatijeID);
+                            }
+                        }
+                    });
+                }
+                else if (data.Er == 1 && data.Change == 2) {/*vaghti TimeStamp==2*/
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK,
+                        fn: function (btn) {
+                            if (btn == 'ok') {
+                                ClearNatijeErja();
+                            }
+                        }
+                    });
+                }
+                else if (data.Er == 1) {
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK,
+                    });
+                }
+                else {
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: Ext.MessageBox.INFO,
+                        buttons: Ext.MessageBox.OK,
+                    });
+                }
+                App.NatijeErja.queryById('GridNatijeErja').store.load();
+                if (data.Er != 1)
+                    ClearNatijeErja();
+                App.NatijeErja.body.mask().hide();
+            }
+        });
+    }
+    function LoadNatije(Id) {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Erja/DetailsNatijeErja',
+            params: {
+                Id: Id,
+                __RequestVerificationToken: App.NatijeErja.queryById('antiForgeryToken').getValue()
+            },
+            success: function (data) {
+                var txtTarikhNatije = App.NatijeErja.queryById('txtTarikhNatije');
+                txtTarikhNatije.setValue(data.fldTarikhAnjam);
+
+                var Id = App.NatijeErja.queryById('fldId');
+                Id.setValue(data.fldId);
+
+                var CboNatijeErja = App.NatijeErja.queryById('CboNatijeErja');
+                CboNatijeErja.setValue(data.Natije);
+
+                var txtSharhNatije = App.NatijeErja.queryById('txtSharhNatije');
+                txtSharhNatije.setValue(data.fldSharh);
+
+                var txtSaatAnjam = App.NatijeErja.queryById("txtSaatAnjam");
+                txtSaatAnjam.setValue(data.fldTime);
+
+                fldTimeStampNatije = data.fldTimeStamp;
+                Ext.net.Mask.hide();
+            }
+        });
+
+    }
+    function EditNatijeErja() {
+        var SelectedRow = App.NatijeErja.queryById('GridNatijeErja').selModel.getLastSelected();
+        if (SelectedRow != null) {
+            NatijeID = SelectedRow.data.fldId;
+            App.NatijeErja.body.mask("در حال بارگذاری...");
+            Ext.net.DirectMethod.request({
+                url: '/Erja/DetailsNatijeErja',
+                params: {
+                    Id: SelectedRow.data.fldId,
+                    __RequestVerificationToken: App.NatijeErja.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+
+                    var txtTarikhNatije = App.NatijeErja.queryById('txtTarikhNatije');
+                    txtTarikhNatije.setValue(data.fldTarikhAnjam);
+
+                    var Id = App.NatijeErja.queryById('fldId');
+                    Id.setValue(data.fldId);
+
+                    var CboNatijeErja = App.NatijeErja.queryById('CboNatijeErja');
+                    CboNatijeErja.setValue(data.Natije);
+
+                    var txtSharhNatije = App.NatijeErja.queryById('txtSharhNatije');
+                    txtSharhNatije.setValue(data.fldSharh);
+
+
+                    fldTimeStampNatije = data.fldTimeStamp;
+
+                    var txtSaatAnjam = App.NatijeErja.queryById("txtSaatAnjam");
+                    txtSaatAnjam.setValue(data.fldTime);
+
+                    App.NatijeErja.body.mask().hide();
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+
+    function DeleteNatijeErja() {
+        var SelectedRow = App.NatijeErja.queryById('GridNatijeErja').selModel.getLastSelected();
+        if (SelectedRow != null) {
+            Ext.MessageBox.show({
+                title: "هشدار",
+                msg: "آیا برای حذف مطمئن هستید؟",
+                icon: Ext.MessageBox.WARNING,
+                buttons: Ext.MessageBox.YESNO,
+                fn: function (btn) {
+                    if (btn == 'yes') {
+                        App.NatijeErja.body.mask("در حال انجام عملیات...");
+                        Ext.net.DirectMethod.request({
+                            url: '/Erja/DeleteNatijeErja',
+                            params: {
+                                id: SelectedRow.data.fldId,
+                                TimeStamp: SelectedRow.data.fldTimeStamp,
+                                __RequestVerificationToken: App.NatijeErja.queryById('antiForgeryToken').getValue()
+                            },
+                            success: function (data) {
+                                chat.server.reloadLog();
+                                if (data.Er == 1 && data.Change == 1) {/*vaghti TimeStamp==0*/
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.WARNING,
+                                        buttons: Ext.MessageBox.OK,
+                                        fn: function (btn) {
+                                            if (btn == 'ok') {
+                                                App.NatijeErja.queryById('GridNatijeErja').store.load();
+                                            }
+                                        }
+                                    });
+                                }
+                                else if (data.Er == 1 && data.Change == 2) {/*vaghti TimeStamp==2*/
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.ERROR,
+                                        buttons: Ext.MessageBox.OK,
+                                        fn: function (btn) {
+                                            if (btn == 'ok') {
+                                                App.NatijeErja.queryById('GridNatijeErja').store.load();
+                                            }
+                                        }
+                                    });
+                                }
+                                else if (data.Er == 1) {
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.ERROR,
+                                        buttons: Ext.MessageBox.OK
+                                    });
+                                }
+                                else {
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.INFO,
+                                        buttons: Ext.MessageBox.OK
+                                    });
+                                    App.NatijeErja.queryById('GridNatijeErja').store.load();
+                                }
+                                App.NatijeErja.body.mask().hide();
+                            }
+                        });
+                    }
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+
+    function ClearNatijeErja() {
+        fldTimeStampNatije = 0;
+        App.NatijeErja.queryById("fldId").setValue(0);
+        App.NatijeErja.queryById("txtTarikhNatije").setValue("");
+        App.NatijeErja.queryById('txtSharhNatije').setValue("");
+        App.NatijeErja.queryById("txtSaatAnjam").setValue("");
+    }
+
+    var addKeyMapNatijeErja = function (cmp) {
+        this.keyMap = new Ext.util.KeyMap({
+            target: cmp.getEl(),
+            binding: [{
+                key: [13, 9], /*Ext.EventObject.ENTER,*/
+                fn: function (key, e) {
+                    if (e.getKey() == 9) {
+                        e.stopEvent();
+                    }
+                    var keyfield = App.NatijeErja.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+                    var nextfld;
+                    if (keyfield.itemId == "txtSharhNatije") {
+                        SaveNatijeErja();
+                        return;
+                    }
+                    else {
+                        nextfld = keyfield.nextSibling().nextSibling();
+                    }
+                    nextfld.focus();
+                    nextfld.selectText();
+                }
+            }]
+        });
+    }
+</script>

@@ -1,0 +1,174 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+
+
+@(Html.X().Window().Modal(true).Listeners(li => { li.AfterRender.Handler = "LoadAvamelMoasser();"; li.Render.Fn = "addKeyMapAvamelMoasser"; })
+.Width(540)//.Height(300)
+    .Title("تعریف عوامل موثر در ارتقا")
+        .ID("NewAvamelMoasser")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+        .ButtonAlign(Ext.Net.Alignment.Center)
+        .Layout(LayoutType.Fit)
+        .Buttons(X.Button().Text("ذخیره").Icon(Ext.Net.Icon.Disk)
+                    .Listeners(l =>
+                    {
+                        l.Click.Handler = "SaveAvamelMoasser();";
+
+                    })
+                     .ItemID("btnSaveAvamelMoasser")
+                    ,
+                    X.Button().Text("خروج").Icon(Ext.Net.Icon.DoorOut).ToolTip("کلید میانبر Esc")
+                        .OnClientClick("App.NewAvamelMoasser.hide();"))
+    .Items(
+        X.AntiForgeryField()
+             .ItemID("antiForgeryToken")
+                    .Hidden(true),
+            X.Panel().Border(false)
+            .Layout(Ext.Net.LayoutType.VBox)
+            .LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Center })
+            .Items(
+                X.FieldSet().Border(true).Title("عوامل موثر در ارتقا")
+                .Center()
+                .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 4 })
+                .Defaults(new { Margin = 2 })
+                .Items(
+                X.Hidden().ItemID("fldId"),
+                     X.Label("نام آیتم:"),
+                     X.TextField()
+                     .ItemID("txtTitle")
+                     .MaxLength(400).MaskRe("[ ,),(,ا-ی-آ-ئ-ء]")
+                     .EnforceMaxLength(true)
+                    .AllowBlank(false)
+                    .BlankText("لطفا نام آیتم را وارد کنید.")
+                    .AutoFocus(true),
+                    X.Label("نام انگلیسی در فرمول:"),
+                     X.TextField()
+                     .ItemID("txtNameEn")
+                     .MaxLength(400).MaskRe("[a-z,A-Z]")
+                     .EnforceMaxLength(true)
+                    .AllowBlank(false)
+                    .BlankText("لطفا نام انگلیسی در فرمول را وارد کنید."),
+                    X.Label("توضیحات:"),
+                        X.TextField().Width(412)
+                    .ItemID("txtDesc").ColSpan(3)
+
+                     )
+
+                )
+        )
+)
+<script type="text/javascript">
+    function LoadAvamelMoasser() {
+        ReplaceArabic();
+        if ('@ViewBag.Id' != '0') {
+            App.NewAvamelMoasser.body.mask("در حال بارگذاری...");
+            Ext.net.DirectMethod.request({
+                url: '/AvamelMoasser_Upgrade/Details',
+                params: {
+                    Id: '@ViewBag.Id',
+                    __RequestVerificationToken: App.NewAvamelMoasser.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+                    var txtTitle = App.NewAvamelMoasser.queryById('txtTitle');
+                    txtTitle.setValue(data.fldName);
+                    var txtDesc = App.NewAvamelMoasser.queryById('txtDesc');
+                    txtDesc.setValue(data.fldDesc);
+                    var txtNameEn = App.NewAvamelMoasser.queryById('txtNameEn');
+                    txtNameEn.setValue(data.fldEnglishNameFormul);
+                    var Id = App.NewAvamelMoasser.queryById('fldId');
+                    Id.setValue(data.fldId);
+                    App.NewAvamelMoasser.body.mask().hide();
+                }
+            });
+        }
+        else {
+            App.NewAvamelMoasser.queryById('txtTitle').validate();
+            App.NewAvamelMoasser.queryById('txtNameEn').validate();
+        }
+
+    }
+
+    function SaveAvamelMoasser() {
+        var txtTitle = App.NewAvamelMoasser.queryById('txtTitle');
+        var txtDesc = App.NewAvamelMoasser.queryById('txtDesc');
+        var txtNameEn = App.NewAvamelMoasser.queryById('txtNameEn');
+        var Id = App.NewAvamelMoasser.queryById('fldId');
+            var er = false;
+            if (txtTitle.validate() == false) {
+                er = true;
+            }
+            if (er == true)
+                return;
+            App.NewAvamelMoasser.body.mask("در حال ذخیره سازی");
+            Ext.net.DirectMethod.request({
+                url: '/AvamelMoasser_Upgrade/Save',
+                params: {
+                    fldId: Id.getValue(),
+                    fldName: txtTitle.getValue(),
+                    fldDesc: txtDesc.getValue(),
+                    fldEnglishNameFormul: txtNameEn.getValue(),
+                    __RequestVerificationToken: App.NewAvamelMoasser.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+                    chat.server.reloadLog();
+                    var ic = Ext.MessageBox.INFO;
+                    if (data.Er == 1)
+                        ic = Ext.MessageBox.ERROR;
+                    Ext.MessageBox.show({
+                        Name: data.MsgName,
+                        msg: data.Msg,
+                        icon: ic,
+                        buttons: Ext.MessageBox.OK
+                    });
+                    if (App.AvamelMoasser) {
+                        App.AvamelMoasser.queryById('GridAvamelMoasser').store.load();
+                    }
+                    if (App.NewFactorsAffectingValues) {
+                        App.NewFactorsAffectingValues.queryById('GridFactorsAffecting').getStore().getProxy().setExtraParam("HeaderId", 0);
+                        App.NewFactorsAffectingValues.queryById('GridFactorsAffecting').store.load();
+                    }
+                    if (data.Er != 1)
+                        ClearAvamelMoasser();
+                    App.NewAvamelMoasser.body.mask().hide();
+                }
+
+            });
+        }
+    function ClearAvamelMoasser() {
+        App.NewAvamelMoasser.queryById('txtNameEn').setValue("");
+        App.NewAvamelMoasser.queryById('txtTitle').setValue("");
+        App.NewAvamelMoasser.queryById('txtDesc').setValue("");
+        App.NewAvamelMoasser.queryById('fldId').setValue(0);
+    }
+    var addKeyMapAvamelMoasser = function (cmp) {
+        this.keyMap = new Ext.util.KeyMap({
+            target: cmp.getEl(),
+            binding: [{
+                key: [13, 9], /*Ext.EventObject.ENTER,*/
+                fn: function (key, e) {
+                    if (e.getKey() == 9) {
+                        e.stopEvent();
+                    }
+                    var keyfield = App.NewAvamelMoasser.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+                    var nextfld;
+                    if (keyfield.itemId == "txtDesc") {
+                        nextfld = App.NewAvamelMoasser.queryById('btnSaveAvamelMoasser');
+                        SaveAvamelMoasser();
+                        return;
+                    }
+                    else {
+                        nextfld = keyfield.nextSibling().nextSibling();
+                        nextfld.selectText();
+                    }
+                    nextfld.focus();
+                    nextfld.selectText();
+                }
+            }]
+        });
+    }
+</script>

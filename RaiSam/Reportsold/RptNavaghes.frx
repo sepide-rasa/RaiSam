@@ -1,0 +1,134 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Report ScriptLanguage="CSharp" ReferencedAssemblies="System.dll&#13;&#10;System.Drawing.dll&#13;&#10;System.Windows.Forms.dll&#13;&#10;System.Data.dll&#13;&#10;System.Xml.dll&#13;&#10;MyLib.dll" ReportInfo.Created="12/21/2015 11:25:47" ReportInfo.Modified="07/26/2023 13:10:48" ReportInfo.CreatorVersion="2015.1.2.0">
+  <ScriptText>using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Windows.Forms;
+using System.Drawing;
+using System.Data;
+using FastReport;
+using FastReport.Data;
+using FastReport.Dialog;
+using FastReport.Barcode;
+using FastReport.Table;
+using FastReport.Utils;
+
+namespace FastReport
+{
+  public class ReportScript
+  {
+
+    private void PageHeader1_AfterData(object sender, EventArgs e)
+    {
+      Text5.Text=&quot;تاریخ چاپ: &quot;+MyLib.Shamsi.Miladi2ShamsiString(((DateTime)Report.GetVariableValue(&quot;Date&quot;)))   ;
+       Text6.Text=&quot;زمان چاپ: &quot;+((DateTime)Report.GetVariableValue(&quot;Date&quot;)).Hour+&quot;:&quot;+((DateTime)Report.GetVariableValue(&quot;Date&quot;)).Minute+&quot;:&quot;+((DateTime)Report.GetVariableValue(&quot;Date&quot;)).TimeOfDay.Seconds+&quot; &quot;;
+    }
+
+    private void Data1_AfterData(object sender, EventArgs e)
+    {
+      
+    }
+  }
+}
+</ScriptText>
+  <Styles>
+    <Style Name="Style1" Fill.Color="Silver"/>
+    <Style Name="Style2" Fill.Color="232, 244, 255"/>
+  </Styles>
+  <Dictionary>
+    <TableDataSource Name="prs_tblSettingSelect" ReferenceName="raiSamDataSet.prs_tblSettingSelect" DataType="System.Int32" Enabled="true">
+      <Column Name="fldId" DataType="System.Int32"/>
+      <Column Name="fldTitle" DataType="System.String"/>
+      <Column Name="fldFile" DataType="System.Byte[]" BindableControl="Picture"/>
+      <Column Name="flddesc" DataType="System.String"/>
+      <Column Name="fldCompanyFromService" DataType="System.Boolean" BindableControl="CheckBox"/>
+    </TableDataSource>
+    <TableDataSource Name="prs_tblTaeedatSelect" ReferenceName="raiSamDataSet.prs_tblTaeedatSelect" DataType="System.Int32" Enabled="true">
+      <Column Name="fldId" DataType="System.Int32"/>
+      <Column Name="fldType" DataType="System.Boolean" BindableControl="CheckBox"/>
+      <Column Name="fldApp_ClientId" DataType="System.Int32"/>
+      <Column Name="fldFirstContractId" DataType="System.Int32"/>
+      <Column Name="fldTableId" DataType="System.Int32"/>
+      <Column Name="fldInputId" DataType="System.Int32"/>
+      <Column Name="fldDescId" DataType="System.Int32"/>
+      <Column Name="fldDate" DataType="System.DateTime"/>
+      <Column Name="fldTypeName" DataType="System.String"/>
+      <Column Name="fldDesc" DataType="System.String"/>
+      <Column Name="fldFaNameTable" DataType="System.String"/>
+      <Column Name="fldTarikh" DataType="System.String"/>
+      <Column Name="fldZaman" DataType="System.TimeSpan"/>
+    </TableDataSource>
+    <TableDataSource Name="prs_tblRegistrationFirstContractSelect" ReferenceName="raiSamDataSet.prs_tblRegistrationFirstContractSelect" DataType="System.Int32" Enabled="true">
+      <Column Name="fldId" DataType="System.Int32"/>
+      <Column Name="fldRequestId" DataType="System.Int32"/>
+      <Column Name="fldTitle" DataType="System.String"/>
+      <Column Name="fldTedad" DataType="System.Int32"/>
+      <Column Name="fldTypeVagonId" DataType="System.Int32"/>
+      <Column Name="fldInputId" DataType="System.Int32"/>
+      <Column Name="fldTypeVagonName" DataType="System.String"/>
+      <Column Name="fldHadafName" DataType="System.String"/>
+      <Column Name="ExistsEnter" DataType="System.Int32"/>
+      <Column Name="fldFirstRegisterId" DataType="System.Int32"/>
+      <Column Name="fldFullName" DataType="System.String"/>
+    </TableDataSource>
+  </Dictionary>
+  <ReportPage Name="Page1" Landscape="true" PaperWidth="297" PaperHeight="210" RawPaperSize="9" FirstPageSource="15" OtherPagesSource="15" Guides="999.81,1040.63">
+    <PageHeaderBand Name="PageHeader1" Width="1047.06" Height="241.18" AfterDataEvent="PageHeader1_AfterData" Guides="172.746">
+      <TableObject Name="Table2" Left="31.56" Top="1.44" Width="983.94" Height="131.5">
+        <TableColumn Name="Column10" Width="233.9"/>
+        <TableColumn Name="Column11" Width="500"/>
+        <TableColumn Name="Column12" Width="250.04"/>
+        <TableRow Name="Row2" Height="32.15">
+          <TableCell Name="Cell30">
+            <TextObject Name="Text5" Left="1.63" Top="1.86" Width="187.56" Height="29.28" VertAlign="Center" RightToLeft="true" Font="RasaFont, 11pt"/>
+          </TableCell>
+          <TableCell Name="Cell31" RowSpan="2">
+            <TextObject Name="Text1" Left="18.86" Top="3.79" Width="479.96" Height="56.67" Text="سامانه جامع ماده 12&#13;&#10;راه آهن جمهوری اسلامی ایران" HorzAlign="Center" VertAlign="Center" RightToLeft="true" Font="RasaFont, 13pt, style=Bold"/>
+          </TableCell>
+          <TableCell Name="Cell32" RowSpan="2">
+            <PictureObject Name="Picture1" Left="113.82" Top="0.76" Width="75.6" Height="64.26" DataColumn="prs_tblUploadFileSelect.فایل"/>
+          </TableCell>
+        </TableRow>
+        <TableRow Name="Row3" Height="32.17">
+          <TableCell Name="Cell35">
+            <TextObject Name="Text6" Left="0.15" Top="2.63" Width="187.43" Height="28.34" VertAlign="Center" RightToLeft="true" Font="RasaFont, 11pt"/>
+          </TableCell>
+          <TableCell Name="Cell36"/>
+          <TableCell Name="Cell37"/>
+        </TableRow>
+        <TableRow Name="Row4" Height="32.19">
+          <TableCell Name="Cell40">
+            <TextObject Name="Text7" Left="2.05" Top="2.32" Width="186.32" Height="28.34" Text="صفحه [Page] از [TotalPages#]" VertAlign="Center" RightToLeft="true" Font="RasaFont, 11pt"/>
+          </TableCell>
+          <TableCell Name="Cell42" RowSpan="2">
+            <TextObject Name="Text10" Left="154.95" Top="16.78" Width="207.79" Height="30.2" Text="لیست نواقص" HorzAlign="Center" VertAlign="Center" RightToLeft="true" Font="RasaFont, 14pt, style=Bold"/>
+          </TableCell>
+          <TableCell Name="Cell41" RowSpan="2">
+            <TextObject Name="Text8" Left="53.39" Top="0.95" Width="188.92" Height="63.31" Text="وزارت راه و شهرسازی &#13;&#10;شرکت راه آهن جمهوری اسلامی ایران&#13;&#10;(سهامی خاص)" HorzAlign="Center" VertAlign="Center" RightToLeft="true" Font="RasaFont, 10pt, style=Bold"/>
+          </TableCell>
+        </TableRow>
+        <TableRow Name="Row5" Height="34.99">
+          <TableCell Name="Cell45"/>
+          <TableCell Name="Cell46"/>
+          <TableCell Name="Cell47"/>
+        </TableRow>
+      </TableObject>
+      <TextObject Name="Text14" Left="821.04" Top="207.45" Width="179.52" Height="30.25" Border.Lines="Right, Top, Bottom" Fill="Glass" Fill.Color="SkyBlue" Fill.Blend="0.2" Fill.Hatch="true" CanGrow="true" GrowToBottom="true" Text="نام فرم" HorzAlign="Center" VertAlign="Center" RightToLeft="true" Font="RasaFont, 12pt, style=Bold"/>
+      <TextObject Name="Text15" Left="273.86" Top="207.46" Width="547.14" Height="30.24" Border.Lines="Right, Top, Bottom" Fill="Glass" Fill.Color="SkyBlue" Fill.Blend="0.2" Fill.Hatch="true" CanGrow="true" GrowToBottom="true" Text="توضیحات" HorzAlign="Center" VertAlign="Center" RightToLeft="true" Font="RasaFont, 12pt, style=Bold"/>
+      <TextObject Name="Text16" Left="127.75" Top="207.46" Width="146.27" Height="30.24" Border.Lines="Right, Top, Bottom" Fill="Glass" Fill.Color="SkyBlue" Fill.Blend="0.2" Fill.Hatch="true" CanGrow="true" GrowToBottom="true" Text="تاریخ ارسال" HorzAlign="Center" VertAlign="Center" RightToLeft="true" Font="RasaFont, 12pt, style=Bold"/>
+      <TextObject Name="Text17" Left="4.95" Top="207.48" Width="123.19" Height="30.24" Border.Lines="All" Fill="Glass" Fill.Color="SkyBlue" Fill.Blend="0.2" Fill.Hatch="true" CanGrow="true" GrowToBottom="true" Text="زمان ارسال" HorzAlign="Center" VertAlign="Center" RightToLeft="true" Font="RasaFont, 12pt, style=Bold"/>
+      <TextObject Name="Text13" Left="999.81" Top="207.18" Width="41.93" Height="30.62" Border.Lines="All" Fill="Glass" Fill.Color="SkyBlue" Fill.Blend="0.2" Fill.Hatch="true" CanGrow="true" GrowToBottom="true" Text="ردیف" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 12pt, style=Bold"/>
+      <TextObject Name="Text2" Left="630.93" Top="146.65" Width="403.29" Height="28.74" Text="نام شرکت:[prs_tblRegistrationFirstContractSelect.fldFullName]" VertAlign="Center" RightToLeft="true" Font="RasaFont, 12pt"/>
+      <TextObject Name="Text3" Left="550.91" Top="174.28" Width="483.3" Height="25.33" Text="عنوان پروژه:[prs_tblRegistrationFirstContractSelect.fldTitle]" VertAlign="Center" RightToLeft="true" Font="RasaFont, 12pt"/>
+      <TextObject Name="Text25" Left="63.31" Top="149.32" Width="483.3" Height="25.33" Text="نوع درخواست:[prs_tblRegistrationFirstContractSelect.fldHadafName]" VertAlign="Center" RightToLeft="true" Font="RasaFont, 12pt"/>
+    </PageHeaderBand>
+    <DataBand Name="Data1" Top="245.18" Width="1047.06" Height="28.33" CanGrow="true" AfterDataEvent="Data1_AfterData" DataSource="prs_AllChat">
+      <TextObject Name="Text19" Left="821.98" Top="-1.92" Width="177.63" Height="30.25" Border.Lines="Right, Bottom" CanGrow="true" GrowToBottom="true" Text="[prs_tblTaeedatSelect.fldFaNameTable]" HorzAlign="Center" VertAlign="Center" RightToLeft="true" Font="RasaFont, 11pt"/>
+      <TextObject Name="Text20" Left="273.08" Top="-1.91" Width="548.11" Height="30.24" Border.Lines="Right, Bottom" CanGrow="true" GrowToBottom="true" Text="[prs_tblTaeedatSelect.fldDesc]" HorzAlign="Center" VertAlign="Center" RightToLeft="true" Font="RasaFont, 11pt"/>
+      <TextObject Name="Text21" Left="127.93" Top="-1.91" Width="146.27" Height="30.24" Border.Lines="Right, Bottom" CanGrow="true" GrowToBottom="true" Text="[prs_tblTaeedatSelect.fldTarikh]" HorzAlign="Center" VertAlign="Center" RightToLeft="true" Font="RasaFont, 11pt"/>
+      <TextObject Name="Text22" Left="4.76" Top="-2.26" Width="123.19" Height="30.24" Border.Lines="Left, Right, Bottom" CanGrow="true" GrowToBottom="true" Text="[prs_tblTaeedatSelect.fldZaman]" HorzAlign="Center" VertAlign="Center" RightToLeft="true" Font="RasaFont, 11pt"/>
+      <TextObject Name="Text24" Left="998.83" Top="-2.19" Width="42.71" Height="30.24" Border.Lines="Right, Bottom" CanGrow="true" GrowToBottom="true" Text="[Row#]" HorzAlign="Center" VertAlign="Center" Font="RasaFont, 11pt"/>
+    </DataBand>
+  </ReportPage>
+</Report>

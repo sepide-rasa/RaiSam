@@ -1,0 +1,320 @@
+﻿@using Ext.Net.MVC;
+@{
+
+    var X = Html.X();
+}
+<style>
+    .addImage {
+        background-image: url("/Content/icon/mini/جدیدد.png");
+        background-size: auto !important;
+    }
+
+    .saveImage {
+        background-image: url("/Content/icon/mini/ذخیرهه.png");
+        background-size: auto !important;
+    }
+
+    .Info {
+        background-image: url("/Content/info11.png");
+        background-size: cover !important;
+    }
+
+    .Delete {
+        background-image: url("/Content/icon/mini/حذفف.png");
+        background-size: cover !important;
+        margin: 0 5px 0 5px !important;
+    }
+
+    .Edit {
+        background-image: url("/Content/icon/mini/ویرایشش.PNG");
+        background-size: cover !important;
+    }
+</style>
+
+@(X.Window()
+    .Listeners(l => l.Render.Handler = "LoadForm();")
+    .ID("DynamicFormWin")
+    .AutoScroll(true)
+    .Modal(true)
+    .Border(false)
+        //.Tools(X.Tool().Type(Ext.Net.ToolType.Help).Listeners(l => l.Click.Handler = "showHelpDynamicForm()").ToolTip("راهنما متنی")
+        //    )
+    .Height(550)
+    .Width(900)
+        //.Title("آیتم های داینامیک")
+        //        .Layout(Ext.Net.LayoutType.Fit)
+    .Items(
+    
+                                    
+                                          X.Panel()
+                .Border(false)
+                .ID("DynamicForm")
+                       .Height(505)
+        // .Width(900)
+                    .Layout(Ext.Net.LayoutType.Accordion)
+        .LayoutConfig(new Ext.Net.AccordionLayoutConfig { OriginalHeader = true, Multi = true })
+                .AutoScroll(true)
+                                    )
+        //.Buttons(X.Button()
+        //                                .Text("راهنما")
+        //                                .Icon(Ext.Net.Icon.Help)
+        //                                       .Listeners(l => l.Click.Handler = "showHelpDynamicForm()")
+        //                                        .ItemID("btnshowHelpDynamicForm"))
+)
+
+
+<script type="text/javascript">
+    var cc;
+
+
+    function LoadForm() {
+
+        if ('@ViewBag.State' == '1') {
+            App.DynamicFormWin.setTitle("مدارک و مستندات شرکت");
+        }
+        else if ('@ViewBag.State' == '2') {
+            App.DynamicFormWin.setTitle("مدارک عمومی پروژه");
+        }
+        else if ('@ViewBag.State' == '3') {
+            App.DynamicFormWin.setTitle("مدارک اختصاصی پروژه");
+        }
+        TitleRatingDynamicId = '@ViewBag.TitleRatingDynamicIds'.split(';');
+
+        /*Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });*/
+
+        for (var i = 0; i < TitleRatingDynamicId.length - 1; i++) {
+            Ext.net.DirectMethod.request({
+                url: '/GeneralKartabl/GetInfoGridDynamicForm',
+                params: {
+                    fldTitleDynamicId: TitleRatingDynamicId[i],
+                    RequestId: '@ViewBag.RequestId'
+                },
+                success: function (result) {
+                    if (result.Er != 1) {
+                        NameKhasiyat_Fa = result.NamesKhasiyat_Fa.split(';');
+                        NameKhasiyat_En = result.NamesKhasiyat_En.split(';');
+
+                        var selection = Ext.create('Ext.selection.Model', {
+                            checkOnly: true,
+                            listeners: {
+                                /*beforeSelect: function (checkboxmodell, recordd, rowIndexx) {
+                                    cc = checkboxmodell;
+                                    var StatusField = "fldStatus" + String(result.ItemsDynamicRatingId);
+                                    if (recordd.get(StatusField) == 5)
+                                        checkboxmodell.setLocked(true);
+                                },*/
+                                select: function (selection, record, index, eOpts) {
+                                    var IdField = "fldId" + String(result.ItemsDynamicRatingId);
+                                    /*if (record.get(StatusField) == 5) {
+                                        selection.deselect(record.index, true);
+                                        Ext.MessageBox.show({
+                                            title: "خطا",
+                                            msg: "این آیتم در درخواست دیگری عدم تایید رتبه بندی شده است و قادر به انتخاب مجدد آن نمی باشید.",
+                                            icon: Ext.MessageBox.ERROR,
+                                            buttons: Ext.MessageBox.OK
+                                        });
+                                    }*/
+                                    /* Ext.net.DirectMethod.request({
+                                         url: '/DynamicForm/CheckRepeateSelection',
+                                         params: {
+                                             fldItemDynamicClientId: record.get(IdField)
+                                         },
+                                         success: function (data) {
+                                             if (data.Er != 1) {
+                                                 if (data.Repeat == "1") {
+                                                     selection.deselect(record.index, true);
+                                                     Ext.MessageBox.show({
+                                                         title: "خطا",
+                                                         msg: "این آیتم در درخواست دیگری استفاده شده است و قادر به انتخاب مجدد آن نمی باشید.",
+                                                         icon: Ext.MessageBox.ERROR,
+                                                         buttons: Ext.MessageBox.OK
+                                                     });
+                                                 }
+                                             }
+                                             else {
+                                                 Ext.MessageBox.show({
+                                                     title: data.MsgTitle,
+                                                     msg: data.Msg,
+                                                     icon: Ext.MessageBox.ERROR,
+                                                     buttons: Ext.MessageBox.OK
+                                                 });
+                                             }
+                                         }
+                                     });*/
+                                }
+                            }
+                        });
+
+                        var modelFields = new Array();
+                        modelFields.push("fldId" + String(result.ItemsDynamicRatingId));
+                        modelFields.push("fldStatus" + String(result.ItemsDynamicRatingId));
+                        modelFields.push("fldIsInClient" + String(result.ItemsDynamicRatingId));
+                        for (var k = 0; k < NameKhasiyat_En.length - 1; k++) {
+                            modelFields.push(NameKhasiyat_En[k]);
+                        }
+
+                        Ext.define('Dynamic', {
+                            extend: 'Ext.data.Model',
+                            fields: modelFields
+                        });
+
+                        var myStore = Ext.create('Ext.data.Store', {
+                            model: 'Dynamic',
+                            proxy: {
+                                type: 'ajax',
+                                url: '@Url.Action("ReadDynamicForm", "GeneralKartabl")',
+                                reader: {
+                                    type: 'json',
+                                    root: 'data'
+                                }
+                            },
+                            autoLoad: false
+                        });
+
+                        var grid = Ext.create('Ext.grid.Panel', {
+                            title: result.TitleDynamic,
+                            store: myStore,
+                            autoScroll: true,
+                            selModel: selection,
+                            itemId: "grid" + result.ItemsDynamicRatingId,
+
+                            listeners: {
+                                render: function () {
+                                    grid.getStore().load({
+                                        params: {
+                                            fldItemsDynamicRatingId: result.ItemsDynamicRatingId,
+                                            RequestId: '@ViewBag.RequestId',
+                                            page: 1,
+                                            start: 0,
+                                            limit: grid.getStore().totalCount
+                                        }
+                                    });
+                                }
+                            },
+                            columns: []
+                        });
+
+                        var column = Ext.create('Ext.grid.column.Column', {
+                            text: "کد",
+                            flex: 1,
+                            dataIndex: "fldId" + String(result.ItemsDynamicRatingId)
+                        });
+                        grid.headerCt.insert(grid.columns.length - 1, column);
+
+                        for (var j = 0; j < NameKhasiyat_Fa.length - 1; j++) {
+                            var column = Ext.create('Ext.grid.column.Column', {
+                                text: NameKhasiyat_Fa[j],
+                                flex: 4,
+                                dataIndex: NameKhasiyat_En[j],
+                                wrap: true
+                            });
+                            grid.headerCt.insert(grid.columns.length - 1, column);
+                        }
+
+                        var column2 = Ext.create('Ext.grid.column.Column', {
+                            text: "وضعیت",
+                            flex: 1,
+                            dataIndex: "fldStatus" + String(result.ItemsDynamicRatingId),
+                            renderer: function (value) {
+                                var template = '<img src={0} alt="" title={1} />';
+                                var Pic = "@Url.Content("~/Content/icon/mini/عدمتاییدصلاحیت.png")";
+                                var ToolTip = "عدم" + '&nbsp;' + "تایید";
+                                if (value == "1") {
+                                    Pic = "@Url.Content("~/Content/icon/mini/تاییدصلاحیت.png")";
+                                    ToolTip = "تایید" + '&nbsp;' + "شده";
+                                }
+                                else if (value == "-1") {
+                                    Pic = "@Url.Content("~/Content/icon/mini/درحالبررسی.png")";
+                                    ToolTip = "در" + '&nbsp;' + "حال" + '&nbsp;' + "بررسی";
+                                }
+
+                                return Ext.String.format(template, Pic, ToolTip);
+                            }
+                        });
+                        grid.headerCt.insert(grid.columns.length - 1, column2);
+
+                        var column3 = Ext.create('Ext.grid.column.Column', {
+                            text: "",
+                            flex: 1,
+                            dataIndex: "fldIsInClient" + String(result.ItemsDynamicRatingId),
+                            hidden: true
+                        });
+                        grid.headerCt.insert(grid.columns.length - 1, column3);
+                        var zzz;
+                        var Actioncolumn = Ext.create('Ext.grid.column.Action', {
+                            text: "",
+                            width: 70,
+                            items: [
+                                {
+                                    iconCls: 'Info',
+                                    tooltip: 'نمایش',
+                                    isDisabled: function (view, rowIndex, colIndex, item, record) {
+                                        var fna = record.fields.items[1].name;
+                                        var fna2 = record.fields.items[2].name;
+                                        if (record.get(fna2) == "0") {
+                                            return true;
+                                        }
+                                        if (record.get(fna2) == "1" && (record.get(fna) == "4" || record.get(fna) == "5" || record.get(fna) == "2")) {
+                                            return true;
+                                        }
+                                    },
+                                    handler: function (grid, rowIndex, colIndex) {
+                                        var rec = grid.getStore().getAt(rowIndex);
+                                        var fieldname1 = grid.store.model.getFields()[0].name;
+                                        var RecordId = rec.get(fieldname1);
+
+                                        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+                                        Ext.net.DirectMethod.request({
+                                            url: '/Faces/DynamicForm/ShowInfoDynamicForm',
+                                            params: {
+                                                TitleDynamic: result.TitleDynamic,
+                                                types: result.JenseKhasiyat,
+                                                TitleItems: result.NamesKhasiyat_Fa,
+                                                ItemPropertiesId: result.ItemPropertiesId,
+                                                fldItemsDynamicRatingIdd: result.ItemsDynamicRatingId,
+                                                fldIdDynamic_Client: RecordId,
+                                                EnterSicleIds: '@ViewBag.EnterSicleIds',
+                                                contractId: '@ViewBag.contractId',
+                                                State:'@ViewBag.State'
+                                            },
+                                            success: function () {
+                                                Ext.net.Mask.hide();
+                                            }
+                                        });
+                                    }
+                                }
+
+                            ]
+                        });
+                        grid.headerCt.insert(grid.columns.length - 1, Actioncolumn);
+
+                        /*if (result.GridData != null) {
+                            grid.store.loadData(result.GridData);
+                        }*/
+
+                        /*grid.getStore().load({
+                            params: {
+                                fldItemsDynamicRatingId: result.ItemsDynamicRatingId,
+                                page: 1,
+                                start: 0,
+                                limit: grid.getStore().totalCount
+                            }
+                        });*/
+
+                        App.DynamicForm.add(grid);
+                        App.DynamicForm.doLayout();
+                        if (App.DynamicForm.items.length > 1) {
+                            grid.collapse();
+                        }
+                        /*if (App.DynamicForm.items.length == TitleRatingDynamicId.length - 1) {
+                            Ext.net.Mask.hide();
+                        }*/
+                    }
+                }
+            });
+        }
+    }
+
+
+
+</script>

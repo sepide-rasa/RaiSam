@@ -1,0 +1,270 @@
+﻿@model IEnumerable<RaiSam.Models.prs_tblShareholderSelect>
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@using Ext.Net.Utilities
+
+@{var X = Html.X();}
+<style>
+    .row-imagecommand {
+        margin: 1px 1px 0 10px !important;
+    }
+</style>
+<script>
+    var template = '<img src={0} alt="" title={1} />';
+
+    var Color = function (value) {
+        var Pic = "@Url.Content("~/Content/icon/mini/عدمتاییدصلاحیت.png")";
+        var ToolTip = "عدم" + '&nbsp;' + "تایید";
+        if (value == "1") {
+            Pic = "@Url.Content("~/Content/icon/mini/تاییدصلاحیت.png")";
+            ToolTip = "تایید" + '&nbsp;' + "شده";
+        }
+        else if (value == "-1") {
+            Pic = "@Url.Content("~/Content/icon/mini/درحالبررسی.png")";
+            ToolTip = "در" + '&nbsp;' + "حال" + '&nbsp;' + "بررسی";
+        }
+
+
+        return Ext.String.format(template, Pic, ToolTip);
+    };
+</script>
+
+@(X.Window()
+    .ID("Shareholders")
+    .AutoScroll(true)
+    .Title("سهامداران")
+    .Width(910)
+    .Border(false)
+    .Modal(true)
+    .Height(450)
+    .Layout(Ext.Net.LayoutType.VBox)
+    .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Stretch })
+        .Items(
+                         X.AntiForgeryField().ItemID("AntiForgeryField"),
+     
+        X.Panel()
+            .Border(false)
+            .AutoScroll(true)
+            .Layout(Ext.Net.LayoutType.Fit)
+      
+            .Items(
+                X.GridPanel().Height(415)
+                   // .Listeners(l => l.ItemClick.Handler = "ReloadButton();")
+                    .AutoScroll(true)
+                    
+                    .ItemID("GridShareholders")
+                    .BottomBar(X.PagingToolbar())
+                    .Store(
+                        X.StoreForModel()
+                        .Listeners(l => l.BeforeLoad.Handler = "App.Shareholders.queryById('GridShareholders').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.Shareholders.queryById('AntiForgeryField').getValue());")
+                        .Proxy(Html.X().AjaxProxy()
+                        .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                            .Url(Url.Action("ReadShareholder"))
+                            .Reader(Html.X().JsonReader().Root("data"))
+                                            .ExtraParams(ex => ex.Add(new { contractId = @ViewBag.contractId }))
+
+                        )
+                        .Listeners(l => l.Load.Handler = "App.Shareholders.queryById('GridShareholders').selModel.refresh();")
+                        .PageSize(25)
+                        .RemoteFilter(true)
+                        .RemotePaging(true)
+                    )
+                    .View(
+                        Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                    )
+                    .Plugins(X.FilterHeader().Remote(true))
+                    .ColumnModel(
+                         Html.X().RowNumbererColumn(),
+        // Html.X().Column().DataIndex(Model, m => m.fldUnReadChat_Client).Text("وضعیت پیام").Filterable(false).Flex(3).Renderer("showChatStatus"),
+                            Html.X().Column().DataIndex(Model, m => m.fldId).Text("کد").Hidden(true).Flex(2),
+                        Html.X().Column().DataIndex(Model, m => m.fldAshkhasId).Text("کد پرسنل").Hidden(true).Hideable(false),
+                            Html.X().Column().DataIndex(Model, m => m.fldCompanyProfileId).Text("کد شرکت").Hidden(true).Hideable(false),
+                        Html.X().Column().DataIndex(Model, m => m.fldOrganId).Text("کد سازمان").Hidden(true).Hideable(false),
+                        Html.X().Column().DataIndex(Model, m => m.fldName).Text("نام و نام خانوادگی").Flex(7),
+                        Html.X().Column().DataIndex(Model, m => m.fldCodeMeli).Text("کد ملی").Flex(3),
+                            Html.X().Column().DataIndex(Model, m => m.fldOrgan_Company).Text("نام شرکت").Flex(5),
+                        Html.X().Column().DataIndex(Model, m => m.fldTypeName).Text("نوع سهامدار").Flex(5),
+                        Html.X().Column().DataIndex(Model, m => m.fldTarikhSaham).Text("تاریخ سهام").Flex(3),
+                            Html.X().Column().DataIndex(Model, m => m.fldTypeId).Text("کد نوع سهامدار").Flex(2).Hidden(true).Hideable(false),
+                                                Html.X().Column().DataIndex(Model, m => m.fldStatus).Text("وضعیت").Flex(1).Filterable(false).Renderer("Color"),
+         Html.X().ImageCommandColumn().PrepareCommand("prepareCommandShareholder")
+                        .Listeners(l => l.Command.Fn = "ShowInfoShareholder")
+                        .Flex(1).Commands(Html.X().ImageCommand().CommandName("InfoShareholder").Icon(Ext.Net.Icon.Information).ToolTip(tt => tt.Text = "نمایش اطلاعات"))
+                     )
+                )
+        )
+)
+
+
+<script type="text/javascript">
+    function CheckSentToAdmin() {
+        if ('@ViewBag.SentToAdmin' == 1)
+            App.Shareholders.queryById('InsertNewShareholders').disable(true);
+        else
+            App.Shareholders.queryById('InsertNewShareholders').enable(true);
+    }
+
+    function showHelp_VideoShareholders() {
+        /*window.location.href = 'Url.Content("~/Shareholders/DownloadV?")' ;
+        App.NewDL.destroy();
+        Ext.net.Mask.hide();*/
+        var nameVideo = "Shareholders.mp4";
+        window = Ext.widget('window', {
+            renderTo: Ext.getBody(),
+            width: 710,
+            height: 420,
+            html: '<video width="700" controls><source src="/Uploaded/Help/' + nameVideo + '" type="video/mp4"><source src="/Uploaded/Help/' + nameVideo + '" type="video/ogg"></video>'
+        }).show();
+    }
+    var prepareCommandShareholder = function (grid, command, record, row) {
+        if (command.command == 'EditCommandShareholders') {
+            if (record.data.fldIsInClient == false) {
+                command.hidden = true;
+                command.hideMode = 'visibility';
+            }
+            else if (record.data.fldIsInClient == true && (record.data.fldStatus == "2" || record.data.fldStatus == "4" || record.data.fldStatus == "5")) {
+                command.hidden = true;
+                command.hideMode = 'visibility';
+            }
+            else {
+                command.hidden = false;
+                command.hideMode = 'visibility';
+            }
+        }
+        if (command.command == 'DeleteCommandShareholders') {
+            if (record.data.fldIsInClient == false) {
+                command.hidden = true;
+                command.hideMode = 'visibility';
+            }
+            else if (record.data.fldIsInClient == true && (record.data.fldStatus == "2" /*|| record.data.fldStatus == "4" || record.data.fldStatus == "5"*/)) {
+                command.hidden = true;
+                command.hideMode = 'visibility';
+            }
+            else {
+                command.hidden = false;
+                command.hideMode = 'visibility';
+            }
+        }
+    };
+    function ShareholdersMap() {
+        ReplaceArabic();
+        var k = new Ext.KeyMap(
+            document,
+            [{
+                target: Ext.get('Shareholders'),
+                scope: this,
+                key: [119],
+                fn: function (key, event) {
+                    if (App.Shareholders && App.NewShareholders) {
+                        if (App.NewShareholders.active == false)
+                            NewShareholders();
+                    }
+                    else if (App.Shareholders && !App.NewShareholders)
+                        NewShareholders();
+                }
+            },
+            {
+                target: App.Shareholders.getTargetEl(),
+                scope: this,
+                key: [113],
+                fn: function (key, event) {
+                    if (App.Shareholders && App.NewShareholders) {
+                        if (App.Shareholders.active == false)
+                            EditShareholders();
+                    }
+                    else if (App.Shareholders && !App.NewShareholders)
+                        EditShareholders();
+                }
+            },
+            {
+                target: App.Shareholders.getTargetEl(),
+                scope: this,
+                key: [120],
+                fn: function (key, event) {
+                    if (App.Shareholders && App.NewShareholders) {
+                        if (App.NewShareholders.active == false)
+                            DeleteShareholders();
+                    }
+                    else if (App.Shareholders && !App.NewShareholders)
+                        DeleteShareholders();
+                }
+            }]
+            )
+    }
+
+    
+
+    function ReloadButton() {
+        var SelectedRow = App.Shareholders.queryById('GridShareholders').selModel.getLastSelected();
+        if (SelectedRow.data.fldIsInClient == false) {
+            App.Shareholders.queryById('DeSahamdar').disable(true);
+            App.Shareholders.queryById('UpdateSahamdar').disable(true);
+        }
+        else {
+            if (SelectedRow.data.fldIsInClient == true && (SelectedRow.data.fldStatus == "4" || SelectedRow.data.fldStatus == "5" || SelectedRow.data.fldStatus == "2")) {
+                App.Shareholders.queryById('UpdateSahamdar').disable(true);
+            }
+            else {
+                App.Shareholders.queryById('UpdateSahamdar').enable(true);
+            }
+            if (SelectedRow.data.fldIsInClient == true && (/*SelectedRow.data.fldStatus == "4" || SelectedRow.data.fldStatus == "5" ||*/ SelectedRow.data.fldStatus == "2")) {
+                App.Shareholders.queryById('DeSahamdar').disable(true);
+            }
+            else {
+                App.Shareholders.queryById('DeSahamdar').enable(true);
+            }
+        }
+    }
+    function ShowInfoShareholder(grid, command, record, row) {
+        /*var Id = record.data.fldId;*/
+         if (command == 'InfoShareholder') {
+            var Id = record.data.fldId;
+            var fldCompanyPersonalId = record.data.fldAshkhasId;
+            var fldCompanyId = record.data.fldCompanyProfileId;
+            var fldOrganId = record.data.fldOrganId;
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/Faces/Shareholders/ShowInfoShareholders',
+                params: {
+                    Id: record.data.fldId,
+                    CompanyPersonalId: fldCompanyPersonalId,
+                    CompanyId: fldCompanyId,
+                    OrganId: fldOrganId,
+                    EnterSicleIds: '@ViewBag.EnterSicleIds',
+                    contractId: '@ViewBag.contractId',
+                        FirstId:'@ViewBag.FirstRegisterId'
+                }
+            });
+        }
+    }
+   
+    function showHelpShareholders() {
+        Ext.net.DirectMethod.request({
+            url: '/Faces/Home/HelpHtml',
+            params: {
+                TableId: 4
+            },
+            success: function (result) {
+                var mybr = document.createElement('br');
+
+                Ext.net.Notification.show({
+                    alignToCfg: {
+                        offset: [150, -30],
+                        position: 'bl-bl',
+                    },
+                    pinned: true,
+                    showPin: true,
+                    modal: true,
+                    bringToFront: true,
+                    pinEvent: 'click',
+                    height: 520,
+                    width: 700,
+                    html: result.HelpHtml,
+                    autoScroll: true,
+                    title: 'راهنمای ثبت سهامداران'
+                });
+            }
+        });
+    }
+</script>

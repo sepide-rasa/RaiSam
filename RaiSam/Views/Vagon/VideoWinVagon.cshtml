@@ -1,0 +1,30 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+
+@using Ext.Net.MVC;
+
+@(
+ Html.X().Window().Listeners(l => l.BeforeClose.Handler = "CloseVideoVagon()")
+             .Height(565)
+         .Width(1000)
+                        .ID("VideoVagon")
+            .Closable(true)
+                .Title("راهنمای تصویری واگن ها")
+        .AutoScroll(true)
+        .Closable(true)
+            .Maximizable(true)
+        .Content(@<video width="100%;" id="AmozeshVideoVagon" controls="true" autoplay="true" controls><source src='@Url.Action("DownloadFileVideoVagon", "Vagon")' type="video/mp4"></video>)
+
+)
+<script type="text/javascript">
+    function CloseVideoVagon() {
+        $('#AmozeshVideoVagon')[0].pause();
+    }
+
+</script>
+
+

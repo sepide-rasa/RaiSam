@@ -1,0 +1,295 @@
+﻿@model IEnumerable<RaiSam.Models.prs_tblVersionSelect>
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+
+    var X = Html.X();
+}
+
+
+
+@(X.Panel().Border(false).Listeners(li => { li.AfterRender.Handler = "VersionSetSize();"; })
+.Title("ورژن")
+                .ID("Version")
+            .Closable(true)
+            .AutoScroll(true)
+            .CloseAction(Ext.Net.CloseAction.Destroy)
+            .Items(
+                X.AntiForgeryField()
+            .ItemID("antiForgeryToken")
+            .Hidden(true),
+                    X.Panel().Border(false)
+                .AutoScroll(true)
+                .Layout(Ext.Net.LayoutType.VBox)
+                .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Stretch })
+                .Items(
+                    X.GridPanel().AutoScroll(true)
+                        .TopBar(
+                        Html.X().Toolbar()
+                            .Items(
+                            X.Button().Text("جدید").Icon(Ext.Net.Icon.Add)
+                                 .Listeners(li => li.Click.Handler = "NewVersion();"),
+                            X.Button().Text("ویرایش").Icon(Ext.Net.Icon.Pencil)
+                                 .Listeners(Li => Li.Click.Handler = "EditVersion();"),
+                            X.Button().Text("حذف").Icon(Ext.Net.Icon.Delete)
+                                .Listeners(de =>
+                                {
+                                    de.Click.Handler = "DeleteVersion();";
+                                }),
+                                   X.Button().Text("ثبت مستندات").IconCls("VersionM").Hidden(!RaiSam.Models.Permission.haveAccess(88,"","0"))
+                                    .Listeners(de =>
+                                    {
+                                        de.Click.Handler = "VersionMostanadat();";
+                                    }),
+                            X.SplitButton()
+                                    .Text("راهنما")
+                                    .Icon(Ext.Net.Icon.Help)
+                                    .Menu(X.Menu()
+                                    .Items(
+                                    X.MenuItem()
+                                                .Text("راهنما متنی")
+                                                .Icon(Ext.Net.Icon.TextPaddingTop)
+                                                            .Listeners(l => l.Click.Handler = "HelpVersion()"),
+                                        X.MenuItem()
+                                                .Text("راهنما تصویری")
+                                                .Icon(Ext.Net.Icon.PlayBlue)
+                                                    .Listeners(l => l.Click.Handler = "showHelp_VideoVersion()")
+
+                                )
+                            )
+                        )
+                    )
+                    .ItemID("GridVersion").Flex(2)
+                    .BottomBar(X.PagingToolbar())
+                    .Store(
+                        X.StoreForModel()
+                            .Listeners(l => l.BeforeLoad.Handler = "App.Version.queryById('GridVersion').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.Version.queryById('antiForgeryToken').getValue());")
+                            .Proxy(Html.X().AjaxProxy()
+                            .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                            .Url(Url.Action("Read"))
+                            .Reader(Html.X().JsonReader().Root("data"))
+
+                        )
+                        .PageSize(20)
+                        .RemoteFilter(true)
+                        .RemotePaging(true)
+                           .Listeners(l => l.DataChanged.Handler = "App.Version.queryById('GridVersion').selModel.refresh();")
+                    )
+                    .View(
+                        Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                    )
+                    .Plugins(X.FilterHeader().Remote(true))
+
+                    .ColumnModel(
+                            Html.X().RowNumbererColumn(),
+                                Html.X().Column().DataIndex(Model, m => m.fldTimeStamp).Text("").Hidden(true).Flex(1),
+                            Html.X().Column().DataIndex(Model, m => m.fldId).Text("کد").Hidden(true).Flex(1),
+                                 Html.X().Column().DataIndex(Model, m => m.fldTarikh).Text("تاریخ ورژن").Flex(4).Wrap(true),
+                                     Html.X().Column().DataIndex(Model, m => m.fldTime).Text("ساعت ورژن").Flex(3).Wrap(true),
+                            Html.X().Column().DataIndex(Model, m => m.fldVersion).Text("ورژن").Flex(6).Wrap(true),
+                            Html.X().Column().DataIndex(Model, m => m.fldNiyazTestAmniyatName).Text("نیاز به بررسی امنیت").Flex(6).Wrap(true),
+                             Html.X().ComponentColumn().ItemID("buttonListMostanad").Listeners(l => l.Bind.Fn = "CheckEnable").Text("مستندات").Filterable(false)
+                                    .Component(Html.X().Button().ItemID("btnListMostanad").Text("لیست مستندات").Listeners(l => l.Click.Handler = "ListMostanad()"))
+                    )
+                    .SelectionModel(
+                        Html.X().RowSelectionModel()
+                            .Mode(Ext.Net.SelectionMode.Single)
+                    )
+            )
+        )
+)
+
+<script type="text/javascript">
+
+    var CheckEnable = function (columnn, component, record, rowIndex) {
+        if (record.data.HaveMostanad == 0) {
+            component.disable();
+        }
+    };
+
+    function ListMostanad() {
+        var VersionId = App.Version.queryById("buttonListMostanad").activeRecord.record.data.fldId;
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Version/ListMostanad',
+            params: {
+                VersionId: VersionId
+            },
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+    function showHelp_VideoVersion() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Version/VideoWinVersion',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+
+    }
+
+    function VersionSetSize() {
+        App.Version.setWidth(App.crmWin.getWidth());
+        var grid = App.Version.queryById('GridVersion');
+        grid.setHeight(App.crmWin.getHeight() - 83);
+        InsertToLog("ورژن",2, true);
+    }
+    function NewVersion() {
+        App.crmWin.body.mask("در حال بارگذاری...");
+        Ext.net.DirectMethod.request({
+            url: '/Version/new',
+            params: {
+                id: 0
+            },
+            success: function () {
+                App.crmWin.body.mask().hide();
+            }
+        });
+    }
+    function VersionMostanadat() {
+        var SelectedRow = App.Version.queryById('GridVersion').selModel.getLastSelected();
+
+        if (SelectedRow != null) {
+            App.crmWin.body.mask("در حال بارگذاری...");
+            Ext.net.DirectMethod.request({
+                url: '/Version/VersionMostanadat',
+                params: {
+                    VersionId: SelectedRow.data.fldId
+                },
+                success: function () {
+                    App.crmWin.body.mask().hide();
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+    function EditVersion() {
+        var SelectedRow = App.Version.queryById('GridVersion').selModel.getLastSelected();
+
+        if (SelectedRow != null) {
+            App.crmWin.body.mask("در حال بارگذاری...");
+            Ext.net.DirectMethod.request({
+                url: '/Version/new',
+                params: {
+                    id: SelectedRow.data.fldId
+                },
+                success: function () {
+                    App.crmWin.body.mask().hide();
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+
+    function DeleteVersion() {
+        var SelectedHeaderRow = App.Version.queryById('GridVersion').selModel.getLastSelected();
+        if (SelectedHeaderRow != null) {
+            Ext.MessageBox.show({
+                title: "هشدار",
+                msg: "آیا برای حذف مطمئن هستید؟",
+                icon: Ext.MessageBox.WARNING,
+                buttons: Ext.MessageBox.YESNO,
+                fn: function (btn) {
+                    if (btn == 'yes') {
+                        App.crmWin.body.mask("در حال انجام عملیات...");
+                        Ext.net.DirectMethod.request({
+                            url: '/Version/Delete',
+                            params: {
+                                id: SelectedHeaderRow.data.fldId,
+                                TimeStamp: SelectedHeaderRow.data.fldTimeStamp,
+                                __RequestVerificationToken: App.Version.queryById('antiForgeryToken').getValue()
+                            },
+                            success: function (data) {
+                                chat.server.reloadLog();
+                                if (data.Er == 1 && data.Change == 1) {/*vaghti TimeStamp==0*/
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.WARNING,
+                                        buttons: Ext.MessageBox.OK,
+                                        fn: function (btn) {
+                                            if (btn == 'ok') {
+                                                App.Version.queryById('GridVersion').store.load();
+                                            }
+                                        }
+                                    });
+                                }
+                                else if (data.Er == 1 && data.Change == 2) {/*vaghti TimeStamp==2*/
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.ERROR,
+                                        buttons: Ext.MessageBox.OK,
+                                        fn: function (btn) {
+                                            if (btn == 'ok') {
+                                                App.Version.queryById('GridVersion').store.load();
+                                            }
+                                        }
+                                    });
+                                }
+                                else if (data.Er == 1) {
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.ERROR,
+                                        buttons: Ext.MessageBox.OK
+                                    });
+                                }
+                                else {
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.INFO,
+                                        buttons: Ext.MessageBox.OK
+                                    });
+                                    App.Version.queryById('GridVersion').store.load();
+                                }
+
+
+                                App.crmWin.body.mask().hide();
+                            }
+                        });
+                    }
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+
+    function HelpVersion() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Version/HelpVersion',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+</script>
+

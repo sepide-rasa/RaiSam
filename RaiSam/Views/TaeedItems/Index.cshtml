@@ -1,0 +1,229 @@
+﻿@model IEnumerable<RaiSam.Models.prs_tblApplicationPart_ClientSelect>
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+
+@(Html.X().Panel()
+    .Border(false)
+    .ID("TaeedItems")
+    .Listeners(l => l.AfterRender.Handler = "setSizePnlTaeedItems();")
+    .Title("تاییدات در هر هدف")
+    .AutoScroll(true)
+    .Closable(true)
+    .CloseAction(CloseAction.Destroy)
+    .Layout(Ext.Net.LayoutType.Fit)
+    .ButtonAlign(Ext.Net.Alignment.Center)
+    .Buttons(
+        X.Button()
+            .Text("ذخیره")
+            .Icon(Ext.Net.Icon.Disk)
+            .ToolTip("کلید میانبر F8")
+            .Listeners(l =>
+            {
+                l.Click.Handler = "SaveTaeedItems();";
+
+            })
+            .ItemID("btnSave")
+            , X.Button().Text("راهنما").Icon(Ext.Net.Icon.Help)
+                                .Listeners(de =>
+                                    {
+                                        de.Click.Handler = "HelpTaeedItems();";
+                                    })
+                            ,
+        X.Button()
+            .Text("خروج")
+            .Icon(Ext.Net.Icon.DoorOut)
+            .ToolTip("کلید میانبر Esc")
+            .OnClientClick("App.TaeedItems.destroy();"))
+    .Items(
+        X.FormPanel()
+            .Border(false)
+            .AutoScroll(true)
+            .KeyMap(Html.X().KeyMap()
+                .Target("={Ext.isGecko ? Ext.getDoc() : Ext.getBody()}")
+                .Binding(b =>
+                {
+                    b.Add(Html.X().KeyBinding()
+                    .KeysString(((int)Ext.Net.KeyCode.F8).ToString())
+                    .Handler("SaveTaeedItems();")
+                    );
+                }))
+            .Layout(Ext.Net.LayoutType.VBox)
+            .LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Center })
+            .Items(
+                X.FieldSet()
+                    .Border(false)
+                    .Layout(LayoutType.Table)
+                    .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 2 })
+                    .Margin(10)
+                    .Items(
+                        X.Label()
+                            .Text("هدف ثبت نام:"),
+                        X.ComboBox()
+                            .Editable(false)
+                            .ItemID("CboHadaf")
+                            .TypeAhead(true)
+                            .Width(400)
+                            .QueryMode(DataLoadMode.Local)
+                            .TriggerAction(TriggerAction.All)
+                            .DisplayField("Name")
+                            .ValueField("ID")
+                            .Listeners(l => l.Select.Handler = "GetChecked2()")
+                            .EmptyText("....")
+                            .Store(
+                                X.Store()
+                                    .Listeners(l => l.Load.Handler = "seldefaultValue()")
+                                    .Model(X.Model()
+                                        .IDProperty("ID")
+                                        .Fields(
+                                                new ModelField("ID", ModelFieldType.String) { Mapping = "HadafSabtNamID2" },
+                                                    new ModelField("Name", ModelFieldType.String) { Mapping = "HadafSabtNamName2" }))
+                                        .Proxy(X.AjaxProxy()
+                                                .Url(Url.Action("GetHadafSabtNam"))
+                                        .Reader(X.JsonReader().Root("data")))
+                    )
+                ),
+                X.GridPanel()
+                    .Listeners(l => l.AfterRender.Handler = "setSizeGridTaeedItems()")
+                    .ItemID("GridTaeedItems")
+                    .BottomBar(X.PagingToolbar().HideRefresh(true))
+                    .Icon(Icon.Table)
+                    .Frame(true)
+                    .AutoScroll(true)
+                    .Title("آیتم ها")
+                    .Store(
+                        X.StoreForModel()
+                            .RemoteFilter(true)
+                                    )
+                    .Plugins(X.FilterHeader().Remote(false))
+                    .SelectionModel(
+                        Html.X().CheckboxSelectionModel().ShowHeaderCheckbox(false)
+                            .Mode(SelectionMode.Multi).PruneRemoved(false).CheckOnly(true))
+                    .ColumnModel(
+                            Html.X().Column().DataIndex(Model, m => m.fldId).Text("کد").Flex(1).Hidden(true),
+                            Html.X().Column().DataIndex(Model, m => m.fldTitle).Text("عنوان").Flex(2).Wrap(true)
+            )
+      ))
+)
+
+<script type="text/javascript">
+
+    var width = Ext.getBody().getViewSize().width;
+    var height= Ext.getBody().getViewSize().height;
+
+    function setSizePnlTaeedItems() {
+        App.TaeedItems.setHeight(height - 115);
+    }
+
+    function setSizeGridTaeedItems() {
+        App.TaeedItems.queryById("GridTaeedItems").setSize(width - 200, height - 200);
+    }
+
+    function seldefaultValue() {
+        var CboHadaf = App.TaeedItems.queryById('CboHadaf');
+        CboHadaf.select(CboHadaf.store.getAt(0));
+
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/TaeedItems/LoadAllData',
+            params: {
+                HadafId: CboHadaf.getValue()
+            },
+            success: function (result) {
+                var store = App.TaeedItems.queryById("GridTaeedItems").store;
+                store.load({ start: 0, limit: store.count(), page: 1 });
+                store.loadData(result.data);
+
+                if (result.checkId2.length != 0) {
+                    for (var j = 0; j < result.checkId2.length; j++) {
+                        var index2 = App.TaeedItems.queryById("GridTaeedItems").getStore().findExact("fldId", result.checkId2[j]);
+                        App.TaeedItems.queryById("GridTaeedItems").getSelectionModel().select(index2, true);
+                    }
+                }
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+
+    function GetChecked2() {
+        App.TaeedItems.queryById('GridTaeedItems').getSelectionModel().deselectAll();
+        var CboHadaf = App.TaeedItems.queryById('CboHadaf');
+
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/TaeedItems/GetChecked',
+            params: {
+                HadafId: CboHadaf.getValue()
+            },
+            success: function (checksId2) {
+                if (checksId2.length != 0) {
+                    for (var j = 0; j < checksId2.length; j++) {
+                        var index = App.TaeedItems.queryById("GridTaeedItems").getStore().findExact("fldId", checksId2[j]);
+                        App.TaeedItems.queryById("GridTaeedItems").getSelectionModel().select(index, true);
+                    }
+                }
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+    function SaveTaeedItems() {
+        var CboHadaf = App.TaeedItems.queryById('CboHadaf');
+        var SelRows2 = App.TaeedItems.queryById("GridTaeedItems").getSelectionModel().getSelection();
+        var AppPartIds = "";
+        if (SelRows2.length != 0) {
+            for (var i = 0; i < SelRows2.length; i++) {
+                AppPartIds = AppPartIds + SelRows2[i].data.fldId + ",";
+            }
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/TaeedItems/Save',
+                params: {
+                    AppPartIds: AppPartIds,
+                    HadafId: CboHadaf.getValue()
+                },
+                success: function (data) {
+                    var ic = Ext.MessageBox.INFO;
+                    if (data.Err == 1)
+                        ic = Ext.MessageBox.ERROR;
+                    Ext.MessageBox.show({
+                        title: data.MsgTitle,
+                        msg: data.Msg,
+                        icon: ic,
+                        buttons: Ext.MessageBox.OK
+                    });
+                    if (data.ExistId2 != "") {
+                        ExistIdArray2 = data.ExistId2.split('،');
+                        for (var k = 0; k < ExistIdArray2.length - 1; k++) {
+                            var ind = App.TaeedItems.queryById('GridTaeedItems').getStore().findExact("fldId", parseInt(ExistIdArray2[k]));
+                            var record = App.TaeedItems.queryById('GridTaeedItems').getStore().getAt(ind);
+                            App.TaeedItems.queryById('GridTaeedItems').getSelectionModel().deselect(record);
+                        }
+                    }
+                    Ext.net.Mask.hide();
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفاً دبیرخانه مرتبط با گروه مشخص شده را انتخاب نمایید .",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+    function HelpTaeedItems() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/TaeedItems/Help',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+</script>

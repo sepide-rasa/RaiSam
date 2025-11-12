@@ -1,0 +1,128 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@{
+    var X = Html.X();
+}
+<script>
+    var h;
+    var onInitializeToEn = function (htmlEditor) {
+        h = htmlEditor;
+        htmlEditor.getDoc()[Ext.isGecko ? 'onkeypress' : 'onkeyup'] = function (e) {
+            htmlEditor.setValue(FaLangAlert(htmlEditor.getValue()));
+        };
+    };
+
+</script>
+<script src="~/Scripts/accounting.js"></script>
+@(Html.X().Window().Modal(true).Listeners(li => li.AfterRender.Handler = "LoadPageHtml();")
+.Width(800)
+    .Title("صفحات HTML")
+         .ID("NewPageHtml")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+        .ButtonAlign(Ext.Net.Alignment.Center)
+        .Buttons(X.Button().Text("ذخیره").Icon(Ext.Net.Icon.Disk)
+                .Listeners(l =>
+                    {
+                        l.Click.Handler = "SavePageHtml();";
+
+                    })
+                .ItemID("btnSave")
+                ,
+                X.Button().Text("خروج").Icon(Ext.Net.Icon.DoorOut).ToolTip("کلید میانبر Esc")
+                .OnClientClick("App.NewPageHtml.destroy()"))
+    .Items(
+         X.AntiForgeryField()
+            .ItemID("antiForgeryToken")
+            .Hidden(true),
+        X.FormPanel().Border(false)
+        .Border(false).ButtonAlign(Ext.Net.Alignment.Center)
+            .DefaultButton("btn")
+        .TitleAlign(Ext.Net.TitleAlign.Center)
+                .Items(
+                X.Panel().Border(false)
+               .Items(
+                X.FieldSet().Border(false)
+                .Center()
+                .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 1 })
+                .Defaults(new { Margin = 10 })
+                .Items(
+                X.Hidden().ItemID("fldId")
+                        , X.HtmlEditor().ItemID("txtMatn")
+                            .Width(700).Height(300)
+                                .RTL(true)
+                                    .EnableSourceEdit(false)
+                        )
+
+                )
+                    .Layout(Ext.Net.LayoutType.VBox)
+                    .LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Center })
+            )
+        )
+)
+<script type="text/javascript">
+    function LoadPageHtml() {
+        ReplaceArabic();
+        if ('@ViewBag.Id' != '0') {
+            Ext.net.DirectMethod.request({
+                url: '/PageHtml/Details',
+                params: {
+                    id: '@ViewBag.Id',
+                    __RequestVerificationToken: App.NewPageHtml.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+                    var Id = App.NewPageHtml.queryById('fldId');
+                    Id.setValue(data.fldId);
+                    var txtMatn = App.NewPageHtml.queryById('txtMatn');
+                    txtMatn.setValue(data.fldMohtavaHtml);
+                }
+            });
+        }
+    }
+
+    function SavePageHtml() {
+
+        var txtMatn = App.NewPageHtml.queryById('txtMatn');
+        var Id = App.NewPageHtml.queryById('fldId');
+        var er = false;
+        if (Ext.util.Format.trim(txtMatn.getEditorBody().textContent) == "") {
+            alert("لطفا اطلاعات را وارد کنید.");
+            return;
+        }
+        if (er == true)
+            return;
+        var data1 = {
+            fldId: Id.getValue(),
+            fldMohtavaHtml: encodeURI(txtMatn.getValue())
+        };
+
+        $.ajax({
+            type: "POST",
+            url: '/PageHtml/Save',
+            data: {
+                PageHtml1: JSON.stringify(data1),
+                __RequestVerificationToken: App.PageHtml.queryById('antiForgeryToken').getValue()
+            },
+            success: function (data) {
+                var ic = Ext.MessageBox.INFO;
+                if (data.Er == 1)
+                    ic = Ext.MessageBox.ERROR;
+                Ext.MessageBox.show({
+                    title: data.MsgTitle,
+                    msg: data.Msg,
+                    icon: ic,
+                    buttons: Ext.MessageBox.OK
+                });
+                App.PageHtml.queryById('GridPageHtml').store.load();
+                /* ClearPageSite();*/
+            },
+            failure: function (data) {
+                alert(data.data);
+            }
+        });
+    }
+    function ClearPageHtml() {
+        tinyMCE.getInstanceById('txtPageSiteContent').setContent("");
+        App.NewPageHtml.queryById('fldId').setValue(0);
+    }
+</script>

@@ -1,0 +1,28 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+
+@using Ext.Net.MVC;
+
+@(
+ Html.X().Window().Listeners(l => l.BeforeClose.Handler = "CloseVideoPermission()")
+             .Height(565)
+         .Width(1000)
+                .ID("VideoPermission")
+        .Closable(true)
+            .Title("راهنمای تصویری تعیین دسترسی")
+        .AutoScroll(true)
+        .Closable(true)
+            .Maximizable(true)
+        .Content(@<video width="100%;" id="AmozeshVideoPermission" controls="true" autoplay="true" controls><source src='@Url.Action("DownloadFileVideoPermission", "Permission")' type="video/mp4"></video>)
+
+)
+<script type="text/javascript">
+    function CloseVideoPermission() {
+        $('#AmozeshVideoPermission')[0].pause();
+    }
+
+</script>

@@ -1,0 +1,359 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@using Ext.Net.Utilities;
+@{
+    var X = Html.X();
+}
+
+
+@(Html.X().Window()
+    .Modal(true)
+    .Listeners(li => li.AfterRender.Handler = "LoadShareholders();")
+    .Width(640)//.Height(300)
+    .Title("تعریف سهامدار حقیقی")
+    .ID("NewShareholders")
+    .Closable(true)
+    .Resizable(false)
+    .ButtonAlign(Alignment.Center)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Layout(LayoutType.Fit)
+    .Buttons(
+        X.Button()
+            .Text("ذخیره")
+            .Icon(Ext.Net.Icon.Disk)
+            .Listeners(l =>
+            {
+                l.Click.Handler = "SaveShareholders();";
+            })
+            .ItemID("btnSave"),
+        X.Button()
+            .Text("خروج")
+            .Icon(Ext.Net.Icon.BulletCross)
+            .ToolTip("کلید میانبر Esc")
+            .OnClientClick("App.NewShareholders.destroy()"))
+    .Items(
+        X.FormPanel()
+            .Border(false)
+            .Layout(Ext.Net.LayoutType.VBox)
+            .LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Center })
+                .Items(
+                 X.AntiForgeryField().ItemID("AntiForgeryField"),
+                X.FieldSet()
+                    .Title("اطلاعیه مهم")
+                    .AutoScroll(true)
+                    .Height(100)
+                    .MarginSpec("10px 0 0 0")
+                    .ItemID("ShareholdersNotification")
+                    .Width(590)
+                    .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 1 })
+                    .Defaults(new { Margin = 5 })
+                    .Items(
+                        X.Label()
+                            .ItemID("lblMatnHtmlShareholders")
+                            .Cls("lblInfo")
+                            .Listeners(l => l.Render.Handler = "loadMatnHtmlShareholders()")
+                                ),
+                X.FieldSet()
+                    .Border(true)
+                    .Title("مشخصات فردی")
+                    .MarginSpec("10px 10px 17px 10px")
+                    .ItemID("test")
+                    .Center()
+                    .Width(590)
+                    .Height(130)
+                    .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 4 })
+                    .Defaults(new { Margin = 2 })
+                    .Items(
+                        X.Hidden()
+                            .ItemID("fldId"),
+                        X.FieldSet()
+                            .Border(false)
+                            .PaddingSpec("0 0 0 4px")
+                            .Layout(LayoutType.HBox)
+                            .RTL(false)
+                            .Width(569)
+                            .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch, Pack = BoxPack.Start })
+                            .Items(
+                        X.Button().Text("جستجو").AutoFocus(true)
+                    .MarginSpec("0 5px 0 0")
+                    .Listeners(li => li.Click.Handler = "SearchAll();")/*,
+                    X.Button().Text("انتخاب از لیست")
+                    .Listeners(li => li.Click.Handler = "SearchComponyPersonel();")*/
+                ).ColSpan(4),
+                    X.Label().Text("نام:"),
+                    X.TextField()
+                        .ItemID("txtName2")
+                            .ReadOnly(true).FieldStyle("background-image:none;background-color:#dfe8f6")
+                        .AllowBlank(false)
+                        .BlankText("لطفا شخص مورد نظر را انتخاب نمایید.")
+                        .MsgTarget(Ext.Net.MessageTarget.Side)
+        //    .Listeners(li =>
+        //    {
+        //        li.SpecialKey.Handler = "SearchComponyPersonel(e.getKey());";
+        //                    li.IconClick.Handler = "Ext.net.DirectMethod.request({url:'/SearchComponyPersonel/Index?State=1'});";
+        //})
+
+                  .Width(160),
+                  X.Label().Text("نام خانوادگی:"),
+                        X.TextField()
+                                .ItemID("txtFamily2").FieldStyle("background-image:none;background-color:#dfe8f6")
+                            .ReadOnly(true)
+                            .AllowBlank(false)
+                                .BlankText("لطفا شخص مورد نظر را انتخاب نمایید.")
+                            .MsgTarget(Ext.Net.MessageTarget.Side)
+                                .Width(160)
+
+                    , X.Label().Text("کد ملی:")
+                    , X.TextField()
+                                .ItemID("txtCodeMeli").FieldStyle("background-image:none;background-color:#dfe8f6;direction:ltr;")
+                                    .ReadOnly(true).AllowBlank(false).BlankText("لطفا شخص مورد نظر را انتخاب نمایید.")
+                        .MsgTarget(Ext.Net.MessageTarget.Side)
+                        .Width(160)
+                           , X.Label().Text("تعداد سهام سهامدار:")
+                        , X.TextField()
+                                .ItemID("txtTedadSaham")
+                                .FieldStyle("direction:ltr;")
+                                .MaskRe("/[0-9,/]/")
+                                .Listeners(l => l.Blur.Handler = "checkcount()")
+
+                            .MsgTarget(Ext.Net.MessageTarget.Side)
+                                .AllowBlank(false)
+                                    .BlankText("لطفا تعداد سهام سهامدار را وارد نمایید.")
+                             .Listeners(l => l.Change.Handler = "DarsadKolSaham()")
+                            .Width(160)
+                                , X.Label().Text("درصد سهم از کل سهام:")//.PaddingSpec("0 0 10px 0")
+                            , X.TextField()
+                                        .ItemID("txtDarsadSaham").FieldStyle("background-image:none;background-color:#dfe8f6;direction:ltr;")
+                                    .MsgTarget(Ext.Net.MessageTarget.Side)//.PaddingSpec("0 0 10px 0")
+                                            .ReadOnly(true)
+                                            .AllowBlank(false).MaskRe("/[0-9,/]/")
+                                        .BlankText("لطفا تعداد سهام سهامدار را وارد نمایید.")
+                                .Width(160)
+                            , X.Label().Text("تاریخ سهام دار شدن:")//.PaddingSpec("0 0 10px 0")
+                    , X.PDateField()
+                                .ItemID("txtDateSaham")
+                            .Width(160)
+                        .MsgTarget(Ext.Net.MessageTarget.Side)
+                        .AllowBlank(false)
+        //.PaddingSpec("0 0 10px 0")
+                        .Editable(true)
+                        .MaskRe("/[0-9,/]/")
+        //.Editable(false)
+                        .BlankText("لطفا تاریخ سهام دار شدن را وارد نمایید.")
+                        .LabelAlign(Ext.Net.LabelAlign.Top)
+
+                )
+
+            )
+        )
+)
+
+<script type="text/javascript">
+    var CompanyPersonalId = 0;
+    var fldStatus = false;
+    var ShareholderId = 0;
+    var Minus = '@ViewBag.Minus';
+    function DarsadKolSaham() {
+        var txtTedadSaham = App.NewShareholders.queryById('txtTedadSaham');
+        var txtDarsadSaham = App.NewShareholders.queryById('txtDarsadSaham');
+        if (txtTedadSaham.getValue() != "") {
+            Ext.net.DirectMethod.request({
+                url: '/Faces/Shareholders/DarsadSaham',
+                params: {
+                    TedadSaham: txtTedadSaham.getValue(),
+                    contractId: "",
+                    FirstId: '@ViewBag.FirstId',
+                    __RequestVerificationToken: App.NewShareholders.queryById('AntiForgeryField').getValue()
+                },
+                success: function (data) {
+                    if (String(data.DarsadSaham).includes('.') == true) {
+                        var darsad = data.DarsadSaham;
+                        txtDarsadSaham.setValue(darsad.toFixed(2));
+                    }
+                    else
+                        txtDarsadSaham.setValue(data.DarsadSaham);
+                }
+            });
+        }
+    }
+    function checkcount() {
+        var count = App.NewShareholders.queryById("txtTedadSaham").getValue();
+        if (count > parseInt(Minus)) {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "تعداد سهام نمی تواند بزرگتر از تعداد سهام باقی مانده باشد.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+            App.NewShareholders.queryById("txtTedadSaham").setValue("");
+        }
+    }
+
+    function loadMatnHtmlShareholders() {
+        var lblMatnHtmlShareholders = App.NewShareholders.queryById("lblMatnHtmlShareholders");
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Faces/Shareholders/MatnHtmlShareholders',
+            params: {
+                ReqId: '@ViewBag.ReqId'
+            },
+            success: function (data) {
+                if (data.MatnHtmlShareholders != "") {
+                    lblMatnHtmlShareholders.setText(data.MatnHtmlShareholders, false);
+                }
+                else {
+                    App.NewShareholders.queryById('ShareholdersNotification').hide();
+                }
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+    function SearchComponyPersonel() {
+        Ext.net.DirectMethod.request({
+            url: '/Faces/SearchAshkhas/Index?State=3&&StateAORC=0&&CompanyId=' + ""
+        });
+    }
+    function SearchAll(Code) {
+        Ext.net.DirectMethod.request({
+            url: '/Faces/SearchAshkhas/SearchAll?State=1&&CompanyId=' + "" + '&FirstId=' + '@ViewBag.FirstId' + '&ReqId=' + '@ViewBag.ReqId'
+        });
+    }
+    function LoadShareholders() {
+
+        var TarikhSaham = new Date('@ViewBag.fldTarikhSaham');
+        var txtDateSaham = App.NewShareholders.queryById('txtDateSaham');
+        txtDateSaham.setMaxValue(TarikhSaham);
+        txtDateSaham.maxText = "تاریخ باید قبل از" + '@ViewBag.fldTarikh' + "باشد";
+        if ('@ViewBag.Id' != '0') {
+            Ext.net.DirectMethod.request({
+                url: '/Faces/Shareholders/Details',
+                params: {
+                    Id: '@ViewBag.Id',
+                    __RequestVerificationToken: App.NewShareholders.queryById('AntiForgeryField').getValue()
+                },
+                success: function (data) {
+
+                    var txtName2 = App.NewShareholders.queryById('txtName2');
+                    txtName2.setValue(data.fldNamePersonal);
+                    var txtFamily2 = App.NewShareholders.queryById('txtFamily2');
+                    txtFamily2.setValue(data.fldFamilyPersonal);
+                    var txtCodeMeli = App.NewShareholders.queryById('txtCodeMeli');
+                    txtCodeMeli.setValue(data.fldCodeMeli);
+                    var txtTedadSaham = App.NewShareholders.queryById('txtTedadSaham');
+                    txtTedadSaham.setValue(data.fldTedadSaham);
+                    var txtDateSaham = App.NewShareholders.queryById('txtDateSaham');
+                    txtDateSaham.setValue(data.fldTarikhSaham);
+                    var Id = App.NewShareholders.queryById('fldId');
+                    Id.setValue(data.fldId);
+                    CompanyPersonalId = data.fldCompanyPersonalId;
+                    fldStatus = data.fldStatus;
+                    Minus = parseInt(Minus) + parseInt(data.fldTedadSaham);
+                    DarsadKolSaham();
+                    App.NewShareholders.queryById('txtTedadSaham').emptyText = Minus + ':سهام باقیمانده';
+                    App.NewShareholders.queryById('txtTedadSaham').applyEmptyText();
+
+                }
+            });
+        }
+        else {
+            App.NewShareholders.queryById('txtName2').validate();
+            App.NewShareholders.queryById('txtFamily2').validate();
+            App.NewShareholders.queryById('txtCodeMeli').validate();
+            App.NewShareholders.queryById('txtTedadSaham').validate();
+            App.NewShareholders.queryById('txtDarsadSaham').validate();
+            App.NewShareholders.queryById('txtDateSaham').validate();
+            App.NewShareholders.queryById('txtTedadSaham').emptyText = Minus + ':سهام باقیمانده';
+            App.NewShareholders.queryById('txtTedadSaham').applyEmptyText();
+        }
+    }
+
+    function SaveShareholders() {
+
+        var txtName2= App.NewShareholders.queryById('txtName2');
+        var txtFamily2 = App.NewShareholders.queryById('txtFamily2');
+        var txtCodeMeli = App.NewShareholders.queryById('txtCodeMeli');
+        var txtTedadSaham = App.NewShareholders.queryById('txtTedadSaham');
+        var txtDarsadSaham = App.NewShareholders.queryById('txtDarsadSaham');
+        var txtDateSaham = App.NewShareholders.queryById('txtDateSaham');
+        var Id = App.NewShareholders.queryById('fldId');
+            var er = false;
+
+            if (txtName2.validate() == false) {
+                er = true;
+            }
+            if (txtFamily2.validate() == false) {
+                er = true;
+            }
+
+            if (txtCodeMeli.validate() == false) {
+                er = true;
+            }
+            if (txtTedadSaham.validate() == false) {
+                er = true;
+            }
+            if (txtDarsadSaham.validate() == false) {
+                er = true;
+            }
+            if (txtDateSaham.validate() == false) {
+                er = true;
+            }
+
+            if (er == true)
+                return;
+
+            Ext.net.Mask.show({ msg: 'در حال ذخیره سازی...' });
+            Ext.net.DirectMethod.request({
+                url: '/Faces/Shareholders/SaveHaghighi',
+                params: {
+                    fldId: Id.getValue(),
+                    fldAshkhasId: CompanyPersonalId,
+                    fldTedadSaham: txtTedadSaham.getValue(),
+                    fldTarikhSaham: txtDateSaham.rawValue,
+                    fldStatus: fldStatus,
+                    ShareholderId: ShareholderId,
+                    FirstId: '@ViewBag.FirstId',
+                    ReqId:'@ViewBag.ReqId',
+                    __RequestVerificationToken: App.NewShareholders.queryById('AntiForgeryField').getValue()
+                },
+                success: function (data) {
+                    var ic = Ext.MessageBox.INFO;
+                    if (data.Err == 1)
+                        ic = Ext.MessageBox.ERROR;
+                    Ext.MessageBox.show({
+                        Name: data.MsgName,
+                        msg: data.Msg,
+                        icon: ic,
+                        buttons: Ext.MessageBox.OK
+                    });
+                    App.Shareholders.queryById('GridShareholders').store.load();
+                    if (data.Err != 1) {
+                        var newMinus = Minus - txtTedadSaham.getValue();
+                        App.NewShareholders.queryById('txtTedadSaham').emptyText = newMinus + ':سهام باقیمانده';
+                        App.NewShareholders.queryById('txtTedadSaham').applyEmptyText();
+                        ClearShareholders();
+                    }
+                    Ext.net.Mask.hide();
+                }
+
+            });
+        }
+    function ClearShareholders() {
+        App.NewShareholders.queryById('txtName2').setValue("");
+        App.NewShareholders.queryById('txtFamily2').setValue("");
+        App.NewShareholders.queryById('txtCodeMeli').setValue("");
+        App.NewShareholders.queryById('txtTedadSaham').setValue("");
+        App.NewShareholders.queryById('txtDarsadSaham').setValue("");
+        App.NewShareholders.queryById('txtDateSaham').setValue("");
+        App.NewShareholders.queryById('fldId').setValue(0);
+    }
+
+
+    function EnterNext() {
+        var keyfield = App.NewShareholders.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+        var nextfld = keyfield.nextSibling().nextSibling();
+        nextfld.focus();
+        nextfld.selectText();
+    }
+</script>

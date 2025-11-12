@@ -1,0 +1,198 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+
+<style>
+    #fieldsetfileAc legend {
+        text-align: right;
+        font-family: Tahoma !important;
+    }
+
+    #DeleteActionFileimg:hover {
+        cursor: pointer;
+    }
+</style>
+@(Html.X().Window().Modal(true).Listeners(li => { li.Render.Fn = "addKeyMapContactGroup"; li.AfterRender.Handler = "LoadContactGroup()"; })
+.Width(350)//.Height(300)
+    .Title("گروه تماس")
+        .ID("NewContactGroup")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+        .ButtonAlign(Ext.Net.Alignment.Center)
+        .Buttons(X.Button().Text("ذخیره").Icon(Ext.Net.Icon.Disk)
+            .Listeners(l =>
+            {
+                l.Click.Handler = "SaveContactGroup();";
+
+            })
+            .ItemID("btnSaveContactGroup"),
+            X.Button().Text("خروج").Icon(Ext.Net.Icon.DoorOut).ToolTip("کلید میانبر Esc")
+                  .OnClientClick("App.NewContactGroup.destroy();"))
+    .Items(
+        X.AntiForgeryField()
+                .ItemID("antiForgeryToken").Hidden(true),
+                X.FormPanel().Border(false)
+                    .Layout(Ext.Net.LayoutType.VBox)
+                        .LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Center })
+
+            .Items(
+                X.FieldSet().Border(false)
+                .Center()
+                .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 4 })
+                .Defaults(new { Margin = 2 })
+                .Items(
+                    X.Hidden().ItemID("fldId"),
+                      X.Label("عنوان گروه:"),
+                         X.TextField()
+                     .ItemID("txtTitle")
+                    .MaxLength(250).MaskRe("[ ,),(,ا-ی-آ-ئ-ء]")
+                    .EnforceMaxLength(true)
+                    .Width(200)
+                    .AllowBlank(false)
+                    .BlankText("لطفا عنوان گروه را وارد کنید.")
+                    .AutoFocus(true)
+                            )
+                )
+        )
+)
+
+<script type="text/javascript">
+
+
+    var fldTimeStamp = 0;
+    function LoadContactGroup() {
+        ReplaceArabic();
+        if ('@ViewBag.Id' != '0') {
+            App.NewContactGroup.body.mask("در حال بارگذاری...");
+            Ext.net.DirectMethod.request({
+                url: '/ContactGroup/Details',
+                params: {
+                    Id: '@ViewBag.Id',
+                    __RequestVerificationToken: App.NewContactGroup.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+                    var txtTitle = App.NewContactGroup.queryById('txtTitle');
+                    txtTitle.setValue(data.fldNameGroup);
+                    var fldId = App.NewContactGroup.queryById('fldId');
+                    fldId.setValue(data.fldId);
+                    fldTimeStamp = data.fldTimeStamp;
+                    App.NewContactGroup.body.mask().hide();
+                }
+            });
+        }
+        else {
+            App.NewContactGroup.queryById('txtTitle').validate();
+        }
+
+    }
+
+    function SaveContactGroup() {
+        var txtTitle = App.NewContactGroup.queryById('txtTitle');
+        var Id = App.NewContactGroup.queryById('fldId');
+            var er = false;
+            if (txtTitle.validate() == false) {
+                er = true;
+            }
+
+
+            if (er == true)
+                return;
+            App.NewContactGroup.body.mask("در حال ذخیره سازی");
+            Ext.net.DirectMethod.request({
+                url: '/ContactGroup/Save',
+                params: {
+                    fldId: Id.getValue(),
+                    fldNameGroup: txtTitle.getValue(),
+                    fldTimeStamp: fldTimeStamp,
+                    __RequestVerificationToken: App.NewContactGroup.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+                    chat.server.reloadLog();
+                    if (data.Er == 1 && data.Change == 1) {/*vaghti TimeStamp==0*/
+                        Ext.MessageBox.show({
+                            title: data.MsgTitle,
+                            msg: data.Msg,
+                            icon: Ext.MessageBox.WARNING,
+                            buttons: Ext.MessageBox.OK,
+                            fn: function (btn) {
+                                if (btn == 'ok') {
+                                    LoadContactGroup();
+                                }
+                            }
+                        });
+                    }
+                    else if (data.Er == 1 && data.Change == 2) {/*vaghti TimeStamp==2*/
+                        Ext.MessageBox.show({
+                            title: data.MsgTitle,
+                            msg: data.Msg,
+                            icon: Ext.MessageBox.ERROR,
+                            buttons: Ext.MessageBox.OK,
+                            fn: function (btn) {
+                                if (btn == 'ok') {
+                                    App.NewContactGroup.destroy();
+                                }
+                            }
+                        });
+
+                    }
+                    else if (data.Er == 1) {
+                        Ext.MessageBox.show({
+                            title: data.MsgTitle,
+                            msg: data.Msg,
+                            icon: Ext.MessageBox.ERROR,
+                            buttons: Ext.MessageBox.OK,
+                        });
+                    }
+                    else {
+                        Ext.MessageBox.show({
+                            title: data.MsgTitle,
+                            msg: data.Msg,
+                            icon: Ext.MessageBox.INFO,
+                            buttons: Ext.MessageBox.OK,
+                        });
+                    }
+
+                    App.ContactGroup.queryById('GridContactGroup').store.load();
+
+                    if (data.Er != 1)
+                        ClearContactGroup();
+                    App.NewContactGroup.body.mask().hide();
+                }
+
+            });
+        }
+    function ClearContactGroup() {
+        App.NewContactGroup.queryById('txtTitle').setValue("");
+        App.NewContactGroup.queryById('fldId').setValue(0);
+
+    }
+    var addKeyMapContactGroup = function (cmp) {
+        this.keyMap = new Ext.util.KeyMap({
+            target: cmp.getEl(),
+            binding: [{
+                key: [13, 9], /*Ext.EventObject.ENTER,*/
+                fn: function (key, e) {
+                    if (e.getKey() == 9) {
+                        e.stopEvent();
+                    }
+                    var keyfield = App.NewContactGroup.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+                    var nextfld;
+                    if (keyfield.itemId == "txtTitle") {
+                        nextfld = App.NewContactGroup.queryById('btnSaveContactGroup');
+                        SaveContactGroup();
+                        return;
+                    }
+                    else {
+                        nextfld = keyfield.nextSibling().nextSibling();
+                        nextfld.selectText();
+                    }
+                    nextfld.focus();
+                    nextfld.selectText();
+                }
+            }]
+        });
+    }
+</script>

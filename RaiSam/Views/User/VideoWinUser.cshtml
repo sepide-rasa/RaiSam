@@ -1,0 +1,28 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+
+@using Ext.Net.MVC;
+
+@(
+ Html.X().Window().Listeners(l => l.BeforeClose.Handler = "CloseVideoUser()")
+             .Height(565)
+         .Width(1000)
+            .ID("VideoUser")
+        .Closable(true)
+            .Title("راهنمای تصویری کاربر")
+        .AutoScroll(true)
+            .Maximizable(true)
+        .Closable(true)
+        .Content(@<video width="100%;" id="AmozeshVideoUser" controls="true" autoplay="true" controls><source src='@Url.Action("DownloadFileVideoUser", "User")' type="video/mp4"></video>)
+
+)
+<script type="text/javascript">
+    function CloseVideoUser() {
+        $('#AmozeshVideoUser')[0].pause();
+    }
+
+</script>

@@ -1,0 +1,494 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+<style>
+    .custom-icon {
+        margin-right: 120px !important;
+    }
+</style>
+
+@(Html.X().Window().Modal(true)
+    .Listeners(li =>
+        {
+            li.Render.Fn = "addKeyMapMalek_Vagon";
+            li.AfterRender.Handler = "LoadMalek_Vagon();";
+        })
+.Width(570)//.Height(300)
+    .Title("ثبت مالک واگن")
+             .ID("NewMalek_Vagon")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .ButtonAlign(Ext.Net.Alignment.Center)
+        .Buttons(X.Button().Text("ذخیره").Icon(Ext.Net.Icon.Disk)
+                .Listeners(l =>
+                {
+                    l.Click.Handler = "SaveMalek_Vagon();";
+
+                })
+                        .ItemID("btnSaveMalek_Vagon")
+                ,
+                X.Button().Text("خروج").Icon(Ext.Net.Icon.DoorOut).ToolTip("کلید میانبر Esc")
+                .OnClientClick("App.NewMalek_Vagon.hide();"))
+    .Items(
+        X.AntiForgeryField()
+                .ItemID("antiForgeryToken").Hidden(true),
+            X.Panel().Border(false)
+            .Items(
+                X.FieldSet().Border(true).Title("مالک")
+                .Center()
+                .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 4 })
+                .Defaults(new { Margin = 2 })
+                .Items(
+                X.Hidden().ItemID("fldId"),
+                 X.Label("نام کامل ثبتی شرکت:"),
+                 X.TextField()
+                                                    .ItemID("txtName")
+                                                        .MaxLength(200)
+                                                .EnforceMaxLength(true)
+                                                .AllowBlank(false)
+                                                .BlankText("لطفا نام کامل ثبتی شرکت را وارد کنید.")
+                                                .MsgTarget(Ext.Net.MessageTarget.Side)
+                                                    .Width(400)
+                                                        .Icon(Icon.Reload)
+                                        .Listeners(li =>
+                                        {
+                                            li.IconClick.Handler = "Estelam(2);";
+                                        }).ColSpan(3)
+                                         ,
+                         X.Label("شناسه ملی شرکت: "), X.TextField()
+                                                .ItemID("txtShenase")
+                                                .AllowBlank(false)//.RTL(false)
+                                                    .FieldStyle("direction:ltr;")
+                                                    .MaskRe("/[0-9]/")
+                                                .BlankText("لطفا شناسه ملی شرکت را وارد کنید.")
+                                                    .Plugins(X.InputMask()
+                                                    .Mask("AAAAAAAAAAA")
+                                                    .UnmaskOnBlur(true)
+                                                    .MaskSymbols(ls =>
+                                                        {
+                                                            ls.Add(new MaskSymbol { Name = "A", Regex = "[0-9]", Placeholder = "_".ToCharArray()[0] });
+                                                        }))
+                                                .MsgTarget(Ext.Net.MessageTarget.Side)
+                                                           // .Listeners(l => l.Change.Handler = "if(App.NewMalek_Vagon.queryById('txtShenase').getValue().replace('_', '').length>=11) CheckHaveCompany();")
+                                                    .Width(150)//.ColSpan(4)
+                                                    .Icon(Icon.Reload)
+                                        .Listeners(li =>
+                                        {
+                                            li.IconClick.Handler = "Estelam(1);";
+                                        })
+     
+                                            
+     , X.Label("کد اقتصادی:"), X.TextField()
+                                        .ItemID("txtCodeEghtesadi")
+                                        .AllowBlank(false)
+        //.RTL(false)
+                                            .FieldStyle("direction:ltr;")
+                                            .MaskRe("/[0-9]/")
+                                                .Plugins(X.InputMask()
+                                                    .Mask("AAAAAAAAAAAA")
+                                                    .UnmaskOnBlur(true)
+                                                    .MaskSymbols(ls =>
+                                                        {
+                                                            ls.Add(new MaskSymbol { Name = "A", Regex = "[0-9]", Placeholder = "_".ToCharArray()[0] });
+                                                        }))
+                                        .BlankText("لطفا کد اقتصادی را وارد کنید.")
+                                        .MsgTarget(Ext.Net.MessageTarget.Side)
+                                        .Width(150)
+                                        ,
+                            X.Label("تاریخ ثبت:"),
+                            X.PDateField()
+                            .ItemID("txtTarikhSabt")
+                        .AllowBlank(true)
+                            .BlankText("لطفا تاریخ ثبت را وارد کنید.")
+                        .Editable(true)
+                        .MaskRe("/[0-9/]/")
+                        .MaxLength(10)
+                        .MinLength(10)
+                        .EnforceMaxLength(true)
+                        ,
+                            X.Label("تاریخ تاسیس:"),
+                                X.PDateField()
+                                .ItemID("txtTarikhTasis")
+                            .AllowBlank(true)
+                                .BlankText("لطفا تاریخ تاسیس را وارد کنید.")
+                            .Editable(true)
+                            .MaskRe("/[0-9/]/")
+                            .MaxLength(10)
+                            .MinLength(10)
+                            .EnforceMaxLength(true)
+                       , X.Label("شماره ثبت:"),
+                         X.TextField()
+                                 .ItemID("txtShomareSabt")
+                            .MaxLength(100)//.Width(330)
+                        .EnforceMaxLength(true)
+                        .AllowBlank(false)//.MaskRe("[1-9 ,),(,ا-ی-آ-ئ-ء]")
+                            .BlankText("لطفا شماره ثبت را وارد کنید."),
+                            X.Label("کدپستی:"), X.TextField()
+                                            .ItemID("txtCodePosti")
+                                            .AllowBlank(false)
+                                            .BlankText("لطفا کدپستی را وارد کنید.")
+        //.MaskRe("/[0-9]/")
+                                                    .Plugins(X.InputMask()
+                                            .Mask("AAAAAAAAAA")
+                                            .UnmaskOnBlur(true)
+                                            .MaskSymbols(ls =>
+                                                {
+                                                    ls.Add(new MaskSymbol { Name = "A", Regex = "[0-9]", Placeholder = "_".ToCharArray()[0] });
+                                                }))
+        //  .RTL(false)
+                                                .FieldStyle("direction:ltr;")
+                                            .MsgTarget(Ext.Net.MessageTarget.Side)
+                                            ,
+                                            X.Label("آدرس:"),
+                 X.TextField()
+                                                    .ItemID("txtAddress")
+                                                        .MaxLength(200)
+                                                .EnforceMaxLength(true)
+                                                .AllowBlank(false)
+                                                .BlankText("لطفا آدرس را وارد کنید.")
+                                                .MsgTarget(Ext.Net.MessageTarget.Side)
+                                                    .Width(400)
+                                       .ColSpan(3)
+                                        ,
+                     X.Label("کد سامانه مرجع:"),
+                     X.TextField()
+                         .ItemID("txtSamaneMarjaId")
+                        .MaxLength(100)//.Width(330)
+                            .Width(150)
+                    .EnforceMaxLength(true)
+                    .AllowBlank(false)//.MaskRe("[1-9 ,),(,ا-ی-آ-ئ-ء]")
+                    .BlankText("لطفا کد را وارد کنید.")
+                    , X.Label("نوع سامانه مرجع:"),
+                        X.ComboBox()
+                            .ItemID("CboTypeSamane")
+                            .Editable(false)
+                            .TypeAhead(true)
+                            .BlankText("لطفا نوع سامانه را انتخاب کنید.")
+                            .QueryMode(DataLoadMode.Local)
+                            .TriggerAction(TriggerAction.All)
+                            .AllowBlank(false)
+                            .EmptyText("...")
+                            .Items(
+                                new ListItem("باری", "0"),
+                                    new ListItem("مسافری", "1"),
+                                    new ListItem("لکوموتیو", "2")
+                                )
+                            .SelectedItems(new { Value = "0" })
+                               .Width(150)
+                        )
+
+                )
+                    .Layout(Ext.Net.LayoutType.VBox)
+                    .LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Center })
+        )
+)
+<script type="text/javascript">
+    var fldTimeStamp = 0;
+    var AshkhasHoghughiId=0;
+
+  
+    function LoadMalek_Vagon() {
+        ReplaceArabic();
+        if ('@ViewBag.Id' != '0') {
+            App.NewMalek_Vagon.body.mask("در حال بارگذاری...");
+            Ext.net.DirectMethod.request({
+                url: '/Malek_Vagon/Details',
+                params: {
+                    Id: '@ViewBag.Id',
+                    __RequestVerificationToken: App.NewMalek_Vagon.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+                    var txtSamaneMarjaId = App.NewMalek_Vagon.queryById('txtSamaneMarjaId');
+                    txtSamaneMarjaId.setValue(data.fldSamaneMarjaId);
+                    var CboTypeSamane = App.NewMalek_Vagon.queryById('CboTypeSamane');
+                    CboTypeSamane.setValue(data.fldTypeSamane);
+                    var txtShenase = App.NewMalek_Vagon.queryById('txtShenase');
+                    txtShenase.setValue(data.fldShenaseMeli);
+                    var txtName = App.NewMalek_Vagon.queryById('txtName');
+                    txtName.setValue(data.fldNameCompany);
+                    var txtCodeEghtesadi = App.NewMalek_Vagon.queryById('txtCodeEghtesadi');
+                    txtCodeEghtesadi.setValue(data.fldCodeEghtasadi);
+                    var Id = App.NewMalek_Vagon.queryById('fldId');
+                    Id.setValue(data.fldId);
+                    fldTimeStamp = data.fldTimeStamp;
+
+                    var txtTarikhSabt = App.NewMalek_Vagon.queryById('txtTarikhSabt');
+                    txtTarikhSabt.setValue(data.fldDateSabt);
+                    var txtTarikhTasis = App.NewMalek_Vagon.queryById('txtTarikhTasis');
+                    txtTarikhTasis.setValue(data.fldTarikhTasis);
+                    var txtShomareSabt = App.NewMalek_Vagon.queryById('txtShomareSabt');
+                    txtShomareSabt.setValue(data.fldShomareSabt);
+                    var txtCodePosti = App.NewMalek_Vagon.queryById('txtCodePosti');
+                    txtCodePosti.setValue(data.fldCodePosti);
+                    var txtAddress = App.NewMalek_Vagon.queryById('txtAddress');
+                    txtAddress.setValue(data.fldAddress);
+                    AshkhasHoghughiId=data.fldAshkhasHoghoghiId;
+
+                    App.NewMalek_Vagon.body.mask().hide();
+                }
+            });
+        }
+        else {
+            App.NewMalek_Vagon.queryById('txtName').validate();
+            App.NewMalek_Vagon.queryById('txtShenase').validate();
+            App.NewMalek_Vagon.queryById('txtSamaneMarjaId').validate();
+            App.NewMalek_Vagon.queryById('CboTypeSamane').validate();
+            App.NewMalek_Vagon.queryById('txtCodeEghtesadi').validate();
+            App.NewMalek_Vagon.queryById('txtTarikhSabt').validate();
+            App.NewMalek_Vagon.queryById('txtTarikhTasis').validate();
+            App.NewMalek_Vagon.queryById('txtShomareSabt').validate();
+            App.NewMalek_Vagon.queryById('txtCodePosti').validate();
+            App.NewMalek_Vagon.queryById('txtAddress').validate();
+        }
+
+    }
+
+    function SaveMalek_Vagon() {
+                
+          var txtSamaneMarjaId = App.NewMalek_Vagon.queryById('txtSamaneMarjaId');
+          var CboTypeSamane = App.NewMalek_Vagon.queryById('CboTypeSamane');
+        var Id = App.NewMalek_Vagon.queryById('fldId');
+        var txtShenase = App.NewMalek_Vagon.queryById('txtShenase');
+        var txtName = App.NewMalek_Vagon.queryById('txtName');
+        var txtCodeEghtesadi = App.NewMalek_Vagon.queryById('txtCodeEghtesadi');
+        var txtTarikhSabt = App.NewMalek_Vagon.queryById('txtTarikhSabt');
+        var txtTarikhTasis = App.NewMalek_Vagon.queryById('txtTarikhTasis');
+        var txtShomareSabt = App.NewMalek_Vagon.queryById('txtShomareSabt');
+        var txtCodePosti = App.NewMalek_Vagon.queryById('txtCodePosti');
+        var txtAddress = App.NewMalek_Vagon.queryById('txtAddress');
+
+            var er = false;
+
+            if (txtSamaneMarjaId.validate() == false) {
+                er = true;
+            }
+            if (CboTypeSamane.validate() == false) {
+                er = true;
+            }
+            if (txtShenase.validate() == false) {
+                er = true;
+            }
+            if (txtName.validate() == false) {
+                er = true;
+            }
+            if (txtCodeEghtesadi.validate() == false) {
+                er = true;
+            }
+        
+            if (txtTarikhSabt.validate() == false) {
+                er = true;
+            }
+            if (txtTarikhTasis.validate() == false) {
+                er = true;
+            }
+            if (txtShomareSabt.validate() == false) {
+                er = true;
+            }
+            if (txtCodePosti.validate() == false) {
+                er = true;
+            }
+            if (txtAddress.validate() == false) {
+                er = true;
+            }
+            if (er == true)
+                return;
+
+
+            App.NewMalek_Vagon.body.mask("در حال ذخیره سازی");
+            Ext.net.DirectMethod.request({
+                url: '/Malek_Vagon/Save',
+                params: {
+                    fldId: Id.getValue(),
+                    fldSamaneMarjaId: txtSamaneMarjaId.getValue(),
+                    fldTypeSamane: CboTypeSamane.getDisplayValue(),
+                    fldShenaseMeli: txtShenase.getValue(),
+                    fldNameCompany: txtName.getValue(),
+                    fldCodeEghtasadi: txtCodeEghtesadi.getValue(),
+                    fldDateSabt:txtTarikhSabt.rawValue,
+                    fldTarikhTasis:txtTarikhTasis.rawValue,
+                    fldShomareSabt:txtShomareSabt.getValue(),
+                fldCodePosti:txtCodePosti.getValue(),
+                    fldAddress:txtAddress.getValue(),
+                    fldTimeStamp: fldTimeStamp,
+                    __RequestVerificationToken: App.NewMalek_Vagon.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+                    chat.server.reloadLog();
+                    if (data.Er == 1 && data.Change == 1) {/*vaghti TimeStamp==0*/
+                        Ext.MessageBox.show({
+                            title: data.MsgTitle,
+                            msg: data.Msg,
+                            icon: Ext.MessageBox.WARNING,
+                            buttons: Ext.MessageBox.OK,
+                            fn: function (btn) {
+                                if (btn == 'ok') {
+                                    LoadMalek_Vagon();
+                                }
+                            }
+                        });
+                    }
+                    else if (data.Er == 1 && data.Change == 2) {/*vaghti TimeStamp==2*/
+                        Ext.MessageBox.show({
+                            title: data.MsgTitle,
+                            msg: data.Msg,
+                            icon: Ext.MessageBox.ERROR,
+                            buttons: Ext.MessageBox.OK,
+                            fn: function (btn) {
+                                if (btn == 'ok') {
+                                    App.NewMalek_Vagon.destroy();
+                                }
+                            }
+                        });
+
+                    }
+                    else if (data.Er == 1) {
+                        Ext.MessageBox.show({
+                            title: data.MsgTitle,
+                            msg: data.Msg,
+                            icon: Ext.MessageBox.ERROR,
+                            buttons: Ext.MessageBox.OK,
+                        });
+                    }
+                    else {
+                        Ext.MessageBox.show({
+                            title: data.MsgTitle,
+                            msg: data.Msg,
+                            icon: Ext.MessageBox.INFO,
+                            buttons: Ext.MessageBox.OK,
+                        });
+                    }
+                    App.Malek_Vagon.queryById('GridMalek_Vagon').store.load();
+                    if (data.Er != 1)
+                        ClearMalek_Vagon();
+                    App.NewMalek_Vagon.body.mask().hide();
+                }
+
+            });
+        }
+    function ClearMalek_Vagon() {
+       
+        App.NewMalek_Vagon.queryById('txtSamaneMarjaId').setValue("");
+        App.NewMalek_Vagon.queryById('txtShenase').setValue("");
+        App.NewMalek_Vagon.queryById('txtName').setValue("");
+        App.NewMalek_Vagon.queryById('txtCodeEghtesadi').setValue("");
+        App.NewMalek_Vagon.queryById('CboTypeSamane').setValue("0");
+        App.NewMalek_Vagon.queryById('txtTarikhSabt').setValue("");
+        App.NewMalek_Vagon.queryById('txtTarikhTasis').setValue("");
+        App.NewMalek_Vagon.queryById('txtShomareSabt').setValue("");
+        App.NewMalek_Vagon.queryById('txtCodePosti').setValue("");
+        App.NewMalek_Vagon.queryById('txtAddress').setValue("");
+        App.NewMalek_Vagon.queryById('fldId').setValue(0);
+    }
+    function Estelam(state) {
+        var txtShenase = App.NewMalek_Vagon.queryById('txtShenase');
+        var txtName = App.NewMalek_Vagon.queryById('txtName');
+        var d = txtShenase.getValue();
+        if (state == 2)
+            d = txtName.getValue();
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/CompanyProfile/LoadFromService',
+            params: {
+                state: state,
+                data: d,
+                __RequestVerificationToken: App.NewMalek_Vagon.queryById('antiForgeryToken').getValue()
+            },
+            success: function (data) {
+                if (data.Err == 1) {
+                    Ext.MessageBox.show({
+                        Name: "خطا",
+                        msg: "عدم برقراری ارتباط با سرور.",
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK
+                    });
+                }
+                else if (data.fldNationalCode == null) {
+                    Ext.MessageBox.show({
+                        Name: "خطا",
+                        msg: "شرکتی با این مشخصات یافت نشد.",
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK
+                    });
+                }
+                else {
+                    var txtShenase = App.NewMalek_Vagon.queryById('txtShenase');
+                    txtShenase.setValue(data.fldNationalCode);
+                    var txtName = App.NewMalek_Vagon.queryById('txtName');
+                    txtName.setValue(data.fldFullName);
+                    var txtTarikhSabt = App.NewMalek_Vagon.queryById('txtTarikhSabt');
+                    txtTarikhSabt.setValue(data.RegisterDate);
+                    var txtTarikhTasis = App.NewMalek_Vagon.queryById('txtTarikhTasis');
+                    txtTarikhTasis.setValue(data.EstablishmentDate);
+                    var txtShomareSabt = App.NewMalek_Vagon.queryById('txtShomareSabt');
+                    txtShomareSabt.setValue(data.RegisterNumber);
+                    var txtCodePosti = App.NewMalek_Vagon.queryById('txtCodePosti');
+                    txtCodePosti.setValue(data.PostCode);
+                    var txtAddress = App.NewMalek_Vagon.queryById('txtAddress');
+                    txtAddress.setValue(data.Address);
+                }
+                Ext.net.Mask.hide();
+            },
+            failure: function (data) {
+                Ext.net.Mask.hide();
+                Ext.MessageBox.show({
+                    Name: "خطا",
+                    msg: "عدم برقراری ارتباط با سرور.",
+                    icon: Ext.MessageBox.ERROR,
+                    buttons: Ext.MessageBox.OK
+                });
+                ClearMalek_Vagon();
+            }
+        });
+    }
+    function CheckHaveCompany() {
+
+        var Shenase = App.NewMalek_Vagon.queryById('txtShenase').getValue();
+        Shenase = Shenase.replace("_", "");
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/CompanyProfile/CheckHaveCompany',
+            params: {
+                Shenase: Shenase,
+                __RequestVerificationToken: App.NewMalek_Vagon.queryById('antiForgeryToken').getValue()
+            },
+            success: function (data) {
+                Ext.net.Mask.hide();
+                var txtShenase = App.NewMalek_Vagon.queryById('txtShenase');
+                var txtName = App.NewMalek_Vagon.queryById('txtName');
+                if (data.Error != 1) {
+                    txtShenase.setValue(data.fldNationalCode);
+                    txtName.setValue(data.fldFullName);
+                }
+            }
+        });
+    }
+ 
+    var addKeyMapMalek_Vagon = function (cmp) {
+        this.keyMap = new Ext.util.KeyMap({
+            target: cmp.getEl(),
+            binding: [{
+                key: [13, 9], /*Ext.EventObject.ENTER,*/
+                fn: function (key, e) {
+                    if (e.getKey() == 9) {
+                        e.stopEvent();
+                    }
+                    var keyfield = App.NewMalek_Vagon.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+                    var nextfld;
+                    if (keyfield.itemId == "CboKarbariMalek_Vagon") {
+                        nextfld = App.NewMalek_Vagon.queryById('btnSaveMalek_Vagon');
+                        SaveMalek_Vagon();
+                        return;
+                    }
+                    else {
+                        nextfld = keyfield.nextSibling().nextSibling();
+                    }
+                    nextfld.focus();
+                    nextfld.selectText();
+                }
+            }]
+        });
+    }
+</script>

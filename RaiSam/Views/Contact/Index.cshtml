@@ -1,0 +1,301 @@
+﻿@model IEnumerable<RaiSam.Models.prs_tblContactSelect>
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+
+    var X = Html.X();
+}
+<script>
+    var ShowIcon_Contact = function (value, record) {
+        if (value == null) {
+            return "";
+        }
+        else {
+            pic = "data:image/png;base64," + value;
+            var template = "<img src=" + pic + " style='width:17px;height:17px;' />";
+            return template;
+        }
+    };
+
+</script>
+
+
+@(X.Panel().Border(false).Listeners(li => { li.AfterRender.Handler = "ContactSetSize();"; })
+.Title("تماس")
+            .ID("ContactForm")
+            .Closable(true)
+            .AutoScroll(true)
+            .CloseAction(Ext.Net.CloseAction.Destroy)
+            .Items(
+                 X.AntiForgeryField()
+                .ItemID("antiForgeryToken")
+                .Hidden(true),
+                X.Panel().Border(false)
+                .Border(false)
+                .AutoScroll(true)
+                .Items(
+                    X.GridPanel().AutoScroll(true)
+                        .TopBar(
+                        Html.X().Toolbar()
+                        .Items(
+                            X.Button().Text("جدید").Icon(Ext.Net.Icon.Add)
+                                        .Listeners(li => li.Click.Handler = "NewContact();"),
+                            X.Button().Text("ویرایش").Icon(Ext.Net.Icon.Pencil)
+                                        .Listeners(Li => Li.Click.Handler = "EditContact();"),
+                            X.Button().Text("حذف").Icon(Ext.Net.Icon.Delete)
+                                .Listeners(de =>
+                                {
+                                    de.Click.Handler = "DeleteContact();";
+                                })
+                                , X.SplitButton()
+                                    .Text("راهنما")
+                                    .Icon(Ext.Net.Icon.Help)
+                                    .Menu(X.Menu()
+                                    .Items(
+                                    X.MenuItem()
+                                                .Text("راهنما متنی")
+                                                .Icon(Ext.Net.Icon.TextPaddingTop)
+                                                        .Listeners(l => l.Click.Handler = "HelpAction()")
+                                                .ItemID("btnshowHelpDirectorate"),
+                                        X.MenuItem()
+                                                .Text("راهنما تصویری")
+                                                .Icon(Ext.Net.Icon.PlayBlue)
+                                                    .Listeners(l => l.Click.Handler = "showHelp_VideoAction()")
+
+                                )
+                            )
+                        )
+                    )
+                    .ItemID("GridContact")
+                    .BottomBar(X.PagingToolbar())
+                    .Store(
+                        X.StoreForModel()
+                        .Listeners(l => l.BeforeLoad.Handler = "App.ContactForm.queryById('GridContact').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.ContactForm.queryById('antiForgeryToken').getValue());")
+                        .Proxy(Html.X().AjaxProxy()
+                            .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                            .Url(Url.Action("Read"))
+                            .Reader(Html.X().JsonReader().Root("data"))
+
+                        )
+                        .PageSize(20)
+                        .RemoteFilter(true)
+                        .RemotePaging(true)
+                        .Listeners(l => l.DataChanged.Handler = "App.ContactForm.queryById('GridContact').selModel.refresh();")
+                    )
+                    .View(
+                        Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                    )
+                    .Plugins(X.FilterHeader().Remote(true))
+                         .Listeners(l =>
+                         {
+                             l.AfterRender.Handler = "var grid = App.ContactForm.queryById('GridContact');grid.setHeight(App.ContactWin.getHeight() - 83); ";
+
+                         })
+                    .ColumnModel(
+                        Html.X().RowNumbererColumn(),
+                            Html.X().Column().DataIndex(Model, m => m.fldTimeStamp).Text("").Hidden(true).Flex(1),
+                        Html.X().Column().DataIndex(Model, m => m.fldId).Text("کد").Hidden(true).Flex(1),
+                        Html.X().Column().DataIndex(Model, m => m.fldfile).Filterable(false).Flex(1).Renderer("ShowIcon_Contact").Align(Ext.Net.Alignment.Center),
+                        Html.X().Column().DataIndex(Model, m => m.NameTypeContact).Text("نوع تماس").Wrap(true).Flex(2),
+                        Html.X().Column().DataIndex(Model, m => m.fldTyperName).Text("وضعیت تماس").Wrap(true).Flex(3),
+                        Html.X().Column().DataIndex(Model, m => m.fldname).Text("نام").Wrap(true).Flex(2),
+                        Html.X().Column().DataIndex(Model, m => m.fldfamily).Text("نام خانوادگی/نام مرکز").Wrap(true).Flex(3),
+                        Html.X().Column().DataIndex(Model, m => m.fldCodeMeli).Text("کدملی/شناسه ملی").Wrap(true).Flex(3),
+                        Html.X().Column().DataIndex(Model, m => m.fldValue).Text("مقدار").Wrap(true).Flex(7),
+                        Html.X().ComponentColumn().Flex(3).ItemID("ButtonsTree_Contact").Component(Html.X().Button().ItemID("btnTree_Contact")
+        /*.IconCls("Tree")*/.Text("اختصاص ساختار درختی").Icon(Icon.ApplicationSideTree)
+                        .Listeners(l => l.Click.Handler = "GoToTree_Contact();")).Filterable(false)
+
+                    )
+                    .SelectionModel(
+                        Html.X().RowSelectionModel()
+                            .Mode(Ext.Net.SelectionMode.Single)
+                    )
+            )
+        )
+)
+
+<script type="text/javascript">
+    function GoToTree_Contact() {
+        var SelectedRow = App.ContactForm.queryById("ButtonsTree_Contact").activeRecord.record;
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Contact/Contact_TreeWin',
+            params: {
+                ContactId: SelectedRow.data.fldId,
+                ContactName: SelectedRow.data.fldname + " " + SelectedRow.data.fldfamily
+            },
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+    function showHelp_VideoAction() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Contact/VideoWinContact',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+
+    }
+
+    function ContactSetSize() {
+        App.ContactForm.setWidth(App.ContactWin.getWidth());
+        var grid = App.ContactForm.queryById('GridContact');
+        grid.setHeight(App.ContactWin.getHeight() - 83);
+        InsertToLog("تماس",2, true);
+    }
+    function NewContact() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Contact/new',
+            params: {
+                id: 0
+            },
+            success: function () {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+
+    function EditContact() {
+        var SelectedRow = App.ContactForm.queryById('GridContact').selModel.getLastSelected();
+
+        if (SelectedRow != null) {
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/Contact/CheckEdit_Delete',
+                params: {
+                    id: SelectedRow.data.fldId,
+                    __RequestVerificationToken: App.ContactForm.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+                    Ext.net.Mask.hide();
+                    if(data.flag==true)
+                    {
+                        Ext.net.DirectMethod.request({
+                            url: '/Contact/new',
+                            params: {
+                                id: SelectedRow.data.fldId
+                            },
+                            success: function () {
+                                Ext.net.Mask.hide();
+                            }
+                        });
+                    }
+                    else
+                    {
+                        Ext.MessageBox.show({
+                            title: "خطا",
+                            msg: "شما مجاز به دسترسی نمی باشید.",
+                            icon: Ext.MessageBox.ERROR,
+                            buttons: Ext.MessageBox.OK
+                        });
+                    }
+                }
+            });
+
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+
+    function DeleteContact() {
+        var SelectedHeaderRow = App.ContactForm.queryById('GridContact').selModel.getLastSelected();
+        if (SelectedHeaderRow != null) {
+            Ext.MessageBox.show({
+                title: "هشدار",
+                msg: "آیا برای حذف مطمئن هستید؟",
+                icon: Ext.MessageBox.WARNING,
+                buttons: Ext.MessageBox.YESNO,
+                fn: function (btn) {
+                    if (btn == 'yes') {
+                        Ext.net.Mask.show({ msg: 'در حال انجام عملیات...' });
+                        Ext.net.DirectMethod.request({
+                            url: '/Contact/Delete',
+                            params: {
+                                id: SelectedHeaderRow.data.fldId,
+                                TimeStamp: SelectedHeaderRow.data.fldTimeStamp,
+                                __RequestVerificationToken: App.ContactForm.queryById('antiForgeryToken').getValue()
+                            },
+                            success: function (data) {
+                                chat.server.reloadLog();
+                                if (data.Er == 1 && data.Change == 1) {/*vaghti TimeStamp==0*/
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.WARNING,
+                                        buttons: Ext.MessageBox.OK,
+                                        fn: function (btn) {
+                                            if (btn == 'ok') {
+                                                App.ContactForm.queryById('GridContact').store.load();
+                                            }
+                                        }
+                                    });
+                                }
+                                else if (data.Er == 1 && data.Change == 2) {/*vaghti TimeStamp==2*/
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.ERROR,
+                                        buttons: Ext.MessageBox.OK,
+                                        fn: function (btn) {
+                                            if (btn == 'ok') {
+                                                App.ContactForm.queryById('GridContact').store.load();
+                                            }
+                                        }
+                                    });
+                                }
+                                else if (data.Er == 1) {
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.ERROR,
+                                        buttons: Ext.MessageBox.OK
+                                    });
+                                }
+                                else {
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.INFO,
+                                        buttons: Ext.MessageBox.OK
+                                    });
+                                    App.ContactForm.queryById('GridContact').store.load();
+                                }
+                                Ext.net.Mask.hide();
+                            }
+                        });
+                    }
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+    function HelpAction() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Contact/Help',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+</script>

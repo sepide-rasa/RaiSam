@@ -1,0 +1,9 @@
+﻿@using Ext.Net.MVC
+<script src="~/Scripts/jquery-3.5.1.min.js"></script>
+<div id="pdf"><center style="color:red;">لطفا تا دانلود کامل فایل مربوط به ثبت نام منتظر بمانید. با تشکر</center></div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        var t = '@Url.Content("~/Faces/CompanyProfile/DownloadPishSabt/")' + '@ViewBag.id';
+        window.location.href = t;
+    });
+</script>

@@ -1,0 +1,253 @@
+﻿@model IEnumerable<RaiSam.Models.prs_tblTaeedatSelect>
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@using Ext.Net.Utilities
+@{
+
+    var X = Html.X();
+}
+
+@(X.Window()
+    .Height(550)
+    .Width(865)
+    .Modal(true)
+    .ID("Navaghes")
+        .Title("نواقص و مصوبات")
+    .Icon(Ext.Net.Icon.UserComment2)
+    .Closable(true)
+    .Border(false)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Layout(Ext.Net.LayoutType.Fit)
+        .Items(
+             X.TabPanel().Border(false).Height(500).Listeners(l => l.AfterRender.Handler = "FormLoad();")
+                     .ID("pnlNavaghes-mosavab")
+                     .AutoScroll(true).Closable(false)
+                         .Layout(Ext.Net.LayoutType.Fit)
+                     .Items(
+            X.Panel()
+            .Title("نواقص")
+            .ItemID("PnlNavaghes")
+            .Border(false)
+            .Layout(Ext.Net.LayoutType.Fit)
+                .Items(
+                         X.AntiForgeryField().ItemID("AntiForgeryField"),
+                    X.GridPanel()
+                    .AutoScroll(true)
+           .TopBar(
+                            Html.X().Toolbar()
+                                .Items(
+                                 X.ComboBox()
+                        .ItemID("cboProject")
+                            .Editable(false).Width(500)
+                            .AllowBlank(false)
+                            .BlankText("لطفاً پروژه را انتخاب نمایید.")
+                            .TypeAhead(true)
+                            .LabelAlign(Ext.Net.LabelAlign.Right)
+                            .QueryMode(Ext.Net.DataLoadMode.Local)
+                            .DisplayField("Name")
+                            .ValueField("ID")
+                                    .EmptyText("پروژه")
+                                        .Listeners(l => l.Change.Handler = "LoadGrid()")
+                            .Store(
+                                X.Store()
+                         .Listeners(l => l.Load.Handler = "setDefaultProj();")
+                                      .Listeners(l => l.BeforeLoad.Handler = "App.Navaghes.queryById('cboProject').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.Navaghes.queryById('AntiForgeryField').getValue());")
+                                    .Model(X.Model()
+                                        .IDProperty("ID")
+                                        .Fields(
+                                            new Ext.Net.ModelField("ID", Ext.Net.ModelFieldType.String) { Mapping = "Id" },
+                                            new Ext.Net.ModelField("Name", Ext.Net.ModelFieldType.String) { Mapping = "Name" }))
+                                        .Proxy(X.AjaxProxy()
+                                            .ActionMethods(l => l.Read = HttpMethod.POST)
+                                                .Url(Url.Action("GetProject"))
+                                    .Reader(X.JsonReader().Root("data")))
+                        )
+                        ,
+                                   X.Button()
+                                    .Text("چاپ")
+                                    .Icon(Ext.Net.Icon.Printer)//.ToolTip("کلید میانبر F8")
+                                    .Listeners(li => li.Click.Handler = "Print();")
+                                        //           ,
+                                        //          X.SplitButton()
+                                        //    .Text("راهنما")
+                                        //    .Icon(Ext.Net.Icon.Help)
+                                        //    .Menu(X.Menu()
+                                        //    .Items(
+                                        //    X.MenuItem()
+                                        //                .Text("راهنما متنی")
+                                        //                .Icon(Ext.Net.Icon.TextPaddingTop)
+                                        //                .Listeners(l => l.Click.Handler = "showHelpNavaghes()")
+                                        //                .ItemID("btnshowHelpNavaghes"),
+                                        //        X.MenuItem()
+                                        //                .Text("راهنما تصویری")
+                                        //                .Icon(Ext.Net.Icon.PlayBlue)
+                                        //                .Listeners(l => l.Click.Handler = "showHelp_VideoNavaghes()")
+
+                                        //)
+                                    //)
+                            )
+                        )
+                    .ItemID("GridNavaghes")
+        //    .BottomBar(X.PagingToolbar())
+                    .Store(
+                            X.StoreForModel()
+                            .AutoLoad(false)
+                                     .Listeners(l => l.BeforeLoad.Handler = "App.Navaghes.queryById('GridNavaghes').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.Navaghes.queryById('AntiForgeryField').getValue());")
+                                    .Proxy(Html.X().AjaxProxy()
+                                    .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                .Url(Url.Action("ReadNavaghes"))
+                                .Reader(Html.X().JsonReader().Root("data"))
+        )
+                    .PageSize(1000)
+                    .RemoteFilter(true)
+                    .RemotePaging(true)
+    )
+                    .View(
+                        Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+    )
+                    .ColumnModel(
+                        Html.X().RowNumbererColumn(),
+                            Html.X().ActionColumn().Text("پیام جدید").Renderer("letterDi").Flex(1),
+                            Html.X().Column().DataIndex(Model, m => m.fldId).Text("کد").Hidden(true).Hideable(false).Flex(1),
+                                Html.X().Column().DataIndex(Model, m => m.fldApp_ClientId).Text("کدفرم").Hidden(true).Hideable(false).Flex(1),
+                                    Html.X().Column().DataIndex(Model, m => m.fldFaNameTable).Text("نام فرم").Wrap(true).Flex(2),
+                                    Html.X().Column().DataIndex(Model, m => m.fldDesc).Text("توضیحات").Flex(5),//.Wrap(true),
+
+                                Html.X().Column().DataIndex(Model, m => m.fldTarikh).Text("تاریخ ارسال").Flex(1),
+                                        Html.X().Column().DataIndex(Model, m => m.fldZaman).Text("زمان ارسال").Flex(1),
+                            Html.X().ImageCommandColumn().Listeners(l => l.Command.Handler = "ShowMsg(record);").Align(Ext.Net.Alignment.Center).Text("نمایش")
+                                .Flex(1).Commands(Html.X().ImageCommand().Cls("margin:10px;").CommandName("InfoMsg").Icon(Ext.Net.Icon.Information).ToolTip(tt => tt.Text = "نمایش"))
+    )
+                .SelectionModel(
+                    Html.X().RowSelectionModel()
+                        .Mode(Ext.Net.SelectionMode.Single)
+    )
+)
+)
+)
+)
+<script>
+    var letterDi = function (value, metadata, record, rowIndex, colIndex, store) {
+        if (record.data.fldSeen == 0) {
+            return '<img height="20" width="20" src="/Content/letter.png"/>';
+        }
+        else {
+            return '<img height="20" width="20" src="/Content/letter2.png"/>';
+        }
+    };
+    function setDefaultProj() {
+        var cboProject = App.Navaghes.queryById('cboProject');
+        cboProject.select(cboProject.store.getAt(0));
+    }
+    function showHelp_VideoNavaghes() {
+        /*window.location.href = 'Url.Content("~/Navaghes/DownloadV")';
+        App.NewDL.destroy();
+        Ext.net.Mask.hide();*/
+        var nameVideo = "Navaghes.mp4";
+        window = Ext.widget('window', {
+            renderTo: Ext.getBody(),
+            width: 710,
+            height: 420,
+            html: '<video width="700" controls><source src="/Uploaded/Help/' + nameVideo + '" type="video/mp4"><source src="/Uploaded/Help/' + nameVideo + '" type="video/ogg"></video>'
+        }).show();
+    }
+    function showHelp_VideoCompanyProfile() {
+        window.location.href = '@Url.Content("~/CompanyProfile/DownloadV?State=")' + '@ViewBag.SabtState';
+        App.NewDL.destroy();
+        Ext.net.Mask.hide();
+    }
+    function showHelpNavaghes() {
+        Ext.net.DirectMethod.request({
+            url: '/Home/HelpHtml',
+            params: {
+                TableId: 17
+            },
+            success: function (result) {
+                var mybr = document.createElement('br');
+
+                Ext.net.Notification.show({
+                    alignToCfg: {
+                        offset: [150, -30],
+                        position: 'bl-bl',
+                    },
+                    pinned: true,
+                    showPin: true,
+                    modal: true,
+                    bringToFront: true,
+                    pinEvent: 'click',
+                    height: 520,
+                    width: 700,
+                    html: result.HelpHtml,
+                    autoScroll: true,
+                    title: 'راهنمای ثبت نام'
+                });
+            }
+        });
+    }
+    function LoadGrid() {
+        var cboProject = App.Navaghes.queryById('cboProject');
+        App.Navaghes.queryById('GridNavaghes').getStore().getProxy().setExtraParam("fldFirstContractId", cboProject.getValue());
+        App.Navaghes.queryById('GridNavaghes').getStore().load();
+    }
+
+
+    function ShowMsg(record) {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Faces/Navaghes/ShowMsg',
+            params: {
+                Message: record.data.fldDesc,
+                fldId: record.data.fldId,
+                App_Id: record.data.fldApp_ClientId
+            },
+            success: function () {
+                App.Navaghes.queryById("GridNavaghes").store.load();
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+    function showBargozary() {
+        Ext.MessageBox.show({
+            msg: 'لطفاً منتظر باشید',
+            progressText: 'در حال بارگذاری...',
+            width: 300,
+            wait: true,
+            waitConfig:
+            {
+                /*duration: 10000,*/
+                interval: 200,
+                /*increment: 15,*/
+                text: 'در حال بارگذاری...',
+                scope: this
+                /*fn: function () {
+                    Ext.MessageBox.hide();
+                    Ext.Msg.alert('Status', 'Saved successfully!');
+                }*/
+            }
+        });
+
+    }
+    function Print() {
+        showBargozary();
+        Ext.net.DirectMethod.request({
+            url: '/Navaghes/Print',
+            success: function () {
+                Ext.MessageBox.hide();
+            }
+        });
+    }
+    function FormLoad() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Faces/Navaghes/Mosavabat',
+            params: {
+                containerId: "pnlNavaghes-mosavab"
+            },
+            success: function () {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+</script>

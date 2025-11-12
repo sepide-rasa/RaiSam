@@ -1,0 +1,124 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+
+
+@(Html.X().Window().Modal(true).Listeners(li => { li.Render.Fn = "addKeyMapNewPersonel"; })
+.Width(280)//.Height(300)
+    .Title("پرسنل جدید")
+        .ID("NewPersonel")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+        .ButtonAlign(Ext.Net.Alignment.Center)
+        .Buttons(X.Button().Text("بارگذاری").Icon(Ext.Net.Icon.Disk)
+                    .Listeners(l =>
+                    {
+                        l.Click.Handler = "SaveNewPersonel();";
+
+                    })
+                            .ItemID("btnSaveNewPersonel")
+                    ,
+                    X.Button().Text("خروج").Icon(Ext.Net.Icon.DoorOut).ToolTip("کلید میانبر Esc")
+                    .OnClientClick("App.NewPersonel.destroy();"))
+    .Items(
+        X.AntiForgeryField()
+                .ItemID("antiForgeryToken").Hidden(true),
+        X.FormPanel().Border(false)
+        .Border(false)
+            .Margin(3)
+            .DefaultButton("btn")
+            .TitleAlign(Ext.Net.TitleAlign.Center)
+            .Items(
+            X.Panel().Border(false)
+            .Items(
+                X.FieldSet().Border(true).Title("پرسنل")
+                .Center()
+                .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 2 })
+                .Defaults(new { Margin = 2 })
+                .Items(
+                X.Hidden().ItemID("fldId"),
+                     X.Label("کد انحصاری:"),
+                     X.TextField()
+                     .Width(160)
+                     .ItemID("txtCodeEnhesari")
+                         .MaskRe("/[0-9]/")
+                         .MaxLength(200)
+                        .EnforceMaxLength(true)
+                        .AllowBlank(false)
+                    .BlankText("لطفا کد انحصاری را وارد کنید.")
+                    .AutoFocus(true)
+                        )
+
+                )
+                    .Layout(Ext.Net.LayoutType.VBox)
+                    .LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Center })
+            )
+        )
+)
+<script type="text/javascript">
+
+    function SaveNewPersonel() {
+        var txtCodeEnhesari = App.NewPersonel.queryById('txtCodeEnhesari');
+        var er = false;
+        if (txtCodeEnhesari.validate() == false) {
+            er = true;
+        }
+        if (er == true)
+            return;
+        App.NewPersonel.body.mask("در حال بارگذاری...");
+        Ext.net.DirectMethod.request({
+            url: '/PersonalInfo/GetOnePersonelInfo',
+            params: {
+                CodeEnhesari: txtCodeEnhesari.getValue(),
+                __RequestVerificationToken: App.NewPersonel.queryById('antiForgeryToken').getValue()
+            },
+            success: function (data) {
+                var ic = Ext.MessageBox.INFO;
+                if (data.Er == 1) {
+                    ic = Ext.MessageBox.ERROR;
+                }
+                Ext.MessageBox.show({
+                    Name: data.MsgName,
+                    msg: data.Msg,
+                    icon: ic,
+                    buttons: Ext.MessageBox.OK
+                });
+                if (data.Er == 0) {
+                    if ('@ViewBag.state' == 1)
+                        App.PersonalInfo.queryById('GridPersonalInfo').store.load();
+                }
+                    App.NewPersonel.body.mask().hide();
+                }
+            });
+        }
+
+    var addKeyMapNewPersonel = function (cmp) {
+        this.keyMap = new Ext.util.KeyMap({
+            target: cmp.getEl(),
+            binding: [{
+                key: [13, 9], /*Ext.EventObject.ENTER,*/
+                fn: function (key, e) {
+                    if (e.getKey() == 9) {
+                        e.stopEvent();
+                    }
+                    var keyfield = App.NewPersonel.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+                    var nextfld;
+                    if (keyfield.itemId == "txtCodeEnhesari") {
+                        nextfld = App.NewPersonel.queryById('btnSaveNewPersonel');
+                        SaveNewPersonel();
+                        return;
+                    }
+                    else {
+                        nextfld = keyfield.nextSibling().nextSibling();
+                        nextfld.selectText();
+                    }
+                    nextfld.focus();
+                    nextfld.selectText();
+                }
+            }]
+        });
+    }
+</script>

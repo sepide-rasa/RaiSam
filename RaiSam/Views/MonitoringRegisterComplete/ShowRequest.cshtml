@@ -1,0 +1,298 @@
+﻿@model IEnumerable<RaiSam.Models.prs_tblRequestRankingSelect>
+@using Ext.Net.MVC;
+@{
+
+    var X = Html.X();
+
+    
+}
+<script src="~/Scripts/accounting.js"></script>
+<script>
+    var ShowStatus = function (value, record) {
+        var template = '<img src={0} alt="" title={1} />';
+        if (value == 1 || value == 20) {
+            var Pic = "@Url.Content("~/Content/state1.png")";
+            var ToolTip = "درحال"+'&nbsp;'+"تکمیل";
+            return Ext.String.format(template, Pic, ToolTip);
+        }
+        else if (value == 2 || value == 21) {
+            var Pic = "@Url.Content("~/Content/state2.png")";
+            var ToolTip = "درحال"+'&nbsp;'+"بررسی";
+            return Ext.String.format(template, Pic, ToolTip);
+        }
+        else if(value==3){
+            var Pic = "@Url.Content("~/Content/state3.png")";
+            var ToolTip = "درمرحله"+'&nbsp;'+"اعتراض";
+            return Ext.String.format(template, Pic, ToolTip);
+        }
+        else if(value==4){
+            var Pic = "@Url.Content("~/Content/state4.png")";
+            var ToolTip = "غیرقطعی" + '&nbsp;' + "اعتراض" + '&nbsp;' + "شده";
+            return Ext.String.format(template, Pic, ToolTip);
+        }
+        else if (value == 5 || value == 23) {
+            var Pic = "@Url.Content("~/Content/state5.png")";
+            var ToolTip = "قطعی";
+            return Ext.String.format(template, Pic, ToolTip);
+        }
+        else if(value==6){
+            var Pic = "@Url.Content("~/Content/state6.png")";
+            var ToolTip = "ارجاع" + '&nbsp;' + "داده" + '&nbsp;' + "شده";
+            return Ext.String.format(template, Pic, ToolTip);
+        }
+        else if(value==7){
+            var Pic = "@Url.Content("~/Content/state7.png")";
+            var ToolTip = "ارجاع" + '&nbsp;' + "از" + '&nbsp;' + "کمیته" + '&nbsp;' + "داوری";
+            return Ext.String.format(template, Pic, ToolTip);
+        }
+        else if(value==11){
+            var Pic = "@Url.Content("~/Content/state11.png")";
+            var ToolTip = "ارسال" + '&nbsp;' + "به" + '&nbsp;' + "گروه" + '&nbsp;' + "ارزیاب";
+            return Ext.String.format(template, Pic, ToolTip);
+        }
+        else if(value==12){
+            var Pic = "@Url.Content("~/Content/state12.png")";
+            var ToolTip = "ارجاع" + '&nbsp;' + "از" + '&nbsp;' + "گروه" + '&nbsp;' + "ارزیاب";
+            return Ext.String.format(template, Pic, ToolTip);
+        }
+        else if(value==22){
+            var Pic = "@Url.Content("~/Content/state22.png")";
+            var ToolTip = "ناظر" + '&nbsp;' + "تعیین" + '&nbsp;' + "شده" ;
+            return Ext.String.format(template, Pic, ToolTip);
+        }
+    };
+</script>
+
+@(Html.X().Window().Modal(true)//.Listeners(l => l.AfterRender.Handler = "ReplaceArabic();")
+            .Width(700).Height(360)
+            .Title(" درخواست ها ")
+                    .ID("ShowRequest")
+            .Closable(true)
+            .CloseAction(Ext.Net.CloseAction.Destroy)
+            .Items(
+                X.Panel().Border(false)
+                .Border(false)
+                .AutoScroll(true)
+                .Items(
+
+                            X.GridPanel().AutoScroll(true).Listeners(l => l.ViewReady.Handler = "LoadShowRequest();")
+        //.TopBar(
+        //    Html.X().Toolbar()
+        //    .Items(
+        //            X.Button().Text("انتخاب").Icon(Ext.Net.Icon.ArrowRedo)
+        //                            .Listeners(li => li.Click.Handler = "NextSearchEdareKol();")
+        //    )
+        // )
+                                .ItemID("GridShowRequest").Flex(2)
+        //   .BottomBar(X.PagingToolbar())
+                    .Height(330)
+                  .Scroll(Ext.Net.ScrollMode.Vertical)
+                    .Store(
+                        X.StoreForModel()
+        //.Proxy(Html.X().AjaxProxy()
+        //    .Url(Url.Action("Read"))
+        //    .Reader(Html.X().JsonReader().Root("data"))
+
+                        //)
+                        .PageSize(2000)
+                        .RemoteFilter(true)
+                        .RemotePaging(true)
+
+                    )
+                    .View(
+                        Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                    )
+        //.Plugins(X.FilterHeader().Remote(true))
+                    .ColumnModel(
+                         Html.X().RowNumbererColumn(),
+                                Html.X().Column().DataIndex(Model, m => m.fldId).Text("کد").Flex(1).Hidden(true),
+                            Html.X().Column().DataIndex(Model, m => m.fldFirstRegisterId).Text("firstکد").Flex(1).Hidden(true),
+                                Html.X().Column().DataIndex(Model, m => m.fldHadafIdAllowed).Text("کد عنوان هدف").Flex(5).Hidden(true).Flex(1),
+                                Html.X().Column().DataIndex(Model, m => m.fldNameHadaf).Text("عنوان").Flex(5).Wrap(true),
+                                Html.X().Column().DataIndex(Model, m => m.fldHadafId).Text("کد ذینفع").Flex(3).Hidden(true).Hideable(false),
+                            Html.X().Column().DataIndex(Model, m => m.fldTarikhDarkhast).Text("تاریخ درخواست").Flex(2),
+                                Html.X().Column().DataIndex(Model, m => m.fldRequestTypeName).Text("نوع درخواست").Flex(3).Wrap(true),
+                                Html.X().Column().DataIndex(Model, m => m.fldStatusRequest).Text("وضعیت").Flex(3).Wrap(true),
+                            Html.X().Column().DataIndex(Model, m => m.fldStatusId).Flex(1).Renderer("ShowStatus").Filterable(false)
+                            ,
+        //                    Html.X().ImageCommandColumn().Listeners(l => l.Command.Handler = "ShowTarikhche(record);")
+        //                        .Flex(1).Commands(Html.X().ImageCommand().Icon(Ext.Net.Icon.BookMagnify).CommandName("btnShowTarikhche").ToolTip(tt => tt.Text = "تاریخچه درخواست"))
+        //                            ,
+        //                    Html.X().ImageCommandColumn().Listeners(l => l.Command.Handler = "TimeLine(record);")
+        //                            .Flex(1).Commands(Html.X().ImageCommand().Icon(Ext.Net.Icon.ChartLine).CommandName("btnShowGeragh")),
+        //                    Html.X().ComponentColumn().Flex(1).ItemID("ButtonsNextRe").Component(Html.X().Button().ItemID("btnNextRe").Text("کارتابل").Listeners(l => l.Click.Handler = "GoToKartabl();")).Filterable(false)
+        //// .Renderer("Kartabl")
+        //                    .Hidden(!servic.Permission(194, Session["Username"].ToString(), Session["Password"].ToString(), out Err))
+        //                    ,
+                            Html.X().Column().DataIndex(Model, m => m.fldType).Text("نوع درخواست").Flex(3).Hidden(true)
+                            //,
+                            //Html.X().Column().DataIndex(Model, m => m.fldDashboardId).Text("کد داشبورد").Flex(3).Hidden(true),
+                            //Html.X().Column().DataIndex(Model, m => m.fldSecretariatId).Text("کد کمیته").Flex(3).Hidden(true)
+                    )
+                    .SelectionModel(
+                        Html.X().RowSelectionModel()
+                            .Mode(Ext.Net.SelectionMode.Single)
+                    )
+
+            )
+        )
+)
+<script type="text/javascript">
+    function LoadShowRequest() {
+        Ext.net.DirectMethod.request({
+            url: '/MonitoringRegisterComplete/LoadShowRequest',
+            params: {
+                Id: '@ViewBag.Id',
+                State: '@ViewBag.State'
+            },
+            success: function (result) {
+                App.ShowRequest.queryById('GridShowRequest').getStore().loadData(result.info);
+
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+    var zz;
+    function TimeLine(record) {
+        zz = record;
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        var Id = record.data.fldId;
+        Ext.net.DirectMethod.request({
+            url: '/MonitoringRegisterComplete/TimeLine',
+            params: {
+                RequestId: Id
+            },
+            success: function (result) {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+    function ShowTarikhche(record) {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        var Id = record.data.fldId;
+        Ext.net.DirectMethod.request({
+            url: '/MonitoringRegisterComplete/ShowTarikhche',
+            params: {
+                RequestId: Id
+            },
+            success: function (result) {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+    function GoToKartabl() {
+        var SelectedRow = App.ShowRequest.queryById("ButtonsNextRe").activeRecord.record;
+        var RequestId = SelectedRow.data.fldId;
+        var TreeId = SelectedRow.data.fldStakeholderTreeId;
+        var DateRequest = SelectedRow.data.fldTarikhDarkhast;
+        var DashboardId = SelectedRow.data.fldDashboardId;
+        var TitleRequest = SelectedRow.data.fldType;
+        var SecretariatId = SelectedRow.data.fldSecretariatId;
+        var StatusId = SelectedRow.data.fldStatusId;
+
+        var HaveAccess=0;
+        @*if ((TreeId == 2 || TreeId == 6 || TreeId == 12 || TreeId == 14 || TreeId == 18 || TreeId == 20|| TreeId == 27 ) && (@P_KartablB==true))
+            HaveAccess=1;
+        if ((TreeId == 3 || TreeId == 10 || TreeId == 11 || TreeId == 19 || TreeId == 21 || TreeId == 23 || TreeId == 25 || TreeId == 28 || TreeId == 29) && (@P_KartablM==true))
+            HaveAccess=1;
+        if ((TreeId >= 30 && TreeId <=47) && (@P_KartablK==true))
+            HaveAccess=1;*@
+
+        if(HaveAccess==1){
+
+            if (TitleRequest == 4)/*ثبت مشخصات شرکت*/
+                TitleRequest = 1;
+            /*openWindowWithPostK("faces/Kartabl/Index", {
+                RequestId: RequestId,
+                TreeId: TreeId,
+                SecretariatId: NodeId
+            });*/
+            if(TitleRequest==2||TitleRequest==3)
+            {
+                /*App.ShowRequest.body.mask('در حال بارگذاری...');
+                Ext.net.DirectMethod.request({
+                    url: '/faces/SelectRequest/Index',
+                    params: {
+                        containerId :"Tabk",
+                        StateLoad:TitleRequest
+                    },
+                    success: function () {
+                        App.ShowRequest.body.mask().hide();
+                    }
+                    ,
+                    failure: function (errorMsg) {
+                        App.ShowRequest.body.mask().hide();
+                        Ext.MessageBox.show({
+                            title: "خطا",
+                            msg: "در بارگذاری اطلاعات خطایی رخ داده است، لطفا مجددا امتحان کنید.",
+                            icon: Ext.MessageBox.ERROR,
+                            buttons: Ext.MessageBox.OK
+                        });
+                    }
+                });*/
+            }
+            else{
+                var StatusRequest = "MonghaziShode";
+                if (StatusId == 1||StatusId == 6)
+                    StatusRequest = "Completing";
+                else if (StatusId == 2)
+                    StatusRequest = "Completed";
+                else if (StatusId == 3)
+                    StatusRequest = "MarhaleEteraz";
+                else if (StatusId == 4)
+                    StatusRequest = "EterazShode";
+                else if (StatusId == 5||StatusId == 7)
+                    StatusRequest = "Ghatei";
+
+                var Value;
+                if (StatusRequest == "Completing")
+                    Value = "NotRequest";
+                else if (StatusRequest == "Completed"||StatusRequest == "Waiting")
+                    Value = "Request";
+                else/* if(StatusRequest=="CompletedRotbe")*/
+                    Value = "Rotbe";
+
+                App.ShowRequest.body.mask('در حال بارگذاری...');
+                Ext.net.DirectMethod.request({
+                    url: 'faces/Kartabl/Index',
+                    params: {
+                        RequestId: RequestId,
+                        TreeId: TreeId,
+                        DateRequest: DateRequest,
+                        SecretariatId: SecretariatId,
+                        StatusRequest: StatusRequest,
+                        NodeId: SecretariatId,
+                        Value: Value,
+                        AzTarikh: "",
+                        TaTarikh: "",
+                        TitleRequest: TitleRequest,
+                        DashboardId: DashboardId,
+                        ArzyabGroupId:""
+                    },
+                    success: function () {
+                        App.ShowRequest.body.mask().hide();
+                    }
+                    ,
+                    failure: function (errorMsg) {
+                        App.ShowRequest.body.mask().hide();
+                        Ext.MessageBox.show({
+                            title: "خطا",
+                            msg: "در بارگذاری اطلاعات خطایی رخ داده است، لطفا مجددا امتحان کنید.",
+                            icon: Ext.MessageBox.ERROR,
+                            buttons: Ext.MessageBox.OK
+                        });
+                    }
+                });
+            }
+        }
+        else{
+            App.ShowRequest.body.mask().hide();
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "شما مجاز به دسترسی نمی باشید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+</script>

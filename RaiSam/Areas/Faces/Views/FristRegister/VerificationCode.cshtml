@@ -1,0 +1,122 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+
+
+@(Html.X().Window().Modal(true)//.Listeners(li => li.AfterRender.Handler = "LoadVerification();")
+.Width(400).Height(170).Resizable(false)
+    .Title("کد تائید")
+               .ID("VerificationCode")
+    .Closable(false)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Items(
+        X.FormPanel().Border(false)
+        .Border(false).ButtonAlign(Ext.Net.Alignment.Center)
+
+            .DefaultButton("btn")
+        .TitleAlign(Ext.Net.TitleAlign.Center)
+               .Buttons(
+               X.Button().Text("ثبت").Icon(Ext.Net.Icon.Add)
+                                            .Listeners(l => l.Click.Handler = "SaveFristRegister()")
+                            , X.Button().Text("خروج").Icon(Ext.Net.Icon.DoorOut).ToolTip("کلید میانبر Esc")
+                                        .OnClientClick("App.VerificationCode.destroy();loadcap();"))
+                .Items(
+                X.Panel().Border(false)
+
+            .Items(
+                X.FieldSet().Border(false)
+                .Center()
+                .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 3 })
+                .Defaults(new { Margin = 2 })
+                .Items(
+        X.FieldSet().Border(false)
+            .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 2 })
+                .Defaults(new { Margin = 2 })
+            .Items(
+                         X.AntiForgeryField().ItemID("AntiForgeryField"),
+          X.Container().ColSpan(2).Content(
+        @<div id="strength" style="width:350px;height:60px">پیامک حاوی کد تایید برای شما ارسال می گردد. در صورت خروج از این صفحه، ادامه فرایند را می توانید از لینک تکمیل ثبت نام در صفحه اصلی انجام دهید.</div>)
+,
+                     X.Label("کد تائید(حساس به حروف کوچک و بزرگ):")
+                     , X.Container().Content(@<div><input id='txtCodeTaaid' class='text' style='direction:ltr;font-family:sans-serif;width: 130px;height: 22px;' /></div>)
+                     //, X.TextField()
+                           //     .ItemID("txtCodeTaaid")
+                           //     .MsgTarget(Ext.Net.MessageTarget.Side)
+                           //     .AllowBlank(false)
+                           //     .AutoFocus(true)
+                           //     .BlankText("لطفا کد تائید را وارد کنید.")
+                             )
+
+                        )
+
+                )
+                    .Layout(Ext.Net.LayoutType.VBox)
+                    .LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Center })
+            )
+        )
+)
+<script type="text/javascript">
+    @*function LoadVerification() {
+        var url = '@Url.Content("~/FristRegister/generateVerification")';
+    }*@
+    function SaveFristRegister() {
+
+        /*  var txtCodeTaaid = App.VerificationCode.queryById('txtCodeTaaid');
+        var txtMobail = App.FristRegister.queryById('txtMobail');*/
+        var txtCodeTaaid = $('#txtCodeTaaid').val();
+        if (txtCodeTaaid == "")
+        {
+            alert("لطفا کد تائید را وارد کنید.");
+            return
+        }
+        Ext.net.Mask.show({ msg: 'در حال بررسی ...' });
+        Ext.net.DirectMethod.request({
+            url: '/Faces/FristRegister/CheckCodeTaaid',
+            params: {
+                CodeTaaid: txtCodeTaaid,
+                Mobail: Mobile,
+                __RequestVerificationToken: App.VerificationCode.queryById('AntiForgeryField').getValue()
+            },
+            success: function (data) {
+                var ic = icon = Ext.MessageBox.INFO;
+                if (data.Err == 1)
+                    ic = icon = Ext.MessageBox.ERROR;
+                Ext.MessageBox.show({
+                    title: data.MsgTitle,
+                    msg: data.Msg,
+                    icon: ic,
+                    buttons: Ext.MessageBox.OK
+                });
+                if (data.Err != 1) {
+                    App.VerificationCode.destroy();
+                    Ext.net.Mask.hide();
+                }
+            },
+            failur: function (data) {
+                var ic = icon = Ext.MessageBox.INFO;
+                if (data.Err == 1)
+                    ic = icon = Ext.MessageBox.ERROR;
+                Ext.MessageBox.show({
+                    title: data.MsgTitle,
+                    msg: data.Msg,
+                    icon: ic,
+                    buttons: Ext.MessageBox.OK
+                });
+                if (data.Err != 1) {
+                    App.VerificationCode.destroy();
+                    Ext.net.Mask.hide();
+                }
+            }
+        });
+    }
+    function loadcap() {
+            var originalSrc2 = '@Url.Content("~/Faces/FristRegister/generateCaptcha")';
+            var antiCachePart2 = (new Date()).getTime();
+            var newSrc2 = originalSrc2 + '?dc=' + antiCachePart2;
+            $("#m_imgCaptcha").attr('src', newSrc2);
+    }
+
+</script>

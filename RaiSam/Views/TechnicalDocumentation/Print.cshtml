@@ -1,0 +1,19 @@
+﻿@using Ext.Net.MVC;
+
+@(
+ Html.X().Window()
+
+        .Height(500)
+        .ID("PrintTechnicalDocumentation")
+        .Maximized(true).Closable(true)
+        .Maximizable(true)
+        .Minimizable(true)
+        .Title("پیش نمایش")
+        .Closable(true)
+        .CloseAction(Ext.Net.CloseAction.Destroy)
+                    .Html("<center><object class='se-pre-con'  style='width: 100%;height:620px;border: 1px solid #ccc;' type='application/pdf' data='/TechnicalDocumentation/DownloadFile?fldFileId=" + ViewBag.fldFilePdfId + "'></object></center>")
+
+)
+<script>
+
+</script>

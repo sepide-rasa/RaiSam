@@ -1,0 +1,171 @@
+﻿@model IEnumerable<RaiSam.Models.prs_HadafListForFirstRegister>
+@using Ext.Net.MVC;
+@{
+
+    var X = Html.X();
+}
+
+@(X.Window()
+    .Height(400)
+    .Width(605)
+    .Modal(true)
+    .ID("RelativeStakeholders")
+        .Listeners(l => l.Destroy.Handler = "Ext.net.Mask.hide();")
+    .Title("گروه های ذینفع انتخاب شده")
+    .Closable(true)
+    .Border(false)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Layout(Ext.Net.LayoutType.Fit)
+    .ButtonAlign(Ext.Net.Alignment.Center)
+    .Buttons(
+        Html.X().Button()
+            .Text("ثبت")
+            .Icon(Ext.Net.Icon.Disk)
+            .Listeners(l => l.Click.Handler = "SaveRelativeStakeholders();")
+    )
+        .Items(
+                 X.AntiForgeryField().ItemID("AntiForgeryField"),
+        X.Panel()
+            .ItemID("PnlRelativeStakeholders")
+            .Border(false)
+            .Layout(Ext.Net.LayoutType.Fit)
+            .Items(
+                X.GridPanel()
+                    .AutoScroll(true)
+        /*.Listeners(l=>l.Deselect.Fn="CheckAllowDelete")*/
+                    .ItemID("GridRelativeStakeholders")
+                    .Store(
+                        X.StoreForModel()
+                            .Listeners(l => l.Load.Handler = "GetCheckedGrouping()")
+                            .IsPagingStore(false)
+        //    .Parameters(new { /*GroupNameId = @ViewBag.GroupNameId,*/ PersonType = @ViewBag.PersonType, FirstRegisterId = @ViewBag.FirstRegisterIdd })
+
+                                     .Listeners(l => l.BeforeLoad.Handler = "App.RelativeStakeholders.queryById('GridRelativeStakeholders').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.RelativeStakeholders.queryById('AntiForgeryField').getValue());")
+                                    .Proxy(Html.X().AjaxProxy()
+                                    .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                            .Url(Url.Action("ReadRelativeStakeholders"))
+                            .Reader(Html.X().JsonReader().Root("data"))
+        )
+                    .RemoteFilter(true)
+                    .RemotePaging(true)
+    )
+                    .SelectionModel(
+                        Html.X().CheckboxSelectionModel().PruneRemoved(false).ShowHeaderCheckbox(true)
+                            .Mode(Ext.Net.SelectionMode.Multi).CheckOnly(true)
+                                .Listeners(l => { l.BeforeDeselect.Fn = "CheckAllowDelete";/* l.SelectionChange.Fn = "ChekSelected";*/ }))
+                    .ColumnModel(
+                                Html.X().Column().DataIndex(Model, m => m.fldId).Text("کد").Flex(1).Hidden(true),
+                            X.CheckColumn().DataIndex(Model, m => m.firstId).Text("تایید شده ها").Filterable(false).Editable(false).Flex(1),
+        // Html.X().Column().DataIndex(Model, m => m.fldGroupNameId).Text("کد نام گروه").Hidden(true).Hideable(false).Flex(1),
+                            Html.X().Column().DataIndex(Model, m => m.fldTitle).Text("عنوان").Flex(10).Wrap(true)
+    )
+))
+)
+
+<script>
+    var LoadNow = true;
+    function ChekSelected(a, b) {
+        s1 = a;
+        s2 = b;
+
+        var AllTrees = "";
+        for (var i = 0; i < b.length; i++) {
+            AllTrees = AllTrees + b[i].data.fldId + ";";
+        }
+        if (LoadNow)
+            ReloadGridData(AllTrees, b);
+    }
+    function ReloadGridData(Trees, array) {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Faces/FristRegister/ReadHadaf',
+            params: {
+                Trees: Trees
+            },
+            success: function (data) {
+
+                App.RelativeStakeholders.queryById('GridRelativeStakeholders').store.loadData(data.data);
+                App.RelativeStakeholders.queryById('GridRelativeStakeholders').getSelectionModel().clearSelections();
+                if (Trees != "" && Trees != null) {
+                    LoadNow = false;
+                    for (var j = 0; j < array.length; j++) {
+                        var index = App.RelativeStakeholders.queryById('GridRelativeStakeholders').getStore().findExact("fldId", array[j].data.fldId);
+                        App.RelativeStakeholders.queryById('GridRelativeStakeholders').getSelectionModel().select(index, true);
+
+                        if (j == array.length - 1)
+                            LoadNow = true;
+                    }
+                }
+                Ext.net.Mask.hide();
+            }
+        });
+
+    }
+    function SaveRelativeStakeholders() {
+        var SelRows = App.RelativeStakeholders.queryById('GridRelativeStakeholders').getSelectionModel().getSelection();
+        var StakeholdersTreeIds = "";
+        if (SelRows.length != 0) {
+            for (var i = 0; i < SelRows.length; i++) {
+                StakeholdersTreeIds = StakeholdersTreeIds + SelRows[i].data.fldId + ";";
+            }
+            Ext.net.Mask.show({ msg: 'در حال انجام عملیات...', bringToFront: true });
+            Ext.net.DirectMethod.request({
+                url: '/Faces/RequestRanking/SaveSelectedTrees',
+                params: {
+                    StakeholdersTreeIds: StakeholdersTreeIds,
+                    __RequestVerificationToken: App.RelativeStakeholders.queryById('AntiForgeryField').getValue()
+                },
+                success: function (data) {
+                        Ext.MessageBox.show({
+                            title: data.MsgTitle,
+                            msg: data.Msg,
+                            icon: Ext.MessageBox.INFO,
+                            buttons: Ext.MessageBox.OK
+                        });
+                        Ext.net.Mask.hide();
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفاً ذینفعان را انتخاب نمایید .",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+
+    function GetCheckedGrouping() {
+        Ext.net.DirectMethod.request({
+            url: '/Faces/RequestRanking/GetChecked',
+            success: function (data) {
+                if (data.CheckedItem.length != 0) {
+                    RG = "1";
+                    for (var j = 0; j < data.CheckedItem.length; j++) {
+                        var index = App.RelativeStakeholders.queryById('GridRelativeStakeholders').getStore().findExact("fldId", data.CheckedItem[j]);
+                        App.RelativeStakeholders.queryById('GridRelativeStakeholders').getSelectionModel().select(index, true);
+                    }
+                }
+            }
+        });
+    }
+
+    var CheckAllowDelete = function (grid, record, index, eOpts) {
+
+        if (record.data.firstId == 1) {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "مورد انتخاب شده، تایید شده و قادر به حذف آن نمی باشید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK,
+                closable:false,
+                fn: function (btn) {
+                    if (btn == 'ok')
+                        App.RelativeStakeholders.queryById('GridRelativeStakeholders').getSelectionModel().select(index, true);
+                }
+            });
+        }
+
+    }
+</script>

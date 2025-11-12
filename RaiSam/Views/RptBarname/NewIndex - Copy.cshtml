@@ -1,0 +1,1000 @@
+﻿@model RaiSam.Models.RptBarname
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+<style>
+    .custom-icon {
+        margin-right: 380px !important;
+    }
+    .grid-title {
+        text-align: right;
+    }
+
+    .YellowRow .x-grid-cell, .x-grid-rowwrap-div{
+        background-color:#F7B28D !important;
+    }
+</style>
+<script>
+    Ext.net.FilterHeader.behaviour.string[0].match = function (recordValue, matchValue) {
+        return (Ext.net.FilterHeader.behaviour.getStrValue(recordValue) || "").indexOf(matchValue) > -1;
+    };
+
+    Ext.net.FilterHeader.behaviour.string[0].getStrValue = function (value) {
+        return value.toString();
+    };
+
+    Ext.net.FilterHeader.behaviour.string[0].serialize = function (value) {
+        return {
+            type: "string",
+            op: "*",
+            value: value
+        };
+    };
+
+</script>
+
+@(Html.X().Panel()
+    .Closable(true)
+    .AutoScroll(true)
+    .Border(false)
+    .CloseAction(CloseAction.Destroy)
+                .Listeners(li => { li.Render.Fn = "addKeyMapRptBarname"; li.AfterRender.Handler = "setSizeRptPanel()"; })
+        //  .Listeners(l => l.AfterRender.Handler = "setTitlePnlRpt()")
+    .Layout(LayoutType.Fit).Title("گزارش بارنامه ها")
+        .ID("RptBarname")
+    .Items(
+        X.Panel()
+            .AutoScroll(true)
+            .Border(false)
+            .Layout(LayoutType.VBox)
+            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+            .Items(
+                X.FieldSet().Border(false)//.Width(760)
+            .Items(
+                        X.FormPanel()
+                    .AutoScroll(true)
+                    .Border(false)
+                    .ButtonAlign(Alignment.Center)
+                    .Buttons(
+                        Html.X().Button()
+                            .Text("چاپ")
+                            .ItemID("btnPrint")
+                            .Icon(Ext.Net.Icon.Printer)
+                                .Listeners(l => l.Click.Handler = "PrintBarname()"),
+                                     Html.X().Button()
+                                .Text("اکسل")
+                                .ItemID("btnxls")
+                                .Icon(Ext.Net.Icon.PageExcel)
+                                    .Listeners(l => l.Click.Handler = "XlsBarname()"),
+                                         Html.X().Button()
+                                    .Text("مرحله قبل")
+                                    .ItemID("btnpre")
+                                    .Icon(Ext.Net.Icon.ArrowRight)
+                                            .Listeners(l => l.Click.Handler = "PrevBarname()"),
+                                             Html.X().Button()
+                                        .Text("مرحله بعد")
+                                        .ItemID("btnnxt")
+                                        .Icon(Ext.Net.Icon.ArrowLeft)
+                                            .Listeners(l => l.Click.Handler = "NextBarname()"),
+                                 X.SplitButton()
+                                            .Text("راهنما")
+                                            .Icon(Ext.Net.Icon.Help)
+                                            .Menu(X.Menu()
+                                            .Items(
+                                            X.MenuItem()
+                                                        .Text("راهنما متنی")
+                                                        .Icon(Ext.Net.Icon.TextPaddingTop)
+                                                                    .Listeners(l => l.Click.Handler = "HelpBarname()"),
+                                                X.MenuItem()
+                                                        .Text("راهنما تصویری")
+                                                        .Icon(Ext.Net.Icon.PlayBlue)
+                                                                .Listeners(l => l.Click.Handler = "showHelp_VideoBarname()")
+
+                                        )
+                                        )
+                                        ,
+                        Html.X().Button()
+                            .Text("خروج")
+                            .ItemID("btnOut")
+                            .Icon(Ext.Net.Icon.DoorOut)
+                                .Listeners(l => l.Click.Handler = "destroyWinBarname()")
+                            )
+                    .Items(
+                            X.FieldSet().MarginSpec("5px 0 0 0").Width(680).ItemID("Filters")
+                            .Border(true).Title("فیلترها")
+                                .Defaults(new { Margin = 2 })
+                            .Layout(LayoutType.Table)
+                            .LayoutConfig(new TableLayoutConfig { Columns = 6 })
+                            .Items(
+                                    X.Hidden().ItemID("fldMalek_InfoGridId"),
+                                            X.Hidden().ItemID("fldContractGridId"),
+                                X.Hidden().ItemID("fldVagonGridId"),
+                                   X.Label("گزارش براساس:"),
+                                    X.ComboBox()
+                                  //  .Width(100)
+                                        .ItemID("CboTypeRPT")
+                                        .Editable(false)
+                                        .ForceSelection(true)
+                                        .AutoFocus(true)
+        // .TypeAhead(true)
+                                        .AllowBlank(false)
+                                        .BlankText("لطفا نوع گزارش گیری را انتخاب کنید.")
+                                            .Listeners(l => l.Change.Handler = "ChangeTypeRPT()")
+                                        .QueryMode(DataLoadMode.Local)
+                                        .TriggerAction(TriggerAction.All)
+                                        .Items(
+                                            new ListItem("مالک", "0"),
+                                                new ListItem("پروژه", "1"),
+                                                    new ListItem("شماره واگن", "2"),
+                                                        new ListItem("واگن تا واگن", "3"),
+                                                        new ListItem("لیست واگن", "4")
+                                                ),
+                            X.Label().Text("از تاریخ:").ItemID("lblAzTarikh"),
+                                X.PDateField()
+                                      //  .Width(100)
+                                .ItemID("txtAzTarikh")
+                                .AllowBlank(false)
+                                .MaskRe("[0-9,/]")
+                                .BlankText("لطفا از تاریخ را وارد کنید.")
+                                .PaddingSpec("0 0 0 10px")
+                                    .Listeners(l => l.Change.Handler = "ChangeAzTarikh_KarkardD()")
+                                .Editable(true),
+                            X.Label().Text("تا تاریخ:").ItemID("lblTaTarikh"),
+                                X.PDateField()
+                                     //   .Width(100)
+                                .ItemID("txtTaTarikh")
+                                    .MaskRe("[0-9,/]")
+        // .PaddingSpec("0 0 0 10px")
+                                .AllowBlank(false)
+                                                .BlankText("لطفا تا تاریخ را وارد کنید.").Listeners(l => l.Change.Handler = "ChangeTaTarikh_KarkardD()")
+                                    .Editable(true)
+                                   ,
+                                X.GridPanel()
+                                          .Height(350)
+                                          .PaddingSpec("10px 0 10px 0")
+                                .Cls("grid-title")
+                        .AutoScroll(true)
+                        .Border(true)
+                        .Title("مالکان")
+                        .ItemID("GridSearchMalek")
+                        .Store(
+                                X.StoreFor(Model.Malek)
+                              //  .Listeners(l => l.Load.Handler = "GetCheckedData()")
+                                .Proxy(Html.X().AjaxProxy()
+                                        .Url(Url.Action("ReadMalek"))
+                                        .Reader(Html.X().JsonReader().Root("data"))
+                                       // .ExtraParams(x => x.Add(new { state = @ViewBag.state }))
+                            )
+                            .PageSize(20000)
+                            .RemoteFilter(false)
+                            .RemotePaging(false)
+                        )
+                        .View(
+                            Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                        )
+                        .Plugins(X.FilterHeader().Remote(false))
+                        .ColumnModel(
+                                     Html.X().Column().DataIndex(Model.Malek, m => m.fldId).Text("کد").Flex(1).Hidden(true),
+                                        Html.X().Column().DataIndex(Model.Malek, m => m.fldNameCompany).Text("نام مالک").Wrap(true).Flex(7),
+                                        Html.X().Column().DataIndex(Model.Malek, m => m.fldCodeEghtasadi).Text("کداقتصادی").Wrap(true).Flex(3),
+                                        Html.X().Column().DataIndex(Model.Malek, m => m.fldShenaseMeli).Text("شناسه ملی").Wrap(true).Flex(3),
+                                        Html.X().Column().DataIndex(Model.Malek, m => m.fldTypeSamaneName).Text("نوع سامانه").Flex(3)
+                        )
+                        .SelectionModel(
+                            Html.X().CheckboxSelectionModel().CheckOnly(true)
+                                .PruneRemoved(false)
+                                .Mode(Ext.Net.SelectionMode.Multi)
+                        )
+                               // .Width(650)
+                                .ColSpan(6)
+               ,
+                                      X.GridPanel()
+                                          .Height(350)
+                                              .PaddingSpec("10px 0 10px 0")
+                                    .Cls("grid-title")
+                        .AutoScroll(true)
+                        .Border(true)
+                        .Title("پروژه ها")
+                        .ItemID("GridSearchContract")
+                        .Store(
+                                X.StoreFor(Model.Contract)
+                                .AutoLoad(false)
+                                //.Listeners(l => l.Load.Handler = "GetCheckedData()")
+                                .Proxy(Html.X().AjaxProxy()
+                                            .Url(Url.Action("ReadContract"))
+                                        .Reader(Html.X().JsonReader().Root("data"))
+                                                .ExtraParams(x => x.Add(new {  Malek = @ViewBag.Malek }))
+                            )
+                            .PageSize(20000)
+                            .RemoteFilter(false)
+                            .RemotePaging(false)
+                        )
+                        .View(
+                                Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                        )
+                        .Plugins(X.FilterHeader().Remote(false))
+                            .Plugins(
+                                                            X.RowExpander()
+                                                                            .Listeners(l => l.BeforeExpand.Fn = "loadGridVagonsDetail")
+                                                                .Component(
+                                                                    X.GridPanel()
+                                                                        .AutoScroll(true)
+                                                                        .ForceFit(true)
+                                                                        .Border(true)
+                                                                        .Height(150)
+                                                                                        .ItemID("GridVagonsDetail")
+        //.Listeners(l => l.ItemMouseEnter.Fn = "createTooltipMasirInDetailsKilometrazh2")
+                                                                        .Store(
+                                                                                    X.StoreFor(Model.Detail)
+                                                                                .AutoLoad(false)
+                                                                                .Proxy(Html.X().AjaxProxy()
+                                                                                                .Url(Url.Action("ReadVagonsDetail"))
+                                                                                    .Reader(Html.X().JsonReader().Root("data"))
+                                                                            )
+                                                                            .PageSize(10)
+                                                                            .RemoteFilter(true)
+                                                                            .RemotePaging(true)
+                                                                        )
+                                                                            .ViewConfig(
+                                                                                X.GridView()
+                                                                                        .LoadingText("در حال بارگذاری...").RTL(true)
+                            .GetRowClass(l => l.Fn = "getRowClassInProj")
+                                                                            )
+                                                                        .ColumnModel(
+                                                                             Html.X().RowNumbererColumn(),
+                                                                                                        Html.X().Column().DataIndex(Model.Detail, m => m.fldHeaderId).Text("fldHeaderId").Hidden(true).Flex(1),
+                                                                                                                Html.X().Column().DataIndex(Model.Detail, m => m.Ismalk).Text("Ismalk").Hidden(true).Flex(1),
+                                                                         Html.X().Column().DataIndex(Model.Detail, m => m.fldNameMalek).Text("مالک واگن").Wrap(true).Flex(7),
+                                                                                                                                                            Html.X().Column().DataIndex(Model.Detail, m => m.fldShomareVagon).Text("شماره واگن").Wrap(true).Flex(3),
+                                                                                                Html.X().Column().DataIndex(Model.Detail, m => m.fldVaznKhali).Text("ظرفیت واگن").Wrap(true).Flex(3),
+                                                                                                Html.X().Column().DataIndex(Model.Detail, m => m.fldTypeVagon).Text("نوع واگن").Wrap(true).Flex(3)
+                                                                        )
+                                                                        .SelectionModel(
+                                                                            Html.X().RowSelectionModel()
+                                                                                .Mode(Ext.Net.SelectionMode.Single)
+                                                                        )
+                                                                )
+                                                        )
+                        .ColumnModel(
+                                          Html.X().Column().DataIndex(Model.Contract, m => m.fldId).Text("کد").Hidden(true).Flex(1),
+                                        Html.X().Column().DataIndex(Model.Contract, m => m.fldTitle).Text("عنوان").Wrap(true).Flex(7),
+                                        Html.X().Column().DataIndex(Model.Contract, m => m.fldNameCompany).Text("نام شرکت").Wrap(true).Flex(7),
+                                        Html.X().Column().DataIndex(Model.Contract, m => m.fldShomareContract).Text("شماره قرارداد").Wrap(true).Flex(3),
+                                        Html.X().Column().DataIndex(Model.Contract, m => m.fldTarikhContract).Text("تاریخ قرارداد").Wrap(true).Flex(3),
+                                        Html.X().Column().DataIndex(Model.Contract, m => m.fldShomareMovafeghat).Text("شماره موافقتنامه").Wrap(true).Flex(3),
+                                            Html.X().Column().DataIndex(Model.Contract, m => m.fldTarikhMovafeghat).Text("تاریخ موافقتنامه").Wrap(true).Flex(3),
+                                            Html.X().Column().DataIndex(Model.Contract, m => m.fldTedadVagon).Text("تعداد واگن").Wrap(true).Flex(2)
+                        )
+        //  .Listeners(a => a.CellDblClick.Handler = "NextSearchContract();")
+                        .SelectionModel(
+                            Html.X().CheckboxSelectionModel().CheckOnly(true)
+        //.Listeners(l =>
+        //{
+        //    l.Deselect.Fn = "getDeselectData";
+        //})
+                                .PruneRemoved(false)
+                                .Mode(Ext.Net.SelectionMode.Multi)
+                        )
+                
+                               // .Width(650)
+                                .ColSpan(6)
+                                ,
+                                        X.GridPanel()
+                                        .Height(350)
+                                            .Title("واگن ها")
+                                              .PaddingSpec("10px 0 10px 0")
+                                    .Cls("grid-title")
+                        .AutoScroll(true)
+                        .Border(true)
+                      
+                        .ItemID("GridSearchVagon")
+                        .Store(
+                                X.StoreFor(Model.vagon)
+                            .AutoLoad(false)
+                                //.Listeners(l => l.Load.Handler = "GetCheckedData()")
+                                .Proxy(Html.X().AjaxProxy()
+                                        .Url(Url.Action("ReadVagon"))
+                                        .Reader(Html.X().JsonReader().Root("data"))
+                                                            .ExtraParams(x => x.Add(new { Proj = @ViewBag.Proj }))
+                            )
+                            .PageSize(20000)
+                            .RemoteFilter(false)
+                            .RemotePaging(false)
+                        )
+                        .View(
+                            Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                        )
+                        .Plugins(X.FilterHeader().Remote(false))
+                        .ColumnModel(
+                                             Html.X().Column().DataIndex(Model.vagon, m => m.fldId).Text("کد").Hidden(true).Flex(1),
+                                                Html.X().Column().DataIndex(Model.vagon, m => m.fldShomareVagon).Text("شماره واگن").Wrap(true).Flex(3),
+                                                Html.X().Column().DataIndex(Model.vagon, m => m.fldKarbariVagonName).Text("کاربری واگن").Wrap(true).Flex(3),
+                                                Html.X().Column().DataIndex(Model.vagon, m => m.fldNameCompany).Text("مالک واگن").Wrap(true).Flex(4),
+                                                Html.X().Column().DataIndex(Model.vagon, m => m.fldToolVagon).Text("طول واگن").Wrap(true).Flex(3),
+                                                Html.X().Column().DataIndex(Model.vagon, m => m.fldTypeVagon).Text("توع واگن").Wrap(true).Flex(3),
+                                                Html.X().Column().DataIndex(Model.vagon, m => m.fldVaznKhali).Text("وزن واگن").Wrap(true).Flex(3)
+                        )
+                        .SelectionModel(
+                            Html.X().CheckboxSelectionModel().CheckOnly(true)
+                                .PruneRemoved(false)
+                                .Mode(Ext.Net.SelectionMode.Multi)
+                        )
+                            //  .Width(650)
+                              .ColSpan(6)
+                        ,
+                                    X.Label("از واگن:").ItemID("lblAzShVagon"),
+                                    X.TextField()
+                                            //.Width(100)
+                                         .ItemID("txtAzShVagon")
+                                                .AllowBlank(false)
+                                                .BlankText("لطفا شماره واگن ابتدا را انتخاب کنید.")
+        //.Width(118)
+                                .MaxLength(7).MaskRe("[ 0-9]")
+                                .EnforceMaxLength(true),
+                                    X.Label("تا واگن:").ItemID("lblTaShVagon"),
+                                    X.TextField()
+                                        //    .Width(100)
+                                         .ItemID("txtTaShVagon")
+                                                .AllowBlank(false)
+                                                .BlankText("لطفا شماره واگن انتها را انتخاب کنید.")
+        //.Width(118)
+                                .MaxLength(7).MaskRe("[ 0-9]")
+                                .EnforceMaxLength(true)
+                                ,
+                                X.FieldSet()
+                                     .Layout(LayoutType.Table)
+                                     .Border(false)
+                                .LayoutConfig(new TableLayoutConfig { Columns = 2 })
+                                    .ColSpan(6)
+                                    .Width(650)
+                                .ItemID("flsFile").Items(
+                                X.Hidden().ItemID("fldShVagon"),
+                                     X.FileUploadField()
+                                .ButtonOnly(true).ButtonText("آپلود فایل اکسل")
+                                .PaddingSpec("0 29px 0 0")
+                                .DirectEvents(l =>
+                                {
+                                    l.Change.Action = "UploadExcelFileVagon";
+                                    l.Change.Success = "hideprogressExcelFileVagon();";
+                                })
+                                .Listeners(l => l.Change.Fn = "showFileExcelVagon")
+                                .Icon(Ext.Net.Icon.DiskUpload)
+                                ,
+                                X.Label().ItemID("lblXlsVagon")
+                                )
+                        )
+                        )
+                        )
+                        /*,
+                    Html.X().Panel()
+                    .Border(true)
+                        .Listeners(L => L.AfterRender.Handler = "setSizeRptPanel2_KarkardD()")
+                    .AutoScroll(true)
+                        .ItemID("RptPanel2_KarkardD")*/
+            )
+
+    )
+
+    )
+<script type="text/javascript">
+    var loadGridVagonsDetail = function (rowExpanderr, record) {
+        var txtAzTarikh = App.RptBarname.queryById('txtAzTarikh');
+        var txtTaTarikh = App.RptBarname.queryById('txtTaTarikh');
+
+        rowExpanderr.component.getStore().getProxy().setExtraParam("fldHeaderId", record.data.fldId);
+        rowExpanderr.component.getStore().getProxy().setExtraParam("azTarikh", txtAzTarikh.rawValue);
+        rowExpanderr.component.getStore().getProxy().setExtraParam("tatarikh", txtTaTarikh.rawValue);
+
+        rowExpanderr.component.getStore().load();
+    };
+    var getRowClassInProj = function (record, rowIndex, rowParams, store) {
+        if (record.data.Ismalk == 0) {
+            return "YellowRow";
+        }
+    };
+
+    function showHelp_VideoBarname() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/RptBarname/VideoWinBarname',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+
+    }
+    function HelpBarname() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/RptBarname/HelpBarname',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+    function NextBarname() {      
+        var fldMalek_InfoGridId = App.RptBarname.queryById('fldMalek_InfoGridId');
+        var fldContractGridId = App.RptBarname.queryById('fldContractGridId');
+        var fldVagonGridId = App.RptBarname.queryById('fldVagonGridId');
+
+        var txtAzTarikh = App.RptBarname.queryById('txtAzTarikh');
+        var txtTaTarikh = App.RptBarname.queryById('txtTaTarikh');
+
+        var btnpre = App.RptBarname.queryById('btnpre');
+        var btnnxt = App.RptBarname.queryById('btnnxt');
+        var CboTypeRPT = App.RptBarname.queryById('CboTypeRPT');
+        var GridSearchMalek = App.RptBarname.queryById('GridSearchMalek');
+        var GridSearchContract = App.RptBarname.queryById('GridSearchContract');
+        var GridSearchVagon = App.RptBarname.queryById('GridSearchVagon');
+        if (CboTypeRPT.getValue() == "0") {
+            if (GridSearchMalek.isHidden() == false)
+            {
+                var SelectedRow1 = App.RptBarname.queryById('GridSearchMalek').getSelectionModel().getSelection();
+                var Malekan = "";
+                for (var i = 0; i < SelectedRow1.length; i++) 
+                    Malekan = Malekan + SelectedRow1[i].data.fldId + ",";
+                fldMalek_InfoGridId.setValue(Malekan);
+
+                if (Malekan == "") {
+                    Ext.MessageBox.show({
+                        title: "خطا",
+                        msg: "انتخاب حداقل یک مالک ضروری است.",
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK
+                    });
+                    return;
+                }
+                if ( txtAzTarikh.rawValue == "" ||  txtTaTarikh.rawValue == "") {
+                    Ext.MessageBox.show({
+                        title: "خطا",
+                        msg: "انتخاب تاریخ ها ضروری است.",
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK
+                    });
+                    return;
+                }
+
+
+                GridSearchContract.show();
+                GridSearchMalek.hide();
+                btnpre.show();
+                btnnxt.show();
+                
+                App.RptBarname.queryById('GridSearchContract').getStore().getProxy().setExtraParam("MalekId", Malekan);
+                App.RptBarname.queryById('GridSearchContract').store.load();
+
+            }
+            else if (GridSearchContract.isHidden() == false) {
+                var SelectedRow2 = App.RptBarname.queryById('GridSearchContract').getSelectionModel().getSelection();
+                var Project = "";
+                for (var i = 0; i < SelectedRow2.length; i++)
+                    Project = Project + SelectedRow2[i].data.fldId + ",";
+                fldContractGridId.setValue(Project);
+
+                if (Project == "") {
+                    Ext.MessageBox.show({
+                        title: "خطا",
+                        msg: "انتخاب حداقل یک پروژه ضروری است.",
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK
+                    });
+                    return;
+                }
+                if (txtAzTarikh.rawValue == "" || txtTaTarikh.rawValue == "") {
+                    Ext.MessageBox.show({
+                        title: "خطا",
+                        msg: "انتخاب تاریخ ها ضروری است.",
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK
+                    });
+                    return;
+                }
+
+                GridSearchVagon.show();
+                GridSearchContract.hide();
+                btnpre.show();
+                btnnxt.hide();
+               
+                App.RptBarname.queryById('GridSearchVagon').getStore().getProxy().setExtraParam("Projj", Project);
+                App.RptBarname.queryById('GridSearchVagon').getStore().getProxy().setExtraParam("azTarikh", txtAzTarikh.rawValue);
+                App.RptBarname.queryById('GridSearchVagon').getStore().getProxy().setExtraParam("tatarikh", txtTaTarikh.rawValue);
+                App.RptBarname.queryById('GridSearchVagon').store.load();
+            }
+        }
+        else if (CboTypeRPT.getValue() == "1") {
+            if (GridSearchContract.isHidden() == false) {
+
+                var SelectedRow2 = App.RptBarname.queryById('GridSearchContract').getSelectionModel().getSelection();
+                var Project = "";
+                for (var i = 0; i < SelectedRow2.length; i++)
+                    Project = Project + SelectedRow2[i].data.fldId + ",";
+                fldContractGridId.setValue(Project);
+                
+                if (Project == "") {
+                    Ext.MessageBox.show({
+                        title: "خطا",
+                        msg: "انتخاب حداقل یک پروژه ضروری است.",
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK
+                    });
+                    return;
+                }
+                if (txtAzTarikh.rawValue == "" || txtTaTarikh.rawValue == "") {
+                    Ext.MessageBox.show({
+                        title: "خطا",
+                        msg: "انتخاب تاریخ ها ضروری است.",
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK
+                    });
+                    return;
+                }
+
+                GridSearchVagon.show();
+                GridSearchContract.hide();
+                btnpre.show();
+                btnnxt.hide();
+
+
+                App.RptBarname.queryById('GridSearchVagon').getStore().getProxy().setExtraParam("Projj", Project);
+                App.RptBarname.queryById('GridSearchVagon').getStore().getProxy().setExtraParam("azTarikh", txtAzTarikh.rawValue);
+                App.RptBarname.queryById('GridSearchVagon').getStore().getProxy().setExtraParam("tatarikh", txtTaTarikh.rawValue);
+                App.RptBarname.queryById('GridSearchVagon').store.load();
+            }
+        }
+        CboTypeRPT.setReadOnly(true);
+    }
+    function PrevBarname() {
+        var CboTypeRPT = App.RptBarname.queryById('CboTypeRPT');
+        var GridSearchMalek = App.RptBarname.queryById('GridSearchMalek');
+        var GridSearchContract = App.RptBarname.queryById('GridSearchContract');
+        var GridSearchVagon = App.RptBarname.queryById('GridSearchVagon');
+        var btnpre = App.RptBarname.queryById('btnpre');
+        var btnnxt = App.RptBarname.queryById('btnnxt');
+
+        if (CboTypeRPT.getValue() == "0") {
+            if (GridSearchVagon.isHidden() == false) {
+                GridSearchContract.show();
+                GridSearchVagon.hide();
+                btnpre.show();
+            }
+            else if (GridSearchContract.isHidden() == false) {
+                GridSearchMalek.show();
+                GridSearchContract.hide();
+                btnpre.hide();
+                CboTypeRPT.setReadOnly(false);
+            }
+        }
+        if (CboTypeRPT.getValue() == "1") {
+            if (GridSearchVagon.isHidden() == false) {
+                GridSearchContract.show();
+                GridSearchVagon.hide();
+                btnpre.hide();
+                btnnxt.show();
+                CboTypeRPT.setReadOnly(false);
+            }
+        }
+    }
+    function ChangeTypeRPT() {    /*GridSearchVagon    GridSearchContract   GridSearchMalek*/
+
+        var CboTypeRPT = App.RptBarname.queryById('CboTypeRPT');
+        var GridSearchMalek = App.RptBarname.queryById('GridSearchMalek');
+        var GridSearchContract = App.RptBarname.queryById('GridSearchContract');
+        var GridSearchVagon = App.RptBarname.queryById('GridSearchVagon');
+        var txtAzTarikh = App.RptBarname.queryById('txtAzTarikh');
+        var txtTaTarikh = App.RptBarname.queryById('txtTaTarikh');
+        var lblAzShVagon = App.RptBarname.queryById('lblAzShVagon');
+        var txtAzShVagon = App.RptBarname.queryById('txtAzShVagon');
+        var lblTaShVagon = App.RptBarname.queryById('lblTaShVagon');
+        var txtTaShVagon = App.RptBarname.queryById('txtTaShVagon');
+        var flsFile = App.RptBarname.queryById('flsFile');
+        var btnnxt = App.RptBarname.queryById('btnnxt'); 
+        
+        ClearAll();
+
+        if (CboTypeRPT.getValue() == "0") {
+            GridSearchMalek.show();
+            GridSearchContract.hide();
+            GridSearchVagon.hide();
+            lblAzShVagon.hide();
+            txtAzShVagon.hide();
+            lblTaShVagon.hide();
+            txtTaShVagon.hide();
+            flsFile.hide();
+            btnnxt.show();
+            App.RptBarname.queryById('Filters').setSize(App.ReportRaiSamWin.getWidth() - 200, App.ReportRaiSamWin.getHeight() - 200);
+        }
+        else if (CboTypeRPT.getValue() == "1") {
+
+            GridSearchMalek.hide();
+            GridSearchContract.show();
+            GridSearchVagon.hide();
+            lblAzShVagon.hide();
+            txtAzShVagon.hide();
+            lblTaShVagon.hide();
+            txtTaShVagon.hide();
+            flsFile.hide();
+            btnnxt.show();
+            App.RptBarname.queryById('Filters').setSize(App.ReportRaiSamWin.getWidth() - 200, App.ReportRaiSamWin.getHeight() - 200);
+           
+            App.RptBarname.queryById('GridSearchContract').getStore().getProxy().setExtraParam("MalekId", "");
+            App.RptBarname.queryById('GridSearchContract').store.load();
+        }
+        else if (CboTypeRPT.getValue() == "2") {
+            GridSearchMalek.hide();
+            GridSearchContract.hide();
+            GridSearchVagon.show();
+            lblAzShVagon.hide();
+            txtAzShVagon.hide();
+            lblTaShVagon.hide();
+            txtTaShVagon.hide();
+            flsFile.hide();
+            btnnxt.hide();
+            App.RptBarname.queryById('Filters').setSize(App.ReportRaiSamWin.getWidth() - 200, App.ReportRaiSamWin.getHeight() - 200);
+        }
+        else if (CboTypeRPT.getValue() == "3") {
+            GridSearchMalek.hide();
+            GridSearchContract.hide();
+            GridSearchVagon.hide();
+            lblAzShVagon.show();
+            txtAzShVagon.show();
+            lblTaShVagon.show();
+            txtTaShVagon.show();
+            flsFile.hide();
+            btnnxt.hide();
+
+            App.RptBarname.queryById('Filters').setSize(700,100);
+       }
+        else if (CboTypeRPT.getValue() == "4") {
+            GridSearchMalek.hide();
+            GridSearchContract.hide();
+            GridSearchVagon.hide();
+            lblAzShVagon.hide();
+            txtAzShVagon.hide();
+            lblTaShVagon.hide();
+            txtTaShVagon.hide();
+            flsFile.show();
+            btnnxt.hide();
+            App.RptBarname.queryById('Filters').setSize(700, 100);
+        }
+    }
+    function HelpBarname() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/ReportsMachinery/HelpBarname',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+    function searchMalek(Code) {
+        if (Code == 45) {
+            App.RptBarname.body.mask("در حال بارگذاری");
+            Ext.net.DirectMethod.request({
+                url: '/SearchMalek_Vagon/IndexChecked',
+                params: {
+                    State: 1,
+                },
+                success: function () {
+                    App.RptBarname.body.mask().hide();
+                }
+            });
+        }
+    }
+    function SearchContract_Project(Code) {
+        if (Code == 45) {
+            App.RptBarname.body.mask("در حال بارگذاری");
+            Ext.net.DirectMethod.request({
+                url: '/SearchContract_Project/IndexChecked',
+                params: {
+                    State: 1,
+                    Malek:App.RptBarname.queryById('fldMalek_InfoId').getValue()
+                },
+                success: function () {
+                    App.RptBarname.body.mask().hide();
+                }
+            });
+        }
+    }
+
+    function ChangeTaTarikh_KarkardD() {
+        var txtAzTarikh = App.RptBarname.queryById('txtAzTarikh');
+        var txtTaTarikh = App.RptBarname.queryById('txtTaTarikh');
+        txtTaTarikh.setMinValue(txtAzTarikh.getValue());
+        txtTaTarikh.minText = "تا تاریخ باید بعد از تاریخ " + txtAzTarikh.rawValue + "باشد";
+
+        var fldMalek_InfoGridId = App.RptBarname.queryById('fldMalek_InfoGridId').getValue();
+        if (txtAzTarikh.validate() == true && txtTaTarikh.validate() == true && fldMalek_InfoGridId != "" && fldMalek_InfoGridId != null) {
+            App.RptBarname.queryById('GridSearchContract').getStore().getProxy().setExtraParam("MalekId", fldMalek_InfoGridId);
+            App.RptBarname.queryById('GridSearchContract').store.load();
+        }
+    }
+    function ChangeAzTarikh_KarkardD() {
+        var txtAzTarikh = App.RptBarname.queryById('txtAzTarikh');
+        var txtTaTarikh = App.RptBarname.queryById('txtTaTarikh');
+        txtAzTarikh.setMaxValue(txtTaTarikh.getValue());
+        txtAzTarikh.maxText = "از تاریخ باید قبل از تا تاریخ " + txtTaTarikh.rawValue + "باشد";
+
+        var fldMalek_InfoGridId = App.RptBarname.queryById('fldMalek_InfoGridId').getValue();
+        if (txtAzTarikh.validate() == true && txtTaTarikh.validate() == true && fldMalek_InfoGridId != "" && fldMalek_InfoGridId != null) {
+            App.RptBarname.queryById('GridSearchContract').getStore().getProxy().setExtraParam("MalekId", fldMalek_InfoGridId);
+            App.RptBarname.queryById('GridSearchContract').store.load();
+        }
+    }
+    function setSizeRptPanel() {
+        App.RptBarname.queryById('CboTypeRPT').setValue("0");
+        var DateStart = new Date('@ViewBag.fldTarikh');
+        var txtAzTarikh = App.RptBarname.queryById('txtAzTarikh');
+        var txtTaTarikh = App.RptBarname.queryById('txtTaTarikh');
+        txtAzTarikh.setMaxValue(DateStart);
+        txtTaTarikh.setMaxValue(DateStart);
+        txtAzTarikh.maxText = "تاریخ باید قبل از" + '@ViewBag.fldTarikh_S' + "باشد";
+        txtTaTarikh.maxText = "تاریخ باید قبل از" + '@ViewBag.fldTarikh_S' + "باشد";
+        App.RptBarname.queryById('btnpre').hide();
+
+        txtAzTarikh.setValue('@ViewBag.fldTarikh_az');
+        txtTaTarikh.setValue('@ViewBag.fldTarikh_ta');
+        
+        App.RptBarname.queryById('Filters').setSize(App.ReportRaiSamWin.getWidth() - 200, App.ReportRaiSamWin.getHeight() - 200);
+        App.RptBarname.queryById('GridSearchVagon').setSize(App.ReportRaiSamWin.getWidth() - 230, App.ReportRaiSamWin.getHeight() - 240);
+        App.RptBarname.queryById('GridSearchContract').setSize(App.ReportRaiSamWin.getWidth() - 230, App.ReportRaiSamWin.getHeight() - 240);
+        App.RptBarname.queryById('GridSearchMalek').setSize(App.ReportRaiSamWin.getWidth() - 230, App.ReportRaiSamWin.getHeight() - 240);
+   
+
+    }
+    function destroyWinBarname() {
+        var tabId = App.ReportGeneralTab.activeTab.id;
+        Ext.getCmp(tabId).destroy();
+    }
+
+    function PrintBarname() {
+        GenerateBarname(1);
+    }
+    function XlsBarname() {
+        GenerateBarname(2);
+    }
+
+    function GenerateBarname(st) {
+        var CboTypeRPT = App.RptBarname.queryById('CboTypeRPT');
+        var txtAzTarikh = App.RptBarname.queryById('txtAzTarikh');
+        var txtTaTarikh = App.RptBarname.queryById('txtTaTarikh');
+        var lblAzShVagon = App.RptBarname.queryById('lblAzShVagon');
+        var txtAzShVagon = App.RptBarname.queryById('txtAzShVagon');
+        var lblTaShVagon = App.RptBarname.queryById('lblTaShVagon');
+        var txtTaShVagon = App.RptBarname.queryById('txtTaShVagon');
+        var fldShVagon = App.RptBarname.queryById('fldShVagon');
+        var lblXlsVagon= App.RptBarname.queryById('lblXlsVagon');
+        var fldShVagon = App.RptBarname.queryById('fldShVagon');
+        
+        var GridSearchMalek = App.RptBarname.queryById('GridSearchMalek');
+        var GridSearchContract = App.RptBarname.queryById('GridSearchContract');
+        var GridSearchVagon = App.RptBarname.queryById('GridSearchVagon');
+        var fldMalek_InfoGridId = App.RptBarname.queryById('fldMalek_InfoGridId');
+        var fldContractGridId = App.RptBarname.queryById('fldContractGridId');
+        var fldVagonGridId = App.RptBarname.queryById('fldVagonGridId');
+
+        var height = App.ReportRaiSamWin.getHeight() - 225;
+
+        var MalekId = ""; var ContractId = ""; var ShVagon = ""; var AzVagon = ""; var TaVagon = "";
+
+        if (txtAzTarikh.validate() == true && txtTaTarikh.validate() == true) {
+
+            if (CboTypeRPT.getValue() == "0") {
+                if (GridSearchMalek.isHidden() == false) {
+                    var SelectedRow1 = App.RptBarname.queryById('GridSearchMalek').getSelectionModel().getSelection();
+                    for (var i = 0; i < SelectedRow1.length; i++)
+                        MalekId = MalekId + SelectedRow1[i].data.fldId + ",";
+                 
+                    ContractId = "";
+                }
+                else if (GridSearchContract.isHidden() == false) {
+                    var SelectedRow1 = App.RptBarname.queryById('GridSearchContract').getSelectionModel().getSelection();
+                    for (var i = 0; i < SelectedRow1.length; i++)
+                        ContractId = ContractId + SelectedRow1[i].data.fldId + ",";
+                 
+                    MalekId = fldMalek_InfoGridId.getValue();
+                }
+                else if (GridSearchVagon.isHidden() == false) {
+                    var SelectedRow1 = App.RptBarname.queryById('GridSearchVagon').getSelectionModel().getSelection();
+                    for (var i = 0; i < SelectedRow1.length; i++)
+                        ShVagon = ShVagon + SelectedRow1[i].data.fldShomareVagon + ",";
+
+                    MalekId = fldMalek_InfoGridId.getValue();
+                    ContractId = fldContractGridId.getValue();
+                }
+
+                if (MalekId == "") {
+                    Ext.MessageBox.show({
+                        title: "خطا",
+                        msg: "انتخاب حداقل یک مالک ضروری است.",
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK
+                    });
+                    return;
+                }
+            }
+            else if (CboTypeRPT.getValue() == "1") {
+                if (GridSearchContract.isHidden() == false) {
+                    var SelectedRow1 = App.RptBarname.queryById('GridSearchContract').getSelectionModel().getSelection();
+                    for (var i = 0; i < SelectedRow1.length; i++)
+                        ContractId = ContractId + SelectedRow1[i].data.fldId + ",";
+
+                }
+                else if (GridSearchVagon.isHidden() == false) {
+                    var SelectedRow1 = App.RptBarname.queryById('GridSearchVagon').getSelectionModel().getSelection();
+                    for (var i = 0; i < SelectedRow1.length; i++)
+                        ShVagon = ShVagon + SelectedRow1[i].data.fldShomareVagon + ",";
+
+                    ContractId = fldContractGridId.getValue();
+                }
+
+                if (ContractId == "") {
+                    Ext.MessageBox.show({
+                        title: "خطا",
+                        msg: "انتخاب حداقل یک پروژه ضروری است.",
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK
+                    });
+                    return;
+                }
+            }
+            else if (CboTypeRPT.getValue() == "2") {
+                var SelectedRow1 = App.RptBarname.queryById('GridSearchVagon').getSelectionModel().getSelection();
+                for (var i = 0; i < SelectedRow1.length; i++)
+                    ShVagon = ShVagon + SelectedRow1[i].data.fldShomareVagon + ",";
+
+                if (ShVagon == "") {
+                    Ext.MessageBox.show({
+                        title: "خطا",
+                        msg: "انتخاب حداقل یک واگن ضروری است.",
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK
+                    });
+                    return;
+                }
+            }
+            else if (CboTypeRPT.getValue() == "3") {
+                if (txtAzShVagon.validate() == true && txtTaShVagon.validate() == true) {
+                    AzVagon = txtAzShVagon.getValue();
+                    TaVagon = txtTaShVagon.getValue();
+                }
+                else
+                    return;
+            }
+            else if (CboTypeRPT.getValue() == "4") {
+                if (fldShVagon.getValue() !="") {
+                    ShVagon = fldShVagon.getValue();
+                }
+                else
+                    return;
+            }
+
+            if (st == 1) {
+                /*App.RptBarname.queryById('RptPanel2_KarkardD').update("<center><object class='se-pre-con' style='width:100%;height:" + height + "px;border: 1px solid #ccc;' type='application/pdf' data='/RptBarname/GeneratePDF?StartDate=" + txtAzTarikh.rawValue + "&EndDate=" + txtTaTarikh.rawValue + "&MalekId=" + MalekId + "&ContractId=" + ContractId + "&ShVagon=" + ShVagon + "&AzVagon=" + AzVagon + "&TaVagon=" + TaVagon + "'></object></center>");*/
+                App.RptBarname.body.mask("در حال بارگذاری");
+                Ext.net.DirectMethod.request({
+                    url: '/RptBarname/PrintPage',
+                    params: {
+                        containerId: "ReportGeneralTab",
+                        StartDate:txtAzTarikh.rawValue ,
+                        EndDate:txtTaTarikh.rawValue,
+                        MalekId: MalekId ,
+                        ContractId: ContractId,
+                        ShVagon:ShVagon,
+                        AzVagon:AzVagon,
+                        TaVagon:TaVagon
+
+                    },
+                    success: function () {
+                        App.RptBarname.body.mask().hide();
+                    }
+                });
+            }
+            else if (st == 2) {
+                var Checked = "";
+
+                Checked = "fldShomareVagon" + ";" + "fldShmareBarname" + ";" + "fldTarikhBarname" + ";" + "fldSeri" + ";" + "fldNameMabda" + ";" + "fldNameMaghsad" + ";" + "fldNoeBar" + ";" + "fldMasaft" + ";" + "fldVaznMahsob" + ";" + "fldVaznVagheii" + ";" + "fldTonKilometr" + ";";
+                window.location.href = '@Url.Content("~/RptBarname/CreateExcel/")' + '?Checked=' + Checked + "&StartDate=" + txtAzTarikh.rawValue + "&EndDate=" + txtTaTarikh.rawValue + "&MalekId=" + MalekId + "&ContractId=" + ContractId + "&ShVagon=" + ShVagon + "&AzVagon=" + AzVagon + "&TaVagon=" + TaVagon;
+            }
+
+        }
+        else {
+            return;
+        }
+    }
+
+    var MojazExcelFileVagon = 0;
+    var EndUploadExcelFileVagon = false;
+
+    var CheckExcelFileVagon = setInterval(CheckEndExcelFileVagon, 500);
+
+    function CheckEndExcelFileVagon() {
+        if (EndUploadExcelFileVagon == true) {
+            Ext.MessageBox.hide();
+            clearInterval(CheckEndExcelFileVagon);
+            EndUploadExcelFileVagon = false;
+            Ext.net.Mask.show({ msg: 'فایل با موفقیت آپلود شد. در حال بارگذاری....' });
+            Ext.net.DirectMethod.request({
+                url: '/RptBarname/ProcessXlsVagon',
+                success: function (data) {
+                    var ic = Ext.MessageBox.INFO;
+                    if (data.Er == 1) {
+                        App.RptBarname.queryById('lblXlsVagon').setText("هیچ شماره واگنی دریافت نشد.");
+
+                    }
+                    else {
+                        App.RptBarname.queryById('lblXlsVagon').setText("واگن های موردنظر با موفقیت بارگذاری شد.");
+                        App.RptBarname.queryById('fldShVagon').setValue(data.VagonIds);
+                    }
+                    Ext.net.Mask.hide();
+                },
+                timeout: 90000
+            });
+        }
+    }
+
+    var showFileExcelVagon = function (fb, v) {
+        if (v) {
+            showProgressBarExcelFileVagon();
+            if (v.split('.').pop().toLowerCase() == "xls" || v.split('.').pop().toLowerCase() == "xlsx") {
+                MojazExcelFileVagon = 1;
+            }
+        }
+    };
+
+    function hideprogressExcelFileVagon() {
+        if (MojazExcelFileVagon == 1) {
+            EndUploadExcelFileVagon = true;
+        }
+        MojazExcelFileVagon = 0;
+    }
+
+    function showProgressBarExcelFileVagon() {
+        Ext.MessageBox.show({
+            msg: 'لطفاً منتظر باشید',
+            progressText: 'در حال آپلود فایل...',
+            width: 300,
+            wait: true,
+            waitConfig:
+            {
+                interval: 200,
+                text: 'در حال آپلود فایل...',
+                scope: this
+            }
+        });
+    }
+    function ClearAll() {
+        App.RptBarname.queryById('txtAzShVagon').setValue("");
+        App.RptBarname.queryById('txtTaShVagon').setValue("");
+        App.RptBarname.queryById('fldShVagon').setValue("");
+    }
+    var addKeyMapRptBarname = function (cmp) {
+        this.keyMap = new Ext.util.KeyMap({
+            target: cmp.getEl(),
+            binding: [{
+                key: [13, 9], /*Ext.EventObject.ENTER,*/
+                fn: function (key, e) {
+                    if (e.getKey() == 9) {
+                        e.stopEvent();
+                    }
+                    var keyfield = App.RptBarname.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+                    var nextfld;
+                    if (keyfield.itemId == "txtTaTarikh") {
+                        nextfld = App.RptBarname.queryById('btnPrint');
+                        return;
+                    }
+                    else {
+                        nextfld = keyfield.nextSibling().nextSibling();
+                    }
+                    nextfld.focus();
+                    nextfld.selectText();
+                }
+            }]
+        });
+    }
+</script>
+

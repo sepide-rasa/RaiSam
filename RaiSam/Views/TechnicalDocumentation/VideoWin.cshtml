@@ -1,0 +1,19 @@
+﻿@using Ext.Net.MVC;
+
+@(
+ Html.X().Window()
+         .Height(500)
+        .ID("PrintTechnicalDocumentation")
+        .Maximized(true).Closable(true)
+        .Maximizable(true)
+        .Minimizable(true)
+        .Title("پیش نمایش")
+        .AutoScroll(true)
+        .Closable(true)
+        .CloseAction(Ext.Net.CloseAction.Destroy)
+        .Content(@<video id="VideoPlayer" src='@Url.Action("DownloadFileVideo", "TechnicalDocumentation", new { fldFileId = ViewBag.FileId })' controls="true" autoplay="true"
+                         style="width: 100%;height:620px;" loop="true" />)
+)
+<script>
+
+</script>

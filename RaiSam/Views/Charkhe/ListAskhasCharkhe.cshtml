@@ -1,0 +1,128 @@
+﻿@model IEnumerable<RaiSam.Models.prs_selectListEnterIdByCharkhe>
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+
+    var X = Html.X();
+}
+@(Html.X().Window()
+    .Modal(true)
+    .Width(900)
+    .Height(400)
+    .Title("لیست اشخاص")
+        .ID("ListAshkhasCharkhe")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+
+    .Layout(LayoutType.Fit)
+    .Items(
+            X.AntiForgeryField()
+            .ItemID("antiForgeryToken")
+            .Hidden(true),
+        X.Panel()
+            .Border(false)
+            .AutoScroll(true)
+            .Layout(LayoutType.Fit)
+            .Items(
+                X.GridPanel()
+                    .AutoScroll(true)
+                    .Border(false)
+                    .ItemID("GridAshkhasCharkhe")
+                        .BottomBar(X.PagingToolbar())
+
+                    .Store(
+                        X.StoreForModel()
+                            .Listeners(l => l.BeforeLoad.Handler = "App.ListAshkhasCharkhe.queryById('GridAshkhasCharkhe').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.ListAshkhasCharkhe.queryById('antiForgeryToken').getValue());")
+                            .Proxy(Html.X().AjaxProxy()
+                                .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                .Url(Url.Action("ReadListCharkhe"))
+                                .Reader(Html.X().JsonReader().Root("data"))
+                                .ExtraParams(x => x.Add(new { CharkheId = @ViewBag.CharkheId }))
+                        )
+                        .PageSize(10)
+                        .RemoteFilter(true)
+                        .RemotePaging(true)
+                    )
+                    .View(
+                        Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                    )
+                          .Listeners(a => a.CellDblClick.Handler = "NextSearchHuman();")
+                    .Plugins(X.FilterHeader().Remote(true))
+                    .ColumnModel(
+                        Html.X().RowNumbererColumn(),
+                        Html.X().Column().DataIndex(Model, m => m.fldId).Text("کد").Flex(1).Hidden(true),
+                        Html.X().Column().DataIndex(Model, m => m.fldEnterId).Text("اینتر ایدی").Flex(2).Hidden(true),
+                        Html.X().Column().DataIndex(Model, m => m.fldTitle).Text("نام").Flex(8).Wrap(true),
+                        Html.X().Column().DataIndex(Model, m => m.fldTitleMoayenat).Text("عنوان معاینات").Wrap(true).Flex(8),
+                        Html.X().Column().DataIndex(Model, m => m.fldCodeMeli).Text("کدملی").Wrap(true).Flex(5),
+                        Html.X().Column().DataIndex(Model, m => m.fldCodeEnhesari).Text("کدانحصاری").Wrap(true).Flex(5),
+                        Html.X().Column().DataIndex(Model, m => m.fldNoeEnter).Text("نوع چرخه").Wrap(true).Flex(5),
+                        Html.X().Column().DataIndex(Model, m => m.fldTarikhParvande).Text("تاریخ").Wrap(true).Flex(5),
+                        Html.X().Column().DataIndex(Model, m => m.fldYear).Text("سال").Wrap(true).Flex(5),
+                            Html.X().ComponentColumn().Hidden(!RaiSam.Models.Permission.haveAccess(155, "tblEnterToCycle", "0")).ID("ColDelEnter").Width(100).Component(Html.X().Button().Icon(Ext.Net.Icon.Delete).Text("حذف از چرخه")
+                        .Listeners(l => l.Click.Handler = "DelEnter();")).Filterable(false)
+                    )
+
+                    .SelectionModel(
+                        Html.X().RowSelectionModel()
+                            .Mode(Ext.Net.SelectionMode.Single)
+                    )
+            )
+        )
+)
+
+<script type="text/javascript">
+    function ClosePage() {
+        if (App.ListAshkhasCharkhe.queryById('GridAshkhasCharkhe').getStore().data.length ==1)
+            App.ListAshkhasCharkhe.destroy();
+    }
+    function DelEnter() {
+
+        Ext.MessageBox.show({
+            title: "هشدار",
+            msg: "آیا برای حذف مطمئن هستید؟",
+            icon: Ext.MessageBox.WARNING,
+            buttons: Ext.MessageBox.YESNO,
+            fn: function (btn) {
+                if (btn == 'yes') {
+                    Ext.net.Mask.show({ msg: 'در حال انجام عملیات...' });
+                    Ext.net.DirectMethod.request({
+                        url: '/Charkhe/DeleteFromCharkhe',
+                        params: {
+                            id: App.ColDelEnter.activeRecord.record.data.fldEnterId,
+                            Name: '@ViewBag.Name',
+                            fldTitle: App.ColDelEnter.activeRecord.record.data.fldTitle,
+                            fldCodeEnhesari: App.ColDelEnter.activeRecord.record.data.fldCodeEnhesari,
+                            fldNoeEnter: App.ColDelEnter.activeRecord.record.data.fldNoeEnter,
+                                __RequestVerificationToken: App.ListAshkhasCharkhe.queryById('antiForgeryToken').getValue()
+                            },
+                            success: function (data) {
+                                chat.server.reloadLog();
+
+                                Ext.MessageBox.show({
+                                    title: data.MsgTitle,
+                                    msg: data.Msg,
+                                    icon: Ext.MessageBox.INFO,
+                                    buttons: Ext.MessageBox.OK,
+                                    fn: function (btn) {
+                                        if (btn == 'ok') {
+                                            App.ListAshkhasCharkhe.queryById('GridAshkhasCharkhe').getStore().getProxy().setExtraParam("CharkheId", 0);
+                                            App.ListAshkhasCharkhe.queryById('GridAshkhasCharkhe').store.load();
+                                            App.Charkhe.queryById('GridCharkhe').store.load();
+                                            ClosePage();
+                                        }
+                                    }
+                                    });
+
+
+                            }
+                    });
+                    Ext.net.Mask.hide();
+                    }
+                }
+            });
+    }
+
+
+</script>

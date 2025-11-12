@@ -1,0 +1,283 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+<style>
+    .custom-icon {
+        margin-right: 120px !important;
+    }
+</style>
+
+@(Html.X().Window().Modal(true).Listeners(li =>
+        {
+            li.Render.Fn = "addKeyMapContract_Project";
+            li.AfterRender.Handler = "LoadContract_Project();";
+        })
+.Width(550)//.Height(300)
+    .Title("ثبت قرارداد و پروژه")
+             .ID("NewContract_Project")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .ButtonAlign(Ext.Net.Alignment.Center)
+        .Buttons(X.Button().Text("ذخیره").Icon(Ext.Net.Icon.Disk)
+                .Listeners(l =>
+                {
+                    l.Click.Handler = "SaveContract_Project();";
+
+                })
+                        .ItemID("btnSaveContract_Project")
+                ,
+                X.Button().Text("خروج").Icon(Ext.Net.Icon.DoorOut).ToolTip("کلید میانبر Esc")
+                .OnClientClick("App.NewContract_Project.hide();"))
+    .Items(
+        X.AntiForgeryField()
+                .ItemID("antiForgeryToken").Hidden(true),
+            X.Panel().Border(false)
+            .Items(
+                X.FieldSet().Border(true).Title("قرارداد/پروژه")
+                .Center()
+                .LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 4 })
+                .Defaults(new { Margin = 2 })
+                .Items(
+                X.Hidden().ItemID("fldId"),
+                    X.Label("عنوان:"),
+                     X.TextField()
+                                .ItemID("txtName")
+                                    .MaxLength(200)
+                            .EnforceMaxLength(true)
+                            .AllowBlank(false)
+                            .BlankText("لطفا عنوان قرارداد/پروژه را وارد کنید.")
+                            .MsgTarget(Ext.Net.MessageTarget.Side)
+                                .Width(400)
+                    .ColSpan(3)
+                           
+                    ,
+                     X.Label("شماره قرارداد:"),
+                     X.TextField()
+                         .ItemID("txtShomareContract")
+                        .MaxLength(100)//.Width(330)
+                    .EnforceMaxLength(true)
+                    .AllowBlank(false)//.MaskRe("[1-9 ,),(,ا-ی-آ-ئ-ء]")
+                    .BlankText("لطفا شماره قرارداد را وارد کنید."),
+                     X.Label("تاریخ قرارداد:"),
+                        X.PDateField()
+                        .ItemID("txtTarikhContract")
+                    .AllowBlank(true)
+                        .BlankText("لطفا تاریخ قرارداد را وارد کنید.")
+                    .Editable(true)
+                    .MaskRe("/[0-9/]/")
+                    .MaxLength(10)
+                    .MinLength(10)
+                    .EnforceMaxLength(true)
+                   , X.Label("شماره موافقتنامه:"),
+                     X.TextField()
+                             .ItemID("txtShomareMovafeghat")
+                        .MaxLength(100)//.Width(330)
+                    .EnforceMaxLength(true)
+                    .AllowBlank(false)//.MaskRe("[1-9 ,),(,ا-ی-آ-ئ-ء]")
+                        .BlankText("لطفا شماره موافقتنامه را وارد کنید."),
+                     X.Label("تاریخ موافقتنامه:"),
+                        X.PDateField()
+                            .ItemID("txtTarikhMovafeghat")
+                    .AllowBlank(true)
+                    .BlankText("لطفا تاریخ موافقتنامه را وارد کنید.")
+                    .Editable(true)
+                    .MaskRe("/[0-9/]/")
+                    .MaxLength(10)
+                    .MinLength(10)
+                    .EnforceMaxLength(true)
+                        )
+
+                )
+                    .Layout(Ext.Net.LayoutType.VBox)
+                    .LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Center })
+        )
+)
+<script type="text/javascript">
+    var fldTimeStamp = 0;
+
+    function searchVagon(Code) {
+        if (Code == 45) {
+            App.NewContract_Project.body.mask("در حال بارگذاری");
+            Ext.net.DirectMethod.request({
+                url: '/SearchVagon/Index',
+                params: {
+                    State: 1,
+                },
+                success: function () {
+                    App.NewContract_Project.body.mask().hide();
+                }
+            });
+        }
+    }
+    function LoadContract_Project() {
+        ReplaceArabic();
+        if ('@ViewBag.Id' != '0') {
+            App.NewContract_Project.body.mask("در حال بارگذاری...");
+            Ext.net.DirectMethod.request({
+                url: '/Contract_Project/Details',
+                params: {
+                    Id: '@ViewBag.Id',
+                    __RequestVerificationToken: App.NewContract_Project.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+
+                    var txtName = App.NewContract_Project.queryById('txtName');
+                    txtName.setValue(data.fldTitle);
+                    var txtTarikhContract = App.NewContract_Project.queryById('txtTarikhContract');
+                    txtTarikhContract.setValue(data.fldTarikhContract);
+                    var txtShomareContract = App.NewContract_Project.queryById('txtShomareContract');
+                    txtShomareContract.setValue(data.fldShomareContract);
+                    var txtTarikhMovafeghat = App.NewContract_Project.queryById('txtTarikhMovafeghat');
+                    txtTarikhMovafeghat.setValue(data.fldTarikhMovafeghat);
+                    var txtShomareMovafeghat = App.NewContract_Project.queryById('txtShomareMovafeghat');
+                    txtShomareMovafeghat.setValue(data.fldShomareMovafeghat);
+                    var Id = App.NewContract_Project.queryById('fldId');
+                    Id.setValue(data.fldId);
+                    fldTimeStamp = data.fldTimeStamp;
+                    App.NewContract_Project.body.mask().hide();
+                }
+            });
+        }
+        else {
+            App.NewContract_Project.queryById('txtName').validate();
+            App.NewContract_Project.queryById('txtTarikhContract').validate();
+            App.NewContract_Project.queryById('txtShomareContract').validate();
+            App.NewContract_Project.queryById('txtTarikhMovafeghat').validate();
+            App.NewContract_Project.queryById('txtShomareMovafeghat').validate();
+        }
+
+    }
+
+    function SaveContract_Project() {
+        var txtName = App.NewContract_Project.queryById('txtName');
+        var Id = App.NewContract_Project.queryById('fldId');
+        var txtShomareContract = App.NewContract_Project.queryById('txtShomareContract');
+        var txtTarikhContract = App.NewContract_Project.queryById('txtTarikhContract');
+        var txtShomareMovafeghat = App.NewContract_Project.queryById('txtShomareMovafeghat');
+        var txtTarikhMovafeghat = App.NewContract_Project.queryById('txtTarikhMovafeghat');
+            var er = false;
+
+            if (txtTarikhMovafeghat.validate() == false) {
+                er = true;
+            }
+            if (txtShomareMovafeghat.validate() == false) {
+                er = true;
+            }
+            if (txtTarikhContract.validate() == false) {
+                er = true;
+            }
+            if (txtShomareContract.validate() == false) {
+                er = true;
+            }
+            if (txtName.validate() == false) {
+                er = true;
+            }
+            if (er == true)
+                return;
+
+            App.NewContract_Project.body.mask("در حال ذخیره سازی");
+            Ext.net.DirectMethod.request({
+                url: '/Contract_Project/Save',
+                params: {
+                    fldId: Id.getValue(),
+                    fldTitle: txtName.getValue(),
+                    fldShomareContract: txtShomareContract.getValue(),
+                    fldTarikhContract: txtTarikhContract.rawValue,
+                    fldShomareMovafeghat: txtShomareMovafeghat.getValue(),
+                    fldTarikhMovafeghat: txtTarikhMovafeghat.rawValue,
+                    fldShomareVagon: "",
+                    fldTimeStamp: fldTimeStamp,
+                    __RequestVerificationToken: App.NewContract_Project.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+                    chat.server.reloadLog();
+                    if (data.Er == 1 && data.Change == 1) {/*vaghti TimeStamp==0*/
+                        Ext.MessageBox.show({
+                            title: data.MsgTitle,
+                            msg: data.Msg,
+                            icon: Ext.MessageBox.WARNING,
+                            buttons: Ext.MessageBox.OK,
+                            fn: function (btn) {
+                                if (btn == 'ok') {
+                                    LoadContract_Project();
+                                }
+                            }
+                        });
+                    }
+                    else if (data.Er == 1 && data.Change == 2) {/*vaghti TimeStamp==2*/
+                        Ext.MessageBox.show({
+                            title: data.MsgTitle,
+                            msg: data.Msg,
+                            icon: Ext.MessageBox.ERROR,
+                            buttons: Ext.MessageBox.OK,
+                            fn: function (btn) {
+                                if (btn == 'ok') {
+                                    App.NewContract_Project.destroy();
+                                }
+                            }
+                        });
+
+                    }
+                    else if (data.Er == 1) {
+                        Ext.MessageBox.show({
+                            title: data.MsgTitle,
+                            msg: data.Msg,
+                            icon: Ext.MessageBox.ERROR,
+                            buttons: Ext.MessageBox.OK,
+                        });
+                    }
+                    else {
+                        Ext.MessageBox.show({
+                            title: data.MsgTitle,
+                            msg: data.Msg,
+                            icon: Ext.MessageBox.INFO,
+                            buttons: Ext.MessageBox.OK,
+                        });
+                    }
+                    App.Contract_Project.queryById('GridContract_Project').store.load();
+                    if (data.Er != 1)
+                        ClearContract_Project();
+                    App.NewContract_Project.body.mask().hide();
+                }
+
+            });
+        }
+    function ClearContract_Project() {
+
+
+          App.NewContract_Project.queryById('txtTarikhMovafeghat').setValue("");
+          App.NewContract_Project.queryById('txtShomareMovafeghat').setValue("");
+          App.NewContract_Project.queryById('txtTarikhContract').setValue("");
+          App.NewContract_Project.queryById('txtShomareContract').setValue("");
+          App.NewContract_Project.queryById('txtName').setValue("");
+        App.NewContract_Project.queryById('fldId').setValue(0);
+    }
+    var addKeyMapContract_Project = function (cmp) {
+        this.keyMap = new Ext.util.KeyMap({
+            target: cmp.getEl(),
+            binding: [{
+                key: [13, 9], /*Ext.EventObject.ENTER,*/
+                fn: function (key, e) {
+                    if (e.getKey() == 9) {
+                        e.stopEvent();
+                    }
+                    var keyfield = App.NewContract_Project.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+                    var nextfld;
+                    if (keyfield.itemId == "txtTarikhContract") {
+                        nextfld = App.NewContract_Project.queryById('btnSaveContract_Project');
+                        SaveContract_Project();
+                        return;
+                    }
+                    else {
+                        nextfld = keyfield.nextSibling().nextSibling();
+                    }
+                    nextfld.focus();
+                    nextfld.selectText();
+                }
+            }]
+        });
+    }
+</script>

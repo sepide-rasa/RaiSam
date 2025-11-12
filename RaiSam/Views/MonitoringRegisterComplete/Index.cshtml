@@ -1,0 +1,1130 @@
+﻿@model IEnumerable<RaiSam.Models.prs_ListCompany>
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@using Ext.Net.Utilities;
+@{
+
+    var X = Html.X();
+    int P_Taiid = 0;
+    if (RaiSam.Models.Permission.haveAccess(198, "", "0"))
+    {
+        P_Taiid = 1;
+    }
+    int P_Print = 0;
+    if (RaiSam.Models.Permission.haveAccess(199, "", "0"))
+    {
+        P_Print = 1;
+    }
+    int P_Nazarat = 0;
+    if (RaiSam.Models.Permission.haveAccess(197, "", "0"))
+    {
+        P_Nazarat = 1;
+    }
+    int P_Del = 0;
+    if (RaiSam.Models.Permission.haveAccess(200, "", "0"))
+    {
+        P_Del = 1;
+    }
+
+    int P_File = 0;
+    if (RaiSam.Models.Permission.haveAccess(201, "", "0"))
+    {
+        P_File = 1;
+    }
+    int P_Send = 0;
+    if (RaiSam.Models.Permission.haveAccess(202, "", "0"))
+    {
+        P_Send = 1;
+    }
+    bool P_ShowSms = true;
+    if (RaiSam.Models.Permission.haveAccess(205, "", "0"))
+    {
+        P_ShowSms = false;
+    }
+}
+<script>
+    var ShowStatus=function(value,record){
+        if(value==1 || value==0){
+            var template = '<img src={0} alt="" title={1} />';
+
+            var Pic = "@Url.Content("~/Content/sabt2.png")";
+            var ToolTip = "ثبت"+'&nbsp;'+"موقت";
+            return Ext.String.format(template, Pic, ToolTip);
+        }
+        else if(value==2){
+            var templatePrint = '<img src={0} alt="" onclick={2} onmouseover="" style="{3}" title={1} />';
+
+            var m="cursor: pointer;";
+            var Pic = "@Url.Content("~/Content/report_delete.png")";
+            var ToolTip = "فرم"+'&nbsp;'+"دریافت"+'&nbsp;'+"نشده";
+            var ID = String(record.record.data.fldId);
+            var Final_Sabt = String(record.record.data.fldFinal_Sabt);
+            var s = "RecieveReportIn(" + ID + ","+Final_Sabt+");";
+            return Ext.String.format(templatePrint, Pic, ToolTip, s,m);
+        }
+        else if(value==3){
+            var templateTaiid = '<img src={0} alt="" onclick={2} onmouseover="" style="{3}" title={1} />';
+
+            var m = "cursor: pointer;";
+            var Pic = "@Url.Content("~/Content/taiid2.png")";
+            var ToolTip = "تایید"+'&nbsp;'+"نشده";
+            var ID = String(record.record.data.fldId);
+            var Final_Sabt = String(record.record.data.fldFinal_Sabt);
+            var Status = String(record.record.data.fldStatus);
+            var s = "ShowInfoCompanyProfilesIn(" + ID + "," + Final_Sabt + "," + Status + "," + 1 + ");";
+            return Ext.String.format(templateTaiid, Pic, ToolTip,s, m);
+        }
+        else if(value==4){
+            var m="cursor: pointer;";
+            var templateTaiid = '<img src={0} alt="" onclick={2} onmouseover="" style="{3}" title={1} />';
+            var Pic = "@Url.Content("~/Content/taiid1.png")";
+            var ToolTip = "تایید"+'&nbsp;'+"شده";
+            var ID = String(record.record.data.fldId);
+            var Final_Sabt = String(record.record.data.fldFinal_Sabt);
+            var Status = String(record.record.data.fldStatus);
+            var s = "ShowInfoCompanyProfilesIn(" + ID + "," + Final_Sabt + "," + Status + "," + 1 + ");";
+            return Ext.String.format(templateTaiid, Pic, ToolTip,s, m);
+        }
+        else{
+            var m="cursor: pointer;";
+            var templateTaiid = '<img src={0} alt="" onclick={2} onmouseover="" style="{3}" title={1} />';
+            var Pic = "@Url.Content("~/Content/دارای-درخواست.png")";
+            var ToolTip = "دارای"+'&nbsp;'+"درخواست";
+            var ID = String(record.record.data.fldId);
+            var Final_Sabt = String(record.record.data.fldFinal_Sabt);
+            var Status = String(record.record.data.fldStatus);
+            var s = "ShowInfoCompanyProfilesIn(" + ID + "," + Final_Sabt + "," + Status + "," + 1 + ");";
+            return Ext.String.format(templateTaiid, Pic, ToolTip,s, m);
+        }
+    };
+
+    @*var templateTaiid = '<img src={0} alt="" onclick={2} onmouseover="" style="{3}" title={1} />';
+
+    var ColorTaiid = function (value, record) {
+        var Pic = "@Url.Content("~/Content/taiid1.png")";
+        var ToolTip = "تایید_شده";
+        if (value == 0) {
+            var m = "cursor: pointer;";
+            Pic = "@Url.Content("~/Content/taiid2.png")";
+            var ToolTip = "تایید_نشده";
+            var ID = String(record.record.data.fldId);
+            var Final_Sabt = String(record.record.data.fldFinal_Sabt);
+            var Status = String(record.record.data.fldStatus);
+            var s = "ShowInfoCompanyProfilesIn(" + ID + "," + Final_Sabt + "," + Status + "," + 1 + ");";
+        }
+        return Ext.String.format(templateTaiid, Pic, ToolTip,s, m);
+    };*@
+
+    @*var template = '<img src={0} alt="" title={1} />';
+
+    var ColorSabt = function (value) {
+        var Pic = "@Url.Content("~/Content/sabt1.png")";
+        var ToolTip = "ثبت_قطعی";
+        if (value == 0) {
+            Pic = "@Url.Content("~/Content/sabt2.png")";
+            var ToolTip = "ثبت_موقت";
+        }
+        return Ext.String.format(template, Pic, ToolTip);
+    };*@
+
+    @*var templatePrint = '<img src={0} alt="" onclick={2} onmouseover="" style="{3}" title={1} />';
+
+    var ColorPrint = function (value, record) {
+        var Pic = "@Url.Content("~/Content/report_edit.png")";
+        var ToolTip = "فرم_دریافت_شده";
+        if (value == 0) {
+            var m="cursor: pointer;";
+            Pic = "@Url.Content("~/Content/report_delete.png")";
+            var ToolTip = "فرم_دریافت_نشده";
+            var ID = String(record.record.data.fldId);
+            var Final_Sabt = String(record.record.data.fldFinal_Sabt);
+            var s = "RecieveReportIn(" + ID + ","+Final_Sabt+");";
+        }
+        return Ext.String.format(templatePrint, Pic, ToolTip, s,m);
+    };*@
+
+    var templateNazarat = '<img src={0} alt="" onclick={2} onmouseover="" style="{3}" title={1} />';
+
+    var ColorNazarat = function (value, record) {
+        var Pic = "@Url.Content("~/Content/sent2.png")";
+        var ToolTip = "نظر";
+        if (value == 1) {
+            var m = "cursor: pointer;";
+            Pic = "@Url.Content("~/Content/sent1.png")";
+            var ID = String(record.record.data.fldId);
+            var s = "ShowComment(" + ID + ");";
+        }
+            return Ext.String.format(templateNazarat, Pic, ToolTip, s, m);
+    };
+
+
+    var templateDetail = '<a href="#" onclick={0}>{1}</a>';
+
+    var DetailCo = function (value, record) {
+            var ID = String(record.record.data.fldId);
+            var Final_Sabt = String(record.record.data.fldFinal_Sabt);
+            var Status = String(record.record.data.fldStatus);
+            var s = "ShowInfoCompanyProfilesIn(" + ID + "," + Final_Sabt + "," + Status + "," +2 + ");";
+
+            return Ext.String.format(templateDetail, s, value);
+    };
+
+
+</script>
+
+@(X.Panel()
+        //.Maximized(true)
+    .Listeners(li => li.AfterRender.Handler = "ShowHideGrid() ;")
+    .ID("MonitoringRegisterComplete")
+    .Closable(true)
+    .Width(500)
+
+    .Title("مانیتورینگ تکمیل ثبت نامی ها")
+    .AutoScroll(true)
+    .Height(500)
+    .Layout(Ext.Net.LayoutType.VBox)
+    .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Stretch })
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Items(
+        X.Panel()
+            .Border(false)
+            .Layout(LayoutType.VBox)
+            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+            .Items(
+                X.FieldSet()
+                    .Border(false)
+                        .Height(30)
+                .Layout(LayoutType.HBox)
+            .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Middle })
+        //.LayoutConfig(new Ext.Net.TableLayoutConfig { Columns = 6 })
+                    .Defaults(new { Margin = 5 })
+                    .Items(
+        //X.Label()
+        //    .Text("شخص:"),
+                       /* X.ComboBox()
+                        .Width(200)
+                            .ItemID("cboPersonType")
+                            .FieldLabel("شخص")
+                            .Editable(false)
+                            .TypeAhead(true)
+                            .QueryMode(DataLoadMode.Local)
+                            .TriggerAction(TriggerAction.All)
+                            .SelectedItems(new { Value = "2" })
+                            .Items(
+                                new ListItem("حقیقی", "1"),
+                                new ListItem("حقوقی", "2")
+                                )
+                            .Listeners(l => l.Select.Handler = "ChangePersonType();")
+                       , */
+                        
+        //X.Label()
+        //    .Text("از تاریخ:"),
+                            X.PDateField()
+                            .Width(200)
+                            .Listeners(l =>
+                            {
+                                l.AfterRender.Handler = "load();";
+                                l.Change.Handler = "setDateAz();";
+                            })
+                            .Editable(false)
+                            .FieldLabel("از تاریخ")
+                            .ItemID("txtAzTarikh")
+        //.FieldLabel("از تاریخ")
+                            .MsgTarget(Ext.Net.MessageTarget.Side)
+                            .AllowBlank(false)
+                            .MaskRe("/[0-9,/]/")
+                            .BlankText("لطفا تاریخ را وارد کنید.")
+                            .AutoFocus(true),
+        //X.Label()
+        //    .Text("تا تاریخ:"),
+                            X.PDateField()
+                            .Width(200)
+                            .Editable(false)
+                            .FieldLabel("تا تاریخ")
+                            .ItemID("txtTaTarikh")
+                            .Listeners(l =>
+                            {
+                                l.AfterRender.Handler = "load();";
+                                l.Change.Handler = "setDateTa();";
+                            })
+        //.FieldLabel("تا تاریخ")
+                            .MaskRe("/[0-9,/]/")
+                            .MsgTarget(Ext.Net.MessageTarget.Side)
+                            .AllowBlank(false)
+                            .BlankText("لطفا تاریخ را وارد کنید."),
+                        X.ComboBox()
+                        .Width(300)
+                            .ItemID("CboStatus")
+                            .FieldLabel("فیلتر براساس")
+                            .Editable(false)
+                            .TypeAhead(true)
+                            .BlankText("لطفا نوع فیلتر را انتخاب نمایید.")
+                            .QueryMode(DataLoadMode.Local)
+                            .TriggerAction(TriggerAction.All)
+                            .AllowBlank(false)
+                            .Items(
+                                new ListItem("ثبت نام موقت", "1"),
+                                new ListItem("ثبت قطعی در انتظار تأیید وصول", "2"),
+                                new ListItem("تأیید وصول در انتظار تأیید قطعی", "3"),
+                                new ListItem("تأیید قطعی", "4"),
+        // new ListItem("دارای درخواست", "5"),
+                                new ListItem("دارای درخواست ثبت شده", "5"),
+                                new ListItem("دارای درخواست ارسال شده", "6"),
+                                new ListItem("دارای درخواست ارجاع شده", "7"),
+                                new ListItem("یک درخواست دارای رتبه", "8"),
+                                new ListItem("همه موارد", "0")
+                                )
+                                .SelectedItems(new { Value = "0" })
+                                ,
+                          /*  X.ComboBox()
+                            .Width(220)
+                                .ItemID("CboAllowed")
+                                .FieldLabel("حوزه فعالیت")
+                                .Editable(false)
+                                .TypeAhead(true)
+                                .BlankText("لطفا نوع فیلتر را انتخاب نمایید.")
+                                .QueryMode(DataLoadMode.Local)
+                                .TriggerAction(TriggerAction.All)
+                                .AllowBlank(false)
+                                .Items(
+                                    new ListItem("مرتبط با واگن ها", "1"),
+                                    new ListItem("مرتبط با کشش", "2"),
+                                    new ListItem("همه موارد", "0")
+                                    )
+                                .SelectedItems(new { Value = "0" }),*/
+                        X.Button()
+                            .Text("جستجو")
+                            .Icon(Ext.Net.Icon.Find)
+                            .Listeners(li => li.Click.Handler = "load();"))),
+        X.Panel()
+            .Border(false)
+            .AutoScroll(true)
+            .ID("PnlGridPanel")
+            .Layout(Ext.Net.LayoutType.Fit)
+            .Items(
+                X.GridPanel()
+                .Listeners(l => l.AfterRender.Handler = "kk()")
+                    .AutoScroll(true)
+                    .TopBar(
+                        Html.X().Toolbar()
+                            .Items(
+                                X.Button()
+                                    .Text("بارگزاری مجدد")
+                                    .Icon(Ext.Net.Icon.Reload)
+                                    .Listeners(li => li.Click.Handler = "ReloadMonitoringRegisterComplete();"),
+                                    X.Button()
+                                        .Text("چاپ گزارش")
+                                        .Icon(Ext.Net.Icon.Printer)
+                                        .Listeners(Li => Li.Click.Handler = "PrintMonitoringRegisterComplete();"),
+                                X.Button()
+                                .Text("ارسال پیامک")
+                                .Icon(Ext.Net.Icon.DeviceStylus)
+                                .Listeners(de =>
+                                {
+                                    de.Click.Handler = "GotoSend(0)";
+                                }),
+                                X.Button()
+                                    .Text("حذف")
+                                    .Icon(Ext.Net.Icon.Delete)
+                                    .Listeners(de =>
+                                    {
+                                        de.Click.Handler = "if (App.MonitoringRegisterComplete.queryById('GridMonitoringRegisterComplete').selModel.getLastSelected() == null) {Ext.MessageBox.show({ title: 'خطا', msg: 'لطفا یک سطر را انتخاب کنید',icon: Ext.MessageBox.ERROR,buttons: Ext.MessageBox.OK});return false;}else DeleteMonitoringRegisterComplete();";
+                                    })
+                                    , X.Button()
+                                    .Text("خروجی اکسل")
+                                        .Icon(Ext.Net.Icon.BookAdd)
+                                            .Listeners(Li => Li.Click.Handler = "ExcelHoghoghi()")
+                                    ,
+        //X.Button().Text("تغییر رمزعبور").Icon(Ext.Net.Icon.Pencil)
+        //.Listeners(l => l.Click.Handler = "ResetPass()")
+                                    X.Button()
+                                        .Text("تغییر رمزعبور")
+                                        .Icon(Ext.Net.Icon.Pencil)//.ToolTip("کلید میانبر F8")
+                                    .Menu(X.Menu()
+                                    .Items(
+                                        X.MenuItem()
+                                                .Text("ارسال پیامک به نماینده")
+                                            .Icon(Ext.Net.Icon.NoteGo)
+                                            .Listeners(li => li.Click.Handler = "ResetPass(1);"),
+                                            X.MenuItem()
+                                                .Icon(Ext.Net.Icon.NoteGo)
+                                            .Text("ارسال پیامک به مدیرعامل")
+                                                .Listeners(li => li.Click.Handler = "ResetPass(2);"),
+                                                X.MenuItem()
+                                                    .Icon(Ext.Net.Icon.NoteGo)
+                                                .Text("نمایش رمز جدید")
+                                                .Listeners(li => li.Click.Handler = "ResetPass(3);")
+                                )
+                                    )
+                                        //,
+                                        //X.Button().Text("گزارش آماری").Icon(Ext.Net.Icon.Printer)
+                                        //    .Listeners(l => l.Click.Handler = "PrintDarsadCompanyProfile()")
+                                        ,
+                                                X.SplitButton()
+                                        .Text("راهنما")
+                                        .Icon(Ext.Net.Icon.Help)
+                                        .Menu(X.Menu()
+                                        .Items(
+                                        X.MenuItem()
+                                                    .Text("راهنما متنی")
+                                                    .Icon(Ext.Net.Icon.TextPaddingTop)
+                                                            .Listeners(l => l.Click.Handler = "HelpMonitor()"),
+                                            X.MenuItem()
+                                                    .Text("راهنما تصویری")
+                                                    .Icon(Ext.Net.Icon.PlayBlue)
+                                                        .Listeners(l => l.Click.Handler = "showHelp_VideoMonitor()")
+
+                                    )
+                                    )
+        //,
+        //    X.Button().Text("حذف تایید").Icon(Ext.Net.Icon.Delete)
+        //    .Hidden(!servic.Permission(219, Session["Username"].ToString(), Session["Password"].ToString(), out Err))
+        //.Listeners(l => l.Click.Handler = "DelAcc()")
+        //    ,
+        //X.Button().Text("تأیید ثبت نام").Icon(Ext.Net.Icon.Accept)
+        //    .Listeners(li => li.Click.Handler = "ShowInfoCompanyProfiles();")
+                        )
+                    )
+                    .ItemID("GridMonitoringRegisterComplete")
+                    .BottomBar(X.PagingToolbar())
+        //.Height(600)
+        //.ColumnWidth(0.6)
+        //.Layout(Ext.Net.LayoutType.Column)
+        //.Listeners(l => l.AfterRender.Handler = "var grid=App.ListCompany.queryById('GridListCompany');grid.setHeight(App.ListCompany.height);")
+                    .Store(
+                        X.StoreForModel()
+                            .AutoLoad(false)
+                            .Proxy(Html.X().AjaxProxy()
+                                .Url(Url.Action("Read"))
+                                .Reader(Html.X().JsonReader().Root("data"))
+                            )
+                            .PageSize(20)
+                            .RemoteFilter(true)
+                            .RemotePaging(true)
+                            .Listeners(l => l.DataChanged.Handler = "var grid=App.MonitoringRegisterComplete.queryById('GridMonitoringRegisterComplete');App.MonitoringRegisterComplete.queryById('GridMonitoringRegisterComplete').selModel.refresh();")
+                    )
+                    .View(
+                        Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                    )
+                    .Plugins(X.FilterHeader().Remote(true))
+                    .ColumnModel(
+                           Html.X().Column().DataIndex(Model, m => m.fldId).Text("کد").Flex(2).Hidden(true),
+                               Html.X().Column().DataIndex(Model, m => m.fldFirstRegisterUser).Text("کدFirst").Flex(2).Hidden(true),
+
+              
+                            //Html.X().ImageCommandColumn().Hidden(@P_File == 0).Hideable(false).Listeners(l => l.Command.Handler = "GoClient(record,1);")
+                            //    .Flex(1).Commands(Html.X().ImageCommand().Icon(Ext.Net.Icon.ArrowOutLonger).CommandName("Client").ToolTip(tt => tt.Text = "ورود به پرونده")
+                            //        ),
+                                Html.X().ImageCommandColumn().Listeners(l => l.Command.Handler = "SentSmsEmail(record,1);").Hidden(P_ShowSms)
+                                .Flex(1).Commands(Html.X().ImageCommand().Icon(Ext.Net.Icon.EmailTransfer).CommandName("SentSms1").ToolTip(tt => tt.Text = "ایمیل ها و پیامک های ارسال شده")
+                            ),
+                            Html.X().ImageCommandColumn().Listeners(l => l.Command.Handler = "GoRequest(record,1);")
+                                .Flex(1).Commands(Html.X().ImageCommand().Icon(Ext.Net.Icon.ApplicationViewList).CommandName("Client1").ToolTip(tt => tt.Text = "درخواست ها")),
+                            Html.X().Column().DataIndex(Model, m => m.SentType).Text("نظرات").Flex(2).Renderer("ColorNazarat").Filterable(false),
+        //Html.X().Column().DataIndex(Model, m => m.fldStatus).Text("وضعیت تایید").Flex(2).Renderer("ColorTaiid").Filterable(false),
+        //Html.X().Column().DataIndex(Model, m => m.fldFinal_Sabt).Text("وضعیت ثبت").Flex(2).Renderer("ColorSabt").Filterable(false),
+        //Html.X().Column().DataIndex(Model, m => m.fldReceiveReport).Text("وضعیت دریافت").Flex(3).Renderer("ColorPrint").Filterable(false),
+                            Html.X().Column().DataIndex(Model, m => m.fldCompanyStatus).Text("وضعیت").Flex(2).Renderer("ShowStatus").Filterable(false),
+                            Html.X().Column().DataIndex(Model, m => m.fldFullName).Text("نام شرکت").Flex(10).Renderer("DetailCo"),
+                                Html.X().Column().DataIndex(Model, m => m.fldHadafSabtName).Text("هدف از ثبت نام").Flex(10),
+                            Html.X().Column().DataIndex(Model, m => m.NameModirAmel).Text("مدیرعامل").Flex(5),
+                            Html.X().Column().DataIndex(Model, m => m.fldNationalCode).Text("شناسه ملی").Flex(5),
+                            Html.X().Column().DataIndex(Model, m => m.fldSh_Sabt).Text("شماره ثبت").Flex(5),
+                            Html.X().Column().DataIndex(Model, m => m.fldCodeEghtesadi).Text("کد اقتصادی").Flex(5),
+                            Html.X().Column().DataIndex(Model, m => m.fldTarikh).Text("تاریخ").Flex(4),
+                            Html.X().Column().DataIndex(Model, m => m.fldTime).Text("زمان").Flex(2),
+                            Html.X().Column().DataIndex(Model, m => m.fldAddress).Text("آدرس").Flex(4).Hidden(true),
+                            Html.X().Column().DataIndex(Model, m => m.fldAddressWebSite).Text("وب سایت").Flex(4).Hidden(true),
+                            Html.X().Column().DataIndex(Model, m => m.fldCodePosti).Text("کدپستی").Flex(4).Hidden(true),
+                            Html.X().Column().DataIndex(Model, m => m.fldDateSabt).Text("تاریخ ثبت").Flex(4).Hidden(true),
+                            Html.X().Column().DataIndex(Model, m => m.fldDateTasis).Text("تاریخ تاسیس").Flex(4).Hidden(true),
+                            Html.X().Column().DataIndex(Model, m => m.fldEmailCompany).Text("پست الکترونیک").Flex(4).Hidden(true),
+                            Html.X().Column().DataIndex(Model, m => m.fldMablaghSaham).Text("مبلغ هر سهم").Flex(4).Hidden(true),
+                            Html.X().Column().DataIndex(Model, m => m.fldMahallSabt).Text("محل ثبت").Flex(4).Hidden(true),
+                            Html.X().Column().DataIndex(Model, m => m.fldMahallSherkat).Text("محل شرکت").Flex(4).Hidden(true),
+                            Html.X().Column().DataIndex(Model, m => m.fldNamabar).Text("نمابر").Flex(4).Hidden(true),
+                            Html.X().Column().DataIndex(Model, m => m.fldNickName).Text("نام اختصاری").Flex(4).Hidden(true),
+                            Html.X().Column().DataIndex(Model, m => m.fldTedadKolSaham).Text("تعداد سهام").Flex(4).Hidden(true),
+                            Html.X().Column().DataIndex(Model, m => m.fldTelphon).Text("تلفن").Flex(4).Hidden(true),
+                            Html.X().Column().DataIndex(Model, m => m.fldTypeCompany).Text("نوع ثبتی شرکت").Flex(4).Hidden(true),
+                           // Html.X().Column().DataIndex(Model, m => m.StakeholderAllowed_Edarekol).Text("StakeholderAllowed_Edarekol").Flex(4).Hidden(true),
+                            Html.X().ComponentColumn().Flex(3).ItemID("buttonHistoryLogin")
+                            .Component(Html.X().Button().ItemID("btnbindHistoryLogin").Text("تاریخچه ورودها").Listeners(l => l.Click.Handler = "HistoryLogin_Comoany()")).Filterable(false)
+                                    .Hidden(!RaiSam.Models.Permission.haveAccess(206, "", "0"))
+
+                    )
+                    .SelectionModel(
+                        Html.X().CheckboxSelectionModel()
+                            .Mode(Ext.Net.SelectionMode.Multi).CheckOnly(true)
+                    )
+        //********************************حقیقی
+              
+                    )
+            )
+)
+
+<script type="text/javascript">
+    @*window.open('@Url.Content("~/MonitoringRegisterComplete/Print")');*@
+    var GridID;
+
+    function showHelp_VideoMonitor() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/MonitoringRegisterComplete/VideoWinMonitor',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+
+    }
+    function HelpMonitor() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/MonitoringRegisterComplete/Help',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+    function ExcelHoghoghi(){
+        var AzTarikh = App.MonitoringRegisterComplete.queryById('txtAzTarikh').rawValue;
+        var TaTarikh = App.MonitoringRegisterComplete.queryById('txtTaTarikh').rawValue;
+        var Status=App.MonitoringRegisterComplete.queryById("CboStatus").getValue();
+        var Checked = "";
+        Checked = "CompanyStatus" + ";"+ "FullName" + ";" + "GroupName" + ";" + "NameModirAmel" + ";" + "NationalCode" + ";" + "Sh_Sabt" + ";"
+            + "CodeEghtesadi" + ";" + "Tarikh" + ";"+"Time"+";"+"DateSabt"+";"+"CountryMahallSabt"+";"+"StateMahallSabt"+";"+"CityMahallSabt"+";"
+            +"Namabar"+";"+"Telphon"+";"+"Address"+";"+"CountryMahallSherkat"+";"+"StateMahallSherkat"+";"+
+            "CityMahallSherkat"+";"+"CodePosti"+";"+"AddressWebSite"+";"+"EmailCompany"+";"+"DateTasis"+";"+"MablaghSaham"+";"
+            +"NickName"+";"+"TedadKolSaham"+";"+"TypeCompany"+";"+"TitleAllowed"+";"+"Name_Family"+";"+"Mobile"+";"+"NameRequest"+";"+"TypeRequest"+";";
+        window.location.href = '@Url.Content("~/MonitoringRegisterComplete/CreateExcel/")' + '?Checked=' + Checked+'&AzTarikh='+AzTarikh+'&TaTarikh='+TaTarikh+'&Type=1'+'&Status='+Status;
+    }
+    function ExcelHaghighi(){
+        var AzTarikh = App.MonitoringRegisterComplete.queryById('txtAzTarikh').rawValue;
+        var TaTarikh = App.MonitoringRegisterComplete.queryById('txtTaTarikh').rawValue;
+        var Checked = "";
+        Checked = "CompanyStatus" + ";"+ "FullName" + ";" +"NameModirAmel"+";"+ "GroupName" + ";" + "NationalCode" + ";" + "MobileModirAmel" + ";"
+            + "CodeEghtesadi" + ";" + "Tarikh" + ";"+"Time"+";"+"FatherName"+";"+"CountryMahallSodoor"+";"+"StateMahallSodoor"+";"+"CityMahallSodoor"+";"
+            +"CountryMahallTavalod"+";"+"StateMahallTavalod"+";"+"CiytMahallTavalod"+";"+"ShenasnameNo"+";"
+            +"CodePosti"+";"+"Namabar"+";"+"Telphon"+";"+"Sh_Bime"+";"+"Address"+";"+"CountryMahallSherkat"+";"+"StateMahallSherkat"+";"+"CityMahallSherkat"+";"
+            +"AddressWebSite"+";"+"EmailCompany"+";"+"TitleAllowed"+";"+"Name_Family"+";"+"Mobile"+";"+"NameRequest"+";"+"TypeRequest"+";";;
+        window.location.href = '@Url.Content("~/MonitoringRegisterComplete/CreateExcel/")' + '?Checked=' + Checked+'&AzTarikh='+AzTarikh+'&TaTarikh='+TaTarikh+'&Type=2'+'&Status='+Status;
+    }
+    function HistoryLogin_Comoany(){
+        var FirstRegisterUser = App.MonitoringRegisterComplete.queryById("buttonHistoryLogin").activeRecord.record.data.fldFirstRegisterUser;
+        App.MonitoringRegisterComplete.body.mask('در حال بارگذاری...');
+        Ext.net.DirectMethod.request({
+            url: '/MonitoringRegisterComplete/HistoryLogin_Comoany',
+            params: {
+                IdUser: FirstRegisterUser,
+                state:2
+            },
+            success: function () {
+                App.MonitoringRegisterComplete.body.mask().hide();
+            }
+        });
+    }
+    function showBargozaryComplete() {
+        Ext.MessageBox.show({
+            msg: 'لطفاً منتظر باشید',
+            progressText: 'در حال بارگذاری...',
+            width: 300,
+            wait: true,
+            waitConfig:
+            {
+                /*duration: 10000,*/
+                interval: 200,
+                /*increment: 15,*/
+                text: 'در حال بارگذاری...',
+                scope: this
+                /*fn: function () {
+                    Ext.MessageBox.hide();
+                    Ext.Msg.alert('Status', 'Saved successfully!');
+                }*/
+            }
+        });
+    }
+
+    function setDateAz() {
+        var txtAzTarikh = App.MonitoringRegisterComplete.queryById('txtAzTarikh');
+        var txtTaTarikh = App.MonitoringRegisterComplete.queryById('txtTaTarikh');
+        /*txtAzTarikh.setMaxValue ( txtTaTarikh.getValue());
+        txtAzTarikh.maxText = "تاریخ شروع نباید از تاریخ پایان بزرگتر باشد.";*/
+        txtTaTarikh.setMinValue(txtAzTarikh.getValue());
+        txtTaTarikh.minText = "تاریخ شروع نباید از تاریخ پایان بزرگتر باشد.";
+    }
+
+    function GotoSend(st) {
+        var CompanyProfileIds="";
+        if(@P_Send == 0){
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "شما مجاز به ارسال پیامک نمی باشید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+        else{
+            var Selection=App.MonitoringRegisterComplete.queryById("GridMonitoringRegisterComplete").getSelectionModel().getSelection();
+            /*if(st==1)
+                Selection=App.MonitoringRegisterComplete.queryById("GridMonitoringRegisterComplete2").getSelectionModel().getSelection();*/
+
+            if(Selection.length>0){
+                for(var i=0;i<Selection.length;i++){
+                    CompanyProfileIds=CompanyProfileIds+Selection[i].data.fldId+";";
+                }
+                Ext.net.Mask.show({msg: 'در حال بارگذاری...'});
+                Ext.net.DirectMethod.request({
+                    url: '/MonitoringRegisterComplete/SendMessage',
+                    params: {
+                        CompanyProfileIds:CompanyProfileIds,
+                        Person:st
+                    },
+                    success: function () {
+                        Ext.net.Mask.hide();
+                    }
+                });
+            }
+            else{
+                Ext.MessageBox.show({
+                    title: "خطا",
+                    msg: "لطفا حداقل یک سطر را انتخاب نمایید.",
+                    icon: Ext.MessageBox.ERROR,
+                    buttons: Ext.MessageBox.OK
+                });
+            }
+        }
+    }
+
+
+    function setDateTa() {
+        var txtAzTarikh = App.MonitoringRegisterComplete.queryById('txtAzTarikh');
+        var txtTaTarikh = App.MonitoringRegisterComplete.queryById('txtTaTarikh');
+        txtAzTarikh.setMaxValue(txtTaTarikh.getValue());
+        txtAzTarikh.maxText = "تاریخ شروع نباید از تاریخ پایان بزرگتر باشد.";
+        /*txtTaTarikh.setMinValue (txtAzTarikh.getValue());
+        txtTaTarikh.minText = "تاریخ شروع نباید از تاریخ پایان بزرگتر باشد.";*/
+    }
+    function GoRequest(record,State){
+        Ext.net.Mask.show({msg: 'در حال بارگذاری...'});
+        Ext.net.DirectMethod.request({
+            url: '/MonitoringRegisterComplete/ShowRequest',
+            params: {
+                Id:record.data.fldId,
+                State:State
+            },
+            success: function () {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+    function SentSmsEmail(record,State) {
+        Ext.net.Mask.show({msg: 'در حال بارگذاری...'});
+        Ext.net.DirectMethod.request({
+            url: '/MonitoringRegisterComplete/ShowCacheSmsEmail',
+            params: {
+                Id:record.data.fldId,
+                State:State
+            },
+            success: function () {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+    function GoClient(record,state) {
+        if(@P_File == 0){
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "شما مجاز به ورود به پرونده نمی باشید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+        else{
+            var hh=Ext.getBody().getViewSize().height+20;
+            var ww=Ext.getBody().getViewSize().width-20;
+            var param = { 'CompanyProfileId' : record.data.fldId,'state':state};
+            OpenWindowWithPost("/Faces/Admin/index",
+           "width="+ww+",height="+hh+",left=5,top=10,resizable=yes,scrollbars=yes","NewWindow", param);
+            /*  "width=750,height=550,left=100,top=100,resizable=yes,scrollbars=yes","NewWindow", param);*/
+        }
+    }
+    function OpenWindowWithPost(url, windowoption, name, params) {
+        var form = document.createElement("form");
+        form.setAttribute("method", "post");
+        form.setAttribute("action", url);
+        form.setAttribute("target", name);
+
+        for (var i in params) {
+            if (params.hasOwnProperty(i)) {
+                var input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = i;
+                input.value = params[i];
+                form.appendChild(input);
+            }
+        }
+
+        document.body.appendChild(form);
+        window.open("post.htm", name, windowoption);
+        form.submit();
+        document.body.removeChild(form);
+    }
+   /* function OpenWindowWithPost(url, windowoption, name, params)
+    {
+        var form = document.createElement("form");
+        form.setAttribute("method", "post");
+        form.setAttribute("action", url);
+        form.setAttribute("target", name);
+
+        for (var i in params) {
+            if (params.hasOwnProperty(i)) {
+                var input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = i;
+                input.value = params[i];
+                form.appendChild(input);
+            }
+        }
+
+        document.body.appendChild(form);
+
+        window.open("post.htm", name, windowoption);
+        form.submit();
+        document.body.removeChild(form);
+    }*/
+
+    function PrintMonitoringRegisterComplete() {
+        var AzTarikh = App.MonitoringRegisterComplete.queryById('txtAzTarikh').rawValue;
+        var TaTarikh = App.MonitoringRegisterComplete.queryById('txtTaTarikh').rawValue;
+       /* var cboPersonType = App.MonitoringRegisterComplete.queryById('cboPersonType');*/
+        var CboStatus = App.MonitoringRegisterComplete.queryById("CboStatus").getValue();
+        var NameStatus = App.MonitoringRegisterComplete.queryById("CboStatus").getDisplayValue();
+        showBargozaryComplete();
+        Ext.net.DirectMethod.request({
+            url: '/MonitoringRegisterComplete/Print',
+            params: {
+                AzTarikh: AzTarikh,
+                TaTarikh: TaTarikh,
+                PersonType: 2,
+                Status: CboStatus,
+                NameStatus: NameStatus
+            },
+            success: function () {
+                Ext.MessageBox.hide();
+            }
+        });
+    }
+    function PrintDarsadCompanyProfile(){
+        showBargozaryComplete();
+        Ext.net.DirectMethod.request({
+            url: '/MonitoringRegisterComplete/PrintDarsadCompanyProfile',
+          
+            success: function () {
+                Ext.MessageBox.hide();
+            }
+        });
+    }
+    function load() {
+        var DateStart = new Date('@ViewBag.fldTarikhE');
+        var txtAzTarikh = App.MonitoringRegisterComplete.queryById('txtAzTarikh');
+        var txtTaTarikh = App.MonitoringRegisterComplete.queryById('txtTaTarikh');
+        txtAzTarikh.maxValue = DateStart;
+        txtTaTarikh.maxValue = DateStart;
+        txtAzTarikh.maxText = "تاریخ باید قبل از" + '@ViewBag.fldTarikh_Sh' + "باشد";
+        txtTaTarikh.maxText = "تاریخ باید قبل از" + '@ViewBag.fldTarikh_Sh' + "باشد";
+        App.MonitoringRegisterComplete.queryById('GridMonitoringRegisterComplete').getStore().getProxy().setExtraParam("AzTarikh", App.MonitoringRegisterComplete.queryById("txtAzTarikh").rawValue);
+        App.MonitoringRegisterComplete.queryById('GridMonitoringRegisterComplete').getStore().getProxy().setExtraParam("TaTarikh", App.MonitoringRegisterComplete.queryById("txtTaTarikh").rawValue);
+        App.MonitoringRegisterComplete.queryById('GridMonitoringRegisterComplete').getStore().getProxy().setExtraParam("Status", App.MonitoringRegisterComplete.queryById("CboStatus").getValue());
+        /*App.MonitoringRegisterComplete.queryById('GridMonitoringRegisterComplete').getStore().getProxy().setExtraParam("Allowed", App.MonitoringRegisterComplete.queryById("CboAllowed").getValue());*/
+        App.MonitoringRegisterComplete.queryById('GridMonitoringRegisterComplete').getStore().load();
+
+    }
+    function ReloadMonitoringRegisterComplete() {
+        GridID.store.load();
+    }
+
+    function ShowInfoCompanyProfiles() {
+       /* var cboPersonType = App.MonitoringRegisterComplete.queryById('cboPersonType');*/
+        var SelectedRow = GridID.selModel.getLastSelected();
+        if (SelectedRow != null) {
+            /* if (SelectedRow.data.fldStatus == "0" && SelectedRow.data.fldFinal_Sabt == "1")
+             {*/
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/MonitoringRegisterComplete/ShowInfoCompanyProfile',
+                params: {
+                    CompanyProfileId: SelectedRow.data.fldId,
+                    Final_Sabt: SelectedRow.data.fldFinal_Sabt,
+                    PersonType: 2
+                }
+            });
+            /* }
+             else {
+                 if (SelectedRow.data.fldStatus == "1") {
+                     Ext.MessageBox.show({
+                         title: "خطا",
+                         msg: "شرکت انتخاب شده قبلاً ثبت شده است.",
+                         icon: Ext.MessageBox.ERROR,
+                         buttons: Ext.MessageBox.OK
+                     });
+                 }
+                 else if (SelectedRow.data.fldFinal_Sabt == "0") {
+                     Ext.MessageBox.show({
+                         title: "خطا",
+                         msg: "شرکت انتخاب شده هنوز اطلاعات خود را ثبت قطعی نکرده است.",
+                         icon: Ext.MessageBox.ERROR,
+                         buttons: Ext.MessageBox.OK
+                     });
+                 }
+             }*/
+        }
+        else{
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفاً یک سطر را انتخاب کنید",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+    function ShowInfoCompanyProfilesIn(ID, Final_Sabt, Status, state) {
+        if (@P_Taiid==0 && state==1) {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "شما مجاز به تایید ثبت نام نمی باشید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+        else{
+            /*var cboPersonType = App.MonitoringRegisterComplete.queryById('cboPersonType');*/
+            /*   if (Status == "0" && Final_Sabt == "1") {*/
+            /* if (cboPersonType.getValue() == 2) {*/
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/MonitoringRegisterComplete/ShowInfoCompanyProfile',
+                params: {
+                    CompanyProfileId: ID,
+                    Final_Sabt: Final_Sabt,
+                    PersonType: 2,
+                    state: state
+                }
+            });
+            /*}*/
+            /*   }
+               else {
+               if (Status == "1") {
+                       Ext.MessageBox.show({
+                           title: "خطا",
+                           msg: "شرکت انتخاب شده قبلاً ثبت شده است.",
+                           icon: Ext.MessageBox.ERROR,
+                           buttons: Ext.MessageBox.OK
+                       });
+                   }
+               else if (Final_Sabt == "0") {
+                       Ext.MessageBox.show({
+                           title: "خطا",
+                           msg: "شرکت انتخاب شده هنوز اطلاعات خود را ثبت قطعی نکرده است.",
+                           icon: Ext.MessageBox.ERROR,
+                           buttons: Ext.MessageBox.OK
+                       });
+                   }
+               }*/
+        }
+    }
+    function DeleteMonitoringRegisterComplete() {
+        if(@P_Del == 0){
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "شما مجاز به حذف نمی باشید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+        else{
+           /* var cboPersonType = App.MonitoringRegisterComplete.queryById('cboPersonType');*/
+            var SelectedHeaderRow = GridID.selModel.getLastSelected();
+            Ext.MessageBox.show({
+                title: "هشدار",
+                msg: "آیا برای حذف مطمئن هستید؟",
+                icon: Ext.MessageBox.WARNING,
+                buttons: Ext.MessageBox.YESNO,
+                fn: function (btn) {
+                    if (btn == 'yes') {
+                        Ext.net.DirectMethod.request({
+                            url: '/MonitoringRegisterComplete/Delete',
+                            params: {
+                                id: SelectedHeaderRow.data.fldId,
+                                PersonType: 2
+                            },
+                            success: function (data) {
+                                var ic = Ext.MessageBox.INFO;
+                                if (data.Er == 1)
+                                    ic = Ext.MessageBox.ERROR;
+                                Ext.MessageBox.show({
+                                    title: data.MsgTitle,
+                                    msg: data.Msg,
+                                    icon: ic,
+                                    buttons: Ext.MessageBox.OK
+                                });
+                                GridID.store.load();
+                            }
+                        });
+                    }
+                }
+            });
+        }
+    }
+    function RecieveReport() {
+       /* var cboPersonType = App.MonitoringRegisterComplete.queryById('cboPersonType');*/
+        var SelectedHeaderRow = GridID.selModel.getLastSelected();
+        if (SelectedHeaderRow != null) {
+
+            Ext.MessageBox.show({
+                title: "هشدار",
+                msg: "آیا فرم ثبت نام شرکت انتخاب شده را دریافت کرده اید؟",
+                icon: Ext.MessageBox.WARNING,
+                buttons: Ext.MessageBox.YESNO,
+                fn: function (btn) {
+                    if (btn == 'yes') {
+                        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+                        Ext.net.DirectMethod.request({
+                            url: '/MonitoringRegisterComplete/RecieveReport',
+                            params: {
+                                id: SelectedHeaderRow.data.fldId,
+                                PersonType: 2
+                            },
+                            success: function (data) {
+                                Ext.net.Mask.hide();
+                                var ic = Ext.MessageBox.INFO;
+                                if (data.Er == 1)
+                                    ic = Ext.MessageBox.ERROR;
+                                Ext.MessageBox.show({
+                                    title: "عملیات موفق",
+                                    msg: "پیامک تایید دریافت، به نماینده شرکت ارسال شد.",
+                                    icon: ic,
+                                    buttons: Ext.MessageBox.OK
+                                });
+                                GridID.store.load();
+                            }
+                        });
+                    }
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+    function RecieveReportIn(ID, Final_Sabt) {
+        if(@P_Print == 0){
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "شما مجاز به تایید رسید فرم ثبت نام نمی باشید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+        else{
+            /*var cboPersonType = App.MonitoringRegisterComplete.queryById('cboPersonType');*/
+            if (Final_Sabt == "0") {
+                Ext.MessageBox.show({
+                    title: "خطا",
+                    msg: "شرکت انتخاب شده هنوز اطلاعات خود را ثبت قطعی نکرده است.",
+                    icon: Ext.MessageBox.ERROR,
+                    buttons: Ext.MessageBox.OK
+                });
+            }
+            else {
+                Ext.MessageBox.show({
+                    title: "هشدار",
+                    msg: "آیا فرم ثبت نام شرکت انتخاب شده را دریافت کرده اید؟",
+                    icon: Ext.MessageBox.WARNING,
+                    buttons: Ext.MessageBox.YESNO,
+                    fn: function (btn) {
+                        if (btn == 'yes') {
+                            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+                            Ext.net.DirectMethod.request({
+                                url: '/MonitoringRegisterComplete/RecieveReport',
+                                params: {
+                                    id: ID,
+                                    PersonType: 2
+                                },
+                                success: function (data) {
+                                    Ext.net.Mask.hide();
+                                    var ic = Ext.MessageBox.INFO;
+                                    if (data.Er == 1)
+                                        ic = Ext.MessageBox.ERROR;
+                                    Ext.MessageBox.show({
+                                        title: "عملیات موفق",
+                                        msg: "پیامک دریافت فرم، به نماینده شرکت ارسال شد.",
+                                        icon: ic,
+                                        buttons: Ext.MessageBox.OK
+                                    });
+                                    GridID.store.load();
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+        }
+    }
+  /*  function ChangePersonType() {
+        var cboPersonType = App.MonitoringRegisterComplete.queryById('cboPersonType');
+        var GridMonitoringRegisterComplete = App.MonitoringRegisterComplete.queryById('GridMonitoringRegisterComplete');
+        var GridMonitoringRegisterComplete2 = App.MonitoringRegisterComplete.queryById('GridMonitoringRegisterComplete2');
+        if (cboPersonType.getValue() == 1) {
+            GridMonitoringRegisterComplete.hide(true);
+            GridMonitoringRegisterComplete2.show(true);
+            GridID = GridMonitoringRegisterComplete2;
+        }
+        else {
+            GridMonitoringRegisterComplete.show(true);
+            GridMonitoringRegisterComplete2.hide(true);
+            GridID = GridMonitoringRegisterComplete;
+        }
+    }*/
+    function ShowHideGrid() {
+        var GridMonitoringRegisterComplete = App.MonitoringRegisterComplete.queryById('GridMonitoringRegisterComplete');
+       /* var GridMonitoringRegisterComplete2 = App.MonitoringRegisterComplete.queryById('GridMonitoringRegisterComplete2');*/
+        GridMonitoringRegisterComplete.show(true);
+     App.PnlGridPanel.setHeight(Ext.getBody().getViewSize().height-105);
+        GridID = GridMonitoringRegisterComplete;
+       /* GridMonitoringRegisterComplete2.hide(true);*/
+
+        Ext.net.Mask.hide();
+    }
+    function ShowComment(ID) {
+        if(@P_Nazarat == 0){
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "شما مجاز به مشاهده نظرات نمی باشید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+        else{
+           /* var cboPersonType = App.MonitoringRegisterComplete.queryById('cboPersonType');*/
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/MonitoringRegisterComplete/ShowComment',
+                params: {
+                    Id: ID,
+                    PersonType:2
+                },
+                success: function () {
+                    Ext.net.Mask.hide();
+                }
+            });
+        }
+    }
+    function ShowInfo(grid, command, record, row) {
+        if (command == 'Comment') {
+            alert();
+        }
+    }
+    function ResetPass(st) {
+        /*var cboPersonType = App.MonitoringRegisterComplete.queryById('cboPersonType');*/
+        var SelectedHeaderRow = GridID.selModel.getLastSelected();
+        if (SelectedHeaderRow != null) {
+            Ext.MessageBox.show({
+                title: "هشدار",
+                msg: "آیا برای تغییر رمز عبور اطمینان دارید؟",
+                icon: Ext.MessageBox.WARNING,
+                buttons: Ext.MessageBox.YESNO,
+                fn: function (btn) {
+                    if (btn == 'yes') {
+                        Ext.net.Mask.show({ msg: 'در حال انجام عملیات...' });
+                        Ext.net.DirectMethod.request({
+                            url: '/MonitoringRegisterComplete/ResetPassword',
+                            params: {
+                                id: SelectedHeaderRow.data.fldId,
+                                PersonType:2,
+                                State:st
+                            },
+                            success: function (data) {
+                                Ext.net.Mask.hide();
+                                var ic = Ext.MessageBox.INFO;
+                                if (data.Er == 1)
+                                    ic = Ext.MessageBox.ERROR;
+                                Ext.MessageBox.show({
+                                    title: data.MsgTitle,
+                                    msg: data.Msg,
+                                    icon: ic,
+                                    buttons: Ext.MessageBox.OK
+                                });
+                            }
+                        });
+                    }
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+    function DelAcc() {
+        /*var cboPersonType = App.MonitoringRegisterComplete.queryById('cboPersonType');*/
+        var SelectedHeaderRow = GridID.selModel.getLastSelected();
+        if (SelectedHeaderRow != null) {
+            Ext.MessageBox.show({
+                title: "هشدار",
+                msg: "آیا برای حذف تاییدها اطمینان دارید؟",
+                icon: Ext.MessageBox.WARNING,
+                buttons: Ext.MessageBox.YESNO,
+                fn: function (btn) {
+                    if (btn == 'yes') {
+                        Ext.net.Mask.show({ msg: 'در حال انجام عملیات...' });
+                        Ext.net.DirectMethod.request({
+                            url: '/MonitoringRegisterComplete/DelAcc',
+                            params: {
+                                id: SelectedHeaderRow.data.fldId,
+                                PersonType:2
+                            },
+                            success: function (data) {
+                                Ext.net.Mask.hide();
+                                var ic = Ext.MessageBox.INFO;
+                                if (data.Er == 1)
+                                    ic = Ext.MessageBox.ERROR;
+                                Ext.MessageBox.show({
+                                    title: data.MsgTitle,
+                                    msg: data.Msg,
+                                    icon: ic,
+                                    buttons: Ext.MessageBox.OK
+                                });
+                            }
+                        });
+                    }
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+    function kk() {
+      /*  var GridMonitoringRegisterComplete = App.MonitoringRegisterComplete.queryById('GridMonitoringRegisterComplete');
+
+            GridMonitoringRegisterComplete.columnManager.columns[1].hide();
+       */
+    }
+ 
+</script>

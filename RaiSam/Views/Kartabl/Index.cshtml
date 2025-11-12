@@ -1,0 +1,314 @@
+﻿@model RaiSam.Models.KartablAction
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+
+    var X = Html.X();
+}
+
+<script>
+    Ext.net.FilterHeader.behaviour.string[0].match = function (recordValue, matchValue) {
+        return (Ext.net.FilterHeader.behaviour.getStrValue(recordValue) || "").indexOf(matchValue) > -1;
+    };
+
+    Ext.net.FilterHeader.behaviour.string[0].getStrValue = function (value) {
+        return value.toString();
+    };
+
+    Ext.net.FilterHeader.behaviour.string[0].serialize = function (value) {
+        return {
+            type: "string",
+            op: "*",
+            value: value
+        };
+    };
+    var ShowIcon_Kartabl = function (value, record) {
+        if (value == null) {
+            return "";
+        }
+        else {
+            pic = "data:image/png;base64," + value;
+            var template = "<img src=" + pic + " style='width:17px;height:17px;' />";
+            return template;
+        }
+    };
+</script>
+<style>
+    .x-grid-group-title {
+        text-align: right !important;
+    }
+</style>
+@(X.Panel().Border(false).Listeners(li =>
+{
+    li.AfterRender.Handler = "KartablSetSize();";
+})
+.Title("کارتابل")
+            .ID("Kartabl")
+            .Closable(true)
+            .AutoScroll(true)
+            .CloseAction(Ext.Net.CloseAction.Destroy)
+            .Items(
+                X.AntiForgeryField()
+                .ItemID("antiForgeryToken").Hidden(true),
+                X.Panel().Border(false)
+                    .Layout(Ext.Net.LayoutType.VBox)
+                .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Stretch })
+                .AutoScroll(true)
+                .Items(
+                    X.GridPanel().AutoScroll(true)
+                        .TopBar(
+                        Html.X().Toolbar()
+                        .Items(
+                            X.Button().Text("جدید").Icon(Ext.Net.Icon.Add)
+                                .Listeners(li => li.Click.Handler = "NewKartabl();"),
+                            X.Button().Text("ویرایش").Icon(Ext.Net.Icon.Pencil)
+                                .Listeners(Li => Li.Click.Handler = "EditKartabl();"),
+                            X.Button().Text("حذف").Icon(Ext.Net.Icon.Delete)
+                                .Listeners(de =>
+                                {
+                                    de.Click.Handler = "DeleteKartabl();";
+                                })
+                      , X.SplitButton()
+                                .Text("راهنما")
+                                .Icon(Ext.Net.Icon.Help)
+                                .Menu(X.Menu()
+                                .Items(
+                                X.MenuItem()
+                                            .Text("راهنما متنی")
+                                            .Icon(Ext.Net.Icon.TextPaddingTop)
+                                                        .Listeners(l => l.Click.Handler = "HelpKartabl()"),
+                                    X.MenuItem()
+                                            .Text("راهنما تصویری")
+                                            .Icon(Ext.Net.Icon.PlayBlue)
+                                                .Listeners(l => l.Click.Handler = "showHelp_VideoKartabl()")
+
+                            )
+                        )
+                    )
+                )
+                        .ItemID("GridKartabl")
+                    .BottomBar(X.PagingToolbar())
+            .Listeners(li => li.Select.Handler = "loadGridKartablDetail()")
+                    .Store(
+                        X.StoreFor(Model.Kartabl)
+                            .Listeners(l => l.BeforeLoad.Handler = "App.Kartabl.queryById('GridKartabl').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.Kartabl.queryById('antiForgeryToken').getValue());")
+                                .Proxy(Html.X().AjaxProxy()
+                                    .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                            .Url(Url.Action("Read"))
+                            .Reader(Html.X().JsonReader().Root("data"))
+
+                        )
+                        .PageSize(20)
+                        .RemoteFilter(true)
+                        .RemotePaging(true)
+                                .Listeners(l => l.DataChanged.Handler = "App.Kartabl.queryById('GridKartabl').selModel.refresh();")
+                    )
+                    .View(
+                        Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                    )
+                    .Plugins(X.FilterHeader().Remote(true))
+                    .ColumnModel(
+                        Html.X().RowNumbererColumn(),
+                                    Html.X().Column().DataIndex(Model.Kartabl, m => m.fldFile).Text("").Filterable(false).Renderer("ShowIcon_Kartabl").Flex(1).Align(Ext.Net.Alignment.Center),
+                                    Html.X().Column().DataIndex(Model.Kartabl, m => m.fldId).Text("کد").Hidden(true).Flex(1),
+                                    Html.X().Column().DataIndex(Model.Kartabl, m => m.fldName).Text("عنوان کارتابل").Wrap(true).Flex(6),
+                        Html.X().Column().DataIndex(Model.Kartabl, m => m.fldDesc).Text("توضیحات").Wrap(true).Flex(12)
+                    )
+                    .SelectionModel(
+                        Html.X().RowSelectionModel()
+                            .Mode(Ext.Net.SelectionMode.Single)
+                        ),
+        X.GridPanel()
+            .AutoScroll(true)
+            .ItemID("GridKartablDetail")
+            .BottomBar(X.PagingToolbar().HideRefresh(true))
+            .Title("لیست اقدامات")
+            .Store(
+                X.StoreFor(Model.EkhtesasActionsns)
+                        .GroupField("fldNameCharkhe").GroupDir(Ext.Net.SortDirection.ASC)
+                    .AutoLoad(false)
+                            .Listeners(l => l.DataChanged.Handler = "App.Kartabl.queryById('GridKartablDetail').selModel.refresh();")
+                        .Listeners(l => l.BeforeLoad.Handler = "App.Kartabl.queryById('GridKartablDetail').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.Kartabl.queryById('antiForgeryToken').getValue());")
+                            .Proxy(Html.X().AjaxProxy()
+                        .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                        .Url(Url.Action("ReadDetail"))
+                        .Reader(Html.X().JsonReader().Root("data"))
+                    )
+                    .PageSize(10)
+                    .RemoteFilter(false)
+                    .RemotePaging(false)
+            )
+                .Features(X.Grouping().EnableGroupingMenu(true).StartCollapsed(false).GroupHeaderTplString("چرخه: " + "{name}"))
+
+            .View(
+                Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+            )
+            .Plugins(X.FilterHeader().Remote(false))
+            .ColumnModel(
+                Html.X().RowNumbererColumn(),
+                    Html.X().Column().DataIndex(Model.EkhtesasActionsns, m => m.fldId).Text("کد").Hidden(true).Flex(1),
+                            Html.X().Column().DataIndex(Model.EkhtesasActionsns, m => m.fldActionsId).Text("کد اقدام").Hidden(true).Flex(1),
+                                Html.X().Column().DataIndex(Model.EkhtesasActionsns, m => m.fldCharkheId).Text("کد چرخه").Hidden(true).Flex(1),
+                        Html.X().Column().DataIndex(Model.EkhtesasActionsns, m => m.fldName_Actions).Text("عنوان اقدام").Flex(4),
+                            Html.X().Column().DataIndex(Model.EkhtesasActionsns, m => m.fldNameGhabelCharkhesh).Text("عامل قابل چرخش").Flex(2),
+
+
+                                    Html.X().Column().DataIndex(Model.EkhtesasActionsns, m => m.fldActiveName).Text("وضعیت").Flex(2)
+            )
+            .SelectionModel(
+                Html.X().RowSelectionModel()
+                    .Mode(Ext.Net.SelectionMode.Single)
+            )
+            )
+        )
+)
+
+<script type="text/javascript">
+    function showHelp_VideoKartabl() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Kartabl/VideoWinKartabl',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+
+    }
+    function KartablSetSize() {
+        /*App.Kartabl.setWidth(App.BasicInfWin.getWidth());
+        var grid = App.Kartabl.queryById('GridKartabl');
+        grid.setHeight(App.BasicInfWin.getHeight() - 83);*/
+        App.Kartabl.queryById('GridKartabl').setHeight((App.OperationWin.getHeight() - 83) / 2);
+        App.Kartabl.queryById('GridKartablDetail').setHeight((App.OperationWin.getHeight() - 83) / 2);
+        InsertToLog("پنجره کارتابل", 2, true);
+    }
+
+    function loadGridKartablDetail() {
+        var SelectedRow = App.Kartabl.queryById('GridKartabl').getSelectionModel().getLastSelected();
+        if (SelectedRow != null) {
+            App.Kartabl.queryById('GridKartablDetail').getStore().getProxy().setExtraParam("CartablId", SelectedRow.data.fldId);
+            App.Kartabl.queryById('GridKartablDetail').store.load();
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+
+    function NewKartabl() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Kartabl/new',
+            params: {
+                CartableId: 0
+            },
+            success: function () {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+    function EditKartabl() {
+        var SelectedRow = App.Kartabl.queryById('GridKartabl').selModel.getLastSelected();
+
+        if (SelectedRow != null) {
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/Kartabl/new',
+                params: {
+                    CartableId: SelectedRow.data.fldId
+                },
+                success: function () {
+                    Ext.net.Mask.hide();
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+
+    function DeleteKartabl() {
+        var SelectedHeaderRow = App.Kartabl.queryById('GridKartabl').selModel.getLastSelected();
+        if (SelectedHeaderRow != null) {
+            Ext.MessageBox.show({
+                title: "هشدار",
+                msg: "آیا برای حذف مطمئن هستید؟",
+                icon: Ext.MessageBox.WARNING,
+                buttons: Ext.MessageBox.YESNO,
+                fn: function (btn) {
+                    if (btn == 'yes') {
+                        Ext.net.Mask.show({ msg: 'در حال انجام عملیات...' });
+                        Ext.net.DirectMethod.request({
+                            url: '/Kartabl/Delete',
+                            params: {
+                                id: SelectedHeaderRow.data.fldId,
+                                fldTimeStamp: SelectedHeaderRow.data.fldTimeStamp,
+                                __RequestVerificationToken: App.Kartabl.queryById('antiForgeryToken').getValue()
+                            },
+                            success: function (data) {
+                                chat.server.reloadLog();
+                                if (data.Er == 1 || data.outTimeStamp == 2) {
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.ERROR,
+                                        buttons: Ext.MessageBox.OK
+                                    });
+                                }
+                                else if (data.outTimeStamp == 0) {
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.WARNING,
+                                        buttons: Ext.MessageBox.OK
+                                    });
+                                }
+                                else {
+                                    Ext.MessageBox.show({
+                                        title: data.MsgTitle,
+                                        msg: data.Msg,
+                                        icon: Ext.MessageBox.INFO,
+                                        buttons: Ext.MessageBox.OK
+                                    });
+                                }
+                                App.Kartabl.queryById('GridKartabl').store.load();
+                                App.Kartabl.queryById('GridKartablDetail').getStore().getProxy().setExtraParam("CartablId", 0);
+                                App.Kartabl.queryById('GridKartablDetail').store.load();
+                                Ext.net.Mask.hide();
+                            }
+                        });
+                    }
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+    function HelpKartabl() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Kartabl/Help',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+</script>

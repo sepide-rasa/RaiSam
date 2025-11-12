@@ -1,0 +1,687 @@
+﻿@model RaiSam.Models.KartablAction
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+    var perr = false;
+    if (RaiSam.Models.Permission.haveAccess(93,"","0"))/*دسترسی اقدامات*/
+    {
+        perr = true;
+    }
+}
+<script>
+    Ext.net.FilterHeader.behaviour.string[0].match = function (recordValue, matchValue) {
+        return (Ext.net.FilterHeader.behaviour.getStrValue(recordValue) || "").indexOf(matchValue) > -1;
+    };
+
+    Ext.net.FilterHeader.behaviour.string[0].getStrValue = function (value) {
+        return value.toString();
+    };
+
+    Ext.net.FilterHeader.behaviour.string[0].serialize = function (value) {
+        return {
+            type: "string",
+            op: "*",
+            value: value
+        };
+    };
+
+    var ShowIcon_Action_Kartabl = function (value, record) {
+        if (value == null) {
+            return "";
+        }
+        else {
+            pic = "data:image/png;base64," + value;
+            var template = "<img src=" + pic + " style='width:17px;height:17px;' />";
+            return template;
+        }
+    };
+</script>
+<style>
+    #fieldsetfileK legend {
+        text-align: right;
+        font-family: Tahoma !important;
+    }
+
+    #DeleteActionFileimg7:hover {
+        cursor: pointer;
+    }
+
+    .x-grid-group-title {
+        text-align: right !important;
+    }
+</style>
+@(Html.X().Window()
+    .Closable(true)
+    .CloseAction(CloseAction.Destroy)
+    .Layout(LayoutType.Fit)
+    .Modal(true)
+    .ID("NewKartabl")
+    .Listeners(l =>
+    {
+        l.AfterRender.Handler = "setSizeNewKartabl();LoadNewKartabl()";
+        l.Render.Fn = "addKeyMapNewKartabl";
+    })
+    .Title("کارتابل")
+    .ButtonAlign(Alignment.Center)
+    .Buttons(
+        Html.X().Button()
+            .Text("ذخیره")
+            .Icon(Ext.Net.Icon.Disk)
+            .ItemID("btnSave")
+            .Listeners(l => l.Click.Handler = "Save()"),
+        Html.X().Button()
+            .Text("خروج")
+            .Icon(Ext.Net.Icon.DoorOut)
+            .Listeners(l => l.Click.Handler = "App.NewKartabl.hide()")
+    )
+    .Items(
+         X.AntiForgeryField()
+                .ItemID("antiForgeryToken").Hidden(true),
+        X.Hidden().ItemID("fldCartableId"),
+        X.Panel()
+            .Border(false)
+            .Layout(LayoutType.VBox)
+            .ItemID("pnlOne")
+            .Padding(0)
+            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+            .Items(
+            X.FieldSet()
+                    .Border(true)
+                    .Title("مشخصات کارتابل")
+                    .Defaults(new { Margin = 2 })
+                    .Layout(LayoutType.Table)
+                    .LayoutConfig(new TableLayoutConfig { Columns = 4 })
+                    .Items(
+                        X.Label("عنوان:"),
+                        X.TextField()
+                            .AllowBlank(false)
+                            .ItemID("txtTitle")
+                            .BlankText("لطفا عنوان را وارد کنید")
+                            .Width(200)
+                            .AutoFocus(true)
+                            .MaxLength(150)
+                            .EnforceMaxLength(true),
+                        X.Label("توضیحات:"),
+                        X.TextField()
+                            .Width(200)
+                            .ItemID("txtDesc"),
+                        X.FieldSet()
+                            .Border(true)
+                            .AutoScroll(true)
+                            .ColSpan(4)
+                            .Title("انتخاب فایل(حداکثر حجم مجاز: 300KB)")
+                            .ID("fieldsetfileK")
+                            .Layout(LayoutType.HBox)
+                            .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Middle })
+                            .Items(
+                                X.FormPanel()
+                                    .Border(false)
+                                    .Layout(LayoutType.HBox)
+                                    .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Middle })
+                                    .Width(410)
+                                    .Items(
+                                        X.FileUploadField()
+                                            .MarginSpec("0 10px 10px 0")
+                                            .Icon(Ext.Net.Icon.DiskUpload)
+                                            .ButtonOnly(true)
+                                            .ButtonText("انتخاب فایل")
+                                            .DirectEvents(l =>
+                                            {
+                                                l.Change.Action = "Upload";
+                                                l.Change.Delay = 1000;
+                                                l.Change.Before = "if(GotoServer==false){return false;}";
+                                                l.Change.Success = "hideprogressKartabl";
+                                            })
+                                            .Listeners(l => l.Change.Fn = "showFileKartabl"),
+                                        X.Container()
+                                            .Content(@<div id="fi-button-msgK" class="Wrap-label" style="width:310px;height:auto;text-align:right;"><b>فایل انتخاب شده:</b></div>)
+                                        ),
+                                X.Panel()
+                                    .Border(false)
+                                    .Layout(LayoutType.VBox)
+                                    .LayoutConfig(new VBoxLayoutConfig { Align=VBoxAlign.Center})
+                                    .Items(
+                                        X.Label("پیش نمایش"),
+                                        X.Panel()
+                                            .Frame(true)
+                                            .MarginSpec("3px 0 0 0")
+                                            .Layout(LayoutType.Fit)
+                                            .Items(
+                                                X.Image()
+                                                    .ItemID("Image")
+                                                    .MarginSpec("3px 0 0 0")
+                                                    .Flex(1)
+                                                    .ImageUrl("/Content/icon/Blank.jpg")
+                                                    .Width(40)
+                                                    .Height(40)
+                                                    .Border(true)
+                                                    .Frame(true)
+                                            )
+                                        )
+                            )
+                    ),
+
+ X.FieldSet()
+                        .Padding(0)
+                        .Defaults(new { Margin = 2 })
+                        .Border(false)
+                        .Layout(LayoutType.Table)
+                        .LayoutConfig(new TableLayoutConfig { Columns = 2 })
+                        .Items(
+                            X.GridPanel()
+                                .AutoScroll(true)
+                                .Title("لیست اقدامات گروه بندی شده")
+                                .TitleAlign(TitleAlign.Right)
+                                .Frame(true)
+                                .ItemID("GridActions")
+                                .Listeners(l =>
+                                {
+                                    l.Select.Fn = "AddGridSelectedActions";
+                                    l.Deselect.Fn = "RemoveGridSelectedActions";
+                                })
+                                .Features(X.Grouping().EnableGroupingMenu(true).StartCollapsed(false).GroupHeaderTplString("عنوان اقدام: " + "{name}"))
+                                .Store(
+                                    X.StoreFor(Model.Charkhe_Eghdam)
+                                        .Listeners(l => l.Load.Handler = "loadGridSelectedActions()")
+                                        .GroupField("fldNameEghdam").GroupDir(Ext.Net.SortDirection.ASC)
+                                        .Listeners(l => l.BeforeLoad.Handler = "App.NewKartabl.queryById('GridActions').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.NewKartabl.queryById('antiForgeryToken').getValue());")
+                                .Proxy(Html.X().AjaxProxy()
+                                .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                            .Url(Url.Action("ReadAction"))
+                                            .Reader(Html.X().JsonReader().Root("data"))
+                                        )
+                                        .PageSize(200)
+                                        .RemoteFilter(false)
+                                        .RemotePaging(false)
+                                )
+                                .View(
+                                    Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                                )
+                                .Plugins(X.FilterHeader().Remote(false))
+                                .ColumnModel(
+                                    Html.X().RowNumbererColumn(),
+                                    Html.X().Column().DataIndex(Model.Charkhe_Eghdam, m => m.fldId).Text("کد").Hidden(true).Flex(1),
+                                    Html.X().Column().DataIndex(Model.Charkhe_Eghdam, m => m.fldNameAction_Status).Text("").Hidden(true).Flex(1),
+
+                                    Html.X().Column().DataIndex(Model.Charkhe_Eghdam, m => m.fldCharkheId).Text("کد چرخه").Hidden(true).Flex(1),
+                                    Html.X().Column().DataIndex(Model.Charkhe_Eghdam, m => m.fldEghdamId).Text("کد اقدام").Hidden(true).Flex(1),
+                                    Html.X().Column().DataIndex(Model.Charkhe_Eghdam, m => m.FileCharkhe).Text("").Filterable(false).Flex(1).Renderer("ShowIcon_Action_Kartabl").Align(Ext.Net.Alignment.Center),
+                                    Html.X().Column().DataIndex(Model.Charkhe_Eghdam, m => m.fldNameCharkhe).Text("نام چرخه").Flex(6).Wrap(true),
+                                    Html.X().Column().DataIndex(Model.Charkhe_Eghdam, m => m.fldStatusName).Text("وضعیت").Flex(2).Wrap(true)
+
+
+
+                                )
+                                .SelectionModel(
+                                    Html.X().CheckboxSelectionModel().CheckOnly(true).PruneRemoved(false).ShowHeaderCheckbox(false)
+                                        .Mode(Ext.Net.SelectionMode.Multi)
+                                ),
+                            X.GridPanel()
+                                .AutoScroll(true)
+                                .Title("لیست اقدامات انتخاب شده")
+                                .Frame(true)
+                                .TitleAlign(TitleAlign.Right)
+                                .ItemID("GridSelectedActions")
+                                .Store(
+                                    X.StoreFor(Model.EkhtesasActionsns)
+                                        .AutoLoad(false)
+                                        .Listeners(l => l.Load.Handler = "setCheckedItem()")
+                                        .Listeners(l => l.BeforeLoad.Handler = "App.NewKartabl.queryById('GridSelectedActions').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.NewKartabl.queryById('antiForgeryToken').getValue());")
+                                        .Proxy(Html.X().AjaxProxy()
+                                        .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                            .Url(Url.Action("ReadEkhtesas"))
+                                            .Reader(Html.X().JsonReader().Root("data"))
+                                        )
+                                        .PageSize(25)
+                                        .RemoteFilter(false)
+                                        .RemotePaging(false)
+                                )
+                                .View(
+                                    Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                                )
+                                .Plugins(X.FilterHeader().Remote(false))
+                                .ColumnModel(
+                                    Html.X().Column().DataIndex(Model.EkhtesasActionsns, m => m.fldId).Text("کد جدول").Hidden(true).Flex(1),
+                                    Html.X().Column().DataIndex(Model.EkhtesasActionsns, m => m.fldActionsId).Text("کد اقدام").Hidden(true).Flex(1),
+                                    Html.X().Column().DataIndex(Model.EkhtesasActionsns, m => m.fldCharkheId).Text("کد چرخه").Hidden(true).Flex(1),
+                                    Html.X().Column().DataIndex(Model.EkhtesasActionsns, m => m.fldCharkhe_EghdamId).Text("کد چرخه_اقدام").Hidden(true).Flex(1),
+                                    Html.X().ImageCommandColumn().Align(Ext.Net.Alignment.Center).Sortable(false).Listeners(l => l.Command.Fn = "SetOrder").PrepareCommand("showhideorder").Flex(1).Commands(
+                                    Html.X().ImageCommand().CommandName("RowDown").Icon(Ext.Net.Icon.ArrowDown),
+                                    Html.X().ImageCommand().CommandName("RowUp").Icon(Ext.Net.Icon.ArrowUp)),
+                                    Html.X().Column().DataIndex(Model.EkhtesasActionsns, m => m.fldNameCharkhe).Text("نام چرخه").Flex(3),
+                                    Html.X().Column().DataIndex(Model.EkhtesasActionsns, m => m.fldStatusName).Text("وضعیت").Flex(1),
+
+                                    Html.X().Column().DataIndex(Model.EkhtesasActionsns, m => m.fldName_Actions).Text("نام اقدام").Flex(3),
+                                    Html.X().Column().DataIndex(Model.EkhtesasActionsns, m => m.fldActiveName).Text("وضعیت").Flex(1),
+
+                                    Html.X().ImageCommandColumn().Align(Ext.Net.Alignment.Center).Listeners(l => l.Command.Fn = "DeleteGridSelectedActions").Flex(1)
+                                    .Commands(
+                                        Html.X().ImageCommand().CommandName("CmpDel").Icon(Ext.Net.Icon.Delete).ToolTip(tt => tt.Text = "حذف")
+                                    )
+                                )
+                                .SelectionModel(
+                                    Html.X().RowSelectionModel()
+                                        .Mode(Ext.Net.SelectionMode.Single)
+                                )
+                        )
+                )
+        )
+)
+
+<script type="text/javascript">
+    var GotoServer = false;
+    var EndUploadKartabl = false;
+    var Check = setInterval(CheckEnd, 500);
+    var FileId_Kartabl = 0;
+    var TimeStamp_Kartabl = 0;
+
+
+    var hideprogressKartabl = function (Responsdtxt, ResponseObj) {
+        if (ResponseObj.IsValid == true) {
+            EndUploadKartabl = true;
+        }
+        else {
+            var el = Ext.get('fi-button-msg');
+            GotoServerHuman = false;
+            clearInterval(CheckEndHuman);
+            EndUploadKartabl = false;
+            el.update('<b>فایل انتخاب شده:</b> ');
+            App.NewKartabl.queryById('Image').setImageUrl("/Content/icon/Blank.jpg");
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: ResponseObj.Message,
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    };
+    function CheckEnd() {
+        if (EndUploadKartabl == true) {
+            Ext.net.DirectMethod.request({
+                url: '/Kartabl/ShowPicUpload',
+                success: function (data) {
+                    value = "data:image/gif;base64," + data.image;
+                    App.NewKartabl.queryById('Image').setImageUrl(value);
+                }
+            });
+            Ext.MessageBox.hide();
+            GotoServer = false;
+            Ext.Msg.alert('عملیات موفق', 'فایل با موفقیت آپلود شد.');
+            clearInterval(CheckEnd);
+            EndUploadKartabl = false;
+        }
+    }
+    var showFileKartabl = function (fb, v) {
+        var id = fb.fileInputEl.dom.id;
+        var el = Ext.get('fi-button-msgK');
+        if (v) {
+            showProgressBar();
+             if (v.split('.').pop().toLowerCase() == "jpg" || v.split('.').pop().toLowerCase() == "png" || v.split('.').pop().toLowerCase() == "jpeg"
+                || v.split('.').pop().toLowerCase() == "tif" || v.split('.').pop().toLowerCase() == "tiff" || v.split('.').pop().toLowerCase() == "gif"
+                || v.split('.').pop().toLowerCase() == "bmp") {
+                if (document.getElementById(id).files[0].size <= 307200) {
+                    GotoServer = true;
+                    el.update('<b>فایل انتخاب شده: ' + v + '</b>' + "&nbsp;&nbsp;" + '<img id="DeleteActionFileimg7" title="حذف فایل" src="/Content/cancel.png" style="width:15px;height:15px;margin-bottom: -4px;" onclick="javascript:DeleteFileKartabl()" />');
+                }
+                else {
+                    clearInterval(CheckEnd);
+                    el.update('<b>فایل انتخاب شده:</b>');
+                    App.NewKartabl.queryById('Image').setImageUrl("/Content/icon/Blank.jpg");
+                    Ext.MessageBox.show({
+                        title: "خطا",
+                        msg: "حجم فایل انتخاب شده غیرمجاز است.",
+                        icon: Ext.MessageBox.ERROR,
+                        buttons: Ext.MessageBox.OK
+                    });
+                }
+
+                if (!el.isVisible()) {
+                    el.slideIn('t', {
+                        duration: .2,
+                        easing: 'easeIn',
+                        callback: function () {
+                            el.highlight();
+                        }
+                    });
+                } else {
+                    el.highlight();
+                }
+            }
+            else {
+                clearInterval(CheckEnd);
+                el.update('<b>فایل انتخاب شده:</b>');
+                App.NewKartabl.queryById('Image').setImageUrl("/Content/icon/Blank.jpg");
+                Ext.MessageBox.show({
+                    title: "خطا",
+                    msg: "فایل انتخاب شده غیرمجاز است.",
+                    icon: Ext.MessageBox.ERROR,
+                    buttons: Ext.MessageBox.OK
+                });
+            }
+        }
+    };
+
+    function showProgressBar() {
+        Ext.MessageBox.show({
+            msg: 'لطفاً منتظر باشید',
+            progressText: 'در حال آپلود فایل...',
+            width: 300,
+            wait: true,
+            waitConfig:
+            {
+                interval: 200,
+                text: 'در حال آپلود فایل...',
+                scope: this
+            }
+        });
+    }
+    var DeleteFileKK = false;
+    function DeleteFileKartabl() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Kartabl/DeleteSessionFile',
+            success: function (data) {
+                DeleteFileKK = true;
+                App.NewKartabl.queryById('Image').setImageUrl("/Content/icon/Blank.jpg");
+                Ext.get('fi-button-msgK').update('<b>فایل انتخاب شده:</b>');
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+    var SetOrder = function (grid, command, record, rowIndex) {
+        var grid = App.NewKartabl.queryById("GridSelectedActions");
+        if (command == 'RowDown') {
+            grid.getStore().remove(record);
+            grid.getStore().insert(rowIndex + 1, record);
+            grid.getView().refresh();
+        }
+        else {
+            grid.getStore().remove(record);
+            grid.getStore().insert(rowIndex - 1, record);
+            grid.getView().refresh();
+        }
+    };
+    var showhideorder = function (grid, command, record, rowIndex) {
+        if (command.command == 'RowDown') {
+            if (rowIndex == App.NewKartabl.queryById("GridSelectedActions").store.count() - 1) {
+                command.disabled = true;
+            }
+            else {
+                command.disabled = false;
+            }
+        }
+        else {
+            if (rowIndex == 0) {
+                command.disabled = true;
+            }
+            else {
+                command.disabled = false;
+            }
+        }
+    };
+
+    function setSizeNewKartabl() {
+        var splitWidth = (Ext.getBody().getViewSize().width - 250) / 2;
+        var Height = (Ext.getBody().getViewSize().height - 290);
+        App.NewKartabl.setWidth(Ext.getBody().getViewSize().width - 220);
+        App.NewKartabl.queryById('GridActions').setSize(splitWidth, Height);
+        App.NewKartabl.queryById('GridSelectedActions').setSize(splitWidth, Height);
+    }
+
+    function Save() {
+        var txtTitle = App.NewKartabl.queryById('txtTitle');
+        var txtDesc = App.NewKartabl.queryById('txtDesc');
+        var fldCartableId = App.NewKartabl.queryById('fldCartableId');
+        var Grid = App.NewKartabl.queryById('GridSelectedActions');
+        var Actions = new Array();
+        var er = false;
+        if (txtTitle.validate() == false) {
+            er = true;
+        }
+        if (Grid.store.count() == 0) {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا اقدامات مورد نظر خود را انتخاب کنید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+            er = true;
+        }
+        if (er == true) {
+            return;
+        }
+        else {
+            for (var i = 0; i < Grid.store.count() ; i++) {
+                var item = Grid.store.data.items[i];
+                Actions.push({
+                    "fldId": item.data.fldId,
+                    "fldCharkhe_EghdamId": item.data.fldCharkhe_EghdamId,
+                    "fldOrder": Grid.store.indexOf(item) + 1
+                });
+            }
+            var data = {
+                DeleteFileKK: DeleteFileKK,
+                fldId: fldCartableId.getValue(),
+                fldName: txtTitle.getValue(),
+                fldDesc: txtDesc.getValue(),
+                fldFileId: FileId_Kartabl,
+                fldTimeStamp:TimeStamp_Kartabl,
+                Actions1: JSON.stringify(Actions),
+                __RequestVerificationToken: App.NewKartabl.queryById('antiForgeryToken').getValue()
+            };
+            App.NewKartabl.body.mask("در حال ذخیره سازی");
+            $.ajax({
+                type: "POST",
+                url: '/Kartabl/Save',
+                datatype: "json",
+                data: data,
+                /*contentType: 'application/json',*/
+                success: function (result) {
+                    chat.server.reloadLog();
+                    if (result.Er == 1) {
+                        Ext.MessageBox.show({
+                            title: result.MsgTitle,
+                            msg: result.Msg,
+                            icon: Ext.MessageBox.ERROR,
+                            buttons: Ext.MessageBox.OK,
+                            fn: function (btn) {
+                                if (btn == "ok") {
+                                    App.NewKartabl.queryById('txtTitle').focus();
+                                }
+                            }
+                        });
+                    }
+                    else if (result.TimeStamp == 0) {/*تغییر*/
+                        Ext.MessageBox.show({
+                            title: result.MsgTitle,
+                            msg: result.Msg,
+                            icon: Ext.MessageBox.WARNING,
+                            buttons: Ext.MessageBox.OK,
+                            fn: function (btn) {
+                                if (btn == 'ok') {
+                                    LoadNewKartabl();
+                                }
+                            }
+                        });
+                    }
+                    else if (result.TimeStamp == 2) {/*حذف*/
+                        Ext.MessageBox.show({
+                            title: result.MsgTitle,
+                            msg: result.Msg,
+                            icon: Ext.MessageBox.ERROR,
+                            buttons: Ext.MessageBox.OK,
+                            fn: function (btn) {
+                                if (btn == 'ok') {
+                                    App.NewKartabl.destroy();
+                                }
+                            }
+                        });
+                    }
+                    else {
+                        Ext.MessageBox.show({
+                            title: result.MsgTitle,
+                            msg: result.Msg,
+                            icon: Ext.MessageBox.INFO,
+                            buttons: Ext.MessageBox.OK
+                        });
+                    }
+                    fldCartableId.setValue(result.IdHeader);
+                    App.NewKartabl.body.mask().hide();
+                    App.Kartabl.queryById('GridKartabl').store.load();
+                    App.Kartabl.queryById('GridKartablDetail').getStore().getProxy().setExtraParam("CartablId", 0);
+                    App.Kartabl.queryById('GridKartablDetail').store.load();
+                    if (result.Er != 1)
+                        ClearKartabl();
+                },
+                failure: function (data) {
+                    alert(data.data);
+                }
+            });
+        }
+    }
+
+    function ClearKartabl() {
+        App.NewKartabl.queryById('GridActions').getSelectionModel().deselectAll();
+        App.NewKartabl.queryById('txtTitle').setValue("");
+        App.NewKartabl.queryById('txtDesc').setValue("");
+        App.NewKartabl.queryById('fldCartableId').setValue(0);
+        FileId_Kartabl = 0;
+        TimeStamp_Kartabl=0;
+        App.NewKartabl.queryById('Image').setImageUrl("/Content/icon/Blank.jpg");
+        Ext.get('fi-button-msgK').update('<b>فایل انتخاب شده:</b>');
+    }
+
+
+    function LoadNewKartabl() {
+        if ('@perr' == 'True') {
+            $('#btnnewaction').show();
+        }
+        if ('@ViewBag.CartableId' != "0") {
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/Kartabl/Details',
+                params: {
+                    Id: '@ViewBag.CartableId',
+                    __RequestVerificationToken: App.NewKartabl.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+                    var txtTitle = App.NewKartabl.queryById('txtTitle');
+                    txtTitle.setValue(data.fldName);
+                    var fldCartableId = App.NewKartabl.queryById('fldCartableId');
+                    fldCartableId.setValue(data.fldId);
+                    var txtDesc = App.NewKartabl.queryById('txtDesc');
+                    txtDesc.setValue(data.fldDesc);
+                    FileId_Kartabl = data.fldFileId;
+                    TimeStamp_Kartabl=data.fldTimeStamp;
+
+                    if (data.fldFileName != "") {
+                        var fldfile = "data:image/gif;base64," + data.fldIcon;
+                        App.NewKartabl.queryById('Image').setImageUrl(fldfile);
+                        Ext.get('fi-button-msgK').update('<b>فایل انتخاب شده: ' + data.fldFileName + '</b>' + "&nbsp;&nbsp;" + '<img id="DeleteActionFileimg7" title="حذف فایل" src="/Content/cancel.png" style="width:15px;height:15px;margin-bottom: -4px;" onclick="javascript:DeleteFileKartabl()" />');
+                    }
+                    else {
+                        App.NewKartabl.queryById('Image').setImageUrl("/Content/icon/Blank.jpg");
+                        Ext.get('fi-button-msgK').update('<b>فایل انتخاب شده:</b>');
+                    }
+                    Ext.net.Mask.hide();
+                }
+            });
+        }
+        else {
+            App.NewKartabl.queryById('txtTitle').validate();
+        }
+
+    }
+
+    function loadGridSelectedActions() {
+        App.NewKartabl.queryById('GridSelectedActions').getStore().getProxy().setExtraParam("CartableId", '@ViewBag.CartableId');
+        App.NewKartabl.queryById('GridSelectedActions').getStore().load();
+    }
+
+    var AddGridSelectedActions = function (selectionModell, rec, index) {
+        if (App.NewKartabl.queryById('GridSelectedActions').store.findExact("fldCharkhe_EghdamId", rec.data.fldId)==-1) {
+            var index = App.NewKartabl.queryById('GridSelectedActions').getStore().count();
+            App.NewKartabl.queryById('GridSelectedActions').store.insert(index, {
+                fldId: 0, fldActionsId: rec.data.fldEghdamId, fldName_Actions: rec.data.fldNameEghdam, fldCharkheId: rec.data.fldCharkheId,
+                fldNameCharkhe: rec.data.fldNameCharkhe, fldCharkhe_EghdamId: rec.data.fldId, fldStatusName: rec.data.fldStatusName, fldActiveName: rec.data.fldActiveName
+            });
+        }
+    };
+
+      var RemoveGridSelectedActions = function (selectionModell, rec, index) {
+          /*App.NewKartabl.queryById('GridSelectedActions').store.remove(App.NewKartabl.queryById('GridSelectedActions').getStore().queryBy(function (record, id) {
+              return (record.get('fldActionsId') == rec.data.fldEghdamId &&
+                      record.get('fldCharkheId') == rec.data.fldCharkheId
+                  );
+          }).items);*/
+          App.NewKartabl.queryById('GridSelectedActions').store.removeAt(App.NewKartabl.queryById('GridSelectedActions').store.findExact("fldCharkhe_EghdamId", rec.data.fldId));
+    };
+
+    function DeleteGridSelectedActions(grid, command, record, row) {
+        if (command == 'CmpDel') {
+            Ext.MessageBox.show({
+                title: "هشدار",
+                msg: "آیا برای حذف مطمئن هستید؟",
+                icon: Ext.MessageBox.WARNING,
+                buttons: Ext.MessageBox.YESNO,
+                fn: function (btn) {
+                    if (btn == 'yes') {
+                        App.NewKartabl.queryById('GridSelectedActions').store.remove(record);
+                        /*App.NewKartabl.queryById('GridActions').store.each(function (recordd, id) {
+                            if (record.get('fldActionsId') == recordd.data.fldEghdamId && record.get('fldCharkheId') == recordd.data.fldCharkheId) {
+                                var idx = App.NewKartabl.queryById('GridActions').store.indexOf(recordd);
+                                App.NewKartabl.queryById('GridActions').getSelectionModel().deselect(idx, true);
+                            }
+                        });*/
+                        var indexx = App.NewKartabl.queryById('GridActions').store.findExact("fldId", record.data.fldCharkhe_EghdamId);
+                        if (indexx != -1) {
+                            App.NewKartabl.queryById('GridActions').getSelectionModel().deselect(indexx, true);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    function setCheckedItem() {
+        App.NewKartabl.queryById('GridSelectedActions').getStore().each(function (record) {
+            /*App.NewKartabl.queryById('GridActions').getStore().each(function (recordd) {
+                if (record.get('fldActionsId') == recordd.data.fldEghdamId && record.get('fldCharkheId') == recordd.data.fldCharkheId) {
+                    var idx = App.NewKartabl.queryById('GridActions').store.indexOf(recordd);
+                    App.NewKartabl.queryById('GridActions').getSelectionModel().select(idx, true);
+                }
+            });*/
+            var indexx = App.NewKartabl.queryById('GridActions').store.findExact("fldId", record.data.fldCharkhe_EghdamId);
+            if (indexx != -1) {
+                App.NewKartabl.queryById('GridActions').getSelectionModel().select(indexx, true);
+            }
+        });
+    }
+    var addKeyMapNewKartabl = function (cmp) {
+        this.keyMap = new Ext.util.KeyMap({
+            target: cmp.getEl(),
+            binding: [{
+                key: [13, 9], /*Ext.EventObject.ENTER,*/
+                fn: function (key, e) {
+                    if (e.getKey() == 9) {
+                        e.stopEvent();
+                    }
+                    var keyfield = App.NewKartabl.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+                    var nextfld;
+                    if (keyfield.itemId == "txtDesc") {
+                        return;
+                    }
+                    else {
+                        nextfld = keyfield.nextSibling().nextSibling();
+                    }
+                    nextfld.focus();
+                    nextfld.selectText();
+                }
+            }]
+        });
+    };
+
+</script>

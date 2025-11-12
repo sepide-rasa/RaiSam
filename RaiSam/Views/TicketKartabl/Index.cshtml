@@ -1,0 +1,278 @@
+﻿@model IEnumerable<RaiSam.Models.prs_tblTicketSelect>
+@using Ext.Net.MVC
+@using Ext.Net;
+@using Ext.Net.Utilities;
+<script src="~/Scripts/jquery.signalR-1.1.3.js"></script>
+<script src="~/Scripts/jquery.signalR-2.2.3.js"></script>
+<script>
+    Ext.net.FilterHeader.behaviour.string[0].match = function (recordValue, matchValue) {
+        return (Ext.net.FilterHeader.behaviour.getStrValue(recordValue) || "").indexOf(matchValue) > -1;
+    };
+
+    Ext.net.FilterHeader.behaviour.string[0].getStrValue = function (value) {
+        return value.toString();
+    };
+
+    Ext.net.FilterHeader.behaviour.string[0].serialize = function (value) {
+        return {
+            type: "string",
+            op: "*",
+            value: value
+        };
+    };
+
+    var templateMsg = '<img src={0} alt="" title={1}>';
+    var ChatStatus = function (value, p, record) {
+        var Pic = "@Url.Content("~/Content/icon/mini/بازطوسی.png")";
+        var ToolTip = "پیام" + '&nbsp;' + "خوانده" + '&nbsp;' + "شده";
+        if (value == false) {
+            Pic = "@Url.Content("~/Content/icon/mini/بستهزرد.png")";
+            ToolTip = "پیام" + '&nbsp;' + "خوانده" + '&nbsp;' + "نشده";
+        }
+        return Ext.String.format(templateMsg, Pic, ToolTip);
+    };
+</script>
+@{
+    var X = Html.X();
+}
+
+@(X.Panel()
+    .Border(false)
+    .AutoScroll(true)
+    .Title("گفتگو")
+    .ID("TicketKartabl")
+    .Listeners(li => li.AfterRender.Handler = "TicketKartablSetSize();")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Layout(LayoutType.Fit)
+    .Items(
+        X.AntiForgeryField().ItemID("antiForgeryToken").Hidden(true),
+        X.Panel()
+            .Layout(LayoutType.Fit)
+            .Border(false)
+            .AutoScroll(true)
+            .Items(
+                X.GridPanel()
+                    .AutoScroll(true)
+                        .TopBar(
+                            Html.X().Toolbar()
+                                .Items(
+                                    X.ComboBox()
+                                        .ItemID("CboType")
+                                        .TypeAhead(true)
+                                        .Editable(false)
+                                        .QueryMode(DataLoadMode.Local)
+                                        .Width(200)
+                                        .ForceSelection(true)
+                                        .TriggerAction(TriggerAction.All)
+                                        .Items(
+                                            new ListItem("پیام های شرکت ها", "0"),
+                                            new ListItem("پیام های کاربران ستادی", "1")
+                                        )
+                                        .Listeners(l =>
+                                        {
+                                            l.AfterRender.Handler = "SetDefaultValue()";
+                                            l.Change.Handler = " App.TicketKartabl.queryById('CboCategory').getStore().load();";
+                                        }),
+
+                    X.ComboBox()
+        //.FieldLabel("موضوع گفتگو")
+                .ItemID("CboCategory")
+                        .EmptyText("موضوع").Listeners(l => { l.Select.Handler = "ReloadGridTicket()"; })
+        //.LabelAlign(Ext.Net.LabelAlign.Right)
+                .Width(200)
+                .PaddingSpec("5px 0px 0 0px")
+                .TypeAhead(true)
+                .Editable(false)
+                .AllowBlank(false)
+                .BlankText("لطفا موضوع مورد نظر را انتخاب نمایید.")
+                .QueryMode(DataLoadMode.Local)
+                .ForceSelection(true)
+        // .Width(190)
+                .TriggerAction(TriggerAction.All)
+                    .DisplayField("Name")
+                    .ValueField("ID")
+                        .Store(X.Store()
+                                .Listeners(l => l.BeforeLoad.Handler = "App.TicketKartabl.queryById('CboCategory').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.TicketKartabl.queryById('antiForgeryToken').getValue());")
+                        .AutoLoad(false)
+                        .Listeners(l => { l.Load.Handler = "SetDefaultA()"; })
+                    .Model(X.Model()
+                            .IDProperty("tblCategory")
+                        .Fields(
+                            new ModelField("ID", ModelFieldType.String) { Mapping = "ID" },
+                            new ModelField("Name", ModelFieldType.String) { Mapping = "Name" },
+                            new ModelField("Answ", ModelFieldType.String) { Mapping = "Answ" })
+                            )
+                    .Proxy(X.AjaxProxy()
+                        .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                        .Url(Url.Action("GetCategory"))
+                        .Reader(X.JsonReader().Root("data")))
+                        .Parameters(ps => ps.Add(new StoreParameter("TypeMsg", "App.TicketKartabl.queryById('CboType').getValue()", ParameterMode.Raw)))
+
+                                    )
+                                    ,
+                                    X.Button()
+                                        .Text("مشاهده پیام ها")
+                                        .Icon(Ext.Net.Icon.Script)
+                                        .Listeners(li => li.Click.Handler = "ShowChats();"),
+                                             X.Button().Text("پیام جدید").Icon(Ext.Net.Icon.ScriptAdd)
+                                             .ItemID("btnNewChat")
+                             .Listeners(li => li.Click.Handler = "NewChat();"),
+                                    X.SplitButton()
+                                        .Text("راهنما")
+                                        .Icon(Ext.Net.Icon.Help)
+                                        .Menu(X.Menu()
+                                        .Items(
+                                            X.MenuItem()
+                                                .Text("راهنما متنی")
+                                                .Icon(Ext.Net.Icon.TextPaddingTop)
+                                                .Listeners(l => l.Click.Handler = "HelpTicketKartabl()"),
+                                            X.MenuItem()
+                                                .Text("راهنما تصویری")
+                                                .Icon(Ext.Net.Icon.PlayBlue)
+                                                .Listeners(l => l.Click.Handler = "showHelp_VideoTicketKartabl()")
+                                        )
+                                    )
+                                )
+                            )
+                        .ItemID("GridTicketKartabl")
+                        .BottomBar(X.PagingToolbar())
+                        .Store(
+                            X.StoreForModel()
+                                .Listeners(l => l.BeforeLoad.Handler = "App.TicketKartabl.queryById('GridTicketKartabl').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.TicketKartabl.queryById('antiForgeryToken').getValue());")
+                                .AutoLoad(false)
+                                .Proxy(Html.X().AjaxProxy()
+                                    .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                    .Url(Url.Action("Read"))
+                                    .Reader(Html.X().JsonReader().Root("data"))
+                                )
+                            .PageSize(20)
+                            .RemoteFilter(false)
+                            .RemotePaging(false)
+                            .Listeners(l => l.DataChanged.Handler = "App.TicketKartabl.queryById('GridTicketKartabl').selModel.refresh();")
+                        )
+                        .View(
+                            Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                        )
+                        .Plugins(X.FilterHeader().Remote(false))
+                        .ColumnModel(
+                            Html.X().RowNumbererColumn(),
+                            Html.X().Column().DataIndex(Model, m => m.fldSeen).Text("وضعیت").Flex(1).Filterable(false).Renderer("ChatStatus").Align(Ext.Net.Alignment.Center),
+                            Html.X().Column().DataIndex(Model, m => m.fldId).Text("کد").Flex(1).Hidden(true),
+                                Html.X().Column().DataIndex(Model, m => m.fldAshkhasId).Text("کد شخص ارسال کننده").Flex(1).Hidden(true),
+                            Html.X().Column().DataIndex(Model, m => m.fldName).Text("نام").Flex(3),
+                            Html.X().Column().DataIndex(Model, m => m.fldHTML).Text("متن").Flex(7),
+                            Html.X().Column().DataIndex(Model, m => m.fldTitle).Text("موضوع گفتگو").Flex(4).Wrap(true),
+                            Html.X().Column().DataIndex(Model, m => m.NameNahi).Text("نام ناحیه").Flex(3)
+                        )
+                        .Listeners(a => a.CellDblClick.Handler = "ShowChats();")
+                        .SelectionModel(
+                            Html.X().RowSelectionModel()
+                                .Mode(Ext.Net.SelectionMode.Single)
+                        )
+                )
+        )
+)
+
+<script type="text/javascript">
+    function showHelp_VideoTicketKartabl() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/TicketKartabl/VideoWinTicketKartabl',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+    function SetDefaultA() {
+        var CboCategory = App.TicketKartabl.queryById('CboCategory');
+        if (CboCategory.store.count() > 0) {
+            CboCategory.setValue(CboCategory.store.getAt(0));
+            ReloadGridTicket();
+        }
+    }
+    function HelpTicketKartabl() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/TicketKartabl/Help',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+    function TicketKartablSetSize() {
+        App.TicketKartabl.queryById('GridTicketKartabl').setHeight(App.TicketingWin.getHeight() - 82);
+    }
+
+    function ReloadGridTicket() {
+        var CboCategory = App.TicketKartabl.queryById('CboCategory');
+        if (CboCategory.getValue() != "" && CboCategory.getValue() != null) {
+            App.TicketKartabl.queryById("GridTicketKartabl").getStore().getProxy().setExtraParam("TypeMsg", App.TicketKartabl.queryById("CboType").getValue());
+            App.TicketKartabl.queryById("GridTicketKartabl").getStore().getProxy().setExtraParam("Category", CboCategory.getValue());
+            App.TicketKartabl.queryById("GridTicketKartabl").getStore().load();
+        }
+
+        var btnNewChat = App.TicketKartabl.queryById('btnNewChat');
+        var CboType = App.TicketKartabl.queryById('CboType');
+        if (CboType.getValue() == "0")
+            btnNewChat.show();
+        else
+            btnNewChat.hide();
+    }
+
+    function SetDefaultValue() {
+        var CboType = App.TicketKartabl.queryById('CboType');
+        CboType.setValue("0");
+        if ('@ViewBag.setadi' != "True") {
+            CboType.disable();
+        }
+        ReloadGridTicket();
+    }
+
+    function ShowChats() {
+        var SelectedRow = App.TicketKartabl.queryById('GridTicketKartabl').selModel.getLastSelected();
+        var CboType = App.TicketKartabl.queryById('CboType');
+        if (SelectedRow != null) {
+            var Ashkhas_FirstId = SelectedRow.data.fldAshkhasId;
+            if (CboType.getValue()=="0")
+                Ashkhas_FirstId = SelectedRow.data.fldFirstRegisterId;
+            App.TicketKartabl.body.mask("در حال بارگذاری...");
+            Ext.net.DirectMethod.request({
+                url: '/TicketKartabl/new',
+                params: {
+                    Ashkhas_FirstId: Ashkhas_FirstId,
+                    Type: CboType.getValue(),
+                    CategoryId: SelectedRow.data.fldTicketCategoryId
+                },
+                success: function () {
+                    App.TicketKartabl.body.mask().hide();
+                }
+            });
+        }
+        else {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا یک سطر را انتخاب کنید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+    }
+    function NewChat() {
+        var CboType = App.TicketKartabl.queryById('CboType');
+        var CboCategory = App.TicketKartabl.queryById('CboCategory');
+        App.TicketKartabl.body.mask("در حال بارگذاری...");
+        Ext.net.DirectMethod.request({
+            url: '/TicketKartabl/NewChatWin',
+            params: {
+                Type: CboType.getValue(),
+                CategoryId: CboCategory.getValue()
+            },
+            success: function () {
+                App.TicketKartabl.body.mask().hide();
+            }
+        });
+    }
+</script>
+

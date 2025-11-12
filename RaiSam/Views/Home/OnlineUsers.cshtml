@@ -1,0 +1,170 @@
+﻿@model IEnumerable<RaiSam.Models.LogOnUsers>
+@using Ext.Net.MVC;
+@{
+    var X = Html.X();
+}
+<script>
+    Ext.net.FilterHeader.behaviour.string[0].match = function (recordValue, matchValue) {
+        return (Ext.net.FilterHeader.behaviour.getStrValue(recordValue) || "").indexOf(matchValue) > -1;
+    };
+
+    Ext.net.FilterHeader.behaviour.string[0].getStrValue = function (value) {
+        return value.toString();
+    };
+
+    Ext.net.FilterHeader.behaviour.string[0].serialize = function (value) {
+        return {
+            type: "string",
+            op: "*",
+            value: value
+        };
+    };
+</script>
+<style>
+    .borderrOnlineUser {
+        border-radius: 20px;
+        border-width: 3px;
+    }
+</style>
+@(Html.X().Window()
+    .Modal(true)
+    .Width(1000)
+    .Height(400)
+    .Title("کاربران آنلاین")
+    .ID("OnlineUsers")
+    .Closable(true)
+    .Border(false)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Layout(Ext.Net.LayoutType.Fit)
+    .Items(
+         X.AntiForgeryField()
+        .ItemID("antiForgeryToken")
+        .Hidden(true),
+        X.Panel()
+            .Border(false)
+            .Layout(Ext.Net.LayoutType.Fit)
+            .Items(
+                X.GridPanel()
+                    .Listeners(l => l.AfterRender.Handler = "LoadGridOnlineUsers()")
+                    .AutoScroll(true)
+                    .ItemID("GridOnlineUsers")
+                    .BottomBar(X.PagingToolbar().HideRefresh(true))
+                    .Store(
+                        X.StoreForModel()
+                            .AutoLoad(false)
+                            .PageSize(10)
+                            .RemoteFilter(false)
+                            .RemotePaging(false)
+                    )
+                    .ViewConfig(
+                        X.GridView()
+                            .Listeners(l => l.AfterRender.Fn = "createTooltipOnlineUser")
+                            .LoadingText("در حال بارگذاری...").RTL(true)
+                        )
+                    .View(
+                        Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                    )
+                    .Plugins(X.FilterHeader().Remote(false))
+                    .ColumnModel(
+                        Html.X().RowNumbererColumn(),
+                            Html.X().Column().DataIndex(Model, m => m.userId).Text("کد").Hidden(true).Flex(1),
+        //Html.X().Column().DataIndex(Model, m => m.UserName).Text("نام کاربری").Flex(2),
+                        Html.X().Column().DataIndex(Model, m => m.IPAdress).Text("IP").Flex(2),
+                        Html.X().Column().DataIndex(Model, m => m.NameFamily).Text("نام").Flex(4),
+                        //Html.X().Column().DataIndex(Model, m => m.DescPost).Text("شرح پست").Flex(3).Wrap(true),
+                        //Html.X().Column().DataIndex(Model, m => m.NahiName).Text("اداره کل محل خدمت").Flex(3).Wrap(true),
+                        Html.X().Column().DataIndex(Model, m => m.AkharinOn).Text("آخرین ورود").Wrap(true).Flex(2),
+                        Html.X().ComponentColumn().Flex(2).ItemID("buttonHistoryLogin")
+                        .Component(Html.X().Button().ItemID("btnbindHistoryLogin").Text("تاریخچه ورودها").Listeners(l => l.Click.Handler = "HistoryLogin()")).Filterable(false)
+                                .Hidden(!RaiSam.Models.Permission.haveAccess(24,"","0"))
+                )
+                .SelectionModel(
+                    Html.X().RowSelectionModel()
+                        .Mode(Ext.Net.SelectionMode.Single)
+                )
+            )
+        )
+)
+
+<script type="text/javascript">
+    var createTooltipOnlineUser = function (view) {
+        view.tip = Ext.create('Ext.tip.ToolTip', {
+            target: view.el,
+            delegate: view.itemSelector,
+            trackMouse: true,
+            renderTo: Ext.getBody(),
+            /*anchorToTarget: true,*/
+            anchorOffset: 25,
+            anchorSize: {
+                width: 58,
+                height: 20
+            },
+            dismissDelay: 1000000,
+            autohide: false,
+            /*baseCls:"test",*/
+            anchor: 'top',
+            shadow: true,
+            listeners: {
+                beforeshow: function (tip) {
+                    Ext.net.DirectMethod.request({
+                        url: '/User/getToolsData',
+                        params: {
+                            Id: view.getRecord(tip.triggerElement).get('userId'),
+                            __RequestVerificationToken: App.OnlineUsers.queryById('antiForgeryToken').getValue()
+                        },
+                        success: function (data) {
+                            if (data.fldCodeEnhesari != "") {
+                                if (view.getRecord(tip.triggerElement) != undefined) {
+                                    tip.update("<div style=' display: flex;'><div style='margin-top:25px;margin-left:20px;'><img class='borderrOnlineUser' style='width:120px;height:150px;' src='data:image/jpeg;base64," + data.image + "'/></div><div ><p><strong>نام و نام خانوادگی: " +
+                                        data.fldName + "</strong></p><p><strong>نام پدر: " + data.fldFatherName +
+                                        "</strong></p>" + "<p><strong>کد انحصاری: " + data.fldCodeEnhesari + "</strong></p><p><strong>کد ملی: " + data.fldCodeMeli +
+                                        "</strong></p><p><strong>شماره موبایل: " + data.fldMobile + "</strong></p><p><strong>پایه: " + data.fldPayeName +
+                                        "</strong></p><p><strong>شرح پست: " + data.fldDescPost +
+                                        "</strong></p><p><strong>محل خدمت: " + data.fldTitle + "(" + data.fldStationName + ")" +
+                                        "</strong></p></div></div>");
+                                }
+                            }
+                            else {
+                                if (view.getRecord(tip.triggerElement) != undefined) {
+                                    tip.update("<div style=' display: flex;'><div style='margin-top:8px;margin-left:20px;'><img class='borderrOnlineUser' style='width:80px;height:95px;' src='data:image/jpeg;base64," + data.image + "'/></div><div ><p><strong>نام و نام خانوادگی: " +
+                                        data.fldName + "</strong></p><p><strong>نام پدر: " + data.fldFatherName +
+                                        "</strong></p>" + "<p><strong>کد ملی: " + data.fldCodeMeli +
+                                        "</strong></p><p><strong>شماره موبایل: " + data.fldMobile + "</strong></p></div></div>");
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+        });
+        Ext.QuickTips.init();
+    };
+
+    function HistoryLogin() {
+        var IdUser = App.OnlineUsers.queryById("buttonHistoryLogin").activeRecord.record.data.userId;
+        App.OnlineUsers.body.mask('در حال بارگذاری...');
+        Ext.net.DirectMethod.request({
+            url: '/Home/HistoryLogin',
+            params: {
+                IdUser: IdUser
+            },
+            success: function () {
+                App.OnlineUsers.body.mask().hide();
+            }
+        });
+    }
+
+    function LoadGridOnlineUsers() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/Home/ReloadOnlineUser',
+            params: {
+                __RequestVerificationToken: App.OnlineUsers.queryById('antiForgeryToken').getValue()
+            },
+            success: function (result) {
+                App.OnlineUsers.queryById('GridOnlineUsers').getStore().loadData(result.data);
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+</script>

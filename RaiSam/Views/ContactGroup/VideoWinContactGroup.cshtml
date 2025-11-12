@@ -1,0 +1,27 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+
+@using Ext.Net.MVC;
+@(
+ Html.X().Window().Listeners(l => l.BeforeClose.Handler = "CloseVideoContactGroup()")
+          .Height(565)
+         .Width(1000)
+                     .ID("VideoContactGroup")
+        .Closable(true)
+            .Title("راهنمای تصویری گروه تماس")
+        .AutoScroll(true)
+        .Closable(true)
+            .Maximizable(true)
+        .Content(@<video width="100%;" id="AmozeshVideoContactGroup" controls="true" autoplay="true" controls><source src='@Url.Action("DownloadFileVideoContactGroup", "ContactGroup")' type="video/mp4"></video>)
+
+)
+<script type="text/javascript">
+    function CloseVideoContactGroup() {
+        $('#AmozeshVideoContactGroup')[0].pause();
+    }
+
+</script>

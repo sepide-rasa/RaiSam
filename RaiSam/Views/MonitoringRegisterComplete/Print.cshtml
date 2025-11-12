@@ -1,0 +1,11 @@
+﻿@using Ext.Net.MVC;
+
+@(
+ Html.X().Window().Height(560).Width(1300)
+        .Title("پیش نمایش")
+        .AutoScroll(true)
+        .Closable(true)
+        .CloseAction(Ext.Net.CloseAction.Destroy)
+                    .Html("<center><object style='width: 1200px;height: 550px;border: 1px solid #ccc;' type='application/pdf' data='/MonitoringRegisterComplete/GeneratePDF?AzTarikh=" + @ViewBag.AzTarikh + "&TaTarikh=" + @ViewBag.TaTarikh + "&PersonType=" + @ViewBag.PersonType + "&Status=" + @ViewBag.Status + "&NameStatus=" + @ViewBag.NameStatus + "'></object></center>")
+)
+

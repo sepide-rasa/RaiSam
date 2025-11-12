@@ -1,0 +1,28 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+
+@using Ext.Net.MVC;
+
+@(
+ Html.X().Window().Listeners(l => l.BeforeClose.Handler = "CloseVideoFactorsAffecting()")
+             .Height(565)
+         .Width(1000)
+                .ID("VideoFactorsAffecting")
+        .Closable(true)
+            .Title("راهنمای تصویری گروه کاربری")
+        .AutoScroll(true)
+        .Closable(true)
+            .Maximizable(true)
+        .Content(@<video width="100%;" id="AmozeshVideoFactorsAffecting" controls="true" autoplay="true" controls><source src='@Url.Action("DownloadFileVideoFactorsAffecting", "FactorsAffectingValues")' type="video/mp4"></video>)
+
+)
+<script type="text/javascript">
+    function CloseVideoFactorsAffecting() {
+        $('#AmozeshVideoFactorsAffecting')[0].pause();
+    }
+
+</script>

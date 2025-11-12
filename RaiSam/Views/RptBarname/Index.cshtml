@@ -1,0 +1,498 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+<style>
+    .custom-icon {
+        margin-right: 380px !important;
+    }
+</style>
+@(Html.X().Panel()
+    .Closable(true)
+    .AutoScroll(true)
+    .Border(false)
+    .CloseAction(CloseAction.Destroy)
+        //.Listeners(li => { li.AfterRender.Handler = "setTitlePnlRpt()"; li.Render.Fn = "addKeyMapRptDaramad"; })
+        //  .Listeners(l => l.AfterRender.Handler = "setTitlePnlRpt()")
+    .Layout(LayoutType.Fit).Title("گزارش بارنامه ها")
+        .ID("RptBarname")
+    .Items(
+        X.Panel()
+            .AutoScroll(true)
+            .Border(false)
+            .Layout(LayoutType.VBox)
+            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+            .Items(
+                    X.FormPanel()
+                    .AutoScroll(true)
+                    .Border(false)
+                    .ButtonAlign(Alignment.Center)
+                    .Buttons(
+                        Html.X().Button()
+                            .Text("چاپ")
+                            .ItemID("btnPrint")
+                            .Icon(Ext.Net.Icon.Printer)
+                                .Listeners(l => l.Click.Handler = "PrintBarname()"),
+                                     Html.X().Button()
+                                .Text("اکسل")
+                                .ItemID("btnxls")
+                                .Icon(Ext.Net.Icon.PageExcel)
+                                    .Listeners(l => l.Click.Handler = "XlsBarname()"),
+                        Html.X().Button()
+                        .Text("راهنما")
+                        .Icon(Ext.Net.Icon.Help)
+                            .Listeners(l => l.Click.Handler = "HelpBarname()"),
+                        Html.X().Button()
+                            .Text("خروج")
+                            .ItemID("btnOut")
+                            .Icon(Ext.Net.Icon.DoorOut)
+                                .Listeners(l => l.Click.Handler = "destroyWinBarname()")
+                    )
+                    .Items(
+                        X.FieldSet().MarginSpec("5px 0 0 0")
+                            .Border(true).Title("فیلترها")
+                                .Defaults(new { Margin = 2 })
+                            .Layout(LayoutType.Table)
+                            .LayoutConfig(new TableLayoutConfig { Columns = 6 })
+                            .Items(
+                                   X.Label("گزارش براساس:"),
+                                    X.ComboBox()
+                                    .Width(100)
+                                        .ItemID("CboTypeRPT")
+                                        .Editable(false)
+                                        .ForceSelection(true)
+                                       // .TypeAhead(true)
+                                        .AllowBlank(false)
+                                        .BlankText("لطفا نوع گزارش گیری را انتخاب کنید.")
+                                            .Listeners(l => l.Change.Handler = "ChangeTypeRPT()")
+                                        .QueryMode(DataLoadMode.Local)
+                                        .TriggerAction(TriggerAction.All)
+                                        .Items(
+                                            new ListItem("مالک", "0"),
+                                                new ListItem("پروژه", "1"),
+                                                    new ListItem("شماره واگن", "2"),
+                                                        new ListItem("واگن تا واگن", "3"),
+                                                        new ListItem("لیست واگن", "4")
+                                                ),
+                            X.Label().Text("از تاریخ:").ItemID("lblAzTarikh"),
+                                X.PDateField()
+                                        .Width(100)
+                                .ItemID("txtAzTarikh")
+                                .AllowBlank(false)
+                                .MaskRe("[0-9,/]")
+                                .BlankText("لطفا از تاریخ را وارد کنید.")
+                                .PaddingSpec("0 0 0 10px").Listeners(l => l.Select.Handler = "ChangeAzTarikh_KarkardD()")
+                                .Editable(false),
+                            X.Label().Text("تا تاریخ:").ItemID("lblTaTarikh"),
+                                X.PDateField()
+                                        .Width(100)
+                                .ItemID("txtTaTarikh")
+                                    .MaskRe("[0-9,/]")
+                               // .PaddingSpec("0 0 0 10px")
+                                .AllowBlank(false)
+                                            .BlankText("لطفا تا تاریخ را وارد کنید.").Listeners(l => l.Select.Handler = "ChangeTaTarikh_KarkardD()")
+                                .Editable(false)
+                                   ,
+                         X.Hidden().ItemID("fldMalek_InfoId"),
+                         X.Label("مالک واگن:").ItemID("lblMalekVagon"),
+                            X.TextField()
+                                .ItemID("txtMalekVagon")
+                                .AllowBlank(false)
+                                .ReadOnly(true)
+                                .FieldStyle("padding-right:4px;")
+                                .Icon(Icon.UserAdd)
+                                .BlankText("لطفا مالک واگن را انتخاب کنید.")
+                                .Listeners(l =>
+                                {
+                                    l.SpecialKey.Handler = "searchMalek(e.getKey())";
+                                    l.IconClick.Handler = "searchMalek(45)";
+                                    l.AfterRender.Handler = "App.RptBarname.queryById('txtMalekVagon').icon.dom.classList.add('custom-icon');";
+                                })
+                                .Width(400).ColSpan(5)
+               ,
+                                 X.Hidden().ItemID("fldContractId"),
+                             X.Label("پروژه:").ItemID("lblContract"),
+                                X.TextField()
+                                        .ItemID("txtContract")
+                                        .AllowBlank(false)
+                                        .BlankText("لطفا قرارداد/پروژه را انتخاب کنید.")
+                                    .ReadOnly(true)
+                                    .FieldStyle("padding-right:4px;")
+                                    .Icon(Icon.ScriptAdd)
+                                    .Listeners(l =>
+                                    {
+                                        l.SpecialKey.Handler = "SearchContract_Project(e.getKey())";
+                                        l.IconClick.Handler = "SearchContract_Project(45)";
+                                        l.AfterRender.Handler = "App.RptBarname.queryById('txtContract').icon.dom.classList.add('custom-icon');";
+                                    })
+                                .Width(400).ColSpan(5)
+                                ,
+                                    X.Label("شماره واگن:").ItemID("lblShVagon"),
+                                    X.TextField()
+                                            .Width(100)
+                                         .ItemID("txtShVagon")
+                                            .AllowBlank(false)
+                                            .BlankText("لطفا شماره واگن را انتخاب کنید.")
+                                 //.Width(118)
+                                .MaxLength(7).MaskRe("[ 0-9]")
+                                .EnforceMaxLength(true),
+                                    X.Label("از واگن:").ItemID("lblAzShVagon"),
+                                    X.TextField()
+                                            .Width(100)
+                                         .ItemID("txtAzShVagon")
+                                                .AllowBlank(false)
+                                                .BlankText("لطفا شماره واگن ابتدا را انتخاب کنید.")
+                                 //.Width(118)
+                                .MaxLength(7).MaskRe("[ 0-9]")
+                                .EnforceMaxLength(true),
+                                    X.Label("تا واگن:").ItemID("lblTaShVagon"),
+                                    X.TextField()
+                                            .Width(100)
+                                         .ItemID("txtTaShVagon")
+                                                .AllowBlank(false)
+                                                .BlankText("لطفا شماره واگن انتها را انتخاب کنید.")
+                                 //.Width(118)
+                                .MaxLength(7).MaskRe("[ 0-9]")
+                                .EnforceMaxLength(true)
+                                ,
+                                X.FieldSet()
+                                     .Layout(LayoutType.Table)
+                                     .Border(false)
+                                .LayoutConfig(new TableLayoutConfig { Columns = 2 })
+                                    .ColSpan(6).Width(500)
+                                .ItemID("flsFile").Items(
+                                X.Hidden().ItemID("fldShVagon"),
+                                     X.FileUploadField()
+                                .ButtonOnly(true).ButtonText("آپلود فایل اکسل")
+                                .PaddingSpec("0 29px 0 0")
+                                .DirectEvents(l =>
+                                {
+                                    l.Change.Action = "UploadExcelFileVagon";
+                                    l.Change.Success = "hideprogressExcelFileVagon();";
+                                })
+                                .Listeners(l => l.Change.Fn = "showFileExcelVagon")
+                                .Icon(Ext.Net.Icon.DiskUpload)
+                                ,
+                                X.Label().ItemID("lblXlsVagon")
+                                )
+                        )
+                        ),
+                    Html.X().Panel()
+                    .Border(true)
+                        .Listeners(L => L.AfterRender.Handler = "setSizeRptPanel2_KarkardD()")
+                    .AutoScroll(true)
+                        .ItemID("RptPanel2_KarkardD")
+            )
+
+    )
+)
+
+<script type="text/javascript">
+    function ChangeTypeRPT() {
+        var CboTypeRPT = App.RptBarname.queryById('CboTypeRPT');
+        var txtMalekVagon = App.RptBarname.queryById('txtMalekVagon');
+        var lblMalekVagon = App.RptBarname.queryById('lblMalekVagon');
+        var txtContract = App.RptBarname.queryById('txtContract');
+        var lblContract = App.RptBarname.queryById('lblContract');
+        var txtAzTarikh = App.RptBarname.queryById('txtAzTarikh');
+        var txtTaTarikh = App.RptBarname.queryById('txtTaTarikh');
+        var lblShVagon = App.RptBarname.queryById('lblShVagon');
+        var txtShVagon = App.RptBarname.queryById('txtShVagon');
+        var lblAzShVagon = App.RptBarname.queryById('lblAzShVagon');
+        var txtAzShVagon = App.RptBarname.queryById('txtAzShVagon');
+        var lblTaShVagon = App.RptBarname.queryById('lblTaShVagon');
+        var txtTaShVagon = App.RptBarname.queryById('txtTaShVagon');
+        var flsFile = App.RptBarname.queryById('flsFile');
+
+        ClearAll();
+        
+        if (CboTypeRPT.getValue() == "0") {
+            txtMalekVagon.show();
+            lblMalekVagon.show();
+            lblContract.show();
+            txtContract.show();
+            lblShVagon.hide();
+            txtShVagon.hide();
+            lblAzShVagon.hide();
+            txtAzShVagon.hide();
+            lblTaShVagon.hide();
+            txtTaShVagon.hide();
+            flsFile.hide();
+        }
+        else if (CboTypeRPT.getValue() == "1") {
+            txtMalekVagon.hide();
+            lblMalekVagon.hide();
+            lblContract.show();
+            txtContract.show();
+            lblShVagon.hide();
+            txtShVagon.hide();
+            lblAzShVagon.hide();
+            txtAzShVagon.hide();
+            lblTaShVagon.hide();
+            txtTaShVagon.hide();
+            flsFile.hide();
+        }
+        else if (CboTypeRPT.getValue() == "2") {
+            txtMalekVagon.hide();
+            lblMalekVagon.hide();
+            lblContract.hide();
+            txtContract.hide();
+            lblShVagon.show();
+            txtShVagon.show();
+            lblAzShVagon.hide();
+            txtAzShVagon.hide();
+            lblTaShVagon.hide();
+            txtTaShVagon.hide();
+            flsFile.hide();
+        }
+        else if (CboTypeRPT.getValue() == "3") {
+            txtMalekVagon.hide();
+            lblMalekVagon.hide();
+            lblContract.hide();
+            txtContract.hide();
+            lblShVagon.hide();
+            txtShVagon.hide();
+            lblAzShVagon.show();
+            txtAzShVagon.show();
+            lblTaShVagon.show();
+            txtTaShVagon.show();
+            flsFile.hide();
+        }
+        else if (CboTypeRPT.getValue() == "4") {
+            txtMalekVagon.hide();
+            lblMalekVagon.hide();
+            lblContract.hide();
+            txtContract.hide();
+            lblShVagon.hide();
+            txtShVagon.hide();
+            lblAzShVagon.hide();
+            txtAzShVagon.hide();
+            lblTaShVagon.hide();
+            txtTaShVagon.hide();
+            flsFile.show();
+        }
+    }
+    function HelpBarname() {
+        Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+        Ext.net.DirectMethod.request({
+            url: '/ReportsMachinery/HelpBarname',
+            success: function (data) {
+                Ext.net.Mask.hide();
+            }
+        });
+    }
+
+    function searchMalek(Code) {
+        if (Code == 45) {
+            App.RptBarname.body.mask("در حال بارگذاری");
+            Ext.net.DirectMethod.request({
+                url: '/SearchMalek_Vagon/IndexChecked',
+                params: {
+                    State: 1,
+                },
+                success: function () {
+                    App.RptBarname.body.mask().hide();
+                }
+            });
+        }
+    }
+    function SearchContract_Project(Code) {
+        if (Code == 45) {
+            App.RptBarname.body.mask("در حال بارگذاری");
+            Ext.net.DirectMethod.request({
+                url: '/SearchContract_Project/IndexChecked',
+                params: {
+                    State: 1,
+                    Malek:App.RptBarname.queryById('fldMalek_InfoId').getValue()
+                },
+                success: function () {
+                    App.RptBarname.body.mask().hide();
+                }
+            });
+        }
+    }
+    
+    function ChangeTaTarikh_KarkardD() {
+        var txtAzTarikh = App.RptBarname.queryById('txtAzTarikh');
+        var txtTaTarikh = App.RptBarname.queryById('txtTaTarikh');
+        txtTaTarikh.setMinValue(txtAzTarikh.getValue());
+        txtTaTarikh.minText = "تا تاریخ باید بعد از تاریخ " + txtAzTarikh.rawValue + "باشد";
+    }
+    function ChangeAzTarikh_KarkardD() {
+        var txtAzTarikh = App.RptBarname.queryById('txtAzTarikh');
+        var txtTaTarikh = App.RptBarname.queryById('txtTaTarikh');
+        txtAzTarikh.setMaxValue(txtTaTarikh.getValue());
+        txtAzTarikh.maxText = "از تاریخ باید قبل از تا تاریخ " + txtTaTarikh.rawValue + "باشد";
+    }
+    function setSizeRptPanel2_KarkardD() {
+        App.RptBarname.queryById('CboTypeRPT').setValue("0");
+        Ext.getCmp('RptBarname').queryById('RptPanel2_KarkardD').setSize(App.ReportRaiSamWin.getWidth() - 20, App.ReportRaiSamWin.getHeight() - 220);
+
+    }
+    function destroyWinBarname() {
+        var tabId = App.ReportGeneralTab.activeTab.id;
+        Ext.getCmp(tabId).destroy();
+    }
+
+    function PrintBarname() {
+        GenerateBarname(1);
+    }
+    function XlsBarname() {
+        GenerateBarname(2);
+    }
+
+    function GenerateBarname(st) {
+        var CboTypeRPT = App.RptBarname.queryById('CboTypeRPT');
+        var txtMalekVagon = App.RptBarname.queryById('txtMalekVagon');
+        var lblMalekVagon = App.RptBarname.queryById('lblMalekVagon');
+        var txtContract = App.RptBarname.queryById('txtContract');
+        var lblContract = App.RptBarname.queryById('lblContract');
+        var txtAzTarikh = App.RptBarname.queryById('txtAzTarikh');
+        var txtTaTarikh = App.RptBarname.queryById('txtTaTarikh');
+        var lblShVagon = App.RptBarname.queryById('lblShVagon');
+        var txtShVagon = App.RptBarname.queryById('txtShVagon');
+        var lblAzShVagon = App.RptBarname.queryById('lblAzShVagon');
+        var txtAzShVagon = App.RptBarname.queryById('txtAzShVagon');
+        var lblTaShVagon = App.RptBarname.queryById('lblTaShVagon');
+        var txtTaShVagon = App.RptBarname.queryById('txtTaShVagon');
+        var fldMalek_InfoId = App.RptBarname.queryById('fldMalek_InfoId');
+        var fldContractId = App.RptBarname.queryById('fldContractId');
+        var fldShVagon = App.RptBarname.queryById('fldShVagon');
+        var lblXlsVagon= App.RptBarname.queryById('lblXlsVagon');
+        var fldShVagon=App.RptBarname.queryById('fldShVagon');
+        
+        var height = App.ReportRaiSamWin.getHeight() - 225;
+
+        var MalekId = ""; var ContractId = ""; var ShVagon = ""; var AzVagon = ""; var TaVagon = "";
+
+        if (txtAzTarikh.validate() == true && txtTaTarikh.validate() == true) {
+
+            if (CboTypeRPT.getValue() == "0") {
+                if (txtMalekVagon.validate() == true) {
+                    MalekId = fldMalek_InfoId.getValue();
+                    ContractId = fldContractId.getValue();
+                }
+                else
+                    return;
+            }
+            else if (CboTypeRPT.getValue() == "1") {
+                if (txtContract.validate() == true) {
+                    ContractId = fldContractId.getValue();
+                }
+                else
+                    return;
+            }
+            else if (CboTypeRPT.getValue() == "2") {
+                if (txtShVagon.validate() == true) {
+                    ShVagon = txtShVagon.getValue();
+                }
+                else
+                    return;
+            }
+            else if (CboTypeRPT.getValue() == "3") {
+                if (txtAzShVagon.validate() == true && txtTaShVagon.validate() == true) {
+                    AzVagon = txtAzShVagon.getValue();
+                    TaVagon = txtTaShVagon.getValue();
+                }
+                else
+                    return;
+            }
+            else if (CboTypeRPT.getValue() == "4") {
+                if (fldShVagon.getValue() !="") {
+                    ShVagon = fldShVagon.getValue();
+                }
+                else
+                    return;
+            }
+            
+            if (st == 1)
+                App.RptBarname.queryById('RptPanel2_KarkardD').update("<center><object class='se-pre-con' style='width:100%;height:" + height + "px;border: 1px solid #ccc;' type='application/pdf' data='/RptBarname/GeneratePDF?StartDate=" + txtAzTarikh.rawValue + "&EndDate=" + txtTaTarikh.rawValue + "&MalekId=" + MalekId + "&ContractId=" + ContractId + "&ShVagon=" + ShVagon + "&AzVagon=" + AzVagon + "&TaVagon=" + TaVagon + "'></object></center>");
+
+            else if (st == 2) {
+                var Checked = "";
+                
+                Checked = "fldShomareVagon" + ";" + "fldShmareBarname" + ";" + "fldTarikhBarname" + ";" + "fldSeri" + ";" + "fldNameMabda" + ";" + "fldNameMaghsad" + ";" + "fldNoeBar" + ";" + "fldMasaft" + ";" + "fldVaznMahsob" + ";" + "fldVaznVagheii" + ";" + "fldTonKilometr" + ";";
+                window.location.href = '@Url.Content("~/RptBarname/CreateExcel/")' + '?Checked=' + Checked + "&StartDate=" + txtAzTarikh.rawValue + "&EndDate=" + txtTaTarikh.rawValue+ "&MalekId=" + MalekId + "&ContractId=" + ContractId + "&ShVagon=" + ShVagon + "&AzVagon=" + AzVagon + "&TaVagon=" + TaVagon;
+            }
+
+        }
+        else {
+            return;
+        }
+    }
+
+    var MojazExcelFileVagon = 0;
+    var EndUploadExcelFileVagon = false;
+
+    var CheckExcelFileVagon = setInterval(CheckEndExcelFileVagon, 500);
+
+    function CheckEndExcelFileVagon() {
+        if (EndUploadExcelFileVagon == true) {
+            Ext.MessageBox.hide();
+            clearInterval(CheckEndExcelFileVagon);
+            EndUploadExcelFileVagon = false;
+            Ext.net.Mask.show({ msg: 'فایل با موفقیت آپلود شد. در حال بارگذاری....' });
+            Ext.net.DirectMethod.request({
+                url: '/RptBarname/ProcessXlsVagon',
+                success: function (data) {
+                    var ic = Ext.MessageBox.INFO;
+                    if (data.Er == 1) {
+                        App.RptBarname.queryById('lblXlsVagon').setText("هیچ شماره واگنی دریافت نشد.");
+
+                    }
+                    else {
+                        App.RptBarname.queryById('lblXlsVagon').setText("واگن های موردنظر با موفقیت بارگذاری شد.");
+                        App.RptBarname.queryById('fldShVagon').setValue(data.VagonIds);
+                    }
+                    Ext.net.Mask.hide();
+                },
+                timeout: 90000
+            });
+        }
+    }
+
+    var showFileExcelVagon = function (fb, v) {
+        if (v) {
+            showProgressBarExcelFileVagon();
+            if (v.split('.').pop().toLowerCase() == "xls" || v.split('.').pop().toLowerCase() == "xlsx") {
+                MojazExcelFileVagon = 1;
+            }
+        }
+    };
+
+    function hideprogressExcelFileVagon() {
+        if (MojazExcelFileVagon == 1) {
+            EndUploadExcelFileVagon = true;
+        }
+        MojazExcelFileVagon = 0;
+    }
+
+    function showProgressBarExcelFileVagon() {
+        Ext.MessageBox.show({
+            msg: 'لطفاً منتظر باشید',
+            progressText: 'در حال آپلود فایل...',
+            width: 300,
+            wait: true,
+            waitConfig:
+            {
+                interval: 200,
+                text: 'در حال آپلود فایل...',
+                scope: this
+            }
+        });
+    }
+    function ClearAll() {
+        App.RptBarname.queryById('txtMalekVagon').setValue("");
+        App.RptBarname.queryById('txtContract').setValue("");
+        App.RptBarname.queryById('txtShVagon').setValue("");
+        App.RptBarname.queryById('txtAzShVagon').setValue("");
+        App.RptBarname.queryById('txtTaShVagon').setValue("");
+        App.RptBarname.queryById('fldMalek_InfoId').setValue("");
+         App.RptBarname.queryById('fldContractId').setValue("");
+       App.RptBarname.queryById('fldShVagon').setValue("");
+        App.RptBarname.queryById('lblXlsVagon').setText("");
+    }
+</script>
+

@@ -1,0 +1,28 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+}
+
+@using Ext.Net.MVC;
+
+@(
+ Html.X().Window().Listeners(l => l.BeforeClose.Handler = "CloseVideoTicketKartabl()")
+             .Height(565)
+         .Width(1000)
+                    .ID("VideoTicketKartabl")
+        .Closable(true)
+            .Title("راهنمای تصویری گفتگوها")
+        .AutoScroll(true)
+        .Closable(true)
+            .Maximizable(true)
+        .Content(@<video width="100%;" id="AmozeshVideoTicketKartabl" controls="true" autoplay="true" controls><source src='@Url.Action("DownloadFileVideoTicketKartabl", "TicketKartabl")' type="video/mp4"></video>)
+
+)
+<script type="text/javascript">
+    function CloseVideoTicketKartabl() {
+        $('#AmozeshVideoTicketKartabl')[0].pause();
+    }
+
+</script>

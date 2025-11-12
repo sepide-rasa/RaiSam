@@ -1,0 +1,286 @@
+﻿@model RaiSam.Models.ProjectDetails
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@using Ext.Net.Utilities;
+
+@{
+    var X = Html.X();
+}
+<style>
+    .titlebold {
+        font-weight: bold;
+        font-size: 12px;
+        color: ThreeDDarkShadow;
+    }
+
+    .wrap-lable {
+        word-wrap: break-word;
+    }
+</style>
+
+@(Html.X().Window()
+    .Modal(true)
+    .Listeners(li => li.AfterRender.Handler = "LoadDetailProject();")
+    .Width(800)
+        //.Height(500)
+    .AutoScroll(true)
+    .Resizable(false)
+    .Title("نمایش اطلاعات پروژه")
+    .ID("ShowInfo_Project")
+    .Closable(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .ButtonAlign(Ext.Net.Alignment.Center)
+    .Buttons(
+        ////    X.Button()
+        ////        .Text("راهنما")
+        ////        .Icon(Ext.Net.Icon.Help)
+        //////.Listeners(l =>l.Click.Handler = "SaveProject();")
+        ////        .ItemID("btnSaveProject"),
+        //X.Button()
+        //    .Text("گفتگو")
+        //    .Icon(Ext.Net.Icon.UserComment)
+        //    .Listeners(l => l.Click.Handler = "ShowShareholderConversation();")
+        ////.Hidden(@ViewBag.StatusRequest=="Completing")
+        //    ,
+        X.Button()
+            .Text("خروج")
+            .Icon(Ext.Net.Icon.BulletCross)
+            .OnClientClick("App.ShowInfo_Project.destroy();")
+            .RTL(true)
+        )
+    .Items(
+        X.FormPanel()
+            .Border(false)
+            .MarginSpec("10px 0 10px 0")
+            .Layout(LayoutType.VBox)
+            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+                .Items(
+                 X.AntiForgeryField().ItemID("AntiForgeryField"),
+                X.FieldSet()
+                   // .Hidden(true)
+                    .ItemID("fieldCompanyPersonal")
+                    .Border(true)
+                    .Title("مشخصات پروژه")
+                    .Width(750)
+                    .Padding(5)
+                    .Center()
+                    .Layout(LayoutType.VBox)
+                    .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Right })
+                    .Items(
+                        X.FieldSet()
+                            .Layout(LayoutType.HBox)
+                            .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                            .Width(730)
+                            .Border(false)
+                            .Items(
+                                X.Label()
+                                    .Text("عنوان پروژه:")
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(680)
+                                        .ItemID("Title")
+                                    .Text("")
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Height(32)
+                                    .Cls("wrap-lable")),
+                        X.FieldSet()
+                            .Layout(LayoutType.HBox)
+                            .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                            .Width(730)
+                            .Border(false)
+                            .Items(
+                                X.Label()
+                                    .Text("نوع واگن:")
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(255)
+                                    .Text("")
+                                        .ItemID("TypeVagonName")
+                                    .Height(32)
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Cls("wrap-lable"),
+                                X.Label()
+                                    .Text("تعداد واگن:")
+                                    .PaddingSpec("0 0 0 30px")
+                                    .Cls("titlebold"),
+                                X.Label()
+                                    .Width(320)
+                                    .Text("")
+                                    .Height(32)
+                                        .ItemID("Tedad")
+                                    .PaddingSpec("0 0 0 5px")
+                                    .Cls("wrap-lable"))
+                      
+                            )
+                                 ,
+                         X.GridPanel()
+                         .Title("نمایندگان")
+                             .Height(150).Width(600)
+                            .AutoScroll(true)
+                                 .ItemID("GridNamayande")
+        //  .BottomBar(X.PagingToolbar())
+                             
+                            .Store(
+                                    X.StoreFor(Model.Namayande)
+        //X.StoreForModel()
+                                            //.AutoLoad(false)
+                                                         .Listeners(l => l.BeforeLoad.Handler = "App.ShowInfo_Project.queryById('GridNamayande').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.ShowInfo_Project.queryById('AntiForgeryField').getValue());")
+                                            .Proxy(Html.X().AjaxProxy()
+                                            .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                            .Url(Url.Action("ReadNamayande"))
+                                            .Reader(Html.X().JsonReader().Root("data"))
+                 .ExtraParams(ex => ex.Add(new { ProjectId = @ViewBag.Id }))
+                                    )
+                                            .Listeners(l => l.DataChanged.Handler = "App.ShowInfo_Project.queryById('GridNamayande').selModel.refresh();")
+                                    .PageSize(200)
+                                    .RemoteFilter(true)
+                                    .RemotePaging(true)
+                            )
+                            .View(
+                                Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                            )
+                                 .Plugins(
+                                Html.X().CellEditing().ClicksToEdit(1)
+                            )
+        //  .Plugins(X.FilterHeader().Remote(true))
+                            .ColumnModel(
+                                    Html.X().RowNumbererColumn(),
+                                                Html.X().Column().DataIndex(Model.Namayande, m => m.fldId).Text("کد").Hidden(true).Flex(1),
+                                                        Html.X().Column().DataIndex(Model.Namayande, m => m.fldAshkhasId).Text("کدشخص").Hidden(true).Flex(1),
+                                                            Html.X().Column().DataIndex(Model.Namayande, m => m.fldName_Family).Text("نام").Flex(5)
+      
+                                    ,
+                                                  Html.X().Column().DataIndex(Model.Namayande, m => m.fldCodeMeli).Text("کدملی").Wrap(true).Flex(2),
+        Html.X().Column().DataIndex(Model.Namayande, m => m.fldMobile).Text("موبایل").Wrap(true).Flex(2)
+                                               
+                                    )
+                                         .SelectionModel(
+                                X.RowSelectionModel()
+                                    .Mode(Ext.Net.SelectionMode.Single)
+                            )
+                               ,
+                                  X.GridPanel()
+                             .Title("درخواست")
+                                 .Height(200).Width(600)
+                                .AutoScroll(true)
+                                     
+                                     .ItemID("GridHoghughi")
+        //  .BottomBar(X.PagingToolbar())
+                                .Store(
+                                            X.StoreFor(Model.Darkhast)
+        //X.StoreForModel()
+                                              //  .AutoLoad(false)
+                                                                 .Listeners(l => l.BeforeLoad.Handler = "App.ShowInfo_Project.queryById('GridHoghughi').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.ShowInfo_Project.queryById('AntiForgeryField').getValue());")
+                                                .Proxy(Html.X().AjaxProxy()
+                                                .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                                    .Url(Url.Action("ReadHoghughi"))
+                                                .Reader(Html.X().JsonReader().Root("data"))
+                     .ExtraParams(ex => ex.Add(new { ProjectId = @ViewBag.Id }))
+                                        )
+                                                    .Listeners(l => l.DataChanged.Handler = "App.ShowInfo_Project.queryById('GridHoghughi').selModel.refresh();")
+                                        .PageSize(200)
+                                        .RemoteFilter(true)
+                                        .RemotePaging(true)
+                                )
+                                .View(
+                                    Html.X().GridView().LoadingText("در حال بارگذاری...").RTL(true)
+                                )
+                                     .Plugins(
+                                    Html.X().CellEditing().ClicksToEdit(1)
+                                )
+        //  .Plugins(X.FilterHeader().Remote(true))
+                                .ColumnModel(
+                                        Html.X().RowNumbererColumn(),
+                                        Html.X().Column().DataIndex(Model.Darkhast, m => m.fldId).Text("کد").Hidden(true).Flex(1),
+                                        Html.X().Column().DataIndex(Model.Darkhast, m => m.fldAshkhasHoghoghiId).Text("کدشخص").Hidden(true).Flex(1),
+                                            Html.X().Column().DataIndex(Model.Darkhast, m => m.fldNameHoghoghi).Text("نام").Wrap(true).Flex(5),
+                                                        Html.X().Column().DataIndex(Model.Darkhast, m => m.fldTarikhSanad).Text("تاریخ سند").Wrap(true).Flex(2),
+                                                                Html.X().Column().DataIndex(Model.Darkhast, m => m.fldTedadVagon).Text("تعداد واگن").Wrap(true).Flex(2),
+                                                                Html.X().Column().DataIndex(Model.Darkhast, m => m.fldRiyali).Text("ارزش ریالی").Wrap(true).Flex(2),
+                                                    Html.X().Column().DataIndex(Model.Darkhast, m => m.fldDolari).Text("ارزش دلاری").Wrap(true).Flex(2)
+                                     
+                                    ,
+                                                   Html.X().CommandColumn().Text("دانلود فایل").ItemID("buttonDownload")
+                                                    .Flex(2)
+                                                    .Commands(
+                                                                   Html.X().GridCommand()
+                                                                .CommandName("Down")
+                                                                .StandOut(true)
+                                                                    .Text("سند")
+                                                                    .ToolTip(tt => tt.Text = "تصویر سند ساخت")
+                                                                   , Html.X().GridCommand()
+                                                            .CommandName("Down1")
+                                                            .StandOut(true)
+                                                                .Text("دفترچه")
+                                                                .ToolTip(tt => tt.Text = "دفترچه مشخصات")
+                                                              
+                                                    )
+                                                    .Listeners(ls => ls.Command.Fn = "DownloadProj")
+
+                                        )
+                                             .SelectionModel(
+                                    X.RowSelectionModel()
+                                        .Mode(Ext.Net.SelectionMode.Single)
+                                )   
+                                )
+            )
+)
+
+<script type="text/javascript">
+    function DownloadProj(grid, command, record, row) {
+        var RowId = record.data.fldSanadFileId;
+        var RowId1 = record.data.fldDaftarcheFileId;
+        var RowID = 0;
+
+        if (command == "Down")
+            RowID = RowId;
+        if (command == "Down1")
+            RowID = RowId1;
+        
+
+        $.ajax({
+            type: "POST",
+            dataType: 'native',
+            url: "/Faces/Project/DownloadFilePro",
+            xhrFields: {
+                responseType: 'blob'
+            },
+            data: {
+                FileId: RowID,
+                __RequestVerificationToken: App.ShowInfo_Project.queryById('AntiForgeryField').getValue()
+            },
+            success: function (blob) {
+                x = blob;
+                var link = document.createElement('a');
+                link.href = window.URL.createObjectURL(blob);
+                link.download = "DownloadFile";
+                link.click();
+            }
+        });
+    }
+    function LoadDetailProject() {
+        /*Ext.EventManager.onWindowResize(function (w, h) {
+            App.skdj.doComponentLayout();
+        });*/
+        /*Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });*/
+        Ext.net.DirectMethod.request({
+            url: '/Faces/Project/Details',
+            params: {
+                Id: '@ViewBag.Id',
+                __RequestVerificationToken: App.ShowInfo_Project.queryById('AntiForgeryField').getValue()
+            },
+            success: function (result) {
+                App.ShowInfo_Project.queryById("TypeVagonName").setText(result.fldTypeVagonName);
+                App.ShowInfo_Project.queryById("Tedad").setText(result.fldTedad);
+                App.ShowInfo_Project.queryById("Title").setText(result.fldTitle);
+              
+            }
+        });
+    }
+
+    
+
+
+
+</script>

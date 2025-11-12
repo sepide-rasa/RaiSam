@@ -1,0 +1,366 @@
+﻿@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net.Utilities
+@using Ext.Net;
+@{
+
+    var X = Html.X();
+}
+
+@(X.Window().Listeners(l => l.AfterRender.Handler = "SetNameForm();LoadHelp();")
+    .Title("آپلود فایل راهنما")
+    .Modal(true)
+    .Border(false)
+     .ID("SetFileHelp")
+    .Closable(true)
+    .AutoScroll(true)
+    .CloseAction(Ext.Net.CloseAction.Destroy)
+    .Resizable(false)
+    .Width(400)
+    .Layout(LayoutType.VBox)
+    .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+    .ButtonAlign(Alignment.Center)
+    .Listeners(l => l.Close.Handler = "ClearSession()")
+    .Buttons(
+        X.Button()
+            .Text("ذخیره")
+            .Icon(Ext.Net.Icon.Disk)
+            .Listeners(l => l.Click.Handler = "SaveFileHeadline();"),
+                 X.Button()
+                .Text("خروج")
+                    .Icon(Ext.Net.Icon.DoorOut)
+                    .Listeners(l => l.Click.Handler = "OutFileHelp();")
+    )
+    .Items(
+        X.AntiForgeryField()
+            .ItemID("antiForgeryToken")
+            .Hidden(true),
+        X.FormPanel()
+            .Layout(LayoutType.VBox)
+        .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+            .Border(false)
+            .Items(
+            X.FieldSet().Border(false)
+            .Defaults(new { Margin = 2 })
+            .Layout(LayoutType.Table)
+            .LayoutConfig(new TableLayoutConfig { Columns = 4 })
+            .Items(
+            X.Label("نام فرم:"),
+                X.TextField()
+                    .ItemID("txtNameForm")
+                    .AutoFocus(true)
+                    .AllowBlank(false)
+                    .BlankText("لطفا نام فرم را وارد کنید.")
+                    .MaxLength(150)
+                    .EnforceMaxLength(true)
+            ),
+                X.FieldSet()
+                    .Border(true)
+                    .Title("آپلود فایل Pdf")
+                    .Height(80)
+                    .Width(360)
+                    .Defaults(new { Margin = 2 })
+                    .Layout(LayoutType.Table)
+                    .LayoutConfig(new TableLayoutConfig { Columns = 2 })
+                    .Items(
+                        X.FieldSet()
+                            .Border(false)
+                            .Height(80)
+                            .Layout(Ext.Net.LayoutType.VBox)
+                            .LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Right })
+                            .Defaults(new { Margin = 3 })
+                            .Items(
+                                X.FileUploadField()
+                                    .ButtonOnly(true).ButtonText("انتخاب فایل(حداکثر 10 مگابایت)")
+                                    .DirectEvents(l =>
+                                    {
+                                        l.Change.Action = "UploadPdf";
+                                        l.Change.Success = "hideprogressPdf";
+                                    })
+                                            .Listeners(l => l.Change.Fn = "showFilePdf")
+                                    .Icon(Ext.Net.Icon.DiskUpload),
+                                X.FieldSet().Layout(LayoutType.Fit).Width(300).Border(false).Html(@<div id="fi-button-msgPdf" style="direction:rtl;text-align:right;width:auto;"></div>)
+                            )
+                )
+                ,X.FieldSet()
+                    .Border(true)
+                    .Title("آپلود فایل راهنمای تصویری")
+                    .Height(80)
+                    .Width(360)
+                    .Defaults(new { Margin = 2 })
+                    .Layout(LayoutType.Table)
+                    .LayoutConfig(new TableLayoutConfig { Columns = 2 })
+                    .Items(
+                        X.FieldSet()
+                            .Border(false)
+                            .Height(80)
+                            .Layout(Ext.Net.LayoutType.VBox)
+                            .LayoutConfig(new Ext.Net.VBoxLayoutConfig { Align = Ext.Net.VBoxAlign.Right })
+                            .Defaults(new { Margin = 3 })
+                            .Items(
+                                X.FileUploadField()
+                                    .ButtonOnly(true).ButtonText("انتخاب فایل")
+                                    .DirectEvents(l =>
+                                    {
+                                        l.Change.Action = "UploadVideo";
+                                        l.Change.Success = "hideprogressVideo";
+                                    })
+                                            .Listeners(l => l.Change.Fn = "showFileVideo")
+                                    .Icon(Ext.Net.Icon.DiskUpload),
+                                X.FieldSet().Layout(LayoutType.Fit).Width(300).Border(false).Html(@<div id="fi-button-msgVideo" style="direction:rtl;text-align:right;
+width:auto;"></div>)
+                            )
+                )
+        )
+    )
+)
+<script type="text/javascript">
+    function LoadHelp() {
+        if ('@ViewBag.Id' != '0') {
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/Help/Details',
+                params: {
+                    Id: '@ViewBag.Id',
+                    __RequestVerificationToken: App.SetFileHelp.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+                    if (data.NameFilePdf != "" && data.NameFilePdf != null) {
+                        var el = Ext.get('fi-button-msgPdf');
+                        el.update('<b>فایل انتخاب شده:</b> ' + data.NameFilePdf);
+                    }
+                    if (data.NameFileVideo != "" && data.NameFileVideo !=null) {
+                        Ext.get('fi-button-msgVideo').update('<b>فایل انتخاب شده: ' + '</b>' + data.NameFileVideo);
+                    }
+                    Ext.net.Mask.hide();
+                }
+            });
+        }
+    }
+    function OutFileHelp() {
+        ClearSession();
+        App.SetFileHelp.destroy();
+    }
+    function SetNameForm() {
+        var NameForm = App.SetFileHelp.queryById('txtNameForm');
+        NameForm.setValue('@ViewBag.NameForm')
+    }
+    var MojazPdf = 0;
+    var sizeePdf = 0;
+    var EndUploadPdf = false;
+
+    var hideprogressPdf = function (Responsdtxt, ResponseObj) {
+        if (ResponseObj.IsValid == true) {
+            EndUploadPdf = true;
+        }
+        else {
+            var el = Ext.get('fi-button-msgPdf');
+            clearInterval(CheckEndPdf);
+            EndUploadPdf = false;
+            el.update("");
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: ResponseObj.Message,
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+        /*if (MojazPdf == 1 && sizeePdf == 1) {
+            EndUploadPdf = true;
+        }*/
+        MojazPdf = 0;
+        sizeePdf = 0;
+    };
+
+    var CheckPdf = setInterval(CheckEndPdf, 500);
+
+    function CheckEndPdf() {
+        if (EndUploadPdf == true) {
+            Ext.MessageBox.hide();
+            Ext.Msg.alert('عملیات موفق', 'فایل با موفقیت آپلود شد.');
+            clearInterval(CheckEndPdf);
+            EndUploadPdf = false;
+        }
+    }
+
+    var showFilePdf = function (fb, v) {
+        var id = fb.fileInputEl.dom.id;
+        var el = Ext.get('fi-button-msgPdf');
+        if (v) {
+            showProgressBarPdf();
+            if (v.split('.').pop().toLowerCase() == "pdf") {
+                MojazPdf = 1;
+                if (document.getElementById(id).files[0].size <= 10485760) {
+                    sizeePdf = 1;
+                }
+                if (sizeePdf == 1) {
+                    el.update('<b>فایل انتخاب شده:</b> ' + v);
+                }
+                else {
+                    el.update("");
+                }
+
+                if (!el.isVisible()) {
+                    el.slideIn('t', {
+                        duration: .2,
+                        easing: 'easeIn',
+                        callback: function () {
+                            el.highlight();
+                        }
+                    });
+                } else {
+                    el.highlight();
+                }
+            }
+            else {
+                el.update("");
+            }
+        }
+    };
+
+    function showProgressBarPdf() {
+        Ext.MessageBox.show({
+            msg: 'لطفاً منتظر باشید',
+            progressText: 'در حال آپلود فایل...',
+            width: 300,
+            wait: true,
+            waitConfig:
+            {
+                interval: 200,
+                text: 'در حال آپلود فایل...',
+                scope: this
+            }
+        });
+    }
+
+
+    var MojazVideo = 0;
+    var sizeeVideo = 0;
+    var EndUploadVideo = false;
+
+    var hideprogressVideo = function (Responsdtxt, ResponseObj) {
+        if (ResponseObj.IsValid == true) {
+            EndUploadVideo = true;
+        }
+        else {
+            var el = Ext.get('fi-button-msgVideo');
+            clearInterval(CheckEndVideo);
+            EndUploadVideo = false;
+            el.update("");
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: ResponseObj.Message,
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+        }
+        /*if (MojazVideo == 1 && sizeeVideo == 1) {
+            EndUploadVideo = true;
+        }*/
+        MojazVideo = 0;
+        sizeeVideo = 0;
+    };
+
+    var CheckVideo = setInterval(CheckEndVideo, 500);
+
+    function CheckEndVideo() {
+        if (EndUploadVideo == true) {
+            Ext.MessageBox.hide();
+            Ext.Msg.alert('عملیات موفق', 'فایل با موفقیت آپلود شد.');
+            clearInterval(CheckEndVideo);
+            EndUploadVideo = false;
+        }
+    }
+
+    var showFileVideo = function (fb, v) {
+        var id = fb.fileInputEl.dom.id;
+        var el = Ext.get('fi-button-msgVideo');
+        if (v) {
+            showProgressBargVideo();
+            if (v.split('.').pop().toLowerCase() == "mp4") {
+                MojazVideo = 1;
+                if (document.getElementById(id).files[0].size <= 104857600) {
+                    sizeeVideo = 1;
+                }
+                if (sizeeVideo == 1) {
+                    el.update('<b>فایل انتخاب شده:</b> ' + v);
+                }
+                else {
+                    el.update("");
+                }
+
+                if (!el.isVisible()) {
+                    el.slideIn('t', {
+                        duration: .2,
+                        easing: 'easeIn',
+                        callback: function () {
+                            el.highlight();
+                        }
+                    });
+                } else {
+                    el.highlight();
+                }
+            }
+            else {
+                el.update("");
+            }
+        }
+    };
+
+    function showProgressBargVideo() {
+        Ext.MessageBox.show({
+            msg: 'لطفاً منتظر باشید',
+            progressText: 'در حال آپلود فایل...',
+            width: 300,
+            wait: true,
+            waitConfig:
+            {
+                interval: 200,
+                text: 'در حال آپلود فایل...',
+                scope: this
+            }
+        });
+    }
+    function ClearSession() {
+        Ext.net.DirectMethod.request({
+            url: '/Help/ClearSession',
+            success: function () {
+            }
+        });
+    }
+    function SaveFileHeadline() {
+        var NameForm = App.SetFileHelp.queryById('txtNameForm');
+        var er = false;
+        if (NameForm.validate() == false)
+            er = true;
+        if (er == true)
+            return;
+        App.SetFileHelp.body.mask("در حال ذخیره سازی");
+        Ext.net.DirectMethod.request({
+            url: '/Help/SaveFile',
+            params: {
+                fldId: '@ViewBag.Id',
+                fldFormName: NameForm.getValue(),
+                __RequestVerificationToken: App.SetFileHelp.queryById('antiForgeryToken').getValue()
+            },
+            success: function (data) {
+                var ic = Ext.MessageBox.INFO;
+                if (data.Er == 1)
+                    ic = Ext.MessageBox.ERROR;
+                Ext.MessageBox.show({
+                    title: data.MsgTitle,
+                    msg: data.Msg,
+                    icon: ic,
+                    buttons: Ext.MessageBox.OK
+                });
+                App.HelpFrom.queryById('GridHelpFrom').store.load();
+                App.SetFileHelp.body.mask().hide();
+            }
+        });
+    }
+    function ClearHelpFrom() {
+        App.SetFileHelp.queryById('txtNameForm').setValue("");
+        Ext.get('fi-button-msgPdf').update('<b>فایل انتخاب شده:</b> ');
+        Ext.get('fi-button-msgVideo').update('<b>فایل انتخاب شده:</b> ');
+    }
+</script>

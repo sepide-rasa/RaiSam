@@ -1,0 +1,968 @@
+﻿@model IEnumerable<RaiSam.Models.prs_GetUserGroupTree>
+@using RaiSam.Models
+@using Ext.Net.MVC
+@using Hogaf.ExtNet.UX
+@using Ext.Net;
+@{
+    var X = Html.X();
+    var perr = false;
+    var perr2 = false;
+    if (RaiSam.Models.Permission.haveAccess(6,"","0"))
+    {
+        perr = true;
+    }
+    if (RaiSam.Models.Permission.haveAccess(10, "", "0"))
+    {
+        perr2 = true;
+    }
+}
+
+<style>
+    .custom-icon {
+        margin-right: 140px !important;
+    }
+
+    #TreeGroup .x-column-header-text {
+        white-space: pre-wrap;
+        height: 30px;
+    }
+</style>
+
+@(Html.X().Window()
+    .Closable(true)
+    .CloseAction(CloseAction.Destroy)
+    .Layout(LayoutType.Fit)
+    .Modal(true)
+    .Width(850)
+        //.Resizable(false)
+    .ID("NewUser")
+    .Listeners(l => l.AfterRender.Handler = "LoadUser()")
+        //.Listeners(l => l.Render.Handler = "App.NewUser.setHeight(Ext.getBody().getViewSize().height-200);")
+    .Title("ثبت کاربر جدید")
+    .ButtonAlign(Alignment.Center)
+    .Buttons(
+        Html.X().Button()
+            .Text("ذخیره")
+            .Icon(Ext.Net.Icon.Disk)
+            .Listeners(l => l.Click.Handler = "SaveUser()"),
+        Html.X().Button()
+            .Text("خروج")
+            .Icon(Ext.Net.Icon.DoorOut)
+            .Listeners(l => l.Click.Handler = "App.NewUser.destroy()")
+    )
+    .Items(
+        X.AntiForgeryField()
+        .ItemID("antiForgeryToken")
+            .Listeners(l => l.AfterRender.Handler = "App.TreeTreeStructure.store.load();setTimeout(function(){App.TreeTreeStructure.expandAll();},1000);")
+        .Hidden(true),
+        X.Panel()
+            .Border(false)
+            .Layout(LayoutType.VBox)
+            .Padding(0)
+            .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+            .Items(
+                Html.X().FieldSet()
+                    .Border(false)
+                    .Layout(LayoutType.VBox).Padding(0)
+                    .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center })
+                    .Items(
+                        X.Hidden()
+                            .ItemID("fldId"),
+                        X.Hidden()
+                            .ItemID("ShakhsId"),
+                        X.FieldSet()
+                            .Padding(0)
+                            .Defaults(new { Margin = 2 })
+                            .Border(false)
+                            .Layout(LayoutType.Table)
+                            .LayoutConfig(new TableLayoutConfig { Columns = 2 })
+                            .Items(
+                                X.TreePanel()
+                                    .ID("TreeGroup")
+                                    .Listeners(l => l.Render.Handler = "App.TreeGroup.setHeight(Ext.getBody().getViewSize().height-300);")
+        //.Height(130)
+                                    .Width(410)
+                                    .AutoScroll(true)
+                                    .Border(true)
+                                    .RootVisible(false)
+                                    .SingleExpand(true)
+                                    .UseArrows(true)
+        //           .Listeners(a =>
+        //{
+        //    /*a.ItemClick.Handler = "GetId(record)";*/
+        //    a.BeforeLoad.Fn = "GetParam";
+        //    //a.CheckChange.Fn = "GetGroupIdPermission";
+        //})
+                                    .Store(
+                                        X.TreeStore()
+                                            .Model(
+                                                Html.X().Model()
+                                                    .Fields(
+                                                        X.ModelField().Name(Model, m => m.fldTitle),
+                                                        X.ModelField().Name(Model, m => m.fldGrant),
+                                                        X.ModelField().Name(Model, m => m.fldWithGrant)
+                                                        )
+                                                    )
+                                            .Proxy(
+                                                Html.X().AjaxProxy()
+                                                    .Url(Url.Action("NodeLoadGroup"))
+                                                        .ActionMethods(l => l.Read = HttpMethod.POST)
+                                                )
+                                            .Listeners(l => l.BeforeLoad.Fn = "GetParam")
+                                        )
+                                    .ColumnModel(
+                                        X.RowNumbererColumn(),
+                                            Html.X().ImageCommandColumn().Align(Ext.Net.Alignment.Center).ID("ColLock").Hidden(true).Sortable(false).Listeners(l => l.Command.Fn = "GotoNewPermission").Flex(1).Commands(
+                                            Html.X().ImageCommand().CommandName("CmdNewPer").Icon(Icon.LockEdit).ToolTip(tt => tt.Text = "مشاهده دسترسی ها")),
+                                        X.TreeColumn().Text("<div>گروه کاربری&nbsp;&nbsp<input id=btnnewusergroup style='font-family:tahoma;font-size:11px;display: none;' type='button' value='جدید' onclick='javascript:GotoNewUserGroup()'></div>").DataIndex("fldTitle").Flex(5).Wrap(true),
+                                        X.CheckColumn().Text("Grant").DataIndex("fldGrant").Listeners(l => l.CheckChange.Fn = "setChecked").Editable(true).StopSelection(false).Flex(1),
+                                        X.CheckColumn().Text("with grant").DataIndex("fldWithGrant").Listeners(l => l.CheckChange.Fn = "setChecked").Editable(true).StopSelection(false).Flex(2)
+                                         )
+        //.Listeners(a =>
+        //{
+        //    a.ItemClick.Handler = "GetGroupId(record);";
+        //})
+                                    .Root(Html.X().Node().NodeID("0").Text("گروه کاربری").Expanded(true).EmptyChildren(true)),
+                        X.TreePanel()
+                            .ID("TreeTreeStructure")
+                            .AutoScroll(true)
+                            .Listeners(l => l.Render.Handler = "App.TreeTreeStructure.setHeight(Ext.getBody().getViewSize().height-300);")
+        //.Height(130)
+
+                            .Width(410)
+                            .UseArrows(true)
+                            .Border(true)
+                                    .Listeners(l => l.ItemExpand.Fn = "LoadLeafNodes")
+                            .Store(
+                                Html.X().TreeStore()
+                                        .Listeners(l => l.Load.Fn = "setCheckedParent")
+                                    .Proxy(
+                                        Html.X().AjaxProxy().Url(Url.Action("NodeLoadTreeStructure"))
+                                            .ActionMethods(l => l.Read = HttpMethod.POST)
+                                    )
+                                    .Listeners(l => l.BeforeLoad.Fn = "GetParamTreeDaramad")
+                                )
+                            .Listeners(a =>
+                            {
+                                /*a.Load.Handler = "SelRecTreeStructure()";
+                                a.Load.Single = true;*/
+                                //a.ItemExpand.Handler = "LoadUser()";
+                                //a.ItemClick.Handler = "GetTreeStructureId(record);";
+                                //a.BeforeItemClick.Fn = "CheckTreeId";
+                                // a.AfterRender.Handler = "this.expandAll();";
+                                a.CheckChange.Fn = "setCheckedTreeStructure";
+                            })
+                            .Root(Html.X().Node().NodeID("1").Checked(false).Text("راه آهن جمهوری اسلامی ایران")
+                            )),
+                        X.FieldSet()
+                        .ItemID("UserInformation").Title("مشخصات کاربر").Border(true).Defaults(new { Margin = 2 }).Layout(LayoutType.Table).LayoutConfig(new TableLayoutConfig { Columns = 4 })
+                        .Items(
+                             X.Label("مالکیت کاربر:"),
+                            X.ComboBox()
+                                .ItemID("CboOwnerUser")
+                                .Width(160)
+                                .TypeAhead(true)
+                                .Editable(false)
+                                .ForceSelection(true)
+                                .AutoFocus(true)
+                                .QueryMode(DataLoadMode.Local)
+                                .AllowBlank(false)
+                                .BlankText("لطفا مالکیت کاربر را انتخاب کنید.")
+                                .Listeners(l => l.Select.Handler = "ChangeOwnerUser();")
+                                .TriggerAction(TriggerAction.All)
+                                .DisplayField("fldName")
+                                .ValueField("Id")
+                                .EmptyText("نوع کاربر...")
+        //.Listeners(l => { l.Select.Handler = "ChangeOwnerUser()"; })
+                                .Store(X.Store()
+                                .Listeners(l => { l.Load.Handler = "setDefaultOwnerUser()"; })
+                                .Model(X.Model()
+                                .IDProperty("Id")
+                                .Fields(
+                                    new ModelField("Id", ModelFieldType.String) { Mapping = "Id" },
+                                    new ModelField("fldName", ModelFieldType.String) { Mapping = "fldName" }
+                                    )
+                                    )
+                                .Listeners(l => l.BeforeLoad.Handler = "App.NewUser.queryById('CboOwnerUser').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.NewUser.queryById('antiForgeryToken').getValue());")
+                        .Proxy(Html.X().AjaxProxy()
+                                .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                .Url(Url.Action("GetUserOwner"))
+                                .Reader(X.JsonReader().Root("data"))
+                                    )
+                                    ),
+                            X.Label("نوع کاربر:"),
+                                    X.ComboBox()
+                                        .ItemID("CboTypeUser")
+                                        .Width(160)
+                                        .TypeAhead(true)
+                                        .Editable(false)
+                                        .ForceSelection(true)
+                                        .AutoFocus(true)
+                                        .QueryMode(DataLoadMode.Local)
+                                        .AllowBlank(false)
+                                        .BlankText("لطفا نوع کاربر را انتخاب کنید.")
+                                        .TriggerAction(TriggerAction.All)
+                                        .DisplayField("fldName")
+                                        .ValueField("Id")
+                                        .EmptyText("نوع کاربر...")
+                                        .Listeners(l =>
+                                            {
+                                                // l.Change.Handler = "loadTreeGroup()";
+                                                l.Change.Handler = "App.TreeGroup.store.load()";
+                                            })
+                                        .Store(X.Store()
+                                        .AutoLoad(false)
+                                        .Listeners(l => { l.Load.Handler = "setDefaultTypeUser()"; })
+                                        .Model(X.Model()
+                                        .IDProperty("Id")
+                                        .Fields(
+                                            new ModelField("Id", ModelFieldType.String) { Mapping = "Id" },
+                                            new ModelField("fldName", ModelFieldType.String) { Mapping = "fldName" }
+                                            )
+                                            )
+                                            .Parameters(ps => ps.Add(new StoreParameter("OwnerUser", "App.NewUser.queryById('CboOwnerUser').getValue()", ParameterMode.Raw)))
+                                            .Listeners(l => l.BeforeLoad.Handler = "App.NewUser.queryById('CboTypeUser').getStore().getProxy().setExtraParam('__RequestVerificationToken', App.NewUser.queryById('antiForgeryToken').getValue());")
+                                .Proxy(Html.X().AjaxProxy()
+                                        .ActionMethods(l => l.Read = Ext.Net.HttpMethod.POST)
+                                        .Url(Url.Action("GetUserType"))
+                                        .Reader(X.JsonReader().Root("data"))
+                                            )
+                                            ),
+                        X.Label("نام و نام خانوادگی:"),
+                        X.TextField()
+                            .ItemID("txtNameFamily")
+                            .Width(160)
+                            .AllowBlank(false)
+                            .ReadOnly(true)
+                            .FieldStyle("padding-right:0px;")
+                            .Icon(Icon.UserAdd)
+                            .BlankText("لطفا نام و نام خانوادگی را وارد کنید.")
+                            .Listeners(l =>
+                            {
+                                l.SpecialKey.Handler = "SelectEmployeeUser(e.getKey());";
+                                l.IconClick.Handler = "GotoPersonList()";
+                                l.AfterRender.Handler = "App.NewUser.queryById('txtNameFamily').icon.dom.classList.add('custom-icon');";
+                            }),
+                        X.Label("نام کاربری:"),
+                        X.TextField()
+                        .ItemID("txtUserName")
+                        .Width(160)
+                        .MaxLength(100)
+                        .EnforceMaxLength(true)
+                            .AllowBlank(false)
+                            .BlankText("لطفا نام کاربری را وارد کنید."),
+                        X.Label("وضعیت فعالیت:"),
+                        X.ComboBox()
+                            .ItemID("CboStatus")
+                            .Width(160)
+                            .Editable(false)
+                            .TypeAhead(true)
+                            .BlankText("لطفا وضعیت را انتخاب کنید.")
+                            .QueryMode(DataLoadMode.Local)
+                            .TriggerAction(TriggerAction.All)
+                            .AllowBlank(false)
+                            .EmptyText("وضعیت...")
+                            .Items(
+                                new ListItem("فعال", "1"),
+                                new ListItem("غیرفعال", "0")
+                                )
+                            .SelectedItems(new { Value = "1" }),
+                        X.Label("وضعیت دسترسی:"),
+                        X.ComboBox()
+                            .ItemID("CboType")
+                            .Width(160)
+                            .Editable(false)
+                            .TypeAhead(true)
+                            .BlankText("لطفا وضعیت را انتخاب کنید.")
+                            .QueryMode(DataLoadMode.Local)
+                            .TriggerAction(TriggerAction.All)
+                            .AllowBlank(false)
+                            .EmptyText("وضعیت...")
+                            .Items(
+                                new ListItem("مجاز", "1"),
+                                new ListItem("غیرمجاز", "0")
+                                )
+                            .SelectedItems(new { Value = "1" }),
+                          
+                        X.Label("توضیحات:"),
+                            X.TextField()
+            .ColSpan(3)
+            .Width(425)
+                            .ItemID("txtDesc")
+        //        X.Label()
+        //    .Text("موقعیت:"),
+        //X.FieldSet()
+        //    .Height(20)
+        //    .Border(false)
+        //    .Items(
+        //       X.Label()
+        //           .Width(393)
+        //            .ItemID("lblTitle"))
+        //            .Padding(0)
+        //            .ColSpan(3)
+                    ))
+            )
+    )
+)
+
+<script type="text/javascript">
+    var LoadLeafNodes = function (root) {
+        root.childNodes.forEach(
+            function (nod) {
+                if (nod.data.leaf == false) {
+                    App.TreeTreeStructure.store.load({ node: nod });
+                }
+            });
+    };
+   
+    function ChangeOwnerUser() {
+        App.NewUser.queryById('CboTypeUser').store.load();
+       App.TreeTreeStructure.store.load();
+        if (App.NewUser.queryById('CboTypeUser').getValue() != null)
+            App.TreeGroup.store.load();
+    }
+    var setCheckedParent = function (tree, parent, child) {
+        var ExistChecked = child.filter(function (el) { return el.raw.checked == true; });
+        if (ExistChecked.length > 0) {
+            var node = child[0];
+            while (node.parentNode != null) {
+                node.parentNode.set('checked', true);
+                node = node.parentNode;
+            }
+        }
+    };
+
+    var setCheckedTreeStructure = function (node, checked, eOpts) {
+        if (node.childNodes.length > 0) {
+            node.cascadeBy(function (n) {
+                n.set('checked', checked);
+            });
+            if (checked == true) {
+                while (node.parentNode != null) {
+                    node.parentNode.set('checked', true);
+                    node = node.parentNode;
+                }
+            }
+            else {
+                var StateEqual = true;
+                while (node.parentNode != null) {
+                    node.parentNode.cascadeBy(function (n) {
+                        if (n != node.parentNode) {
+                            if (n.get('checked') == true) {
+                                StateEqual = false;
+                            }
+                        }
+                    });
+                    if (StateEqual == true) {
+                        node.parentNode.set('checked', false);
+                    }
+                    node = node.parentNode;
+                }
+            }
+        }
+        else {
+            if (checked == true) {
+                while (node.parentNode != null) {
+                    node.parentNode.set('checked', true);
+                    node = node.parentNode;
+                }
+            }
+            else {
+                var StateEqual = true;
+                node.parentNode.cascadeBy(function (n) {
+                    if (n != node.parentNode) {
+                        if (n.get('checked') != checked) {
+                            StateEqual = false;
+                        }
+                    }
+                });
+                if (StateEqual != checked) {
+                    node.parentNode.set('checked', checked);
+                }
+
+                var StateEqual2 = true;
+                while (node.parentNode != null) {
+                    node.parentNode.cascadeBy(function (n) {
+                        if (n != node.parentNode) {
+                            if (n.get('checked') == true) {
+                                StateEqual2 = false;
+                            }
+                        }
+                    });
+                    if (StateEqual2 == true) {
+                        node.parentNode.set('checked', false);
+                    }
+                    node = node.parentNode;
+                }
+            }
+        }
+    };
+
+    function setDefaultOwnerUser() {
+        if ('@ViewBag.Id' == "0") {
+            App.NewUser.queryById('CboOwnerUser').setValue('@ViewBag.OwnerUser');
+            App.NewUser.queryById('CboTypeUser').store.load();
+            if (App.NewUser.queryById('CboTypeUser').getValue() != null)
+                App.TreeGroup.store.load();
+        }
+    }
+    function setDefaultTypeUser() {
+        if ('@ViewBag.Id' == "0") {
+            App.NewUser.queryById('CboTypeUser').select(App.NewUser.queryById('CboTypeUser').store.getAt(0));
+        }
+
+    }
+    /*var NodeTreeStructureId = 0;*/
+
+    function GotoNewPermission(grid, command, record, rowIndex) {
+        App.NewUser.body.mask("در حال بارگذاری...");
+        Ext.net.DirectMethod.request({
+            url: '/User/ShowPermission2',
+            params: {
+                UserGroupId: record.data.id
+            },
+            success: function (data) {
+                App.NewUser.body.mask().hide();
+            }
+        });
+    };
+
+    function GotoNewUserGroup() {
+        App.NewUser.body.mask("در حال بارگذاری");
+        Ext.net.DirectMethod.request({
+            url: '/UserGroup/New',
+            params: {
+                id: 0,
+            },
+            success: function () {
+                App.NewUser.body.mask().hide();
+            }
+        });
+    }
+    @*function GetUserGroup() {
+        var CboTypeUser = App.NewUser.queryById('CboTypeUser');
+        Ext.net.DirectMethod.request({
+            url: '/User/NodeLoadGroup',
+            params: {
+                nod: "0",
+                UserId:'@ViewBag.Id',
+                UserType: CboTypeUser.getValue()
+            },
+            success: function () {
+                App.TreeGroup.store.load();
+                /* Reload();*/
+            },
+            failure: function (errorMsg) {
+                Ext.Msg.alert('Failure', errorMsg);
+            }
+
+        });
+        return false;
+    }*@
+
+    @*function loadTreeGroup() {
+        App.TreeGroup.store.load({
+            params: {
+                nod: "0",
+                UserId: '@ViewBag.Id',
+                UserType: App.NewUser.queryById('CboTypeUser').getValue()
+            }
+        });
+    }*@
+
+    var GetParam = function (store, operation, eOpts) {
+        var nodeId = operation.node.getId();
+        operation.params.nod = operation.node.getId();
+        operation.params.UserId = '@ViewBag.Id';
+        operation.params.OwnerUser = App.NewUser.queryById('CboOwnerUser').getValue();
+        var CboTypeUser = App.NewUser.queryById('CboTypeUser');
+        operation.params.UserType = CboTypeUser.getValue();
+        operation.params.__RequestVerificationToken = App.NewUser.queryById('antiForgeryToken').getValue();
+    };
+
+
+    @*var CheckTreeId = function (view,record) {
+        if ('@ViewBag.TreeIdUser' != 1 && record.getId() == 1) {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا گروه کاربری را انتخاب کنید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+            return;
+        }
+    };*@
+
+    var GetParamTreeDaramad = function (store, operation, eOpts) {
+        var nodeId = operation.node.getId();
+        operation.params.nod = nodeId;
+        operation.params.EditUser = '@ViewBag.Id';
+        var CboOwnerUser=App.NewUser.queryById('CboOwnerUser').getValue();
+
+        if (CboOwnerUser !="" && CboOwnerUser!=null)
+            operation.params.OwnerUser = CboOwnerUser;
+        else
+            operation.params.OwnerUser = '@ViewBag.OwnerUser';
+
+        operation.params.__RequestVerificationToken = App.NewUser.queryById('antiForgeryToken').getValue();
+    };
+
+    var setChecked = function (column, bb, record,value) {
+        if (column.dataIndex == "fldWithGrant" && value==true) {
+            record.set("fldGrant", true);
+        }
+        else if (column.dataIndex == "fldGrant" && value == false) {
+            record.set("fldWithGrant", false);
+        }
+    };
+
+    /*function ClearPersonn() {
+        App.NewUser.queryById('ShakhsId').setValue(0);
+        App.NewUser.queryById('txtNameFamily').setValue("");
+        App.NewUser.queryById('txtUserName').setValue("");
+    }*/
+
+    function GotoPersonList() {
+        App.NewUser.body.mask("در حال بارگذاری");
+        Ext.net.DirectMethod.request({
+            url: '/SearchHuman/Index',
+            params: {
+                State: 1,
+            },
+            success: function () {
+                App.NewUser.body.mask().hide();
+            }
+        });
+    }
+
+    function SelectEmployeeUser(Code) {
+        if (Code == 45) {
+            App.NewUser.body.mask("در حال بارگذاری");
+            Ext.net.DirectMethod.request({
+                url: '/SearchHuman/Index',
+                params: {
+                    State: 1,
+                },
+                success: function () {
+                    App.NewUser.body.mask().hide();
+                }
+            });
+        }
+    }
+
+    @*function GetTreeStructureId(record) {
+        NodeTreeStructureId = record.getId();
+        if ('@ViewBag.TreeIdUser' != 1 && record.getId() == 1) {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "شما مجاز به انتخاب این گزینه نمی باشید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+            App.TreeTreeStructure.getSelectionModel().deselectAll();
+            NodeTreeStructureId = 0;
+            var lblTitle = App.NewUser.queryById('lblTitle');
+            lblTitle.setText("");
+        }
+        else {
+            Ext.net.DirectMethod.request({
+                url: '/User/GetNodeTitle',
+                params: {
+                    id: NodeTreeStructureId
+                },
+                success: function (result) {
+                    var lblTitle = App.NewUser.queryById('lblTitle');
+                    lblTitle.setText(result.fldTitle);
+                },
+
+                failure: function (errorMsg) {
+                    Ext.Msg.alert('Failure', errorMsg);
+                }
+            });
+        }
+    }*@
+
+    function LoadUser() {
+        if ('@perr' == 'True') {
+            $('#btnnewusergroup').show();
+        }
+        if ('@perr2' == 'True') {
+            App.ColLock.show();
+        }
+        if ('@ViewBag.Id' != "0") {
+            /*App.UserWin.body.mask("در حال بارگذاری...");*/
+            Ext.net.Mask.show({ msg: 'در حال بارگذاری...' });
+            Ext.net.DirectMethod.request({
+                url: '/User/Details',
+                params: {
+                    Id: '@ViewBag.Id',
+                    __RequestVerificationToken: App.NewUser.queryById('antiForgeryToken').getValue()
+                },
+                success: function (data) {
+                    var CboOwnerUser = App.NewUser.queryById('CboOwnerUser');
+                    CboOwnerUser.setValue(data.fldUserId);
+                    App.NewUser.queryById('CboTypeUser').store.load();
+                    var txtNameFamily = App.NewUser.queryById('txtNameFamily');
+                    txtNameFamily.setValue(data.fldFamilyName);
+
+                    var ShakhsId = App.NewUser.queryById('ShakhsId');
+                    ShakhsId.setValue(data.fldShakhsId);
+
+                    var txtUserName = App.NewUser.queryById('txtUserName');
+                    txtUserName.setValue(data.fldUserName);
+
+                    var CboStatus = App.NewUser.queryById('CboStatus');
+                    CboStatus.setValue(data.fldType);
+
+
+                    var CboType = App.NewUser.queryById('CboType');
+                    CboType.setValue(data.fldActive_Deactive);
+
+                    var txtDesc = App.NewUser.queryById('txtDesc');
+                    txtDesc.setValue(data.fldDesc);
+
+                    var fldId = App.NewUser.queryById('fldId');
+                    fldId.setValue(data.fldId);
+                    /*NodeTreeStructureId = data.fldTreeId;
+
+                    var lblTitle = App.NewUser.queryById('lblTitle');
+                    lblTitle.setText(data.fldTitleTreeStructure);*/
+
+                    var CboTypeUser = App.NewUser.queryById('CboTypeUser');
+                    CboTypeUser.setValue(data.UserType);
+
+
+
+                    @*if (data.fldTreeId == 1) {
+                        var record = App.TreeTreeStructure.store.getNodeById(data.fldTreeId);
+                        App.TreeTreeStructure.getSelectionModel().select(record);
+                    }
+                    else {
+                        Ext.net.DirectMethod.request({
+                            url: '/User/GetTreeUser',
+                            params: {
+                                Id: '@ViewBag.Id'
+                            },
+                            success: function (data) {
+                                var idd = data.path.split('/')[2];
+                                App.TreeTreeStructure.store.getNodeById(idd).expand();
+                                App.TreeTreeStructure.store.on('expand', function () {
+                                    App.TreeTreeStructure.expandPath(data.path);
+                                    App.TreeTreeStructure.selectPath(data.path);
+                                });
+                                App.NewUser.body.mask().hide();
+                            }
+                        });
+                    }*@
+                    /*App.UserWin.body.mask().hide();*/
+                    Ext.net.Mask.hide();
+                }
+            });
+        }
+        else {
+            App.NewUser.queryById('txtNameFamily').validate();
+            App.NewUser.queryById('txtUserName').validate();
+            App.NewUser.queryById('CboStatus').validate();
+        }
+    }
+
+    @*function SelRecTreeStructure() {
+        if ('@ViewBag.Id' != "0") {
+            App.NewUser.body.mask('در حال بارگذاری...');
+            Ext.net.DirectMethod.request({
+                url: '/User/GetTreeUser',
+                params: {
+                    Id: '@ViewBag.Id'
+                },
+                success: function (data) {
+                    var record = App.TreeTreeStructure.store.getNodeById(data.fldTreeId);
+                    App.TreeTreeStructure.getSelectionModel().select(record);
+                    App.NewUser.body.mask().hide();
+                }
+            });
+        }
+    }*@
+
+    function SaveUser() {
+        var StationIds = "";
+        var Setaddi = false;
+        var txtNameFamily = App.NewUser.queryById('txtNameFamily');
+        var txtUserName = App.NewUser.queryById('txtUserName');
+        var CboStatus = App.NewUser.queryById('CboStatus');/*فعالیت*/
+        var CboType = App.NewUser.queryById('CboType');/*دسترسی*/
+        var txtDesc = App.NewUser.queryById('txtDesc');
+        var fldId = App.NewUser.queryById('fldId');
+        var ShakhsId = App.NewUser.queryById('ShakhsId');
+        var CboTypeUser = App.NewUser.queryById('CboTypeUser');
+        var CboOwnerUser = App.NewUser.queryById('CboOwnerUser');
+        var Checked = App.TreeTreeStructure.getChecked();
+        if (App.TreeTreeStructure.store.tree.flatten().length == Checked.length) {
+            Setaddi = true;
+        }
+
+        var UserGroup = new Array();
+        var er = false;
+
+        if (txtNameFamily.validate() == false) {
+            er = true;
+        }
+        if (txtUserName.validate() == false) {
+            er = true;
+        }
+        if (CboStatus.validate() == false) {
+            er = true;
+        }
+        if (CboType.validate() == false) {
+            er = true;
+        }
+        if (CboOwnerUser.validate() == false) {
+            er = true;
+        }
+        if (CboTypeUser.validate() == false) {
+            er = true;
+        }
+        if (Checked.length == 0) {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا حداقل یک موقعیت را در ساختار درختی انتخاب کنید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+            er = true;
+        }
+        else {
+            Checked = Checked.filter(function (el) { return el.data.leaf == true; });
+            Checked.forEach(function (node) { StationIds = StationIds + node.id.split(';')[1] + "," });
+        }
+        if (CboOwnerUser.getDisplayValue()==txtNameFamily.getValue()) {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "کاربر انتخاب شده نمی تواند مالک کاربری خود باشد.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+            er = true;
+        }
+        if (er == true)
+            return;
+        var root = App.TreeGroup.getRootNode();
+        root.eachChild(function (n) {
+            if (n.get('fldGrant') == true) {
+                UserGroup.push({
+                    'fldUserGroupID': n.getId(),
+                    'fldGrant': n.get('fldGrant'),
+                    'fldWithGrant': n.get('fldWithGrant')
+                });
+            }
+        });
+        if (UserGroup.length == 0) {
+            Ext.MessageBox.show({
+                title: "خطا",
+                msg: "لطفا گروه کاربری را انتخاب کنید.",
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            });
+            return;
+        }
+
+
+        var Active_Deactive = false;
+        var Type = false;
+        if (CboType.getValue() == "1")
+            Active_Deactive = true;
+        if (CboStatus.getValue() == "1")
+            Type = true;
+
+
+
+
+      /*  if ('ViewBag.Id'!="0" && 'ViewBag.OldUserId' != 'ViewBag.NewUserId') {
+            Ext.MessageBox.show({
+                title: "هشدار",
+                msg: "آیا تمایل دارید با نقش کاربری وارد شدید تغییرات ذخیره شود؟",
+                icon: Ext.MessageBox.WARNING,
+                buttons: Ext.MessageBox.YESNO,
+                fn: function (btn) {
+                    if (btn == 'yes') {
+                        var data = {
+                            fldId: fldId.getValue(),
+                            fldShakhsId: ShakhsId.getValue(),
+                            fldName: txtNameFamily.getValue(),
+                            fldUserName: txtUserName.getValue(),
+                            fldActive_Deactive: Active_Deactive,
+                            fldActive_DeactiveName:CboType.getDisplayValue(),
+                            fldDesc: txtDesc.getValue(),
+                            fldStationId: StationIds,
+                            fldSetadi: Setaddi,
+                            /*fldTreeId: NodeTreeStructureId,///
+                            fldUserType: CboTypeUser.getValue(),
+                            fldUserType_Name: CboTypeUser.getDisplayValue(),
+                            UserGroup1: JSON.stringify(UserGroup),
+                            fldType: Type,
+                            fldTypeName:CboStatus.getDisplayValue(),
+                            Change: true,
+                            fldUserID: CboOwnerUser.getValue(),
+                            fldTypePermission: TypePermission,
+                            fldMarakezTebId: MarakezTeb,
+                            __RequestVerificationToken: App.NewUser.queryById('antiForgeryToken').getValue()
+                        };
+                        App.NewUser.body.mask("در حال ذخیره سازی");
+                        $.ajax({
+                            type: "POST",
+                            url: '/User/Save',
+                            datatype: "json",
+                            data: data,
+
+                            success: function (data) {
+                                chat.server.reloadLog();
+                                var ic = Ext.MessageBox.INFO;
+                                var result = data;
+                                if (result.Er == 1)
+                                    ic = Ext.MessageBox.ERROR;
+                                Ext.MessageBox.show({
+                                    title: result.MsgTitle,
+                                    msg: result.Msg,
+                                    icon: ic,
+                                    buttons: Ext.MessageBox.OK
+                                });
+                                App.Users.queryById('GridUsers').store.load();
+                                App.NewUser.body.mask().hide();
+                                if (data.Er != 1)
+                                    ClearUser();
+                            },
+                            failure: function (data) {
+                                alert(data.data);
+                            }
+                        });
+                    }
+                    else if (btn == 'no') {
+                        var data = {
+                            fldId: fldId.getValue(),
+                            fldShakhsId: ShakhsId.getValue(),
+                            fldName: txtNameFamily.getValue(),
+                            fldUserName: txtUserName.getValue(),
+                            fldActive_Deactive: Active_Deactive,
+                            fldActive_DeactiveName: CboType.getDisplayValue(),
+                            fldDesc: txtDesc.getValue(),
+                            fldStationId: StationIds,
+                            fldSetadi: Setaddi,
+                            /*fldTreeId: NodeTreeStructureId,/
+                            fldUserType: CboTypeUser.getValue(),
+                            fldUserType_Name: CboTypeUser.getDisplayValue(),
+                            UserGroup1: JSON.stringify(UserGroup),
+                            fldType: Type,
+                            fldTypeName: CboStatus.getDisplayValue(),
+                            Change: false,
+                            fldUserID: CboOwnerUser.getValue(),
+                            fldTypePermission: TypePermission,
+                            fldMarakezTebId: MarakezTeb,
+                            __RequestVerificationToken: App.NewUser.queryById('antiForgeryToken').getValue()
+                        };
+                        App.NewUser.body.mask("در حال ذخیره سازی");
+                        $.ajax({
+                            type: "POST",
+                            url: '/User/Save',
+                            datatype: "json",
+                            data: data,
+                            success: function (data) {
+                                var ic = Ext.MessageBox.INFO;
+                                var result = data;
+                                if (result.Er == 1)
+                                    ic = Ext.MessageBox.ERROR;
+                                Ext.MessageBox.show({
+                                    title: result.MsgTitle,
+                                    msg: result.Msg,
+                                    icon: ic,
+                                    buttons: Ext.MessageBox.OK
+                                });
+                                App.Users.queryById('GridUsers').store.load();
+                                App.NewUser.body.mask().hide();
+                                if (data.Er != 1)
+                                    ClearUser();
+                            },
+                            failure: function (data) {
+                                alert(data.data);
+                            }
+                        });
+                    }
+                }
+            });
+        }
+        else {*/
+            var data = {
+                fldId: fldId.getValue(),
+                fldShakhsId: ShakhsId.getValue(),
+                fldUserName: txtUserName.getValue(),
+                fldName: txtNameFamily.getValue(),
+                fldActive_Deactive: Active_Deactive,
+                fldActive_DeactiveName: CboType.getDisplayValue(),
+                fldDesc: txtDesc.getValue(),
+                /*fldTreeId: NodeTreeStructureId,*/
+                fldStationId: StationIds,
+                fldSetadi: Setaddi,
+                UserGroup1: JSON.stringify(UserGroup),
+                fldUserType: CboTypeUser.getValue(),
+                fldUserType_Name: CboTypeUser.getDisplayValue(),
+                fldType: Type,
+                fldTypeName: CboStatus.getDisplayValue(),
+                /*Change: false,*/
+                fldUserID: CboOwnerUser.getValue(),
+                __RequestVerificationToken: App.NewUser.queryById('antiForgeryToken').getValue(),
+                fldNoeKarbar:0
+            };
+
+            App.NewUser.body.mask("در حال ذخیره سازی");
+            $.ajax({
+                type: "POST",
+                url: '/User/Save',
+                datatype: "json",
+                data: data,
+                /*contentType: 'application/json',*/
+                success: function (data) {
+                    var ic = Ext.MessageBox.INFO;
+                    var result = data;
+                    if (result.Er == 1)
+                        ic = Ext.MessageBox.ERROR;
+                    Ext.MessageBox.show({
+                        title: result.MsgTitle,
+                        msg: result.Msg,
+                        icon: ic,
+                        buttons: Ext.MessageBox.OK
+                    });
+                    App.Users.queryById('GridUsers').store.load();
+                    App.NewUser.body.mask().hide();
+                    if (data.Er != 1)
+                        ClearUser();
+                },
+                failure: function (data) {
+                    alert(data.data);
+                }
+            });
+            /* }/*
+    }
+
+    function ClearUser() {
+        App.NewUser.queryById('fldId').setValue(0);
+        App.NewUser.queryById('ShakhsId').setValue(0);
+        App.NewUser.queryById('txtUserName').setValue("");
+        App.NewUser.queryById('txtNameFamily').setValue("");
+        App.NewUser.queryById('CboStatus').setValue("1");
+        App.NewUser.queryById('txtDesc').setValue("");
+        /*App.NewUser.queryById('lblTitle').setText("");*/
+        App.TreeTreeStructure.getSelectionModel().deselectAll();
+        App.TreeTreeStructure.getSelectionModel().clearSelections();
+
+        var root = App.TreeGroup.getRootNode();
+        root.eachChild(function (n) {
+            n.set('fldGrant', false);
+            n.set('fldWithGrant', false);
+        });
+    }
+
+    function EnterNext() {
+        var keyfield = App.NewUser.queryById(Ext.getCmp((Ext.Element.getActiveElement()).name).itemId);
+        nextfld = keyfield.nextSibling().nextSibling();
+        nextfld.focus();
+        nextfld.selectText();
+    }
+</script>
